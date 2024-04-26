@@ -3,7 +3,7 @@
     
     README.md
     
-        GeekDoc 区块链中文文档：文档中文名
+        GeekDoc 区块链译文集：文档中文名
         {nameEn}：文档英文名
         {urlEn}：文档原始链接
         gdbc：域名前缀
@@ -21,7 +21,7 @@
 
     index.html
     
-        GeekDoc 区块链中文文档：文档中文名
+        GeekDoc 区块链译文集：文档中文名
         #333：显示颜色
         geekdoc-blockchain-zh：ApacheCN 的 Github 仓库名称
 
@@ -30,7 +30,7 @@
         geekdoc-blockchain-zh：ApacheCN 的 Github 仓库名称
 -->
 
-# GeekDoc 区块链中文文档
+# GeekDoc 区块链译文集
 
 > 协议：[CC BY-NC-SA 4.0](http://creativecommons.org/licenses/by-nc-sa/4.0/)
 > 
