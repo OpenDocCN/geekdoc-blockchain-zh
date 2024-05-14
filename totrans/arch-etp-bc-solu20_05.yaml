@@ -1,0 +1,1304 @@
+- en: Chapter 4
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Understanding Enterprise Blockchain Consensus
+  prefs: []
+  type: TYPE_NORMAL
+- en: This chapter will cover the most common consensus methods used for blockchains
+    and distributed ledger platforms. The chapter will cover how blockchain consensus
+    came to be and will provide insight into the historical challenge of the Byzantine
+    Generals Problem and how it compares to the computer science challenges with distributed
+    systems. The main focus of the chapter will be on the consensus methods used in
+    the enterprise blockchains Hyperledger Fabric, R3 Corda, Quorum, and Enterprise
+    Ethereum.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You will learn about the enterprise blockchain consensus algorithms used in
+    the major enterprise blockchains. I will cover the most common blockchain consensus
+    algorithms; however, I won't be able to cover every blockchain consensus method.
+    There are at least 40 consensus methods, and most are not viable for enterprise
+    requirements, mainly because of the blockchain they were developed for or the
+    lack of enterprise features.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The goal of the chapter is to give you a technical presales perspective on why
+    the blockchain consensus methods vary and how this could play into an enterprise's
+    decision to implement a specific blockchain ledger platform. The chapter was not
+    designed to provide you with a doctorate in blockchain consensus where you can
+    trace transactions like an actual blockchain developer would.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note that blockchains such as Bitcoin and Ethereum can be moving targets since
+    the changes made to them are routine and expected. For an experienced blockchain
+    and cryptocurrency expert, it should come as no surprise that a fork to these
+    blockchain occurs almost annually. Another way to view a blockchain fork is that
+    it is essentially a collectively agreed upon software update to the blockchain
+    nodes. The main goal of a fork is to create two parallel blockchains, where one
+    of the two is the winning blockchain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Keeping in line with the mission of this book, I will focus on the enterprise-ready
+    features, speeds, and feeds of the consensus methods that are used in enterprise
+    blockchains.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As mentioned, during the course of this chapter, you will look at each of the
+    enterprise blockchains and distributed ledger consensus methods that are used
+    in Ethereum, R3 Corda, Hyperledger, and Quorum. I will also cover the enterprise
+    aspects of these enterprise blockchains and ledgers that have pluggable or modular
+    components to enable your customers to have flexibility with the consensus approach.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You will see that both proof of work (PoW) and proof of stake (PoS) are commonly
+    used as comparisons throughout the book. The reality is that it is hard to compare
+    consensus mechanisms without a reference point of comparison to Bitcoin's PoW
+    since it was the original consensus method. PoS is also widely used in blockchain
+    platforms and can make for interesting comparisons as well. The chapter also will
+    review what consensus is, why is it important, and how the Byzantine Generals
+    Problem came about and how it was solved with a form of consensus called Byzantine
+    fault tolerance.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Specifically, the following consensus methods are covered in this chapter:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Proof of work
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Proof of stake
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Proof of elapsed time
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Delegated proof of stake
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Delegated Byzantine fault tolerance
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Practical Byzantine fault tolerance
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Istanbul Byzantine fault tolerance
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Raft-based directed acyclic graphs  ## Blockchain Consensus Methods from a
+    Historical Perspective'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'This section covers the concept of consensus from a historical perspective.
+    The following topics are discussed:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The importance of consensus
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The Byzantine Generals Problem
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Bitcoin's solution to the Byzantine Generals Problem
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Byzantine fault tolerance
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '### The Importance of Consensus'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Consensus, as you know, means the method used to come to an agreement. So, consensus
+    in a blockchain is how the blockchain nodes “come to agreement” over the blockchain
+    transactions that will be written to the blockchain ledger. Consensus can be viewed
+    as an agreement on the last state of the blockchain ledger's “world state,” which
+    is similar to a snapshot or picture of the current transactions written. Consensus
+    validates transactions and also orders them.
+  prefs: []
+  type: TYPE_NORMAL
+- en: More specifically, a consensus algorithm is a process used to achieve an agreement,
+    for example, for a transaction on a distributed network. The primary concern to
+    the blockchain network's operation is the maintenance of the consensus of the
+    information being recorded on the blockchain within the blockchain network. Consensus
+    algorithms inherently have a trade-off. The trade-off is between transaction security
+    and performance in most scenarios. Performance in blockchains is measured in transaction
+    throughput, which is also known as *transactions per second* (TPS). For example,
+    the nature of Ethereum is trustless and is addressed by using the well-known proof-of-work
+    algorithm. The Ethash consensus algorithm used in Ethereum makes attacks both
+    prohibitively expensive and unlikely to occur. However, Ethereum is slow compared
+    to other database technologies.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Consensus can also impact the parameters and security of the blockchain ledger
+    operations. Understanding the strengths and weaknesses of the blockchain consensus
+    being deployed is advisable since exposure to known vulnerabilities can be avoided
+    with some basic knowledge. Also, the blockchain network could have rogue actors
+    that could facilitate greater exposure to vulnerabilities.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Enterprises require availability and consistency at a minimum. By the end of
+    this chapter, it should be clear that specific consensus algorithms were designed
+    to achieve reliability in a network involving multiple unreliable nodes. Solving
+    the consensus problem as it is known in the industry is quite important in distributed
+    computing and for that matter enterprise services.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Consensus in a blockchain follows the same requirements as distributed computing
+    and must satisfy the following two properties to guarantee an agreement among
+    network nodes:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Safety is referenced in most blockchain platforms as being able to provide a
+    finality to a blockchain transaction. In a blockchain, this can mean that each
+    node will have the same output for each input.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Liveness is referenced to availability. In a blockchain, this means that each
+    nonfaulty node will eventually receive every submitted transaction.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Two types of blockchain consensus are generally accepted in the industry: voting-based
+    and lottery-based. Voting-based consensus should be chosen based on the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Finality**—Voting-based algorithms are considered beneficial since they provide
+    what is considered low-latency finality. This is accomplished by a majority of
+    nodes validating a transaction or block.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Strict rules**—Rules are strictly enforced, especially in a PoW consensus
+    method as used in Ethereum.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Lottery-based consensus should be chosen based on the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Fairness**—The function should distribute leader election across the broadest
+    possible population of participants.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Investment**—The cost of controlling the leader election process should be
+    proportional to the value gained from it.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Verification**—It should be relatively simple for all participants to verify
+    that the leader was legitimately selected.  ### Byzantine Generals Problem'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The Byzantine Generals Problem comes from the world of traditional computer
+    science. In this scenario, the involved parties must come to an agreement for
+    a strategy in order to avoid a complete failure of operations. It could also be
+    that some nodes in the network could be corrupt and effectively spreading unreliable
+    requests or information.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Before telecommunications, encryption, and general information technology (IT),
+    the only way to really communicate with other people was through other people
+    who were messengers. This form of communication was clearly dangerous for both
+    the army and the messenger. Messengers could be captured, for example, and the
+    message stolen, which could place the army in a vulnerable scenario. Sure, other
+    forms of communications were available such as smoke signals or mirroring. However,
+    smoke signals were not accepted as a way to be secretive.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Perhaps the city is strong enough to defend itself against one or two of the
+    enemy army brigades, but it may not strong enough to defend against three and
+    definitely not against seven. So, the general's seven brigades need to have “consensus”
+    and must agree on how, when, why, and where to attack with precision.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How do the generals attack at the same time? How do they know a message sent
+    from another brigade was not tampered with? How do they communicate so it's not
+    intercepted?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now let's get back to computer science and specifically discuss how consensus
+    affects blockchain technology. In the world of blockchains, nodes are essentially
+    virtual machines running the blockchain networking protocols, code, and messaging
+    services on a distributed network. These blockchain nodes need a way to reach
+    an agreement when it comes to writing to the blockchain ledger. This is where
+    consensus comes in to handle how these blockchain nodes come to an agreement in
+    this distributed network.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Figure 4.1](#c04-fig-0001) shows a blockchain network with Ethereum Virtual
+    Machines. This distributed network has six nodes connected in a mesh network style.
+    Blockchain ledgers are not updated on one node at a time but are actually propagated
+    to all the nodes at the same time in most distributed ledger platforms.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Image described by caption and surrounding text.](images/c04f001.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '[**FIGURE 4.1**](#R_c04-fig-0001) Ethereum node network'
+  prefs: []
+  type: TYPE_NORMAL
+- en: It is critical that the agreement between all of these blockchain nodes on how
+    to write to the blockchain ledger is strictly defined. This strictly defined agreement
+    in blockchain is called reaching a consensus.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The true solution to the Byzantine Generals Problem is not a straightforward
+    solution where “one size fits all” in the world of consensus. These blockchain
+    ledger solutions need to involve specific types of hashing, intense computing
+    work, and a latency-tolerant peer-to-peer communications protocol between all
+    the nodes to verify the transactions. You can think of nodes as generals when
+    applying the Byzantine Generals Problem to blockchains.  ### Byzantine Fault Tolerance'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Byzantine fault tolerance (BFT) came about since it represents a valid solution
+    to the Byzantine Generals Problem. BFT is a crucial part of an effective blockchain
+    platform, and there are multiple ways in which tolerance can be implemented. In
+    your role as a presale's specialist or IT architect, you need to understand the
+    various consensus methods available based on the enterprise blockchain platforms
+    you're considering.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Figure 4.2](#c04-fig-0002) goes through the step by step of how the Byzantine
+    Generals Problem works. First, General A gets a message to attack, while General
+    B does not get this message. Because General B does get this message, this creates
+    a problem where the city that was being attacked could foil the whole attack.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Image described by caption and surrounding text.](images/c04f002.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '[**FIGURE 4.2**](#R_c04-fig-0002) Byzantine fault tolerance workflow'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'I will be discussing various forms of Byzantine fault tolerance, such as PBFT
+    and other forms of BFT, in the remaining parts of this chapter.  ## Comparing
+    Enterprise Blockchain Consensus Methods'
+  prefs: []
+  type: TYPE_NORMAL
+- en: One of the main challenges that you can run into when understanding blockchain
+    consensus is how vastly different the consensus algorithms can be for different
+    blockchain ledger platforms. For example, Bitcoin and Ethereum both use a form
+    of PoW, which is an amazingly costly and resource-intensive consensus method.
+    Other enterprise blockchains use a form of voting for their consensus approach.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Table 4.1](#c04-tbl-0001) references the most common blockchains and the consensus
+    methods they employ. Each consensus method has a specific use case and its own
+    pros and cons. Most of the blockchain consensus methods were developed to work
+    on a private permission blockchain such as the various versions of BFT and more
+    specialized proprietary consensus approaches such as Raft-based directed acyclic
+    graphs and proof of elapsed time.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[**TABLE 4.1**](#R_c04-tbl-0001): Common blockchain consensus methods'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| CONSENSUS METHOD | USED IN | PRIMARY PROS | PRIMARY CONS |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- | --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Proof of work | BTH, ETH, LTC | Widely tested | Slow and resource intensive
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Proof of stake | Peercoin, ETH Casper | Energy efficient | Nothing at stake
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Proof of elapsed time | Hyperledger Sawtooth | Participation cost | Specialized
+    hardware |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Delegated proof of stake | Steemit, EOS, LISK | Fast and efficient | Witnesses/not
+    centralized |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Delegated Byzantine fault tolerance | NEO | Fast and scalable | Root chain
+    control |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Practical Byzantine fault tolerance | Hyperledger Fabric | Efficient, sharding
+    transaction finality | Centralized |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Federated Byzantine fault tolerance | Ripple, Stellar | Low cost and high
+    throughput transactions | Centralized |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Istanbul Byzantine fault tolerance | Quorum | Low cost, high throughput transactions
+    | Centralized |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Raft | Quorum, IPFS, Clusters | Faster block times | Permissioned only |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Directed acrylic graph | Iota, Hashgraph | Fast, energy efficient finality
+    | Oracle requirements |'
+  prefs: []
+  type: TYPE_TB
+- en: '### Proof-of-Work Consensus'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Bitcoin was the first practical and successful cryptocurrency platform, and
+    it introduced the proof-of-work (PoW) consensus method as part of the platform.
+    The proof-of-work protocol involves block miners solving complex cryptographic
+    puzzles. As part of participating in the challenge of solving complex problems,
+    miners are compensated by receiving rewards in the form of Bitcoin in the case
+    of the Bitcoin blockchain platform, or Ether in the case of the Ethereum blockchain
+    platform. Proof of work is like a running a marathon for the blockchain miners
+    in the sense that the first node to produce the longest chain will win the block
+    rewards, which are cryptocurrency or tokens depending on the platform.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Proof of work is the most widely used consensus method. This is mainly because
+    it was the original protocol and has proven its resilience against internal and
+    external attacks. Basically, PoW demonstrates that a participant has done some
+    work and gets a reward for solving a problem.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A high-level overview of the PoW consensus in Bitcoin is that a block including
+    relevant parts of the transaction is hashed, and a random nonce is added to it
+    so that the resulting hash is below a certain value, which is called the *difficulty
+    level*. Another way to consider the mining process is to look at it as an operation
+    of inverse hashing, which is a cryptographic approach. This inverse hashing determines
+    a random number (nonce) so the cryptographic hash algorithm of block data results
+    in less than a given threshold, in other words, the difficulty level. This difficulty
+    level is what the miners use to gauge the level of compute power and resources
+    needed to mine Bitcoin, for example, and if it would be profitable.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Figure 4.3](#c04-fig-0003) shows the high-level process of a PoW transaction
+    where it references the previous block''s hash.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Image described by caption and surrounding text.](images/c04f003.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '[**FIGURE 4.3**](#R_c04-fig-0003) Transaction process in proof of work'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The second block is referencing the first block's hash, and then the third block
+    references the second block's hash. For a block to be written to a blockchain,
+    significant work has to be done by the miners.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Proof of work''s main characteristics are the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: It provides hard-to-predict blocks, which can add to the competitiveness of
+    the blockchain for miners but also security for the blockchain network. Essentially,
+    the math problem gets more difficult as required by the difficultly rate.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: It provides an easy way to validate the correctness of blocks by validating
+    who manages to solve the problem through predefined values.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: One main challenge with PoW is that a lot of energy is considered “wasted” or
+    “consumed.” When you have thousands of nodes on a network such as Bitcoin, you
+    will have thousands of nodes working to solve a problem. Consumption of resources
+    is the main concern. Along with that, the cost to mine a Bitcoin has skyrocketed
+    as well to over $1,000 or more. Mining cryptocurrencies requires intense electrical
+    power requirements. To successfully mine Bitcoin, for example, you would need
+    to purchase a “mining rig” that would likely have an application-specific integrated
+    circuit (ASIC), which is a microchip designed for a special application such as
+    Bitcoin mining. Mining is a competitive business, and an ASIC can provide a competitive
+    edge and provide efficiency, performance, and even security in the blockchain
+    mining arenas.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, in Bitcoin, a miner needs to be competitive, and this is done by
+    continuing the testing of different unique values. These unique values are known
+    as *nonces*. Once a miner manages to solve this complex problem, the miner will
+    receive the prevalent bitcoin rewards. The miner then may add the block into the
+    Bitcoin blockchain by broadcasting to the blockchain network that the block has
+    been mined by this node.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Mining serves two main purposes for a blockchain. First, mining is used to verify
+    the legitimacy of a transaction and because of this, helps to avoid the so-called
+    double spending issue. Second, mining facilitates the creation of rewards and
+    disbursement to the miners on the Bitcoin network.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you're an enterprise or your customers are enterprises, then you're likely
+    not going to be using a PoW-based blockchain such as Bitcoin. You may want to
+    use Ethereum, for example, as a token platform or perhaps to extend a payment
+    gateway for a cryptocurrency platform as well.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In the case of Quorum and Enterprise Ethereum, however, you may have a good
+    use case to consider those blockchains as well because of their hybrid enterprise
+    solutions. [Chapter 8](c08.xhtml), “Enterprise Blockchain Use Cases,” covers the
+    more common use cases for Quorum and Enterprise Ethereum.  ### Proof-of-Stake
+    Consensus'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Proof of stake (PoS) is a consensus algorithm that is commonly used by cryptocurrencies
+    to validate blocks and is very different from proof of work from a consensus standpoint.
+    Proof of stake was created in 2011, and the first cryptocurrency to implement
+    it was Peercoin in 2012\. Essentially it was created as a way of avoiding the
+    well-known economic and environmental issues with PoW, such as intense energy
+    consumption and cost of mining.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Proof of stake implements an approach where the creator of the next block is
+    determined by a randomized system that is logically dictated by how much of an
+    investment a user is holding or how long they have been holding that particular
+    currency. This is a different approach from the “computational power” in PoW,
+    for example, where the probability of creating a block and receiving the associated
+    rewards is proportional to a user holding the underlining token or cryptocurrency
+    on the network.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Proof of stake is an interest-based approach to handling a blockchain where
+    a node's interest is directly proportional to its investment. Another way to look
+    at proof of stake is that it is a deterministic way that is essentially based
+    on wealth, defined as *stake*. A greater investment in a cryptocurrency stake
+    equates to greater influence.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Proof of stake''s main characteristics are as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A stake may change due to economics.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Votes are based on economics.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Nodes need to be online to vote.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Votes are final.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Multiple votes are not allowed.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Ethereum has a planned Casper release, which is a fork of the Ethereum blockchain.
+    This fork would be to change from a PoW consensus to a PoS consensus. Note that
+    if Ethereum moved to a PoS consensus, it would be a major disruptive move, since
+    Ethereum would go from a mining consensus to a validator consensus.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The PoS system is well enabled for platforms with a static coin supply. For
+    example, most crowd-funded platforms leverage this approach to distributing tokens
+    based on investment. This is exactly where Ethereum is going. However, what makes
+    Ethereum different is its PoS-based finality system capable of overlaying an existing
+    PoW blockchain. This overlay on top of PoW is essentially a hybrid PoW/PoS approach
+    called *Casper Friendly Finality Gadget (FFG)*. However, this update has been
+    delayed because of technical challenges and security concerns.
+  prefs: []
+  type: TYPE_NORMAL
+- en: One of the main advantages of using proof of stake is that it has a significantly
+    lower energy requirement; therefore, you can get a better return on investment
+    (ROI).
+  prefs: []
+  type: TYPE_NORMAL
+- en: It has been documented that each Bitcoin transaction, which uses a PoW system,
+    can require as much electricity as an average Dutch household does in two weeks.
+    This is both ineffective and unsustainable.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Proof of stake is considered a more efficient consensus protocol as it requires
+    far less electricity to operate and can run on less strict hardware requirements
+    such as ASICs instead of GPUs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Also, PoS has less of a need to release many new coins, which has been a means
+    of incentivizing miners to maintain the network. This helps keep the price of
+    a particular coin more stable and therefore provides incentive for more blockchain
+    participation.  ### Comparing Proof of Work and Proof of Stake'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now that you have a general understanding of both PoW and PoS, let's review
+    PoW versus PoS to understand how disruptive it would be for Ethereum to move from
+    PoW to PoS.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Proof of work**—PoW relies on miners running nodes on the network to solve
+    computationally difficult math problems to validate new blocks of a transaction.
+    Miners are compensated for their work.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Proof of stake**—PoW relies on validator nodes on the network to take turns
+    proposing and validating the next block in the chain. The value of the validator''s
+    node—and the size of its reward—depends on the amount of coins staked in the verification
+    process. Essentially, the more you deposit, the bigger the potential return.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: PoW is work intensive and requires miners (nodes) to write to the blockchain
+    transactions. Miners are costly, and the mining process is hideously intensive
+    economically and from an energy standpoint.
+  prefs: []
+  type: TYPE_NORMAL
+- en: According to a recent Cointelegraph article (`[https://cointelegraph.com/news/bitcoin-mining-uses-more-power-than-most-african-countries](https://cointelegraph.com/news/bitcoin-mining-uses-more-power-than-most-african-countries)`),
+    it was estimated that just the Bitcoin network uses 0.14 percent of the global
+    energy consumption. Bitcoin mining now potentially consumes more electricity than
+    the bottom 750 million electricity users, which is more than 10 percent of the
+    population of the world.
+  prefs: []
+  type: TYPE_NORMAL
+- en: PoS requires a different type of investment than PoW and is less energy intensive.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'PoW offers the following pros:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: It is a historically proven consensus method that is widely used for cryptocurrency
+    and is a stable platform.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: It's secure because of the high cost and low probability of a 51 percent attack.
+    (A 51 percent attack is where the pool of mining nodes is taken over by a group
+    of miners controlling more than 50 percent of the network's mining hash rate.)
+    This type of attack is unlikely because of the immense hash power and the requirement
+    for the number of nodes to control.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'PoW has the following cons:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Transaction processing is slow compared to other consensus approaches. For example,
+    in Bitcoin it can take several hours to get a transaction confirmation.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The 51 percent attack concern is still real, meaning that 51 percent or more
+    than 51 percent of nodes in the network can be exploited.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Mining is a time-consuming process because of the work that has to be done to
+    produce blocks.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Mining is an expensive process from both an economic and environmental perspective.
+    For example, Bitcoin mining uses so much power it is frequently banned by municipal
+    power companies.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'PoS offers the following pros:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: It is energy efficient compared to proof of work since there is no need to mine
+    coins, making it an environmentally friendly option to cryptocurrencies such as
+    Bitcoin.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A PoS system has a lower barrier to entry because no mining rigs are required,
+    and it allows more users to take part in the staking and forging processes.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'PoS offers the following cons:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Someone can monopolize the network. With PoS you know that an increased stake
+    in the network means increased leverage. This can be a concern if someone forges
+    most of the future blocks and centralizes the rewards.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Hackers can steal your wealth but also your stake in the network. When someone
+    loses their “wallet” with the coins, then they also lose their ability to vote
+    in the blockchain network.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'As with any blockchain requirement you''re trying to establish, reviewing the
+    benefits and drawbacks should enable you to determine the right solution.  ###
+    Proof of Elapsed Time'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Proof of elapsed time (PoET) attempts to address the problem of proof of stake
+    where the random election of participants proposing blocks can occur and also
+    ensures that every participant has a fair chance to propose a new block and then
+    participate in the voting process.
+  prefs: []
+  type: TYPE_NORMAL
+- en: PoET was developed by well-known computer chipmaker Intel to be a production-grade
+    protocol capable of supporting large network use cases. PoET requires a special
+    CPU instruction set called *Intel Software Guard Extensions (SGX)*, which provides
+    for a trusted environment called TEE. Trusted code runs in an environment that
+    is private from the rest of the application. This means the rest of the application
+    will not interfere with the memory space of the trusted code, for example. Think
+    of this as a container in cloud computing or a sandbox.
+  prefs: []
+  type: TYPE_NORMAL
+- en: PoET essentially mitigates concerns about the PoW consensus by electing what
+    is considered a leader and implementing a two-tier process. PoET attempts to correct
+    the issue of PoS, which will arbitrarily determine that the members proposing
+    blocks are expected to guarantee that each member has a reasonable opportunity
+    to offer a block.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Every participant in the network is assigned a random amount of time to wait,
+    and the first participant to finish its wait time will have the opportunity to
+    commit the next block to the blockchain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: PoET imposes a hold-up time from its local reliable enclave of node members.
+    The node member with the shortest hold-up time is next to “offer” a block only
+    after the expiration of the hold time. Each privately trusted enclave signs the
+    potential requests. The results are then validated by other members so they can
+    confirm that no other nodes have skipped the waiting time.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are valid concerns that because PoET relies heavily on SGX for the foundation
+    of the protocol, the SGX enclave could be hijacked. This has been proven with
+    the recent Foreshadow vulnerability. Still, Hyperledger Sawtooth utilizes the
+    PoET consensus algorithm, which leverages Intel's SGX to implement this leader-based
+    lottery system.
+  prefs: []
+  type: TYPE_NORMAL
+- en: PoET is a specialized use case. Its main benefit is that it is a trusted proprietary
+    platform from Intel.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'PoET offers the following pros:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Trusted environment that is essentially a plug-and-play consensus on Hyperledger
+    Sawtooth
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Lower energy usage than a PoW consensus that has mining costs such as hardware
+    and energy
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Solves the random leader selection problem without being resource intensive
+    or requiring incentives
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'PoET has the following cons:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Lack of portability due to reliance on Intel's proprietary hardware and software
+    requirements
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Higher costs than other blockchain platforms due to the proprietary hardware
+    requirements
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'As you can see, the pros and cons could certainly be acceptable for enterprises
+    that are seeking a targeted solution and not expecting to go outside of that solution.  ###
+    Delegated Proof of Stake'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Delegated proof of stake (DPoS) was invented by Daniel Larimer, cofounder of
+    Steem and CTO of EOS, both of which use DPos. DPos is an offshoot of its relative
+    PoS.
+  prefs: []
+  type: TYPE_NORMAL
+- en: DPoS uses a real-time voting system and a reputational system to achieve consensus.
+    The DPoS blockchain consensus protocol allows the blockchain token holders to
+    leverage their coin balances to elect delegates that are called *witnesses*. These
+    witnesses have the opportunity to stake blocks of new transactions and then will
+    be authorized to add them to the blockchain network.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Interestingly, the voting power is determined by how large the token holdings
+    are of the specified blockchain stakeholders. The stakeholders who have more coins
+    or tokens, for example, will have a greater impact on the network than those with
+    fewer. Generally, this impact of the stake is directly proportional to the stake
+    that has been placed into the system's network.
+  prefs: []
+  type: TYPE_NORMAL
+- en: DPoS is considered to be the least centralized consensus protocol compared to
+    all others as it is the most inclusive.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are significant variations of DPoS where a delegate needs to show commitment
+    by depositing funds into what is similar to a time-locked security account. Each
+    of these blockchains also has a different protocol for how the consensus method
+    is implemented and maintained.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are typically 21 to 101 delegates elected in the various blockchain networks
+    using the DPoS consensus algorithm. For example, at the time of writing, in EOS
+    and also Steemit there are 21 block producers. In Bitshares, there are 101 block
+    producers. In a DPoS network, it is up to the consensus rules of that chain to
+    determine the variables of choosing a block producer.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Essentially, there are several benefits such as availability and performance,
+    which are just two differentiators as compared to other blockchain algorithms.
+    These are clear benefits to using a DPoS consensus.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'DPoS offers the following pros:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: DPoS consumes significantly less energy than PoW and is considered to be very
+    energy efficient.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: DPos provides incentives to participate in the network and provides delegates
+    with a way to be voted out if they misbehave on the network.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: DPos scales greater than PoW and PoS and has faster transaction processing due
+    to less overhead.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: There is a fair reward distribution where it is considered a “democratized”
+    reward schema.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'DPoS has the following cons:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A 51 percent attack is clearly possible because fewer people are in charge of
+    ensuring the network stays secure.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Centralization of control could occur if the delegates with the most tokens
+    gain strength, which in turn could allow a “cartel” approach to network control.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Some of the blockchain projects that use a DPoS consensus include Steemit,
+    EOS, Bitshares, and Lisk.  ### Delegated Byzantine Fault Tolerance'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Delegated Byzantine fault tolerance (dBFT) was developed by the NEO team to
+    overcome the Byzantine Generals Problem. NEO is similar in many respects to Ethereum,
+    but I chose not to cover NEO as one of the blockchains due to its low usage and
+    unproven platform at the time of writing.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It is, however, important to note that NEO does have some features that would
+    be useful for enterprises, so covering it here will be useful.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The system comprises nodes, delegates, and a speaker. dBFT essentially works
+    in a similar fashion to a country's government structure, with its citizens, delegates
+    (representatives), and speakers (politicians) to ensure that the country (network)
+    is functionally correct.
+  prefs: []
+  type: TYPE_NORMAL
+- en: dBFT has some unique terms compared to other blockchain consensus, so it's important
+    to clarify some terminology before moving on.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Citizens* are essentially NEO token holders and are considered ordinary nodes.
+    A token holder is anyone who holds a cryptocurrency token and maintains an interest
+    in the blockchain by voting.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Delegates* are bookkeeping nodes and elected to the role to file requests.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Speakers* are randomly chosen delegates to follow the citizens'' requests
+    by proposing the requests.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: dBFT is a unique consensus algorithm developed for NEO with what can be considered
+    a perfect finality. Perfect finality means that all transactions are 100 percent
+    confirmed to be final after the first confirmation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Interestingly, the blockchain cannot fork with dBFT, and this can remove some
+    friction for stakeholders. dBFT is totally focused on the enterprise since it
+    was clearly built with both regulatory and business use cases in mind.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'dBFT offers the following benefits:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: NEO offers immediate finality after confirmation as well as being an almost
+    impossible protocol to launch a 51 percent attack.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: NEO has fast and efficient protocols since a new block on the chain takes between
+    15 and 20 seconds.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The NEO dBFT network cannot be forked and, therefore provides stability for
+    participants.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'dBFT has the following disadvantages:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: There is high centralization due to the low node count of the NEO network.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Centralization is clear since the bookkeepers are controlled by the NEO council.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The NEO network cannot actually be forked, which may be a concern if a disagreement
+    occurs between members.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The NEO user and developer bases are still small compared to Ethereum, which
+    makes expertise harder to find.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'NEO is a nonprofit community-driven blockchain project. It utilizes blockchain
+    technology and digital identity to digitize assets and automate the management
+    of digital assets using smart contracts. To find out more about NEO and dBFT,
+    go to `[https://neo.org/](https://neo.org/)`.  ### Practical Byzantine Fault Tolerance'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Practical Byzantine fault tolerance (PBFT) has been the most widely used permissioned
+    blockchain platform protocol at the time of writing. PBFT was introduced by Miguel
+    Castro and Barbara Liskov at the MIT Laboratory for Computer Science in 1999\.
+    PBFT is also one of the several potential solutions to the Byzantine Generals
+    Problem, which was discussed earlier in the chapter.
+  prefs: []
+  type: TYPE_NORMAL
+- en: PBFT consensus decisions are determined based on the total decisions submitted
+    by all the generals (nodes). PBFT addresses the challenges without the extensive
+    expenditure of energy required by proof of work. It is important to note that
+    PBFT works only on a permissioned blockchain and thus does not allow anonymity
+    like in Ethereum.
+  prefs: []
+  type: TYPE_NORMAL
+- en: PBFT has the main purpose of deciding whether to accept a piece of information
+    submitted to the blockchain. Essentially, is the information being proposed from
+    an honest and reliable source?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'PBFT offers the following two benefits:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Rapid transaction finality that does not wait for confirmations to log transactions
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Lower power consumption compared to PoW
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'PBFT has the following disadvantages:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Initially designed for a limited use case because of the high load of network
+    traffic between nodes
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Can be susceptible to sybil attacks where a single party can create or manipulate
+    a large number of network nodes, compromising the network
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Blockchain projects such as Zilliqa, Hyperledger Fabric, and Ripple currently
+    are using PBFT as their primary algorithm or have it as a choice in their portfolio.  ###
+    Istanbul Byzantine Fault Tolerance'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Istanbul Byzantine fault tolerance (IBFT) is a hybrid form of BFT and is an
+    efficient alternative to PoW, which is currently used in the Ethereum network.
+    IBFT is an implementation of the PBFT algorithm with some significant modifications
+    to the blockchain code. These modifications provide for benefits that include
+    efficient settlement finality and reduced infrastructure.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, in its use case with Quorum, IBFT uses a pool of validating nodes
+    operating on a private Ethereum network, which will determine whether a proposed
+    block is valid to be proposed for addition to the blockchain network.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The next step in the process that occurs is that one validating node is arbitrarily
+    selected as the proposer and will be responsible for constructing a block at the
+    block interval. It then will share this block with the group.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Effectively, if a “super-majority” of the node validators accept the block to
+    be valid, the accepted block is then written to the blockchain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Lastly, at the completion of the consensus process, these validator nodes may
+    select a new proposer. This proposer then will be responsible for providing the
+    next candidate block at the next block interval in the process.
+  prefs: []
+  type: TYPE_NORMAL
+- en: IBFT is a Byzantine fault-tolerant solution offering immediate transaction finality
+    that reduces the required blockchain infrastructure that other platforms may require.
+    IBFT offers substantial benefits when used on a private blockchain where the validator
+    pool is trusted and held accountable.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Lastly, IBFT really provides for what is a predictable transaction processing
+    rate that enterprise blockchain must have.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The most significant implementation of IBFT is in the Quorum blockchain.  ###
+    Raft Consensus'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Raft is a consensus algorithm that is designed to be easy to understand by most
+    IT professionals in the sense that it has a simple ledger structure with little
+    overhead. The main difference is that Raft has been simplified into relatively
+    independent processes, which are known as *“subproblems.”*
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The Raft processes are as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Raft provides for a leader election process, where a new leader is elected in
+    case of the failure of an existing one.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Raft provides for a log replication service for the leaders, which provides
+    high availability.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Safety is the process that is implemented if one of the servers has committed
+    a log entry at a particular index and, comparatively speaking, no other server
+    can apply a different log entry for that specific index.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Raft has provided several useful resources to help you learn Raft efficiently.
+    For an interesting and interactive Raft visualization that you can view in your
+    browser, visit `[https://raft.github.io/](https://raft.github.io/)`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For more information about distributed consensus, the leader election process,
+    and Raft processing, visit `[http://thesecretlivesofdata.com/raft/](http://thesecretlivesofdata.com/raft/)`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Figure 4.4](#c04-fig-0004) provides a visual of the Raft processing resource.
+    As you can see, there are five servers in a Raft cluster that is running in a
+    browser. What is interesting is that you can interact with the utility.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Image described by caption and surrounding text.](images/c04f004.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '[**FIGURE 4.4**](#R_c04-fig-0004) Raft consensus visualization overview'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Raft offers the following benefits:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Raft has a very simple ledger and network structure that you can comprehend
+    quickly.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Raft has been well known since it is a “sister” version of Paxos. Raft is used
+    as a backend data structure for containers.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Raft uses a randomized election timeout process that ensures that “split votes”
+    are minimized.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Raft consensus does not mint blocks unless there are pending transactions, which
+    can provide for some efficiency.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Raft transactions have a faster block time as compared to IBFT consensus used
+    in other blockchains.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Raft has the following disadvantages:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Raft has a somewhat limited use case in the sense that it is not used directly
+    with cryptocurrencies.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Raft also has a limited enterprise blockchain ledger that is available to work
+    with significant enterprise use cases.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'The Raft consensus is an option used in the Quorum blockchain  ### Directed
+    Acyclic Graph'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Directed acyclic graphs (DAGs) may become more prevalent in ledger technology's
+    future based on several factors. Some of these factors are greater performance
+    and significant scalability, which in reality blockchains do not do well.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A DAG is a very different data structure than what a blockchain is. A DAG has
+    traditionally been used in computer science to solve challenges around data modeling
+    and data analysis.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Before moving on, it is important to understand some definitions when discussing
+    the DAG platform. DAG's have some unique terms compared to other blockchain consensus
+    methods.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following terms are unique to DAGs:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A *web* is a network consisting of nodes connected to each other with edges.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: An *edge* is a one-way connection point between one or more network nodes.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Acyclic* means that a transaction cannot encounter the same node for the second
+    time when moving from one node to another node by following the edges of the network.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Generally, it can take 10 minutes to create one block, and it's important to
+    note that blocks cannot be created simultaneously. What is actually significant
+    is that transactions can be running on different chains simultaneously, and this
+    can provide better performance.
+  prefs: []
+  type: TYPE_NORMAL
+- en: What is the difference between a blockchain and a DAG?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Blockchains are a very different data structure where a distributed ledger forms
+    a linear chain of blocks of transactions in an immutable chronological order that
+    is clearly timestamped. A DAG is effectively different since it is a network of
+    individual transactions linked to any multiple other transactions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A DAG does not transact serially like a blockchain rather in a form of a parallel
+    ledger data structure.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A blockchain is a linked list of blocks, but a DAG is a tree where transactions
+    branch out from one transaction to another. This is considered a graph that travels
+    in one direction without cycles connecting the other edges. A simpler way to look
+    at a DAG is a “web of network nodes” where each network node is interconnected
+    but is running one-way communications to the other network nodes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Figure 4.5](#c04-fig-0005) compares visually a typical blockchain structure
+    to a DAG structure in Hedora Hashgraph. The structure of a blockchain is more
+    linear and hierarchal as well. One of the main benefits of DAGs are that these
+    networks are faster because of how the transactions are validated and then processed
+    in a parallel approach. In a blockchain, transactions are processed in a serial
+    approach.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Schematic diagrams depicting Blockchain and Hedora Hashgraph data structures.](images/c04f005.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '[**FIGURE 4.5**](#R_c04-fig-0005) Blockchain vs. Hedora Hashgraph data structures'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'DAGs offer the following advantages over a blockchain:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: DAGs are fast and can scale with more transactions.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Transactions can be validated in a parallel or simultaneous manner, compared
+    to a blockchain that validates in a linear fashion.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Lower transaction fees may be realized because of efficiencies in protocols.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'DAGs have the following disadvantages over a blockchain:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Considered complex to learn from a historical perspective
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Limited uses cases where blockchains may not be appropriate such as with Internet
+    of Things (IoT) data
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Ledger platforms that use DAGs are IOTA, Hashgraph, and Nano.  ## Blockchain
+    Consensus Evaluation'
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are many more forms of consensus that are used in various platforms such
+    as proof of authority (PoA), proof of burn (PoB), and many other variations of
+    BFT consensus. For the purposes of this book, I have limited the discussion to
+    the most common enterprise-ready consensus methods and blockchain platforms implemented
+    in Ethereum, Quorum, Corda, and Hyperledger.
+  prefs: []
+  type: TYPE_NORMAL
+- en: When making a design decision around enterprise blockchains and the appropriate
+    consensus methods that can be used with a particular blockchain, it is critical
+    to understand the three main comparison points between permissioned-based consensus
+    and proof-of-work consensus.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Even with Quorum, Corda, and Hyperledger, there is some “modularity” that is
+    supported around consensus. For example, in Quorum you choose between Raft, Quorum
+    consensus, or IBFT consensus implementations. Choosing one consensus form over
+    another may provide for better performance of transactions (speed), but when choosing
+    IBFT, you may experience greater scalability.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The main features that require some consideration are speed, scalability, and
+    finality. Generally, voting-based algorithms are advantageous in that they provide
+    low-latency finality as compared to the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Speed is the amount of time a transaction takes to complete.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Scalability is a reflection of how many nodes the blockchain network can accommodate.
+    Generally, scalability and speed are inverse.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Finality is how long the voting-based algorithms are advantageous in that they
+    provide low-latency finality.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Table 4.2](#c04-tbl-0002) compares different types of consensus algorithms
+    according to three main features that an enterprise needs to evaluate. Both permissioned
+    consensus types (lottery and voting) provide better speed over proof of work.
+    Finally, scalability is good in both proof of work and permissioned lottery-based
+    consensus methods.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[**TABLE 4.2**](#R_c04-tbl-0002): Comparing consensus algorithms'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|  | PERMISSIONED LOTTERY-BASED | PERMISSIONED VOTING-BASED | STANDARD PROOF
+    OF WORK (BITCOIN) |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- | --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| **Speed** | Good | Good | Poor |'
+  prefs: []
+  type: TYPE_TB
+- en: '| **Scalability** | Good | Moderate | Good |'
+  prefs: []
+  type: TYPE_TB
+- en: '| **Finality** | Moderate | Good | Poor |'
+  prefs: []
+  type: TYPE_TB
+- en: 'Choosing the proper consensus when designing your enterprise blockchain can
+    be confusing at first, but the consensus choices are limited to two or three choices
+    at best. Essentially, you''ll want to determine the proper blockchain platform
+    and then consider the proper consensus method to address speed, scalability, and
+    finality.  ## Summary'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This chapter covered the most widely used enterprise blockchain and distributed
+    ledger consensus methods. Enterprise blockchains depend on a method of consensus
+    for many reasons such as reaching an agreement on validating transactions or establishing
+    trust. The consensus methods vary widely on how consensus is reached, how a stake
+    is arrived at, the terminology that is used, and the blockchain for which it was
+    developed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Enterprise blockchains generally use a form of Byzantine fault tolerance or
+    an approach to consensus such as distributed proof of stake. Proof-of-work consensus
+    is used mainly in cryptocurrencies and from an enterprise perspective is expensive
+    because of the cost of electricity to support mining. This PoW overhead is not
+    required in enterprise applications because the nodes are trusted by the organization.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Proof of stake uses a different approach than the computational power in PoW.
+    For example, the probability of creating a block and receiving the associated
+    rewards is proportional to a user's holding of the underlining token or cryptocurrency
+    on the network. Proof of stake is an interest-based approach to handling a blockchain
+    where a node's interest is directly proportional to its investment.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Proof of elapsed time attempts to directly solve the issue of proof of stake,
+    which will arbitrarily determine the members proposing blocks by guaranteeing
+    that each member has a reasonable opportunity to offer a block. Hyperledger Sawtooth
+    utilizes the proof-of-elapsed-time consensus algorithm that leverages Intel's
+    Software Guard Extensions to implement a leader-based lottery system.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Delegated proof of stake uses a real-time voting system and a reputational system
+    to achieve consensus. The DPoS blockchain consensus protocol allows token holders
+    to use their coin balances to elect delegates, called *witnesses*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Delegated Byzantine fault tolerance is a consensus algorithm developed by NEO
+    with perfect finality, meaning that all transactions are 100 percent final after
+    the first confirmation, which adds to its high transaction capacity.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Practical Byzantine Fault Tolerance is the most popular permissioned blockchain
+    platform protocol. PBFT was introduced by the MIT Laboratory for Computer Science
+    in 1999\. PBFT is one of the potential solutions to the challenging concerns of
+    the Byzantine Generals Problem.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Lastly, Raft is a consensus algorithm that is designed to be easy to understand
+    as well as utilize. DAGs are considered transformational since transactions are
+    “linked” from one to another, meaning one transaction confirms the next, and it
+    continues.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the upcoming chapters, I will be covering some of the consensus methods in
+    more detail, mainly regarding security, membership, and development concerns.
+  prefs: []
+  type: TYPE_NORMAL

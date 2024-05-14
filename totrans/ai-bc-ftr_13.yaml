@@ -1,0 +1,720 @@
+- en: © The Author(s), under exclusive license to Springer Nature Switzerland AG 2021Y.
+    Maleh et al. (eds.)Artificial Intelligence and Blockchain for Future Cybersecurity
+    ApplicationsStudies in Big Data90[https://doi.org/10.1007/978-3-030-74575-2_11](https://doi.org/10.1007/978-3-030-74575-2_11)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Spark Based Intrusion Detection System Using Practical Swarm Optimization Clustering
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Mohamed Aymen Ben HajKacem^([1](#Aff7)  ), Mariem Moslah^([1](#Aff7)) and Nadia Essoussi^([1](#Aff7) [ ](#ContactOfAuthor3))(1)LARODEC,
+    Institut Supérieur de Gestion de Tunis, Université de Tunis, 41 Avenue de la liberté,
+    cité Bouchoucha, 2000 Le Bardo, TunisiaNadia EssoussiEmail: [nadia.essoussi@isg.rnu.tn](mailto:nadia.essoussi@isg.rnu.tn)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Abstract
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Given the availability growth of data in large networks, intrusion detection
+    systems become an important challenge since they require efficient methods to
+    discover attacks from such networks. This paper proposes a new Spark based intrusion
+    detection system using particle swarm optimization clustering, referred to as
+    IDS-SPSO, for large scale data able to provide good tradeoff between scalability
+    and accuracy. The use of Particle swarm optimization clustering is argued to avoid
+    the sensitivity problem of initial cluster centers as well as premature convergence.
+    In addition, we propose in this work to take advantage of parallel processing
+    based on the Spark framework. Experiments performed on several large collections
+    of real intrusion data have shown the effectiveness of the proposed intrusion
+    detection system in terms of scalability and clustering accuracy.
+  prefs: []
+  type: TYPE_NORMAL
+- en: KeywordsIntrusion detectionBig dataClusteringPSOSpark
+  prefs: []
+  type: TYPE_NORMAL
+- en: 1 Introduction
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Given the ever increasing growth and popularity of Internet, network intrusion
+    detection becomes an important challenge to provide protection and security for
+    information. This is explained by the large number of users and the large amount
+    of data exchanged which makes it difficult to distinguish between the normal connections
+    and attacks. To this end, intrusion detection systems (IDSs) are designed to deal
+    with large amounts of data in order to protect a system against network attacks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Several machine learning techniques were applied for IDSs in the literature [[1](#CR1),
+    [6](#CR6), [11](#CR11), [23](#CR23), [26](#CR26), [33](#CR33)]. Clustering is
+    one of the machine learning techniques that is used to organize data into groups
+    of similar data points called also clusters [[18](#CR18)]. Clustering methods
+    can be mainly categorized into five classes namely hierarchical, density-based,
+    grid-based, model-based and partitional methods [[39](#CR39)]. K-means [[24](#CR24)]
+    as one of the partitional clustering methods, remains the most efficient because
+    of its simplicity and linear time complexity. However, it is sensitive to the
+    selection of initial cluster centers, since it can produce local optimal solutions
+    when the initial cluster centers are not properly selected [[10](#CR10)].
+  prefs: []
+  type: TYPE_NORMAL
+- en: To deal with this issue, several optimization algorithms were introduced to
+    solve the data clustering problem [[8](#CR8), [14](#CR14), [17](#CR17), [20](#CR20),
+    [27](#CR27), [31](#CR31), [34](#CR34)]. Genetic optimization algorithm which is
+    based on a mutation operator to deal with clustering task was designed in [[20](#CR20)].
+    Simulated annealing optimization was also used for data clustering in [[8](#CR8)].
+    Particle Swarm Optimization (PSO), was proposed to solve the clustering problem,
+    by using multiple search directions with social behavior to enhance the quality
+    of the clustering result [[34](#CR34)]. Among these algorithms, Particle Swarm
+    Optimization (PSO) has gain a great popularity because of its efficiency [[29](#CR29)].
+  prefs: []
+  type: TYPE_NORMAL
+- en: On the other hands, conventional intrusion detection methods based on clustering
+    fail to scale with larger sizes of network traffic and are computationally expensive
+    in terms of memory. To deal with large scale data, several distributed clustering
+    methods were designed in the literature [[2](#CR2)–[5](#CR5), [12](#CR12), [15](#CR15),
+    [30](#CR30), [40](#CR40), [41](#CR41)]. Most of these methods use the MapReduce
+    framework [[13](#CR13)] for data processing. However, MapReduce is unsuitable
+    for iterative algorithms since it requires repeated times of reading and writing
+    to disks. Spark [[9](#CR9), [32](#CR32)] is introduced to overcome the limitations
+    of MapReduce, particular for processing iterative algorithms. It is an in–memory
+    parallel framework for processing Big data using a cluster of machines. Compared
+    with the MapReduce framework, Spark is more efficient and approximately 10 to
+    100 times faster for data processing task [[7](#CR7)].
+  prefs: []
+  type: TYPE_NORMAL
+- en: This paper proposes a new Spark based intrusion detection system (IDS-SPSO).
+    The proposed system builds the intrusion detection model using PSO clustering.
+    To the best of our knowledge, this is the first work that implements parallel
+    intrusion detection system using PSO and Spark framework. The aim is to show how
+    the proposed system takes advantage of Spark and PSO to deal with real large scale
+    intrusion data to achieve high accuracy quality and scalability.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The remainder of this paper is organized as follows: Sect. [1](#Sec1) presents
+    background definitions related to the Particle Swarm Optimization (PSO) and parallel
+    frameworks. Section [2](#Sec2) discusses the related works in the area of intrusion
+    detection methods based on clustering. Then, Sect. [3](#Sec6) describes the proposed
+    parallel intrusion detection system while Sect. [4](#Sec7) presents the experimental
+    results performed on large real intrusion data. Finally, Sect. [5](#Sec15) gives
+    concluding remarks and some future works.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 2 Preliminaries
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: This section first presents background definitions related to the Particle Swarm
+    Optimization (PSO) followed by the parallel frameworks which are used in this
+    work.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 2.1 Particle Swarm Optimization
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Particle Swarm Optimization (PSO) was introduced by the electrical engineer
+    Eberhart and the social psychologist Kendy [[29](#CR29)]. This algorithm was proposed
+    to simulate the social behavior of birds when searching for food. When a bird
+    recognizes a food area, it broadcasts the information to all the swarm. Hence,
+    all the birds follow him and this way they raise the probability of finding the
+    food since it is a collaborative work. So, the behavior of birds within swarms
+    was turned into an intelligent algorithm capable of solving several optimization
+    problems.
+  prefs: []
+  type: TYPE_NORMAL
+- en: PSO is a population based optimization algorithm. It consists of a swarm of
+    particles where each particle represents a potential solution to the optimization
+    problem. Each particle ![$$P_i$$](../images/507793_1_En_11_Chapter/507793_1_En_11_Chapter_TeX_IEq1.png)
+    is characterized at the time *t*, by the current position ![$$x_{i}(t)$$](../images/507793_1_En_11_Chapter/507793_1_En_11_Chapter_TeX_IEq2.png)
+    in the search space, the velocity ![$$v_{i}(t)$$](../images/507793_1_En_11_Chapter/507793_1_En_11_Chapter_TeX_IEq3.png),
+    the personal best position ![$$pbestP_{i}(t)$$](../images/507793_1_En_11_Chapter/507793_1_En_11_Chapter_TeX_IEq4.png)
+    and the fitness value ![$$pbestF_{i}(t)$$](../images/507793_1_En_11_Chapter/507793_1_En_11_Chapter_TeX_IEq5.png).
+    The personal best position represents the best fitness value the particle has
+    ever seen, which is calculated by:![$$\begin{aligned} pbestP_{i}(t+1)={\left\{
+    \begin{array}{ll} pbestP_{i}(t)\, if \, f( pbestP_{i}(t))&lt;= f(x_ {i}(t+1))\\
+    x_{i}(t+1) \, if \, f(pbestP_{i}(t)) &gt; f(x_{i}(t+1))\\ \end{array}\right. }
+    \end{aligned}$$](../images/507793_1_En_11_Chapter/507793_1_En_11_Chapter_TeX_Equ1.png)(1)The
+    personal best position represents the best fitness value any particle has ever
+    experienced, which is calculated by:![$$\begin{aligned} gbestP(t+1)= min \, (f(y)
+    , f(gbestP(t))) \end{aligned}$$](../images/507793_1_En_11_Chapter/507793_1_En_11_Chapter_TeX_Equ2.png)(2)where
+    ![$$\, y \in \lbrace { pbestP_{0}(t),...,pbestP_{S}(t)\rbrace }$$](../images/507793_1_En_11_Chapter/507793_1_En_11_Chapter_TeX_IEq6.png).
+    The following equation is used to update the particles positions within the problem
+    search space.![$$\begin{aligned} x_{i}(t+1) \leftarrow x_{i}(t)+v_{i}(t) \end{aligned}$$](../images/507793_1_En_11_Chapter/507793_1_En_11_Chapter_TeX_Equ3.png)(3)While
+    the following equation is used to update the particle velocities.![$$\begin{aligned}
+    v_{i}(t+1) \leftarrow w v_{i}(t)+c_{1}r_{1}(pbestP_{i}(t)-x_{i} (t))+c_{2}r_{2}(gbestP(t)-x_{i}(t))
+    \end{aligned}$$](../images/507793_1_En_11_Chapter/507793_1_En_11_Chapter_TeX_Equ4.png)(4)where
+    *w* is the inertia weight, ![$$x_{i}(t)$$](../images/507793_1_En_11_Chapter/507793_1_En_11_Chapter_TeX_IEq7.png)
+    is the position of the particle ![$$P_i$$](../images/507793_1_En_11_Chapter/507793_1_En_11_Chapter_TeX_IEq8.png)
+    at the time *t*, ![$$v_{i}(t)$$](../images/507793_1_En_11_Chapter/507793_1_En_11_Chapter_TeX_IEq9.png)
+    is the velocity of the particle ![$$P_i$$](../images/507793_1_En_11_Chapter/507793_1_En_11_Chapter_TeX_IEq10.png)
+    at the time *t*, ![$$c_{1}$$](../images/507793_1_En_11_Chapter/507793_1_En_11_Chapter_TeX_IEq11.png)
+    and ![$$c_{2}$$](../images/507793_1_En_11_Chapter/507793_1_En_11_Chapter_TeX_IEq12.png)
+    are two acceleration coefficients, and ![$$r_{1}$$](../images/507793_1_En_11_Chapter/507793_1_En_11_Chapter_TeX_IEq13.png)
+    and ![$$r_{2}$$](../images/507793_1_En_11_Chapter/507793_1_En_11_Chapter_TeX_IEq14.png)
+    are two random values in the range [0, 1]. The main algorithm of PSO is outlined
+    in Algorithm 1\.![../images/507793_1_En_11_Chapter/507793_1_En_11_Figa_HTML.png](../images/507793_1_En_11_Chapter/507793_1_En_11_Figa_HTML.png)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 2.2 MapReduce Framework
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: MapReduce [[13](#CR13)] is a parallel programming framework for data processing.
+    As shown in Fig. [1](#Fig1), MapReduce is composed of three phases namely *map*,
+    *shuffle* and *reduce*. Each phase processes data through ![$${&lt;}key/value{&gt;}$$](../images/507793_1_En_11_Chapter/507793_1_En_11_Chapter_TeX_IEq15.png)
+    pairs. The map phase applies the map function by taking in parallel each ![$${&lt;}key^{}/value^{}{&gt;}$$](../images/507793_1_En_11_Chapter/507793_1_En_11_Chapter_TeX_IEq16.png)
+    and generates a set of intermediate ![$${&lt;}key^{'}/value^{'}{&gt;}$$](../images/507793_1_En_11_Chapter/507793_1_En_11_Chapter_TeX_IEq17.png)
+    pairs. Then, the shuffle phase merges all intermediate values which share the
+    same intermediate key as a list. The reduce phase applies the reduce function
+    to group all intermediate values associated with the same intermediate key. Note
+    the implementation of the MapReduce framework is available in Hadoop [[35](#CR35)].
+    And the inputs and outputs of MapReduce are stored in a distributed file system
+    which is called Hadoop Distributed File System (HDFS). Despite of its performance
+    to deal with Big data, MapReduce framework is unsuitable to fit when executing
+    iterative algorithms [[22](#CR22)]. Since, it requires at each iteration reading
+    and writing data from disks, which can increase the running time.![../images/507793_1_En_11_Chapter/507793_1_En_11_Fig1_HTML.png](../images/507793_1_En_11_Chapter/507793_1_En_11_Fig1_HTML.png)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Fig. 1
+  prefs: []
+  type: TYPE_NORMAL
+- en: Flowchart of MapReduce framework
+  prefs: []
+  type: TYPE_NORMAL
+- en: 2.3 Spark Framework
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Spark framework supports iterative computation and has an improved processing
+    speed compared to MapReduce since it utilizes in-memory computations using the
+    resilient distributed datasets (RDDs). These RDDs can be cached in memory to be
+    used in multiple consecutive operations. Spark [[42](#CR42)] is introduced to
+    run with Hadoop [[35](#CR35)], especially by reading data from HDFS. Moreover,
+    it provides a set of in-memory operators, beyond the standard MapReduce, with
+    the aim of processing data more rapidly on distributed environments compared to
+    MapReduce [[32](#CR32)]. Spark framework proposes two types of operators which
+    can deal with RDD called, transformations and actions. The transformations are
+    designed to execute a function to the whole records and generate new RDD. Map,
+    ReduceBykey and MapPartition are examples of transformations. The actions are
+    designed to return a value to the program and store the final result of the computation
+    in a file system. Filter and Count are examples of actions. The Data flow of Spark
+    framework is shown in Fig. [2](#Fig2).![../images/507793_1_En_11_Chapter/507793_1_En_11_Fig2_HTML.png](../images/507793_1_En_11_Chapter/507793_1_En_11_Fig2_HTML.png)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Fig. 2
+  prefs: []
+  type: TYPE_NORMAL
+- en: Data flow of Spark framework
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3 Related Works
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Several intrusion detection based on machine learning techniques were proposed
+    in the literature [[1](#CR1), [6](#CR6), [11](#CR11), [23](#CR23), [26](#CR26),
+    [33](#CR33)]. These methods can be divided into supervised or unsupervised according
+    the type of the used data during the processing are labelled or not. Several techniques
+    have been designed for intrusion detection systems using unsupervised approach
+    such as clustering-based methods [[16](#CR16), [19](#CR19), [21](#CR21), [28](#CR28)].
+  prefs: []
+  type: TYPE_NORMAL
+- en: Peng et al. [[28](#CR28)] proposed mini batch k-means clustering method for
+    intrusion detection. They employ the principal component analysis technique to
+    reduce the number of dimensions of the used data set in order to enhance the clustering
+    efficiency. However, this method considers only a small sample size of intrusion
+    data set which can leads a loss of quality.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Leung et al. [[21](#CR21)] designed a density-based clustering method which
+    employs the frequent pattern tree in order to solve the high dimensionality of
+    the used data set. This method was tested on one million records and achieved
+    a good detection results.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Jiang et al. [[19](#CR19)] proposed a fuzzy c-means clustering intrusion detection
+    method where they employ a weighting strategy for the record membership calculation.
+    This method was tested with five data samples where each sample having ten thousand
+    records. The results show high false positives rates with satisfactory detection
+    rates.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Harish et al. [[16](#CR16)] proposed a modified version of fuzzy c-means clustering
+    method for anomaly detection. They employ Principal component analysis (PCA) as
+    feature selection technique to deal with curse of dimensionality. In addition,
+    this methods is based on using gaussian kernel as distance measure to compute
+    the distance between cluster center and samples. The advantage of using gaussian
+    kernel is that it reduces the effect of noise.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Wankhade et al. [[36](#CR36)] proposed ensemble clustering method to deal with
+    intrusion detection problem. This method is based on k-means and divide and merge
+    strategy which is used to select the accurate number of cluster centers. The experimental
+    results have shown that this strategy can improve detection rate and lower false
+    alarm rate.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Although the attested performance of existing intrusion detection methods, they
+    fails to organize large network traffic. To solve the large scale intrusion data,
+    parallel methods were proposed to perform distributed computations [[2](#CR2)–[5](#CR5),
+    [12](#CR12), [15](#CR15), [30](#CR30), [40](#CR40), [41](#CR41)]. Most of these
+    methods use the MapReduce as a parallel programming framework.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Aljarah et al. [[2](#CR2)] proposed a parallel intrusion detection system through
+    the MapReduce framework referred to as IDS-MRPSO. In addition, they build a clustering
+    model by solving the intrusion detection problem using PSO optimization algorithm.
+    Finally, the proposed system has been tested using real large scale of intrusion
+    data with different training subset sizes to evaluate the scalability and the
+    detection quality. However, MapReduce framework is not appropriate to deal with
+    iterative algorithms since it requires at each iteration reading and writing data
+    from disks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Wang and Han [[37](#CR37)] proposed a network intrusion detection based on parallel
+    DPC clustering. This method is based on cut off distance strategy which reduces
+    the number of comparisons between data points and clusters. Furthermore, they
+    proposed fitting the DPC clustering using Spark framework in order to deal with
+    the scalability. However this method remains sensitive to the random selection
+    of initial cluster centers [[10](#CR10)].
+  prefs: []
+  type: TYPE_NORMAL
+- en: It is important to note that our proposed system is the first work which is
+    based on fitting a parallel intrusion detection system through Spark framework.
+    Compared with the MapReduce, Spark is a good in-memory parallel framework for
+    data processing.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 4 Proposed Intrusion Detection System (IDS-SPSO)
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Large network traffic data needs an efficient intrusion detection system to
+    protect it against attacks. The proposed intrusion detection system incorporates
+    the data clustering process based on the PSO algorithm. Furthermore, PSO clustering
+    is distributed using Spark framework in order to scale with large network traffic.
+    As shown in Fig. [3](#Fig3), the proposed intrusion detection system consists
+    of three main phases: *pre-processing phase*, *data detector modeling phase*,
+    and *validation phase*. The first phase is devoted to apply set of data pre-processing
+    techniques such as missing values removal, categorical feature elimination and
+    data normalization. Once the pre-processing phase is completed, we propose in
+    the second phase to apply Spark based PSO clustering method (S-PSO) [[25](#CR25)]
+    on training data in order to generate global best centroids vectors. In the third
+    phase, we evaluate the quality of the detection model by computing distances between
+    the testing data and the final global best centroids vectors.![../images/507793_1_En_11_Chapter/507793_1_En_11_Fig3_HTML.png](../images/507793_1_En_11_Chapter/507793_1_En_11_Fig3_HTML.png)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Fig. 3
+  prefs: []
+  type: TYPE_NORMAL
+- en: Flowchart of IDS-SPSO system
+  prefs: []
+  type: TYPE_NORMAL
+- en: 4.1 Pre-processing Phase
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: First, we remove the records which contain missing values since we use these
+    records in the distance computation when building clusters. So, we cannot use
+    in the distance computation a record which contains a missing value. Then, we
+    eliminate the categorical features. We propose in this work to consider only numerical
+    features in the distance computation, because we need a special distance metric
+    for the categorical features. After that, we apply the normalization to the obtained
+    data set in order to avoid the bias problem for some features which have a large
+    variability between minimum and maximum values. The normalization process is performed
+    using the following equation:![$$\begin{aligned} x_{ij_{new}}=\frac{x_{ij}-x_{j_{min}}}{x_{j_{max}}-x_{j_{min}}}
+    \end{aligned}$$](../images/507793_1_En_11_Chapter/507793_1_En_11_Chapter_TeX_Equ5.png)(5)where
+    ![$$x_{ij}$$](../images/507793_1_En_11_Chapter/507793_1_En_11_Chapter_TeX_IEq18.png)
+    is the value of record *i* for feature *j*, ![$$x_{ij_{new}}$$](../images/507793_1_En_11_Chapter/507793_1_En_11_Chapter_TeX_IEq19.png)
+    is the normalized value of record *i* for feature *j*, ![$$x_{j_{min}}$$](../images/507793_1_En_11_Chapter/507793_1_En_11_Chapter_TeX_IEq20.png)
+    is the minimum value of feature *j* and ![$$x_{j_{max}}$$](../images/507793_1_En_11_Chapter/507793_1_En_11_Chapter_TeX_IEq21.png)
+    is the maximum value of feature *j*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 4.2 Data Detector Modeling Phase
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The data detector modeling phase consists on applying S-PSO method [[25](#CR25)]
+    to the data results from the pre-processing phase. The authors proposed an efficient
+    PSO clustering method using Spark. The experimental results on large scale data
+    show that S-PSO scales very well with increasing data and achieved a good clustering
+    accuracy. This method reads the data set only once in contrast to existing MapReduce
+    implementation of PSO clustering. Hence, it exploits the flexibility provided
+    by Spark framework, by using in-memory operations that alleviate the consumption
+    time of existing MapReduce solution [[2](#CR2)].
+  prefs: []
+  type: TYPE_NORMAL
+- en: S-PSO method is composed of three MapReduce jobs namely, *Data assignment and
+    fitness computation*, *Personal and global best update* and *Position and velocity
+    update*. The main process of the S-PSO method is described in Fig. [4](#Fig4).![../images/507793_1_En_11_Chapter/507793_1_En_11_Fig4_HTML.png](../images/507793_1_En_11_Chapter/507793_1_En_11_Fig4_HTML.png)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Fig. 4
+  prefs: []
+  type: TYPE_NORMAL
+- en: Flowchart of S-PSO method
+  prefs: []
+  type: TYPE_NORMAL
+- en: 4.2.1 Data Assignment and Fitness Computation
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: In the first MapReduce job, S-PSO starts by creating an initial population which
+    is composed of particle’s position, velocity, personal best position and personal
+    best fitness. To this end, the positions of particles are randomly initialized
+    from the input data set and they represent the initial cluster’s centroids.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Then, the data set is divided into chunks and each chunk is assigned to a map
+    function. The particle’s information are broadcast to all chunks. The map function
+    first assigns each data point to the nearest cluster centroid in each particle
+    by computing distances. Then, the map function generates a key value pair as output
+    where the key represents the couple particleID and centroidID and the value represents
+    the minimum distance between a data point and the centroidID in a particleID.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Once all the data points are affected to the nearest cluster centroid, a reduce
+    function is applied to compute the fitness value by combining merging data from
+    different map functions. The fitness value is computed using the total sum of
+    squares errors by:![$$\begin{aligned} Fitness=\frac{\sum _{j=1}^{k}\sum _{i=1}^{|C_{j}|}d(r_{i},C_{j})}{k}
+    \end{aligned}$$](../images/507793_1_En_11_Chapter/507793_1_En_11_Chapter_TeX_Equ6.png)(6)where
+    ![$$d(r_{i},C_{j})$$](../images/507793_1_En_11_Chapter/507793_1_En_11_Chapter_TeX_IEq22.png)
+    represents the distance between the record ![$$r_{i}$$](../images/507793_1_En_11_Chapter/507793_1_En_11_Chapter_TeX_IEq23.png)
+    and the cluster’s centroid ![$$C_{j}$$](../images/507793_1_En_11_Chapter/507793_1_En_11_Chapter_TeX_IEq24.png),
+    ![$$|C_{j}| $$](../images/507793_1_En_11_Chapter/507793_1_En_11_Chapter_TeX_IEq25.png)
+    represents the number of records assigned to the centroid ![$$C_{j}$$](../images/507793_1_En_11_Chapter/507793_1_En_11_Chapter_TeX_IEq26.png)
+    and *k* represents the number of clusters. Then, the reduce function generated
+    key value pairs as output where the key represents the particleID and the value
+    represents the fitness value.Let ![$$R=\lbrace {r_{1}...r_{n} \rbrace }$$](../images/507793_1_En_11_Chapter/507793_1_En_11_Chapter_TeX_IEq27.png)
+    the input data set. Let ![$$P(t)=\lbrace {P_{1}(t) ... P_{S}(t)\rbrace }$$](../images/507793_1_En_11_Chapter/507793_1_En_11_Chapter_TeX_IEq28.png)
+    the set of the particle’s information where ![$$P_{c}(t)=\lbrace {x_{c}(t),v_{c}(t),
+    pbestP_{c}(t),pbestF_{c}(t)\rbrace }$$](../images/507793_1_En_11_Chapter/507793_1_En_11_Chapter_TeX_IEq29.png)
+    represents the information of particle *c* in the iteration *t* where ![$$x_{c}(t)$$](../images/507793_1_En_11_Chapter/507793_1_En_11_Chapter_TeX_IEq30.png)
+    is the position, ![$$v_{c}(t)$$](../images/507793_1_En_11_Chapter/507793_1_En_11_Chapter_TeX_IEq31.png)
+    is the velocity, ![$$pbestP_{c}(t)$$](../images/507793_1_En_11_Chapter/507793_1_En_11_Chapter_TeX_IEq32.png)
+    is the best position and ![$$pbestF_{c}(t)$$](../images/507793_1_En_11_Chapter/507793_1_En_11_Chapter_TeX_IEq33.png)
+    is the best fitness. Let ![$$F=\lbrace {F_{1}...F_{S} \rbrace }$$](../images/507793_1_En_11_Chapter/507793_1_En_11_Chapter_TeX_IEq34.png)
+    the set of fitness values where ![$$F_{c}$$](../images/507793_1_En_11_Chapter/507793_1_En_11_Chapter_TeX_IEq35.png)
+    is the fitness value of the particle *c*. The main steps of Data assignment and
+    fitness computation MapReduce job is described in Algorithm 2\.![../images/507793_1_En_11_Chapter/507793_1_En_11_Figb_HTML.png](../images/507793_1_En_11_Chapter/507793_1_En_11_Figb_HTML.png)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 4.2.2 Pbest and Gbest Update
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Once the new particle’s fitness are computed, they are automatically distributed
+    to RDDs collections. However, the computation of pbest and gbest is not an expensive
+    operation. So, it does not need to be executed in parallel manner. Then, each
+    particle updates its personal best position and the global best position.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let ![$$pbestF(t)=\lbrace {pbestF_{1}(t) ... pbestF_{S}(t) \rbrace }$$](../images/507793_1_En_11_Chapter/507793_1_En_11_Chapter_TeX_IEq36.png)
+    is the set of personal best fitness values where ![$$pbestF_{i}(t)$$](../images/507793_1_En_11_Chapter/507793_1_En_11_Chapter_TeX_IEq37.png)
+    is the pbestF of the particle *i* at iteration *t*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let ![$$pbestP(t)=\lbrace { pbestP_{1}(t) ... pbestP_{S}(t) \rbrace }$$](../images/507793_1_En_11_Chapter/507793_1_En_11_Chapter_TeX_IEq38.png)
+    is the set of personal best position where ![$$pbestP_{1}(t)$$](../images/507793_1_En_11_Chapter/507793_1_En_11_Chapter_TeX_IEq39.png)
+    is the pbestP of the particle *i* at iteration *t*. Let *gbestP* is the position
+    of the best particle. The main steps of the pbest and gbest update MapReduce job
+    is described in Algorithm 3\.![../images/507793_1_En_11_Chapter/507793_1_En_11_Figc_HTML.png](../images/507793_1_En_11_Chapter/507793_1_En_11_Figc_HTML.png)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 4.2.3 Position and Velocity Update
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: During this MapReduce job, S-PSO starts by assigning the particles information
+    to different map functions. Then, the map function performs the velocity and position
+    update using the Eqs. [3](#Equ3) and [4](#Equ4). While the reduce function groups
+    all the intermediate key value pairs computed from the different map functions.
+    Once the reduce phase is completed, the data set and particle’s information are
+    distributed in RDDs collections which are stored in memory for the next iteration.
+    For more details about the S-PSO method, the readers can refer to [[25](#CR25)].
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let ![$$x(t)=\lbrace { x_{1}(t) ... x_{S}(t)\rbrace }$$](../images/507793_1_En_11_Chapter/507793_1_En_11_Chapter_TeX_IEq40.png)
+    the set of position values where ![$$x_{i}(t)$$](../images/507793_1_En_11_Chapter/507793_1_En_11_Chapter_TeX_IEq41.png)
+    is the position of the particle *i* at iteration *t*. Let ![$$v(t)=\lbrace {v_{1}(t)
+    ... v_{S}(t) \rbrace }$$](../images/507793_1_En_11_Chapter/507793_1_En_11_Chapter_TeX_IEq42.png)
+    the set of velocity values where ![$$v_{i}(t)$$](../images/507793_1_En_11_Chapter/507793_1_En_11_Chapter_TeX_IEq43.png)
+    is the velocity of the particle *i* at iteration *t*. The main steps of Position
+    and velocity update MapReduce job is described in Algorithm 4\.![../images/507793_1_En_11_Chapter/507793_1_En_11_Figd_HTML.png](../images/507793_1_En_11_Chapter/507793_1_En_11_Figd_HTML.png)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 4.3 Evaluation Phase
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Once the data detector modeling phase is completed, we extract the global best
+    centroid vectors from the final particle’s information. During this phase, we
+    evaluate the detection model by computing distances between the testing records
+    and the global best centroids vectors. After that, we affected the testing records
+    to the their nearest clusters by computing distances. The main steps of the evaluation
+    phase is described in Algorithm 5\.![../images/507793_1_En_11_Chapter/507793_1_En_11_Fige_HTML.png](../images/507793_1_En_11_Chapter/507793_1_En_11_Fige_HTML.png)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Finally, the cluster labeling process is applied to predict the correct labels
+    for clusters which are generated in the testing data assignment step. The assignment
+    of cluster labels is performed by retrieving the maximum percentage of intersections
+    between the true labels of the testing data, and the assigned clusters that are
+    generated by applying the testing data assignment step.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure [5](#Fig5) illustrates an example to better understanding the cluster
+    labeling process. For cluster ![$$C_1$$](../images/507793_1_En_11_Chapter/507793_1_En_11_Chapter_TeX_IEq44.png),
+    the percentage of the normal records is ![$$\frac{3}{4}$$](../images/507793_1_En_11_Chapter/507793_1_En_11_Chapter_TeX_IEq45.png)
+    while the percentage of the attack records is ![$$\frac{1}{4}$$](../images/507793_1_En_11_Chapter/507793_1_En_11_Chapter_TeX_IEq46.png).
+    Hence, cluster ![$$C_1$$](../images/507793_1_En_11_Chapter/507793_1_En_11_Chapter_TeX_IEq47.png)
+    is a normal cluster. For cluster ![$$C_2$$](../images/507793_1_En_11_Chapter/507793_1_En_11_Chapter_TeX_IEq48.png),
+    the percentage of the normal records is ![$$\frac{1}{3}$$](../images/507793_1_En_11_Chapter/507793_1_En_11_Chapter_TeX_IEq49.png)
+    while the percentage of the attack records is ![$$\frac{2}{3}$$](../images/507793_1_En_11_Chapter/507793_1_En_11_Chapter_TeX_IEq50.png).
+    So, cluster ![$$C_2$$](../images/507793_1_En_11_Chapter/507793_1_En_11_Chapter_TeX_IEq51.png)
+    is a attack cluster. Similarly, for cluster ![$$C_3$$](../images/507793_1_En_11_Chapter/507793_1_En_11_Chapter_TeX_IEq52.png),
+    the percentage of the normal records ![$$\frac{1}{3}$$](../images/507793_1_En_11_Chapter/507793_1_En_11_Chapter_TeX_IEq53.png)
+    is while the percentage of the attack records is ![$$\frac{2}{3}$$](../images/507793_1_En_11_Chapter/507793_1_En_11_Chapter_TeX_IEq54.png).
+    So, cluster ![$$C_3$$](../images/507793_1_En_11_Chapter/507793_1_En_11_Chapter_TeX_IEq55.png)
+    is a attack cluster.![../images/507793_1_En_11_Chapter/507793_1_En_11_Fig5_HTML.png](../images/507793_1_En_11_Chapter/507793_1_En_11_Fig5_HTML.png)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Fig. 5
+  prefs: []
+  type: TYPE_NORMAL
+- en: An illustrative example of the clusters labeling process
+  prefs: []
+  type: TYPE_NORMAL
+- en: 4.4 Time Complexity Analysis
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: In order to show the effectiveness of the proposed system, we describe in the
+    following the evaluation of the time complexity of the S-PSO method. Given *n*
+    is the data set size, *k* is the number of clusters, *c* is the number of data
+    chunks, *l* is the number of iterations and *s* is the swarm size.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The data assignment step is the most expensive operation in PSO algorithm since
+    it requires computing distances between each record to all the clusters of each
+    particle in the swarm. Then, this step has to be repeated several times until
+    convergences. Thus, the time complexity of PSO is evaluated by *O*(*n*.*k*.*s*.*l*).
+    The S-PSO first divides the input data into *c* chunks that could be executed
+    in parallel manner. So, S-PSO requires processing *n*/*c* records for each iteration.
+    Hence, the time complexity of S-PSO is evaluated by *O*(*n*/*c*.*k*.*s*).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 5 Experiments and Results
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 5.1 Environment
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The experiments are realized on a cluster of 4 machines where each node has
+    2-core 2.30 GHz CPU E5400 and 1 GB of memory. The experiments are performed using
+    Apache Spark version 2.1.1, scala version 2.1.1, Apache Hadoop 2.7.0 and Ubuntu
+    16.04.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 5.2 Data Set Description
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: In order to evaluate the performance of the proposed system, we used a Big intrusion
+    detection data set^([1](#Fn1)) which was employed as the benchmark at the Knowledge
+    Discovery and Data Mining in 1999\. This data set contains a standard set of data
+    which includes a wide variety of normal and attack connections in a military network
+    environment.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Each record in the collected data set represents a connection between two IP
+    addresses. The data contains 4,898,431 connection records which are classified
+    into normal traffic and four kinds of attacks namely, denial of service (DoS),
+    probe (PRB), remote to local (R2L) and user to root (U2R). Each connection is
+    described by 3 categorical and 38 numerical features for a total of 41 features.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A set of pre-processing techniques were applied on the training and testing
+    data sets. We first start by removing the records that have missing values. Then,
+    we reduce the number of features to 38 by eliminating the 3 categorical features.
+    Finally, we apply the normalization process on the training and testing data sets.Table
+    1
+  prefs: []
+  type: TYPE_NORMAL
+- en: Summary of the data samples
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| Data set | Number of connections | Normal | Attack |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- | --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Train20 | 979,686 | 194,556 | 785,130 |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Train40 | 1,959,372 | 389,112 | 1,570,260 |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Train80 | 3,918,745 | 778,225 | 3,140,520 |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Train100 | 4,898,431 | 972,781 | 3,925,650 |'
+  prefs: []
+  type: TYPE_TB
+- en: In order to evaluate the impact of the data size on the performance of the detector
+    model, we extract 4 different data samples from the whole training data set. To
+    simplify the names of the data samples, we will use the following notations Train20,
+    Train40, Train80 and Train100 to denote an extracted data set which stores 20%,
+    40%, 80% and 100% of the whole training data set. Statistics of these data sets
+    are summarized in Table [1](#Tab1).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 5.3 Evaluation Measures
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: In order to evaluate the scalability of the proposed system, we use the Speedup
+    measure [[38](#CR38)] which consists on fixing the data set size and varying the
+    number of machines. The Speedup measure is defined as follows:![$$\begin{aligned}
+    Speedup=\frac{T_{1}}{T_{m}}, \end{aligned}$$](../images/507793_1_En_11_Chapter/507793_1_En_11_Chapter_TeX_Equ7.png)(7)where
+    ![$$T_{1}$$](../images/507793_1_En_11_Chapter/507793_1_En_11_Chapter_TeX_IEq56.png)
+    is the running time of processing data on 1 machine and ![$$T_{m}$$](../images/507793_1_En_11_Chapter/507793_1_En_11_Chapter_TeX_IEq57.png)
+    is the running time of processing data on *m* machines.In order to evaluate the
+    quality of clustering of the proposed system, we used true positives, true negatives,
+    false positives, and false negatives. A true positive (TP) indicates that the
+    intrusion detection system detects precisely a particular attack having occurred.
+    A true negative (TN) indicates that the intrusion detection system has not made
+    a mistake in detecting a normal connection. A false positive (FP) indicates that
+    a particular attack has been detected by the intrusion detection system but that
+    such an attack did not actually occur. A false negative (FN) indicates that the
+    intrusion detection system is unable to detect the intrusion after a particular
+    attack has occurred. We use in this paper the True Positive Rate (TPR) and False
+    Positive Rate (FPR), which are defined in Eq. [8](#Equ8) and [10](#Equ10) respectively.![$$\begin{aligned}
+    TPR=\frac{TP}{TP+FN} \end{aligned}$$](../images/507793_1_En_11_Chapter/507793_1_En_11_Chapter_TeX_Equ8.png)(8)![$$\begin{aligned}
+    FPR=\frac{FP}{FP+TN} \end{aligned}$$](../images/507793_1_En_11_Chapter/507793_1_En_11_Chapter_TeX_Equ9.png)(9)Furthermore,
+    we use the Area Under Curve (AUC) measure [[43](#CR43)] to combine the TPR and
+    FPR which is considered a good indicator of these rates. The AUC can be defined
+    as follows:![$$\begin{aligned} AUC=\frac{(1-FPR)\times (1+TPR)}{2}+\frac{FPR\times
+    TPR}{2} \end{aligned}$$](../images/507793_1_En_11_Chapter/507793_1_En_11_Chapter_TeX_Equ10.png)(10)A
+    greater value of these measures indicates better quality results.Table 2
+  prefs: []
+  type: TYPE_NORMAL
+- en: Comparison of the accuracy of IDS-SPSO versus IDS-MRPSO
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| Dataset | Method | TPR | FPR | AUC |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- | --- | --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Train20 | IDS-MRPSO | 0.903 | 0.038 | 0.933 |'
+  prefs: []
+  type: TYPE_TB
+- en: '| IDS-SPSO | 0.848 | 0.096 | 0.875 |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Train40 | IDS-MRPSO | 0.911 | 0.021 | 0.945 |'
+  prefs: []
+  type: TYPE_TB
+- en: '| IDS-SPSO | 0.856 | 0.085 | 0.888 |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Train80 | IDS-MRPSO | 0.935 | 0.013 | 0.961 |'
+  prefs: []
+  type: TYPE_TB
+- en: '| IDS-SPSO | 0.879 | 0.068 | 0.904 |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Train100 | IDS-MRPSO | 0.939 | 0.013 | 0.963 |'
+  prefs: []
+  type: TYPE_TB
+- en: '| IDS-SPSO | 0.883 | 0.059 | 0.905 |'
+  prefs: []
+  type: TYPE_TB
+- en: '![../images/507793_1_En_11_Chapter/507793_1_En_11_Fig6_HTML.png](../images/507793_1_En_11_Chapter/507793_1_En_11_Fig6_HTML.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Fig. 6
+  prefs: []
+  type: TYPE_NORMAL
+- en: Comparison of the running time of IDS-SPSO versus IDS-MRPSO
+  prefs: []
+  type: TYPE_NORMAL
+- en: 5.4 Results
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'We use in the experiments the following parameters: the number of particles
+    to 10, the number of iterations to 50, the inertia weight to 0.72 and the acceleration
+    coefficients to 1.49\. We first evaluate the accuracy of the proposed IDS-SPSO
+    compared to IDS-MRPSO system. Table [2](#Tab2) reports the TPR, FPR, and AUC values
+    obtained by the proposed system using different training data samples sizes compared
+    to IDS-MRPSO system. The obtained results show that the proposed IDS-SPSO gives
+    nearly same results of existing IDS-MRPSO system. In addition, we observed from
+    this table that the TPR value of IDS-SPSO using the whole training data (i.e.
+    Train100) reaches the best value compared to smaller training data sets. Furthermore,
+    Table [2](#Tab2) shows that IDS-SPSO obtains the lowest FPR for Train100 data
+    set. For instance, the IDS-MRCPSO system has a high TPR of 0.883 for Train100,
+    while it has a TPR of 0.848 for Train20\. In addition, it has a low FPR of 0.059
+    for Train100, while it has a PDR of 0.096 for Train20\. Hence, we observed that
+    the proposed system can distinguish effectively between the normal and attacks
+    data records. Finally, we concluded that the obtained results show the improvement
+    of accuracy when using larger training data sets.![../images/507793_1_En_11_Chapter/507793_1_En_11_Fig7_HTML.png](../images/507793_1_En_11_Chapter/507793_1_En_11_Fig7_HTML.png)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Fig. 7
+  prefs: []
+  type: TYPE_NORMAL
+- en: Evaluation of Speedup results for KDD data set samples from 20% to 100% sizes
+  prefs: []
+  type: TYPE_NORMAL
+- en: We then evaluate the running time of the proposed system compared to the IDS-MRPSO
+    system. Figure [6](#Fig6) shows the running time results for the 4 training data
+    samples using different numbers of machines. The obtained results show that the
+    proposed system is faster than existing IDS-MRPSO system. For instance, the IDS-SPO
+    is faster by a factor of 1.52 and 2.66 than IDS-MRPSO respectively for Train20
+    and Train100 data sets. From this Figure, we can also observe the improvement
+    of running time when the number of machines is increased. For example the running
+    time on 1 machine takes 870, 1740, 3480 and 4350 s for Train20, Train40, Train80,
+    and Train100, respectively, while the running time on 4 machines takes 245, 477,
+    901 and 1092 s for the same samples respectively.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We then evaluate the scalability of the proposed system, by running multiple
+    experiments with different number of machines. Figure [7](#Fig7) shows the Speedup
+    results using different training data sizes with different numbers of machines.
+    From this Figure, we observed that Speedup results become important especially
+    when the data size is increased. For example, the Speedup value when running IDS-SPSO
+    using 4 machines for Train20 is 3.57 while it is 3.90 for Train100 data. In addition,
+    the proposed system shows approximately a linear speedup when the number of machines
+    increases. This is explained by the benefits of the in-memory processing of Spark
+    framework, which can significantly reduce the network cost when we increase the
+    number of machines.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 6 Conclusion
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In this paper, we proposed an intrusion detection system IDS-SPSO for large
+    scale of network traffic. The proposed system incorporates clustering analysis
+    to build the detection model by solving the intrusion detection problem using
+    particle swarm optimization clustering algorithm. We have also shown in this work
+    that the intrusion detection system can be efficiently distributed through Spark
+    framework. Experiments were realized on a real intrusion data set in order to
+    evaluate the scalability of the proposed system. The experimental results show
+    the efficiency of the IDS-SPSO when we increase both the number of machines and
+    the training data size. Furthermore, the experiments results show that using larger
+    training data leads to better detection rates by keeping the false alarm very
+    low.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Our future work is to incorporate algorithms which are capable of providing
+    automatically the number of clusters. Furthermore, we will extend the proposed
+    system by employing feature selection techniques to extract the most important
+    features when building clusters.
+  prefs: []
+  type: TYPE_NORMAL

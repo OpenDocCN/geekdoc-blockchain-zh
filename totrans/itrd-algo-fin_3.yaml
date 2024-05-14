@@ -1,0 +1,2596 @@
+- en: ''
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Part III
+  prefs: []
+  type: TYPE_NORMAL
+- en: Blockchain and Cryptocurrency
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 16
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Background Concepts for Blockchain
+  prefs: []
+  type: TYPE_NORMAL
+- en: Understanding blockchain requires some background in two different areas of
+    computer science and mathematics, namely cryptography and distributed computing.
+    In this chapter, we provide a minimal introduction to these two areas.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 16.1 Cryptography
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 16.1.1 Cryptographic Hash Function
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Digital information appears in various forms. Examples would be messages on
+    social networks, financial transactions and images. Whatever be the form, at a
+    very basic level, any particular digital information can be considered to be a
+    sequence of bits. The length of the sequence is not fixed. It can vary quite a
+    bit, from a few hundred bits for a short message to a billion (or more) bits for
+    a large image.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A fundamental requirement in many cryptographic applications is the ability
+    to associate a unique identifier to any digital information. Such an identifier
+    is typically a short fixed length binary string. In many cases, it is more convenient
+    to work with the unique identifier of a digital information rather than the information
+    itself. Conventionlly, the digital information is called the *message* and the
+    associated unique identifier is called the *digest* of the message.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A hash function is a method for computing the digest corresponding to any given
+    message. Different hash functions give rise to different methods for computing
+    a digest. Nevertheless, any such hash function should satisfy certain properties
+    discussed below.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Domain*: The domain of the hash function is ![inline-image](../images/CH016_1.jpg)
+    where ![inline-image](../images/CH016_2.jpg) is a constant. This means that the
+    hash function can be used to compute the digest of messages having lengths from
+    0 (corresponding to the empty string) to ![inline-image](../images/CH016_3.jpg).
+    Usually ![inline-image](../images/CH016_4.jpg) is taken to be a very large value
+    such as 2^(64).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Range*: The range of the hash function is ![inline-image](../images/CH016_5.jpg),
+    where *n* is a constant. This means that the digest produced by the hash function
+    on any message is an *n*-bit string. The choice of *n* is determined by certain
+    security considerations. Typically, *n* = 256 or higher.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Efficiency*: In many applications, it is routinely required to compute digests
+    of millions of messages. So, a basic requirement is that it should be very fast
+    to evaluate the application of the hash function to a message.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Formally, a hash function is a map
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![display-image](../images/CH016_6.jpg)(16.1)'
+  prefs: []
+  type: TYPE_IMG
+- en: where ![inline-image](../images/CH016_7.jpg) and ![inline-image](../images/CH016_8.jpg)
+    are finite non-empty sets with ![inline-image](../images/CH016_9.jpg). Here, ![inline-image](../images/CH016_10.jpg)
+    denotes the cardinality of a finite set *S*, i.e. the number of elements in *S*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note that the domain of a hash function is larger than its range. This implies
+    that there cannot be a unique digest for every message in the domain of the hash
+    function. Recall that we had motivated hash functions by the requirement of ensuring
+    unique digests. Clearly, the condition of the domain being larger than the range
+    and the requirement of unique digests are contradictory. This contradiction is
+    resolved in the following manner.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let *M* and ![inline-image](../images/CH016_11.jpg) be two distinct elements
+    of ![inline-image](../images/CH016_12.jpg) such that ![inline-image](../images/CH016_13.jpg).
+    The pair of messages ![inline-image](../images/CH016_14.jpg) is called a collision
+    for *H*. It is true that if *H* is evaluated on all elements in its domain, then
+    collisions will certainly arise. However, since the domain is very large, in practice
+    it will not be possible to evaluate *H* on the entire domain. Compared to the
+    size of the domain, the hash function will be evaluated on only an insignificant
+    fraction of the domain. To ensure the uniqueness of the digests, it is sufficient
+    for the hash function to behave like an injective function on the inputs on which
+    it is actually evaluated. This in particular means that in practice collisions
+    should not arise. This leads to the following required property of a hash function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Collision-Resistant Hash Function (CRHF):** A hash function *H* is said to
+    be collision resistant if it is *computationally difficult* to find a collision
+    for *H*. Computational difficulty in the present context means that given reasonable
+    computational resources, it should not be possible to find a collision for *H*
+    in a reasonable amount of time.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We have mentioned above that it should be possible to evaluate a hash function
+    very fast, i.e. given a message *M*, it should be possible to compute the digest
+    *H*(*M*) within a (very small) fraction of a second. Consider the converse problem.
+    Suppose that we are given a digest *y* which is an *n*-bit string. How difficult
+    is it to find a message *M* such that *H*(*M*) = *y*? More generally, how difficult
+    is it to find a pre-image of any given digest? One way to find a pre-image is
+    to repeatedly apply *H* to different messages until a message is found which maps
+    under *H* to *y*. Since there are 2 ^([*n*]) possible digests, this procedure
+    may require applying *H* to 2 ^([*n*]) messages. A requirement on a hash function
+    is that there should essentially be no better way of finding a pre-image.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**One-Way Hash Function (OWHF):** A hash function *H* is said to be one way,
+    if it is *computationally difficult* to find a pre-image of any element in the
+    range of *H*.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Suppose that *M* and *y* are known such that *H*(*M*) = *y*. One may wish to
+    find a message ![inline-image](../images/CH016_15.jpg) such that ![inline-image](../images/CH016_16.jpg).
+    In other words, one pre-image of *y* under *H* is known to be *M* and the problem
+    is to find another pre-image of *y*. This is not the same as asking for a pre-image
+    of *y*. Neither is it the same as asking for a collision for *H*, since in a collision,
+    one simply asks for a pair of distinct messages *M* and ![inline-image](../images/CH016_17.jpg)
+    such that ![inline-image](../images/CH016_18.jpg); this is different from first
+    specifying *y* and *M* and then asking for ![inline-image](../images/CH016_19.jpg).
+    In fact, evidence suggests that finding a second pre-image has the same difficulty
+    level as finding a pre-image and is actually a much more difficult task than finding
+    a collision.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Second Pre-Image-Resistant Hash Function:** A hash function *H* is said to
+    be second pre-image resistant if it is *computationally difficult* to perform
+    the following task. For any element in the range of *H*, given one of its pre-images,
+    find a second one (or report that there is no second pre-image).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Later, we justify the collision-resistant, one-way and the second pre-image-resistant
+    properties of hash functions in the context of blockchain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 16.1.2 Hash Function as a Random Oracle
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: A cryptographic hash function is often modelled as a random oracle. Here a random
+    oracle is a uniform random function from ![inline-image](../images/CH016_20.jpg)
+    to ![inline-image](../images/CH016_21.jpg). Recall that ![inline-image](../images/CH016_22.jpg)
+    and ![inline-image](../images/CH016_23.jpg) are finite non-empty sets. So, the
+    set ![inline-image](../images/CH016_24.jpg) of all functions from ![inline-image](../images/CH016_25.jpg)
+    to ![inline-image](../images/CH016_26.jpg) is a finite set. Suppose ![inline-image](../images/CH016_27.jpg)
+    is a function chosen uniformly at random from ![inline-image](../images/CH016_28.jpg).
+    Such an ![inline-image](../images/CH016_29.jpg) is said to be a random oracle.
+    The function ![inline-image](../images/CH016_30.jpg) is viewed in the following
+    manner. It is queried on an element of ![inline-image](../images/CH016_31.jpg)
+    and returns an element of ![inline-image](../images/CH016_32.jpg). A crucial property
+    of a random oracle is the following. Suppose *M* 1,…,*M* *k* are distinct elements
+    of ![inline-image](../images/CH016_33.jpg). Then ![inline-image](../images/CH016_34.jpg)
+    are *independent and uniform random* elements of ![inline-image](../images/CH016_35.jpg).
+    Note that ![inline-image](../images/CH016_36.jpg) is a function, so if it is evaluated
+    on the same input twice, it will return the same answer.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Even though ![inline-image](../images/CH016_37.jpg) is a random oracle, the
+    domain is still larger than the range. So, ![inline-image](../images/CH016_38.jpg)
+    will still have collisions. Let us consider the difficulty of finding a collision
+    for ![inline-image](../images/CH016_39.jpg). The only way to evaluate ![inline-image](../images/CH016_40.jpg)
+    is by querying it on (distinct) messages *M* 1,…,*M* *k* . Suppose ![inline-image](../images/CH016_41.jpg)
+    are the corresponding outputs. The probability that ![inline-image](../images/CH016_42.jpg)
+    are all distinct is
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![display-image](../images/CH016_43.jpg)(16.2)'
+  prefs: []
+  type: TYPE_IMG
+- en: For ![inline-image](../images/CH016_44.jpg), it can be shown that ![inline-image](../images/CH016_45.jpg).
+    The probability of obtaining a collision is ![inline-image](../images/CH016_46.jpg).
+    For *k* about ![inline-image](../images/CH016_47.jpg), the probability of obtaining
+    a collision becomes greater than ![inline-image](../images/CH016_48.jpg). The
+    value ![inline-image](../images/CH016_49.jpg) is called the birthday bound (following
+    the so-called birthday paradox). So, if ![inline-image](../images/CH016_50.jpg)
+    is queried on ![inline-image](../images/CH016_51.jpg) distinct messages, then
+    finding a collision becomes likely.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A concrete hash function *H* is not a random oracle. Often, however, it is assumed
+    that *H* behaves like a random oracle. In particular, it is expected that *H*
+    would need to be evaluated on ![inline-image](../images/CH016_52.jpg) distinct
+    messages before obtaining a collision. The random oracle assumption on *H* is
+    also often used to (heuristically) argue about the distribution of the outputs
+    of *H*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 16.1.3 Digital Signature Schemes
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: A signature is a key component of any contract. It affirms the signer's commitment
+    to the contract in a manner which cannot be repudiated in the future. In the digital
+    world, a digital signature fulfills a role similar to that of a handwritten signature
+    in the physical world. A digital signature is not, however, an exact analogue
+    of a physical handwritten signature. We do not get into the finer distinctions
+    between digital and physical signatures. Instead, we provide below a high-level
+    overview of digital signatures.
+  prefs: []
+  type: TYPE_NORMAL
+- en: An electronic contract (e-contract) is a digital document. Like a physical contract,
+    an e-contract requires a non-repudiable commitment from the parties involved in
+    the contract. This is achieved by affixing the digital signatures of the parties
+    to the contract. Suppose Alice signs a digital document *M* to produce a signature
+    *s*. There are two basic requirements from any such digital signature. First,
+    it must be guaranteed that only Alice could have produced *s* on the message *M*.
+    Second, given *M* and *s*, it must be possible for any other party (say Bob) to
+    verify that *s* is indeed Alice's signature on *M*. The first condition requires
+    Alice to possess some information which is available only to her. This is called
+    Alice's signing (or secret) key ![inline-image](../images/CH016_53.jpg). To enable
+    the second condition of public verifiability by Bob, Alice has to make public
+    some information corresponding to her secret key. This is called Alice's verification
+    (or public) key ![inline-image](../images/CH016_54.jpg).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'More formally, a digital signature scheme consists of three procedures (or
+    algorithms): ![inline-image](../images/CH016_55.jpg). Alice runs the ![inline-image](../images/CH016_56.jpg)
+    algorithm to produce a matched pair of signing-verification key ![inline-image](../images/CH016_57.jpg).
+    She keeps ![inline-image](../images/CH016_58.jpg) secret and publishes ![inline-image](../images/CH016_59.jpg)
+    as her verification key. To sign a message *M*, Alice uses the ![inline-image](../images/CH016_60.jpg)
+    algorithm on *M* and ![inline-image](../images/CH016_61.jpg) to produce a signature
+    *s*. She then provides (*M*, *s*) as the message-signature pair. To verify, Bob
+    uses the ![inline-image](../images/CH016_62.jpg) algorithm on (*M*, *s*) and ![inline-image](../images/CH016_63.jpg);
+    if the answer of ![inline-image](../images/CH016_64.jpg) is ‘yes’, Bob accepts
+    *s* as Alice''s signature on *M*, while if the answer is ‘no’, Bob rejects the
+    message-signature pair.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note that the algorithms ![inline-image](../images/CH016_65.jpg) are not specific
+    to Alice. Any other entity, say Charles, can also use ![inline-image](../images/CH016_66.jpg)
+    to generate his signing and verification keys ![inline-image](../images/CH016_67.jpg)
+    and ![inline-image](../images/CH016_68.jpg), respectively; and use ![inline-image](../images/CH016_69.jpg)
+    with ![inline-image](../images/CH016_70.jpg) to sign a message. Further, ![inline-image](../images/CH016_71.jpg)
+    can be used by Bob to verify signatures generated by Charles.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A key requirement of a digital signature scheme is non-repudiability. If Alice
+    claims *s* is her signature on a message *M*, then later she cannot go back on
+    her claim and deny that she signed *M*. This is achieved by ensuring that ![inline-image](../images/CH016_72.jpg)
+    will return ‘yes’ on inputs (*M*, *s*) and ![inline-image](../images/CH016_73.jpg)
+    if and only if *s* was produced by applying ![inline-image](../images/CH016_74.jpg)
+    on inputs *M* and ![inline-image](../images/CH016_75.jpg). Since ![inline-image](../images/CH016_76.jpg)
+    is known only to Alice, it is concluded that she must have signed the message.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For any signature scheme (digital or physical), the major threat is the possibility
+    of forging a signature. Note that message-signature pairs are public. So, it is
+    possible for a forger, say Eve, to obtain several valid message-signature pairs
+    (*M* 1, *s* 1),…,(*M* [*k*] , *s* *k* ) produced by Alice using her signing key
+    ![inline-image](../images/CH016_77.jpg). Eve does not have access to ![inline-image](../images/CH016_78.jpg).
+    Suppose that after studying the obtained valid message-signature pairs produced
+    by Alice, Eve produces a pair ![inline-image](../images/CH016_79.jpg) which is
+    not equal to ![inline-image](../images/CH016_80.jpg) for any *i*. Further, suppose
+    that running ![inline-image](../images/CH016_81.jpg) on ![inline-image](../images/CH016_82.jpg)
+    and ![inline-image](../images/CH016_83.jpg) results in a ‘yes’ answer. So, ![inline-image](../images/CH016_84.jpg)
+    is a message-signature pair which has not been produced by Alice, yet it verifies
+    under her verification key. This means that Eve has successfully managed to forge
+    a signature of Alice. A secure digital signature scheme should disallow such forgeries.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 16.2 Distributed Computing
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Distributed computing is a very broad notion. A basic feature of a distributed
+    computing system is a collection of computers which are connected by a network.
+    More generally, one may consider the computers to be the components of the system.
+    The components interact among themselves by passing messages to each other using
+    the network.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The topology of the network can be varied. Rarely is it the case where all nodes
+    are directly connected to each other since such a connection structure would be
+    very expensive. The topology could be structured, where the graph describing the
+    interconnection network has some kind of a regular structure. Distributed computing
+    systems based on the Internet, however, have an unstructured topology. Each component
+    can communicate directly with only a small number of neighbours.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The components operate asynchronously, i.e. there is no global clock determining
+    which component does what at each time step. Further, the components can operate
+    concurrently and pass messages to other components as and when required. One important
+    characteristic is that components can fail. The failures occur independently and
+    also asynchronously. Failure does not necessarily mean stoppage of operation.
+    A failed component could be producing ‘garbage’ messages. In an adversarial scenario,
+    a component could come under the control of an adversary who can then send out
+    messages from the compromised component in order to mislead the operating components.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The goal of a distributed computing system is to get some work done. The nature
+    of the work could be to perform a joint computation of some computational task.
+    Each component performs a portion of the work and sends to one special component.
+    This component pools together the inputs from the various components to compute
+    the final result. Alternatively, the task could be for the components to agree
+    upon a common value. Since the components are distributed and communicate only
+    using the network, this task itself is quite complex. In addition, it is required
+    to perform the task under possible failure or possible malicious control of the
+    components.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are several types of distributed computing networks. Two typical examples
+    are the client–server networks and the peer-to-peer (P2P) networks. In the client–server
+    network, there is a set of clients, each of which can connect to a background
+    server as and when required. Typically, clients may use the server to authenticate
+    a user or to complete some heavy computation. The client–server model is not very
+    relevant for blockchains, so we do not discuss it any further.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 16.2.1 Peer-to-Peer Network
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: A P2P network is an interconnected network of components (sometimes called nodes).
+    There is no central administrative system. All the peers, i.e. the nodes, have
+    equal rights (hence the name peer). Note that equal rights does not necessarily
+    mean equal computational resources. Two nodes could have different amounts of
+    computing powers, yet as far as access to common resources of the network is concerned,
+    both the nodes would have the same rights.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A node in a P2P network may supply its computational resources to the other
+    nodes. Alternatively, it may also utilise the resources of the other nodes for
+    its purposes. So, a node is both a supplier and a consumer of resources. Well-known
+    examples of P2P networks are file sharing systems.
+  prefs: []
+  type: TYPE_NORMAL
+- en: P2P networks usually do not have any structure. A node forwards messages to
+    (a subset of) its neighbours. Any such message is then further relayed to the
+    neighbours of the neighbours and so on and may ultimately reach all the nodes
+    of the system. The manner in which nodes communicate using the network is determined
+    by a protocol.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 16.2.2 Gossip Protocol
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: A gossip protocol is a template for P2P communication. It is based on how epidemics
+    spread. Peer-to-peer gossip is used to ensure that data are routed to all members
+    of a network. There are two possible purposes. The first is dissemination of data,
+    and the second is aggregation of data. In the context of blockchain, dissemination
+    of data is more relevant.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A gossip protocol is not unique, though any gossip protocol possesses some relevant
+    features. A node interacts with some of its neighbouring nodes in a periodic manner,
+    i.e. after some fixed interval of time, a node sends its data to its neighbours
+    and receives their data. Each such interaction exchanges only a limited amount
+    of information. Usually, some randomness is used by a node in selecting the nodes
+    with which it will communicate. Since a node sends out the data to a number of
+    nodes, there is an implicit redundancy in the system. The same data may reach
+    a particular node using two different paths.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The communication among nodes is not assumed to be reliable. Links may fail,
+    nodes may fail. Also, as mentioned above, one or more nodes may come under the
+    control of an adversary. It is a challenge to achieve some notion of reliable
+    communication even under such circumstances.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 16.2.3 Byzantine Agreement
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: In the above discussion, we have mentioned the possibility of malicious behaviour
+    of participating nodes. Let us consider this in a little more detail. Suppose
+    each of the nodes has some input (say a bit) and the goal is for all the nodes
+    to decide on a common value. This common value must somehow depend on one or more
+    of the inputs, as otherwise the problem becomes trivial; all the nodes agree on
+    some constant value (say 1). To start with, assume for simplicity that any two
+    nodes communicate directly. Typically, the nodes would be connected using a P2P
+    network and a node would have to use the gossip protocol of the node to send a
+    message to all the other nodes in the network.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The nodes cannot be assumed to be reliable. A subset of nodes will perform the
+    correct behaviour, while the behaviour of the rest of the nodes cannot be predicted.
+    These other nodes are called Byzantine nodes. Byzantine behaviour of a node refers
+    to arbitrary and/or unpredictable behaviour. It may stop relaying values, it may
+    relay a random value, or it may even relay a malicious value (i.e. a value which
+    is intended to confound the correct or non-Byzantine nodes). The correct nodes
+    operate asynchronously and independent of each other. On the other hand, the Byzantine
+    nodes can coordinate their activities as all of them may come under the control
+    of some adversary. Whether a node is Byzantine or correct will not be known to
+    the correct nodes. However, we may assume that a node cannot forge the sender
+    address, i.e. a single node cannot impersonate all the nodes in the network.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The goal of a Byzantine agreement protocol is for the correct nodes to agree
+    on a common value under the above circumstances. Relevant features of an agreement
+    protocol are that there must be termination, i.e. the protocol must terminate
+    after a finite time. On termination, all the correct nodes should have a common
+    value. This common value must be valid. There are several notions of validity.
+    Any-input validity refers to the common value being the input of at least one
+    (not necessarily correct) node. Correct-input validity refers to the common value
+    being the input of at least one correct node. All-same validity refers to the
+    situation where if all the correct nodes start with the same value, then the common
+    value must be this value.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A basic question is whether Byzantine agreement is at all possible. It has been
+    proved that for a network of *n* nodes, Byzantine agreement is not possible if
+    at least ![inline-image](../images/CH016_85.jpg) of the nodes are Byzantine. On
+    the other hand, research in this area over several decades has led to a collection
+    of positive results obtaining various Byzantine agreement protocols under different
+    scenarios.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 16.2.4 Consensus Protocol
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: A consensus protocol is a method of agreement among a number of nodes for a
+    single data value in the presence of Byzantine nodes. The properties of termination
+    and agreement discussed above are necessary properties of any consensus protocol.
+    As for validity (sometimes also called integrity), typically the all-same notion
+    of validity is used, i.e. if all the correct nodes proposed the same value, then
+    at the end of the protocol any correct node must decide upon this value.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Notes**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Introduction to cryptology can be found in textbooks on cryptography such as
+    the one by Stinson and Paterson (2018). Digital signature schemes have a large
+    literature and come in many variants. See Sarkar (2015) for an overview of various
+    types of digital signature schemes. Presently, there are several standardised
+    digital signature schemes. We mention the elliptic curve digital signature scheme
+    (ECDSA) which has been standardised by the NIST of the US (see NIST, 2016). The
+    ECDSA is used in the cryptocurrency Bitcoin.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Byzantine problem was introduced in Lamport, Shostak, and Pease (1982).
+    Since then there has been a huge amount of work in the area. Our coverage has
+    been rudimentary. Further discussions can be found in a number of textbooks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 17
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Introduction to Blockchain
+  prefs: []
+  type: TYPE_NORMAL
+- en: This chapter provides an overview of the basic blockchain technology. In the
+    next chapter we will see how a blockchain can be used to implement a cryptocurrency.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 17.1 Transactions
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Simply put, a transaction is a record of some kind of exchange between two or
+    more parties. For example, one party supplies a service, while a second party
+    provides payment for the service. To make a payment, a party must possess some
+    amount of funds and then must provide a signed statement transferring the funds
+    to another party.
+  prefs: []
+  type: TYPE_NORMAL
+- en: More generally, one can consider contracts between parties. A contract can be
+    much more flexible than a transaction. It may include exit and penalty clauses
+    and also may refer to unknown situations in the future. So, the language for writing
+    a contract must be expressive enough to cover a whole multitude of tasks. We will
+    come back to this issue when we discuss the interesting notion of smart contracts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Whether we consider a transaction or a contract, such an instrument will be
+    considered valid only if it is signed by the parties who are involved. For example,
+    if somebody wishes to make a payment, the person must sign the statement which
+    transfers money to another person. In the physical world, this is achieved by
+    a signed cheque. So, the signature of the person making the payment is the key
+    issue. Moving to the digital world, a transaction needs to be signed. For doing
+    this, a digital signature scheme is used. Suppose Alice wishes to make a payment
+    of $100 to Bob. She uses her signing key ![inline-image](../images/CH017_1.jpg)
+    to digitally sign the statement ‘I transfer $100 to Bob’. This statement is considered
+    to be a message *M*, and the signing algorithm is invoked on *M* and ![inline-image](../images/CH017_2.jpg)
+    to produce the signature *s*. Using the verification algorithm and Alice's verification
+    key ![inline-image](../images/CH017_3.jpg), anybody can verify that *s* is indeed
+    Alice's signature on the message *M*. For the moment, let us consider transactions
+    to be signed statement of this type. Later, we will consider somewhat more details.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 17.2 Blocks of Transactions
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: An active system will generate millions of transactions. Further, future transactions
+    may be based on the current transactions. For example, a payment system will consist
+    of transactions where parties make payments to other parties. One party can receive
+    money from another party and then based on the money received make a payment to
+    a third party. At a top level, one may view the entire system to be the set of
+    transactions that has taken place so far within the system.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For the purposes of keeping record, the transactions will need to be grouped
+    together and stored. A block is essentially a group of transactions. There is
+    no particular order in which the transactions in a block are stored.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Transactions can have varying sizes depending upon their complexities. In the
+    context of payment system, a transaction may record a simple payment from one
+    account of a party to another party. Such a transaction will have a small size.
+    On the other hand, a transaction may also record payment from multiple accounts
+    of a party to several parties. This will have a larger size. A block usually has
+    a fixed size. So, depending upon the sizes of the transactions, it may store a
+    variable number of transactions. This, however, is not important for a conceptual
+    understanding. It is enough to view a block as storing a number of transactions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 17.3 Public Ledger as a Blockchain
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Transactions of a system are entered and recorded in a ledger. In a physical
+    system, a ledger would be a physical book where a bunch of transactions would
+    be entered on each page of the book. In a digital system, blocks of transactions
+    are chained together in a structure called a blockchain. A cryptographic hash
+    function *H* is used to chain together the blocks of transactions. The entire
+    chain is made public. So, a blockchain implements a public ledger.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We have mentioned that a block contains a set of transactions. While this is
+    indeed a rough conceptual view of a block, the actual information present in a
+    block is more than just the transactions in it. Below we provide a more formal
+    description.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let *B* 0, *B* 1, …, *B* *r* be a sequence of blocks. The first block *B* 0
+    is special since it has no previous blocks. It is sometimes called the *genesis
+    block*. Formally, the block *B* [*i*] , *i* ≥ 1, can be considered to be a triplet
+    ![inline-image](../images/CH017_4.jpg). (A block also stores some additional information
+    called metadata which we ignore for the moment.) The transactions in the block
+    constitute the component *R* [*i*] of the block *B* [*i*] and *h* [*i*] is the
+    linking information. For the moment, let us ignore the role of ![inline-image](../images/CH017_5.jpg).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The hash function *H* is applied to the block *B* [*i*]−1 to obtain the component
+    *h* [*i*] of the block *B* [*i*] , i.e. *h* [*i*] = *H*(*B* [*i*]−1). So, one
+    may consider the component *h* [*i*] in the present block to ‘point’ to the previous
+    block *B* [*i*]−1\. In other words, the hash function *H* is used to create the
+    quantities *h* 1, *h* 2, … , *h* *r* which are the links in the blockchain. Note
+    that the genesis block *B* 0 does not have the component *h* 0, since there is
+    no earlier block to which it can point. Pictorially, this may be depicted as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![display-image](../images/CH017_6.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: The arrows in the blockchain point in the backward direction indicating that
+    the digest of block *B* [*i*] is part of block *B* [*i*]+1\. The chain, however,
+    is computed only in the forward direction. Once the chain up to block *B* *r*
+    is prepared, a group of transactions is taken as *R* *r*+1, the digest *h* *r*+1
+    = *H*(*B* *r* ) is computed (for a suitable value of ![inline-image](../images/CH017_7.jpg))
+    and the block ![inline-image](../images/CH017_8.jpg) is appended to the head of
+    the chain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A basic requirement on any ledger is immutability. Essentially this means that
+    once a transaction is entered into a ledger, it should not be possible to undo
+    or alter it in any manner. This property should also hold in the case of a public
+    ledger as described above. Ensuring immutability of the public ledger amounts
+    to ensuring that once a block (and hence the transactions in the block) is inserted
+    into the blockchain it cannot be changed thereafter. Let us consider this in more
+    detail.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Suppose there are two blocks ![inline-image](../images/CH017_9.jpg) and ![inline-image](../images/CH017_10.jpg)
+    with ![inline-image](../images/CH017_11.jpg) such that ![inline-image](../images/CH017_12.jpg).
+    The component *R* [*i*] of block *B* [*i*] consists of all the transactions that
+    have been included in the block. The difference between *R* [*i*] and ![inline-image](../images/CH017_13.jpg)
+    could be due to alteration of some transaction *T* in ![inline-image](../images/CH017_14.jpg)
+    to obtain transaction ![inline-image](../images/CH017_15.jpg) which is included
+    in ![inline-image](../images/CH017_16.jpg). Since the digest of both *B* [*i*]
+    and ![inline-image](../images/CH017_17.jpg) under the hash function *H* are equal
+    and both the blocks contain the same value of ![inline-image](../images/CH017_18.jpg),
+    any of the following two blockchains are valid:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![display-image](../images/CH017_19.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '![display-image](../images/CH017_20.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: An adversary may conduct transaction *T* which enters the first blockchain and
+    then replaces the first blockchain by the second one which contains the transaction
+    ![inline-image](../images/CH017_21.jpg) instead of *T*. This clearly violates
+    the immutability of the blockchain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The above scenario arose due to the occurrence of ![inline-image](../images/CH017_22.jpg)
+    such that ![inline-image](../images/CH017_23.jpg). The pair ![inline-image](../images/CH017_24.jpg)
+    is a collision for the hash function *H*. One of the requirements on *H* is that
+    it should be collision-resistant, i.e. it should be computationally difficult
+    to find a collision for *H*. For a collision-resistant *H*, it will not be possible
+    (in reasonable time) to find *B* [*i*] and ![inline-image](../images/CH017_25.jpg)
+    such that ![inline-image](../images/CH017_26.jpg). So, the described strategy
+    of modifying the public ledger will not work.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We have mentioned that the blockchain is to be computed in the forward direction.
+    Let us consider the possibility of computing it in the backward direction. Suppose
+    that the blockchain has *r* blocks and ![inline-image](../images/CH017_27.jpg)
+    is the head of the blockchain. Computing the chain in the backward direction requires
+    obtaining a block ![inline-image](../images/CH017_28.jpg) such that ![inline-image](../images/CH017_29.jpg).
+    First assume that this is indeed possible. This would affect the immutability
+    of the blockchain, since then *B* *r*−1 can be overwritten by ![inline-image](../images/CH017_30.jpg)
+    to obtain a valid blockchain. The backward computation is possible only if given
+    *h* [*r*] , it is possible to find ![inline-image](../images/CH017_31.jpg) such
+    that ![inline-image](../images/CH017_32.jpg). In effect, this means that it is
+    possible to compute a pre-image of *h* *r* under *H*. Recall that one of the properties
+    required of the hash function *H* is that it is one-way which ensures that it
+    is computationally difficult to find pre-images under *H*. So, the one-way property
+    of the hash function *H* ensures that the blockchain cannot be computed in the
+    backward direction.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 17.4 Distributed Public Ledger
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: We have described how a public ledger can be set up using a blockchain. There
+    could, conceivably, be implementations of a public ledger without using a blockchain.
+    Presently, however, the most important method for realising a public ledger is
+    to base it on a blockchain. So, our discussion of public ledger will be entirely
+    based on blockchain technology.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the previous sections of the chapter, we have provided a basic overview of
+    a blockchain. The relevance of cryptographic properties of the hash function to
+    the immutability of a blockchain has been explained. Next comes the question of
+    how a blockchain is maintained. The short answer to this is that a blockchain
+    is maintained in a distributed fashion. In this section, we elaborate further
+    on this.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The setting that we consider consists of many parties who are geographically
+    distributed across the planet. There would be differences in the complexities
+    of the parties. For the present, we ignore such differences and consider each
+    party to be a node of the system. Again, for simplicity, we assume a node to be
+    a computer. These nodes are connected to each other using the internet (or, maybe
+    a part of it). So, one particular node can communicate directly to only a small
+    number of nodes in its neighbourhood. This is the setting of P2P network, as has
+    been described in Section 16.2.1.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The nodes themselves generate transactions which are to be included in the public
+    ledger. The question then arises as to who maintains the public ledger. The answer
+    is that all the nodes maintain the public ledger, i.e. each node maintains a copy
+    of the public ledger. Since we are considering that the public ledger is implemented
+    as a blockchain, it follows that each node maintains a copy of the blockchain.
+    Since the blockchain is distributed across the whole network, the resulting public
+    ledger is often called distributed public ledger. At this point, a crucial question
+    arises. How is it ensured that the copies of the blockchain maintained by the
+    different nodes are consistent? Below we address this issue.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let us consider a particular node *v*. Transactions occur at the node *v*, i.e.
+    the entity responsible for the node *v* may initiate transactions. These transactions
+    are to be entered into the blockchain. So, node *v* uses the gossip protocol of
+    the P2P network to send out the transactions to a subset of its neighbouring nodes.
+    These neighbouring nodes further propagate the transactions until the transactions
+    reach the entire network. Usually the gossip network is quite efficient and a
+    transaction reaches the entire network within a few seconds (or, even less time).
+    Similarly, node *v* receives transactions which have occurred at other nodes in
+    the network.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We have mentioned that each node in the network maintains a copy of the blockchain.
+    The blockchain consists of blocks where each block is a group of transactions.
+    Each node also receives transactions which have occurred in the network. Along
+    with a copy of the blockchain, each node also maintains a list of transactions
+    which have so far not entered the blockchain. This is the set of ‘un-blocked’
+    transactions. Note that at a particular point of time, the list of un-blocked
+    transactions maintained by the different nodes need not be the same; in fact,
+    they will mostly be different. This is because a transaction generated at a particular
+    node will require some time to travel throughout the network. Until it has reached
+    all the nodes in the system, a subset of nodes will be recording it as ‘un-blocked’
+    while the other nodes will not even be knowing about it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Again, let us get back to node *v*. This node maintains a copy of the blockchain
+    and a list of un-blocked transactions. Let us denote node *v*'s copy of the blockchain
+    by ![inline-image](../images/CH017_33.jpg) and its list of un-blocked transactions
+    as ![inline-image](../images/CH017_34.jpg). Apart from generating and propagating
+    transactions, each node also tries to create a block and propagate it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Suppose the header of ![inline-image](../images/CH017_35.jpg) is a block ![inline-image](../images/CH017_36.jpg),
+    where *h* *r* = *H*(*B* *r*−1) is the digest under the hash function *H* of the
+    previous block *B* *r*−1 in ![inline-image](../images/CH017_37.jpg), ![inline-image](../images/CH017_38.jpg)
+    is the set of transactions in the block *B* and ![inline-image](../images/CH017_39.jpg)
+    is a quantity which plays a special role. Node *v* takes a group of transactions
+    from ![inline-image](../images/CH017_40.jpg) and checks the validity of each of
+    these transactions. The checking of validity includes checking proper format and
+    the verifications of the digital signatures of the various parties in a transaction.
+    If a check fails, then *v* rejects the corresponding transaction and removes it
+    from ![inline-image](../images/CH017_41.jpg). Once all the checks succeed, *v*
+    takes this group of transactions to be ![inline-image](../images/CH017_42.jpg).
+    Node *v* then computes ![inline-image](../images/CH017_43.jpg). Next, it attempts
+    to obtain a suitable value for ![inline-image](../images/CH017_44.jpg) so as to
+    be able to form a block ![inline-image](../images/CH017_45.jpg). We will later
+    explain how ![inline-image](../images/CH017_46.jpg) is obtained. Once node *v*
+    has been able to form block ![inline-image](../images/CH017_47.jpg), it removes
+    the transactions in ![inline-image](../images/CH017_48.jpg) from ![inline-image](../images/CH017_49.jpg),
+    inserts ![inline-image](../images/CH017_50.jpg) into ![inline-image](../images/CH017_51.jpg)
+    as the new header and propagates this block to the network using the gossip protocol.
+    So, apart from transactions, nodes in the network also propagate blocks that they
+    have created.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let us now consider what happens when node *v* receives a block ![inline-image](../images/CH017_52.jpg).
+    It checks whether ![inline-image](../images/CH017_53.jpg) and if this is true,
+    it then inserts *B* as the new header in ![inline-image](../images/CH017_54.jpg)
+    and removes the transactions in *R* from ![inline-image](../images/CH017_55.jpg).
+    This results in the extension of the copy of the blockchain ![inline-image](../images/CH017_56.jpg)
+    available with node *v* by one block. The gossip protocol ensures that the block
+    *B* reaches all the nodes. Assuming that all nodes have the same copy of the blockchain,
+    each node extends its copy of the blockchain by the block *B* and again all nodes
+    in the network have the same copy of the blockchain. Recall that the start of
+    the blockchain is by the genesis block which all nodes certainly have. So, ignoring
+    conflicts, each node maintains the same copy of the blockchain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conflicts, however, do arise. The nodes are creating blocks concurrently and
+    independently of each other. Whenever a block is created, it is transmitted to
+    the gossip network. Further, the list of un-blocked transactions maintained by
+    the nodes is different. So, blocks created by different nodes will not necessarily
+    have the same set of transactions. It is quite possible that the node *v* almost
+    simultaneously receives two different blocks ![inline-image](../images/CH017_57.jpg)
+    and ![inline-image](../images/CH017_58.jpg) such that ![inline-image](../images/CH017_59.jpg).
+    In other words, both the blocks *B* and ![inline-image](../images/CH017_60.jpg)
+    are compatible with the copy of the blockchain ![inline-image](../images/CH017_61.jpg)
+    maintained by *v*. Note that one of the blocks *B* and ![inline-image](../images/CH017_62.jpg)
+    could have been created by *v* itself. At this point, there needs to be some kind
+    of a conflict resolution mechanism to determine which of the two blocks *B* and
+    ![inline-image](../images/CH017_63.jpg) is to be inserted as the new header of
+    ![inline-image](../images/CH017_64.jpg). The overall protocol for the blockchain
+    will specify this conflict resolution mechanism. Later we will consider the special
+    case of the Bitcoin protocol. For the moment, it is sufficient to note that one
+    of the blocks *B* and ![inline-image](../images/CH017_65.jpg) is entered as the
+    new header by *v*, while the other block is rejected. Suppose block *B* is accepted
+    and ![inline-image](../images/CH017_66.jpg) is rejected. So, in some sense the
+    blockchain protocol has to define when block *B* will be preferred over block
+    ![inline-image](../images/CH017_67.jpg). Note that this preference relation is
+    specified by the blockchain protocol and is followed by all the nodes in the network.
+    So, all the nodes will prefer *B* over ![inline-image](../images/CH017_68.jpg)
+    and extend their copies of the blockchain using *B* rather than ![inline-image](../images/CH017_69.jpg).
+    This is a kind of consensus among the nodes and the preference relation of the
+    blockchain protocol essentially specifies the consensus algorithm.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The scenario is actually more complex than the above. Competition to enter the
+    blockchain is not only restricted to the two blocks which are received almost
+    simultaneously by a node. Consider again node *v* and its copy of the blockchain
+    ![inline-image](../images/CH017_70.jpg). Suppose node *v* receives a block ![inline-image](../images/CH017_71.jpg)
+    and it finds that *H*(*B* [*i*]−1) = *h*. This means that the blockchain (*B*
+    0,…,*B* [*i*]−1, *B*) is valid. Node *v* now has the option of either rejecting
+    block *B* or of modifying its copy of the blockchain to (*B* 0,…,*B* [*i*]−1,
+    *B*) and rejecting blocks ![inline-image](../images/CH017_72.jpg). The actual
+    decision on which option node *v* should choose is also determined by the conflict
+    resolution mechanism of the blockchain protocol.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Suppose that following the blockchain protocol, node *v* chooses the blockchain
+    (*B* 0,…,*B* [*i*]−1, *B*) and rejects the blocks *B* [*i*] ,…,*B* *r*−1, *B*
+    *r* . Since the consensus protocol is followed by all the nodes in the network,
+    any other node whose local copy of the blockchain is ![inline-image](../images/CH017_73.jpg)
+    and receives block *B* also opts for the blockchain (*B* 0,…,*B* [*i*]−1, *B*)
+    and rejects the blocks *B* [*i*] ,…,*B* *r*−1, *B* *r* . These later blocks are
+    called stale blocks (and sometimes also called orphan blocks, though technically
+    orphan blocks are different objects). The cost of creating these stale blocks
+    has been wasted.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Another possibility may arise. Suppose that the local copies of the blockchain
+    of all the nodes is ![inline-image](../images/CH017_74.jpg) and all of them receive
+    block *B*. Further suppose that the rules of the blockchain protocol dictates
+    that the blockchain must be modified to ![inline-image](../images/CH017_75.jpg).
+    At this point, some of the nodes in the network decide to follow the protocol
+    and update the local copies of the their blockchain while the rest of the nodes
+    discard block *B* and continue with the blockchain ![inline-image](../images/CH017_76.jpg).
+    This gives rise to two different blockchains which are the same up to block *B*
+    [*i*]−1 and then forks into two distinct chains. The two disjoint subsets of nodes
+    which work on the two different blockchains will no longer accept blocks and transactions
+    from each other. Effectively, this results in a partition of the network into
+    two different parts. This process is called forking of the blockchain and also
+    the network. Forking can arise for a number of reasons. One important reason for
+    a fork to occur is a change in the blockchain protocol which is accepted by a
+    subset of nodes, but, not by the other nodes. In the context of cryptocurrency,
+    forking may lead to one cryptocurrency being split into two cryptocurrencies.
+    Later we provide further explanation of how this may happen.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 17.5 Permissionless versus Permissioned Blockchain
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Distributed public ledger based on blockchain has been popularised by Bitcoin
+    and the follow-up cryptocurrencies. Notable among the follow-ups is Ethereum which
+    apart from providing a cryptocurrency also provides a platform for implementing
+    smart contracts. All such blockchains can be considered to be public blockchains.
+    In such blockchains, there is no restriction on who can become a node in the network.
+    Anybody can download the software for the blockchain protocol onto a computer
+    and create a node of the blockchain network. Such a system is considered to be
+    permissionless since no permission is required from any authority to join the
+    network. It is also called a decentralised system due to the fact that all nodes
+    in the network have equal privileges, i.e. they are peers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Subsequent to the popularisation of cryptocurrencies there has been a great
+    deal of interest in the underlying blockchain technology to implement distributed
+    public ledgers for various tasks. An organisation, for example, may employ a blockchain
+    to maintain a public ledger of interal records. This would be very convenient,
+    since the public ledger would be accessible to all internal members of the organisation.
+    Such a public ledger is not really public, since the organisation might not wish
+    to reveal its internal documents to entities outside the organisation. Further,
+    it may also wish to provide access to the ledger only to a set of privileged members
+    of the organisation. So, permission from some central authority is required to
+    join the blockchain. Such a system is called permissioned blockchain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 18
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Cryptocurrency: Basics'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this chapter, we will consider cryptocurrencies. The cryptocurrency Bitcoin
+    was proposed in 2009 and till date remains the most successful of all cryptocurrencies.
+    Subsequent to Bitcoin, over 1,500 cryptocurrencies have been proposed. All of
+    these are based on the blockchain technology, and most of them are conceptually
+    very similar to Bitcoin differing mostly in the choice of tools to implement the
+    various components. Our discussion of how a cryptocurrency can be realised using
+    the Blockchain technology will be based on Bitcoin. Later we will discuss some
+    conceptual variations that arise.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 18.1 Owner
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: While considering a cryptocurrency, the first issue that comes to the mind is
+    how the currency is created. We will, however, defer this point. Let us assume
+    that there is a unit of cryptocurrency and it exists. Existence of a cryptocurrency
+    means that various amounts of it are held by different owners. At any point of
+    time, the total amount of a cryptocurrency is the sum of the various amounts of
+    the cryptocurrency held by the different owners. So, there is no existence of
+    the cryptocurrency outside ownership.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the physical world, a physical entity is the owner of a certain amount of
+    any currency. Such a physical entity can be a person or an organisation. Ownership
+    of physical currency can mean various things. One important consequence of ownership
+    is that it provides the owner with the privilege of spending the amount of currency
+    that is held by the owner. The spending is effected by transferring (a part of)
+    the amount held by the owner to another entity. This later entity then becomes
+    the new owner of the said amount of the currency.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A cryptocurrency system emulates the spending aspects of a physical currency.
+    In doing this, it abstracts away the requirement of a physical entity. The notion
+    of ownership is captured by the spending ability, i.e. the owner of a certain
+    amount of cryptocurrency can spend this amount.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Fix a digital signature scheme. Using the ![inline-image](../images/CH018_1.jpg)
+    algorithm of the scheme, it is possible to create a pair of signing (or secret)
+    and verification (or public) keys. Each time the ![inline-image](../images/CH018_2.jpg)
+    algorithm is invoked, it returns a new pair of secret/public keys. At a conceptual
+    level, in a cryptocurrency system, the public keys are the owners of various amounts
+    of the cryptocurrency. (We will modify this statement later.) Suppose, a public
+    key ![inline-image](../images/CH018_3.jpg) owns *x* amount of the cryptocurrency.
+    Then ![inline-image](../images/CH018_4.jpg) can make payments of *x* 1,…,*x* [*t*]
+    amounts of the cryptocurrency to public keys ![inline-image](../images/CH018_5.jpg),
+    respectively, such that *x* = *x* 1 + ⋯ + *x* [*t*] . For making this payment,
+    the signing key ![inline-image](../images/CH018_6.jpg) corresponding to ![inline-image](../images/CH018_7.jpg)
+    is required. Whoever possesses this signing key can make such a payment.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Physical entities are owners of the signing keys which allow them to make payments
+    held by the corresponding public keys. One physical entity can create multiple
+    signing and public keys. The total ownership of cryptocurrency by this physical
+    entity is the sum of the various amounts of cryptocurrencies which are held by
+    the public keys for which the physical entity possesses the corresponding signing
+    keys. If a signing key is lost, then there is no way to spend the amount of cryptocurrency
+    owned by the corresponding public key. This amount of cryptocurrency essentially
+    goes out of the system and is lost.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A cryptocurrency system provides a certain amount of anonymity to a participating
+    physical entity. Identities of the physical entities who participate in the system
+    are not part of the system. The system only recognises public keys. Payments are
+    made from one public key to one or more public keys. For making such a payment,
+    the identity of the physical entity is not required. As long as the physical entity
+    possesses the appropriate signing key, it can make the required payment.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 18.2 Transactions
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: In Chapter 17, we have considered transactions in an abstract manner. In the
+    context of a cryptocurrency, a transaction is a record of payment of the amount
+    of cryptocurrency owned by one public key ![inline-image](../images/CH018_8.jpg)
+    to one or more public keys ![inline-image](../images/CH018_9.jpg). So, there is
+    a spender public key ![inline-image](../images/CH018_10.jpg) and a set of recipient
+    public keys ![inline-image](../images/CH018_11.jpg). The statement of transfer
+    is considered to be a message *M*. This message is digitally signed with the signing
+    key ![inline-image](../images/CH018_12.jpg) corresponding to ![inline-image](../images/CH018_13.jpg)
+    to produce a signature *s*. The task of signing represents the spender's commitment
+    to the transaction. Since signing keys are not made public, only the physical
+    entity who possesses the signing key ![inline-image](../images/CH018_14.jpg) can
+    sign off on the transfer of funds. The statement of transfer *M* along with the
+    signature *s* constitute a transaction.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Verification of a transaction (*M*, *s*) consists of several checks. One of
+    these is the verification of the signature. The spender public key ![inline-image](../images/CH018_15.jpg)
+    is public. So, anybody can use the verification algorithm along with ![inline-image](../images/CH018_16.jpg)
+    to verify that (*M*, *s*) is a valid message-signature pair.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The other important check on a transaction is to verify that ![inline-image](../images/CH018_17.jpg)
+    indeed owns the stated amount of cryptocurrency. We consider this issue. As discussed
+    in Chapter 17, transactions are grouped together into blocks, and the blocks are
+    organised into the blockchain. The blockchain is public and constitutes the public
+    ledger. So, any transaction which is part of the blockchain is publicly available.
+    In the above, we have discussed how the transfer of cryptocurrency from one public
+    key to another public key is effected. There is also a method for creating specific
+    amounts of cryptocurrency and assigning it to a public key, and this information
+    is also available on the blockchain. (We will discuss the procedure for creation
+    of cryptocurrency later.) So, a certain amount of cryptocurrency gets created
+    and assigned to a public key; a transaction distributes this amount to a set of
+    public keys; subsequent transactions, in turn, distribute the amounts to other
+    public keys and so on. All such information is available on the blockchain. Consequently,
+    at any point of time, using the blockchain, it is possible to determine whether
+    a particular public key indeed possesses a stated amount of cryptocurrency. As
+    a result, it is possible to verify whether the spender public key in a transaction
+    is indeed the owner of the amount it spends in the transaction.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 17 discussed how a P2P network is used to implement a blockchain. One
+    of the activities of the nodes in such a network is to group transactions into
+    blocks. Before including a transaction into a block, a node verifies the transaction.
+    Apart from basic verification, such as the sum of the amount transferred to the
+    recipient public keys is at most the amount owned by the spender public keys,
+    this verification consists of two essential tasks. The first is to determine whether
+    the spender public key indeed owns the amount of cryptocurrency to be transferred,
+    and the second is the verification of the signature in the transaction. If either
+    of these checks fail, the transaction is discarded. Otherwise, the node includes
+    it in the list of transactions and attempts to create a block.
+  prefs: []
+  type: TYPE_NORMAL
+- en: So, far we have mentioned that a transaction consists of a single spender public
+    key and possibly more than one recipient public keys. It is also possible for
+    a transaction to have multiple spender public keys. In this case, the transaction
+    has to be signed by the signing keys corresponding to each of the spender public
+    keys. Further, the sum of the amounts of the cryptocurrency transferred to all
+    the recipient public keys must be at most the sum of the amounts of the cryptocurrency
+    owned by all the spender public keys.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Suppose there are *s* spender public keys owning *x* 1,…,*x* *s* amounts of
+    the cryptocurrency and there are *t* recipient public keys receiving *y* 1,…,*y*
+    [*t*] amounts of the cryptocurrency. Then a necessary condition for a valid transaction
+    is that ![inline-image](../images/CH018_18.jpg). If ![inline-image](../images/CH018_19.jpg),
+    then the entire input amount is transferred to the output. On the other hand,
+    if ![inline-image](../images/CH018_20.jpg), then the difference ![inline-image](../images/CH018_21.jpg)
+    is transferred to the node in the P2P network which successfully creates a block
+    containing the transaction. This difference *δ* is called the transaction fee
+    and is an incentive for nodes in the network to include the transaction in a block.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note that the entire amount ![inline-image](../images/CH018_22.jpg) owned by
+    the spender public keys is utilised, either by transferring to recipient public
+    keys or as the transaction fee. There is no way for a spender public key to retain
+    a part of the amount that it holds. Suppose a physical entity *A* possesses the
+    secret key ![inline-image](../images/CH018_23.jpg) corresponding to a public key
+    ![inline-image](../images/CH018_24.jpg) which owns *x* amount of the cryptocurrency.
+    Further, suppose *A* wishes to make a payment of an amount *y* < *x* to a public
+    key ![inline-image](../images/CH018_25.jpg). If *A* creates a transaction with
+    ![inline-image](../images/CH018_26.jpg) as the spender key and transferring *y*
+    to ![inline-image](../images/CH018_27.jpg), then the amount *x* − *y* becomes
+    the transaction fee and is a loss to *A*. The way to make such a part payment
+    is the following. Entity *A* creates a new public/signing key pair ![inline-image](../images/CH018_28.jpg)
+    and ![inline-image](../images/CH018_29.jpg) and keeps ![inline-image](../images/CH018_30.jpg)
+    secret. It then creates a transaction with ![inline-image](../images/CH018_31.jpg)
+    as the spender public key transferring amount *y* to ![inline-image](../images/CH018_32.jpg)
+    and amount *z* to ![inline-image](../images/CH018_33.jpg) such that *y* + *z*
+    ≤ *x*. Since *A* possesses the signing key ![inline-image](../images/CH018_34.jpg),
+    it can later spend the amount *z* assigned to ![inline-image](../images/CH018_35.jpg).
+    Note that if *y* + *z* = *x*, then there is no transaction fee. Entity *A* may
+    set the value of *z* such that there is a small amount of transaction fee to incentivise
+    nodes to include the transaction into a block.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 18.3 Cryptocurrency Addresses
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: We have mentioned that public keys are owners of cryptocurrency. This statement
+    is not accurate. More technically, the owners of cryptocurrency are addresses.
+    These addresses are formed by applying a hash function to the public keys. The
+    hash function that is used to generate the addresses may be different from the
+    hash function used to chain the blocks in the blockchain. Suppose *H* 1 is the
+    hash function used to generate addresses. Given a public key ![inline-image](../images/CH018_36.jpg),
+    an address is computed as ![inline-image](../images/CH018_37.jpg).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Assuming that *H* 1 is collision resistant, cryptocurrency addresses are unique
+    encodings of the public keys. Suppose that (*sk*, *pk*) is a pair of signing and
+    verification keys and ![inline-image](../images/CH018_38.jpg). The amount of cryptocurrency
+    associated with the address can be spent by whoever possesses the signing key
+    ![inline-image](../images/CH018_39.jpg). If it is possible to generate another
+    pair of signing and verification keys ![inline-image](../images/CH018_40.jpg)
+    such that ![inline-image](../images/CH018_41.jpg), then using ![inline-image](../images/CH018_42.jpg)
+    it becomes possible to spend the amount associated with the address *a*. Given
+    ![inline-image](../images/CH018_43.jpg) and ![inline-image](../images/CH018_44.jpg),
+    the task of obtaining ![inline-image](../images/CH018_45.jpg) such that ![inline-image](../images/CH018_46.jpg)
+    is that of finding a second pre-image of the element *a* in the range of *H* 1\.
+    Under the assumption that *H* 1 is second pre-image resistant, this task is computationally
+    infeasible.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We have mentioned that a transaction transfers funds from spender public keys
+    to recipient public keys. A more accurate statement is that a transation transfers
+    funds from spender addresses to recipient addresses where the addresses are computed
+    as digests of relevant public keys by applying the hash function *H* 1\. For a
+    conceptual understanding, it is not required to distinguish between public keys
+    and their addresses. Accordingly, we will continue talking about cryptocurrency
+    being assigned to public keys rather than to addresses.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 18.4 Recapitulation
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Let us briefly recapitulate what has been discussed. The owners of various amounts
+    of cryptocurrency are public keys. Transactions record the details of payment
+    from one or more public keys to one or more other public keys.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A cryptocurrency is implemented using a blockchain. Groups of transactions are
+    organised into blocks, and the blocks are sequenced into the blockchain. The blockchain
+    is maintained in a distributed fashion by a P2P network. Complete information
+    regarding which public key owns what amount of cryptocurrency is available from
+    the blockchain. Each node in the network maintains its own copy of the blockchain
+    and the list of transactions which are yet to be inserted into the blockchain.
+    Nodes generate transactions and use the gossip protocol of the P2P network to
+    propagate them. Nodes also create blocks and propagate them using the gossip protocol.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A block is of the form ![inline-image](../images/CH018_47.jpg), where *h* is
+    the digest under the hash function *H* of the previous block, *R* is a list of
+    transactions and ![inline-image](../images/CH018_48.jpg) is a special value. So
+    far, we have not explained the role of ![inline-image](../images/CH018_49.jpg).
+    This parameter plays a crucial role in the creation of a block. Next we explain
+    how a block is created and the role of ![inline-image](../images/CH018_50.jpg)
+    in it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 18.5 Creation of a Block via Proof of Work
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Consider a node *v* whose local copy of the blockchain is ![inline-image](../images/CH018_51.jpg)
+    with a block ![inline-image](../images/CH018_52.jpg) as the header. The list of
+    un-blocked transactions available with *v* is ![inline-image](../images/CH018_53.jpg).
+    To create a block, *v* chooses a list of transactions *R* from ![inline-image](../images/CH018_54.jpg)
+    and verifies each of them. The verification checks on the transactions have been
+    explained above. Node *v* computes ![inline-image](../images/CH018_55.jpg). Next
+    it attempts to create a block ![inline-image](../images/CH018_56.jpg). It is in
+    this step that ![inline-image](../images/CH018_57.jpg) plays a role.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To create a block, node *v* is expected to do some work. Further, *v* is required
+    to provide a proof that the required work has indeed been done. There is a system-wide
+    parameter *d* which determines the *difficulty* of generating a proof of work.
+    The difficulty *d* is a positive integer which controls the amount of work that
+    is required to create a new block. The parameter *d* is not the actual difficulty;
+    rather, the difficulty is inversely proportional to *d* as we will see below.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As explained earlier, the digest (or, output) of the hash function *H* is an
+    *n*-bit binary string and can be considered to be the binary representation of
+    integers in the set {0,…,2 ^([*n*]) −1}. Interpreted in this manner, the output
+    of *H* can be considered to be an integer. Suppose on some input, the output of
+    *H* is *y*. If the most significant bit of *y* is 0, then *y* is less than 2 ^(*n*−1);
+    if the two most significant bits of *y* is 0, then *y* is less than 2 ^(*n*−2);
+    and so on.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For node *v* to create a block ![inline-image](../images/CH018_58.jpg), it must
+    find a value of ![inline-image](../images/CH018_59.jpg) such that ![inline-image](../images/CH018_60.jpg).
+    Let us consider the difficulty of this computational task.
+  prefs: []
+  type: TYPE_NORMAL
+- en: One way for *v* to determine ![inline-image](../images/CH018_61.jpg) is to first
+    choose a value *y* which is less than *d* and then find an ![inline-image](../images/CH018_62.jpg)
+    such that ![inline-image](../images/CH018_63.jpg). This means that given a particular
+    output *y*, it is required to find a pre-image ![inline-image](../images/CH018_64.jpg)
+    of *y* under *H*, i.e. to invert the function *H*. Recall that one of the basic
+    properties of *H* is that it is one-way which means that it is computationally
+    infeasible to invert *H*. So, we can assume that *v* is unable to determine ![inline-image](../images/CH018_65.jpg)
+    by inverting *H* on the digest *y*. The input to *H* is ![inline-image](../images/CH018_66.jpg),
+    of which ![inline-image](../images/CH018_67.jpg) is obtained as ![inline-image](../images/CH018_68.jpg)
+    and *R* is the set of transactions to be included in the block *B*. The quantities
+    ![inline-image](../images/CH018_69.jpg) and *R* are fixed and there is flexibility
+    only in choosing ![inline-image](../images/CH018_70.jpg). So, the task of inverting
+    *H* in the present context is not simply to obtain any particular pre-image of
+    *y*, but, one that has ![inline-image](../images/CH018_71.jpg) and *R* as the
+    first two components. This is an even more difficult task than simply inverting
+    *H*. Of course, since *H* is one-way to start with, this distinction does not
+    matter.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Another way in which *v* can attempt to find ![inline-image](../images/CH018_72.jpg)
+    is to repeatedly try distinct values of ![inline-image](../images/CH018_73.jpg)
+    and compute ![inline-image](../images/CH018_74.jpg). By trying many values, *v*
+    can hope to eventually find a value ![inline-image](../images/CH018_75.jpg) such
+    that ![inline-image](../images/CH018_76.jpg). At this point, *v* has been able
+    to create the block ![inline-image](../images/CH018_77.jpg). Node *v* will propagate
+    *B* using the gossip protocol.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How many times should *H* have to be computed before finding a desirable ![inline-image](../images/CH018_78.jpg)?
+    To answer this question, the random oracle assumption on *H* is used, i.e. the
+    hash function *H* is assumed to behave like a uniform random function which on
+    distinct inputs returns independent and uniformly distributed *n*-bit strings
+    (equivalently, independent and uniformly distributed integers from the set {0,…,2
+    ^([*n*]) −1}). For any positive integer *d*, there are *d* non-negative integers
+    less than *d*. So, under the random oracle assumption on *H*, the probability
+    that a single invocation of *H* returns a *y* such that *y* < *d* is *d*/2 ^([*n*])
+    . Considering *y* < *d* to be success, repeated invocations of *H* gives rise
+    to independent Bernoulli trials with probability of success *d*/2 ^([*n*]) . The
+    expected number of successes in *N* such trials is ![inline-image](../images/CH018_79.jpg).
+    We wish to obtain one success and so setting *Nd*/2 ^([*n*]) = 1 gives *N* = 2
+    ^([*n*]) /*d*, i.e. in about 2 ^([*n*]) /*d* trials, one may expect to obtain
+    a ![inline-image](../images/CH018_80.jpg) such that ![inline-image](../images/CH018_81.jpg).
+    So, for example, if *d* = 2 ^(*n*−32), then successful creation of a block requires
+    about 2^(32) invocations of *H*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Creation of a block by a node *v* requires repeated invocation of the hash function
+    *H*. This is the work that the node *v* has to do to create the block. The value
+    of ![inline-image](../images/CH018_82.jpg) such that ![inline-image](../images/CH018_83.jpg)
+    is the *proof* that node *v* has indeed put in the required amount of work. Note
+    that given the value ![inline-image](../images/CH018_84.jpg), checking the condition
+    ![inline-image](../images/CH018_85.jpg) requires only one invocation of *H* and
+    is very efficient. So, generating a proof of work is time consuming, while verifying
+    a given proof is easy.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Any new block created by a node is propagated on the P2P network using the gossip
+    protocol. Nodes which receive a new block will insert it into its copy of the
+    blockchain. Before doing this, a node will verify the proof of work. If the verification
+    fails, then the block will be rejected.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The actual difficulty is inversely proportional to *d*. Difficulty of creating
+    a new block is stored as part of the metadata of the block. The difficulty of
+    a blockchain is the sum of difficulties of the blocks in the blockchain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 18.6 Block Reward and Creation of Cryptocurrency
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Creating a new block requires a node to put in a certain amount of work. This
+    work consists of using the computational resources of the node and has a cost.
+    To incentivise nodes to create blocks, the system provides for a block reward.
+    The block reward comes in the form of certain amount of cryptocurrency.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are two components to a block reward. The first component comes from the
+    minting of new currency which goes to the creator of the block. The second component
+    consists of the transaction fees available in the transactions which have been
+    grouped together in the block. The issue of transaction fees has already been
+    explained. To incentivise nodes to include a transaction into a block, the total
+    amount of cryptocurrency transferred to recipient public keys is kept less than
+    the total amount of cryptocurrency held by the spender public keys. The difference
+    is the fee of the transaction and is claimed by the node which successfully creates
+    a block containing this transaction.
+  prefs: []
+  type: TYPE_NORMAL
+- en: New currency is created when a block is successfully created. The successful
+    creation of a block is also called *mining* of a block. The rules of the cryptocurrency
+    system specify the amount of cryptocurrency that is to be created when a block
+    is successfully mined. This amount of cryptocurrency was not previously present
+    in the system. So, the volume of cryptocurrency grows as new blocks are mined.
+    In fact, the rules of the cryptocurrency system actually specify the rate at which
+    the volume of cryptocurrency grows. The rate of creation of cryptocurrency decreases
+    over time until finally no more new currency will be created.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Suppose node *v* successfully mines a block ![inline-image](../images/CH018_86.jpg).
+    It may be noted here that all transactions in *R* other than the first one are
+    present in ![inline-image](../images/CH018_87.jpg). The first transaction in *R*
+    is special and is called a *coinbase transaction*. This transaction does not have
+    any spender public key. It only has one or more recipient public keys. The amount
+    of cryptocurrency assigned to the recipient public keys is the block reward which
+    is the sum of the transaction fees of all the transactions in *R* and the amount
+    of new currency that is created with the mining of the block. At a time when no
+    more new currency will be created, the block reward will consist entirely of the
+    transaction fees.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 18.7 Hash Rate
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: We have seen that in about 2 ^([*n*]) /*d* invocations of *H* it becomes likely
+    to obtain a digest which is less than *d*. These invocations are independent and
+    can be performed in parallel.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The nodes in the P2P network of the cryptocurrency system compete among themselves
+    to mine a block. Mining a block essentially consists of applying the hash function
+    *H* repeatedly. The repeated application of *H* requires computational power.
+    Since computing consumes energy, mining a block also consumes a significant amount
+    of electricity. While the nodes have the same privileges on the network, by no
+    means do they have the same amount of computational power. Nodes with greater
+    computational resources are more likely to mine a block.
+  prefs: []
+  type: TYPE_NORMAL
+- en: At any point of time, the nodes in the P2P network are applying *H* to mine
+    a block. So, one may consider the total computational power of the network to
+    be the number of times *H* is invoked in one second by all the nodes in the network.
+    Essentially, this is the rate at which the entire network applies the hash function
+    *H*. The hash rate *ν* *v* of a node *v* is the number of times *v* is able to
+    apply *H* in one second. Then the total hash rate of the network is ![inline-image](../images/CH018_88.jpg)
+    where the sum is over all the nodes in the network. The proportion of the hash
+    rate of the entire network controlled by *v* is ![inline-image](../images/CH018_89.jpg).
+  prefs: []
+  type: TYPE_NORMAL
+- en: The quantity *p* *v* is the probability of *v* being able to mine the next block.
+    Assume that a sufficiently large number *N* of blocks have been mined in the network.
+    Then the expected number of blocks mined by *v* is *p* *v* *N*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A node *v* has to invest a certain amount of money μ to attain a hash rate *ν*
+    *v* . Its expected return on this investment after *N* blocks have been mined
+    is the total amount of block reward earned from *p* *v* *N* blocks. The business
+    venture is profitable for *v* only if the total block reward for *p* *v* *N* blocks
+    is more than *μ*. In determining profitablity, node *v* not only has to consider
+    the cost of increasing its own hash rate but also has to take into account the
+    investments being made by other nodes. This is because *p* *v* is the ratio of
+    *ν* *v* to *ν*, where *ν* is the sum of the hash rates of all the nodes in the
+    network. If *v* increases *ν* [*v*] , but other nodes also increase their hash
+    rates perhaps outpacing *ν* [*v*] , then the ratio *p* *v* = *ν* *v* /*ν* may
+    actually go down even though *ν* *v* increases. In such a situation, node *v*
+    will not be able to make a profit even though it has increased its hash rate through
+    a new investment.
+  prefs: []
+  type: TYPE_NORMAL
+- en: An interesting example is that of China's Bitmain versus Japan's GMO. GMO had
+    invested heavily to improve its hash rate. However, Bitmain outpaced GMO and eventually,
+    even though GMO increased its hash rate, its probability of mining did not improve.
+    Overall, the investment in increasing computational power was not compensated
+    by increased returns. This led GMO to withdraw from Bitcoin mining at the end
+    of 2018, taking a loss of about US $300 million.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 18.8 Updating the Difficulty Parameter
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Suppose the network hash rate is ν hashes per second. With a fixed value of
+    *d*, the number of hashes required to obtain a new block is about 2 ^([*n*]) /*d*.
+    So, considering the network as a whole, a new block is mined in about every 2
+    ^([*n*]) /(*dν*) seconds. Recall that the mining of a new block leads to the creation
+    of new cryptocurrency. Thus, new amounts of the cryptocurrency are created every
+    2 ^([*n*]) /(*dν*) seconds.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The hash rate *ν* of the network depends upon the total computational capabilities
+    of all the nodes in the P2P network. As the nodes in the network increase their
+    computational resources, the hash rate *ν* increases. If *d* is kept constant,
+    then new cryptocurrency will be created faster. If the total amount of money in
+    the system increases very fast, this would lead to an inflationary situation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are two ways in which such an inflationary scenario can be prevented.
+    First, the value of the parameter *d* is decreased so that the value of 2 ^([*n*])
+    /(*dν*) remains constant. Second, the amount of cryptocurrency created per block
+    decreases at a steady pace. We discuss these two points with specific reference
+    to Bitcoin.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The goal of Bitcoin is to ensure that a new block is mined in about 10 minutes,
+    i.e. ![inline-image](../images/CH018_90.jpg). When *ν* increases, the value of
+    *d* is decreased so that the ratio 2 ^([*n*]) /(*dν*) remains about 360\. Since,
+    we are considering a P2P network, there is no central node which knows the total
+    hash rate *ν* of the system. So, the adjustment of the parameter *d* cannot be
+    done directly based on the knowledge of *ν*. An increase of the hash rate *ν*
+    of the network will have the effect of new blocks being discovered faster. The
+    block discovery time is part of the metadata of each block and is available from
+    the blockchain. So, the nodes in the network are able to obtain the time that
+    was required to discover each block in the blockchain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: At the creation rate of 10 minutes per block, in 2 weeks a total of 2,016 blocks
+    can be mined. The Bitcoin protocol considers the mined blocks to be divided into
+    windows of 2,016 blocks. The value of *d* is constant in each window of 2,016
+    blocks, i.e. each such window is a constant difficulty period. At the end of a
+    window of 2,016 blocks, the time to compute these blocks is considered. If this
+    time is less than 2 weeks, then it indicates that the hash rate *ν* of the network
+    has gone up, while if the time is more than 2 weeks, then the hash rate has gone
+    down. The value of *d* is accordingly adjusted. We do not provide the exact details
+    of this procedure, since that is not required for a conceptual understanding of
+    the idea. It is sufficient to note that if less than 2 weeks' time was required,
+    then the value of *d* is reduced while if more than 2 weeks' time was required,
+    then the value of *d* is increased. In the next window of 2,016 blocks, the value
+    of *d* remains constant. So far, the difficulty updation algorithm of Bitcoin
+    has worked well to ensure that a new block is mined in about 10 minutes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 18.9 Controlling the Rate of Money Creation
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The other way to control inflation is to reduce the amount of new currency that
+    is created with every mined block. This is done in a controlled fashion. For this
+    purpose, the blocks in the blockchain are considered to be divided into windows
+    of size 210,000 blocks. At the rate of about 10 mintues for mining a block, the
+    time for mining 210,000 blocks is about 4 years. In each window of 210,000 blocks,
+    the amount of Bitcoin created by the mining of a new block remains constant. At
+    the end of 210,000 blocks, this amount is halved. In the first window of 210,000
+    blocks, the mining of each new block created 50 Bitcoins. In the next window of
+    210,000, the mining of each new block created 25 bitcoins. The Bitcoin protocol
+    is designed so that there are 64 such halving events. After that, the mining of
+    a new block will not create any new Bitcoin. At the rate of 10 minutes per block,
+    this event is expected to occur sometime in the year 2140\. The total amount of
+    Bitcoin that can be created is 21 million. When no more new Bitcoin can be created,
+    the entire cost of mining will have to be borne by the transaction fees of the
+    transactions to be included in a block.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 18.10 Choosing between Competing Blocks
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: In Chapter 17, we have explained that each node in the P2P network maintains
+    a private copy of the blockchain. Newly created blocks are propagated through
+    the network using the gossip protocol. It is important to note that the time for
+    a block to propagate through the entire network is insignificant in comparison
+    to the time to create a new block.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Suppose a node *v* obtains a block. As mentioned earlier, it is possible for
+    *v* to obtain two or more blocks almost simultaneously. The rules of the cryptocurrency
+    system have to specify how node *v* will update its private copy of the blockchain.
+    We explain this with reference to Bitcoin.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The conflict resolution mechanism is based on difficulty. One simple rule is
+    that if two blocks have the same difficulty, then *v* retains the block that it
+    obtained earlier. Now suppose that *v* obtains two or more blocks such that there
+    arises the possibility of two blockchains which are the same up to some point
+    and then branch out. These two possible blockchains have two different values
+    of difficulty. The updation rules of Bitcoin specify that node *v* will maintain
+    the more difficult blockchain and discard the blockchain with lesser difficulty.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Given that the blocks have the same difficulty, node *v* will retain the longer
+    chain. It is, however, possible, that node *v* will retain the shorter chain if
+    it is more difficult. Difficulty of a blockchain captures the amount of work that
+    has been put in to create the blockchain. Thus, the rules specify that the chain
+    which required higher amount of work for its creation is retained.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 18.11 Confirmation of Transaction
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Transactions are issued by users. A transaction *T* enters the network through
+    some node and is propagated to all the nodes. At some point, some node chooses
+    the transaction for inclusion into a block *B*. Suppose that the node successfully
+    mines the block. The block *B* is then propagated to the entire network. The node
+    which originally propagated the transaction *T* also gets *B* and appends it to
+    the head of its blockchain. At this point, the user which issued the transaction
+    *T* may consider that the transaction has been confirmed by the network. However,
+    as pointed out above, it is possible that the receipt or creation of another block
+    ![inline-image](../images/CH018_91.jpg) results in the block *B* being removed
+    from the blockchain. If this happens, then transaction *T* is no longer in the
+    blockchain and the confirmation becomes invalid.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In view of this problem, it is usually recommended that the user wait until
+    the block *B* containing the transaction *T* is buried sufficiently deep in the
+    blockchain. It is extremely unlikely that the blockchain will be modified to this
+    depth. Bitcoin, for example, recommends waiting until block *B* is six blocks
+    deep in the blockchain. Considering that a block is generated every 10 minutes,
+    generating six blocks takes about an hour. So, the user has to wait for about
+    an hour before considering that the transaction has been confirmed on the blockchain.
+    This time does not consider the waiting time for a transaction to get into a block.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 18.12 No Double Spending
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: A basic requirement for any currency is that it should not be possible to spend
+    the same currency twice. Double spending refers to the situation where the owner
+    of a currency is able to spend the same currency twice. Let us consider how such
+    a situation may arise in a cryptocurrency and why this should not be possible.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Suppose a user *U* makes a payment of a certain amount of cryptocurrency as
+    part of a transaction *T*. This user controls a node of the P2P network and introduces
+    *T* to the network through this node. At some point of time, the transaction *T*
+    is included into a mined block *B* and becomes part of the blockchain. Further,
+    suppose that *B* gets embedded sufficiently deep in the blockchain so that the
+    transaction *T* is considered to be confirmed. At this point, the user *U* receives
+    the goods or services in lieu of the payment made via *T*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The payment made by *U* in transaction *T* is from a spender public key ![inline-image](../images/CH018_92.jpg)
+    for which the corresponding signing key ![inline-image](../images/CH018_93.jpg)
+    is known to *U*. Supppose that ![inline-image](../images/CH018_94.jpg) initially
+    had *x* units of the cryptocurrency. After the transaction *T*, ![inline-image](../images/CH018_95.jpg)
+    will no longer have any cryptocurrency associated with it. Once *T* gets confirmed,
+    the public ledger records that there is no more currency associated with ![inline-image](../images/CH018_96.jpg).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now consider that *U* wishes to spend the currency associated with ![inline-image](../images/CH018_97.jpg)
+    again. The public ledger records that the entire amount associated with ![inline-image](../images/CH018_98.jpg)
+    has been spent as part of transaction *T*. So, by checking the public ledger,
+    anybody can verify that subsequent to transaction *T*, there is no longer any
+    amount associated with ![inline-image](../images/CH018_99.jpg). So, while transaction
+    *T* is on the public ledger, it is not possible for *U* to again spend the amount
+    associated with ![inline-image](../images/CH018_100.jpg). Consequently, *U* may
+    try to modify the public ledger so as to remove *T* from it. The transaction *T*
+    is a part of the block *B*. So, *T* can be removed only by removing block *B*.
+    Suppose *U* performs a new transaction ![inline-image](../images/CH018_101.jpg)
+    which spends the amount associated with ![inline-image](../images/CH018_102.jpg)
+    but the recipient public keys are different from those in *T*. *U* then replaces
+    *T* in *B* with ![inline-image](../images/CH018_103.jpg) to create a possible
+    block ![inline-image](../images/CH018_104.jpg). The creation of the block ![inline-image](../images/CH018_105.jpg)
+    will require *U* to mine it, i.e. *U* will have to obtain a suitable value of
+    ![inline-image](../images/CH018_106.jpg).
+  prefs: []
+  type: TYPE_NORMAL
+- en: At the time when *U* received the benefits of his original payment in the transaction
+    *T*, the block *B* had already been embedded sufficiently deep in the blockchain.
+    So, if *U* tries to modify the blockchain by replacing *B* with ![inline-image](../images/CH018_107.jpg),
+    *U* will be required not only to mine the block ![inline-image](../images/CH018_108.jpg)
+    but also the blocks subsequent to *B* in the blockchain. Suppose *B* had been
+    embedded *t* blocks deep in the blockchain. Then *U* will be required to mine
+    *t* blocks and propagate the new blocks to the network. Further, *U* will have
+    to ensure that its propagation of the modified blockchain is accepted by the network.
+    For this, it is required to mine these *t* blocks *before* some other node mines
+    a new header for the original blockchain. Since, otherwise, *U*'s propagation
+    of the modified blockchain will be rejected by the nodes in the network.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Thus, to double spend (i.e. to spend the currency associated with ![inline-image](../images/CH018_109.jpg)
+    twice), *U* will be required to have substantially more computational power than
+    the combined computational power of all the other nodes in the network. As long
+    as such a condition does not occur, it is not possible to double spend.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 18.13 The 51% Attack
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: A cryptocurrency system can be said to have been defeated if it becomes possible
+    to spend the same amount of currency twice. This can be seen as an attack on the
+    cryptocurrency system and is called a double spending attack.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The computational power of a node *v* is measured by its hash rate *ν* *v* .
+    Suppose that the node *v* acquires computational power such that *ν* *v* > *ν*/2,
+    where ![inline-image](../images/CH018_110.jpg) is the total hash rate of the network.
+    In other words, the hash rate of *v* is more than half of the network hash rate.
+    As a result, *v* has more than 50% probability of mining each new block. This
+    provides *v* with a high degree of control over the blocks that are mined and
+    also increases its chances of launching a double spending attack on the network.
+    Such a scenario is called the 51% attack.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A double spending attack on the network may lead to a serious loss of credibility
+    of the cryptocurrency and bring down its value. The lowering of value of the cryptocurrency
+    will also affect the gains of the adversary who would have invested heavily in
+    acquiring the computational power to ensure more than half of the hash rate of
+    the network. It has been argued that this provides a natural de-motivating factor
+    for an adversary to launch a double spending attack. However, double spending
+    attacks have indeed been reported on several cryptocurrencies.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 19
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Cryptocurrency: Further Issues'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the previous chapter, we have seen some of the basic concepts of cryptocurrency.
+    The present chapter looks at a number of issues which arise when a cryptocurrency
+    is adopted in the real world.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 19.1 Mining Pools
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The nodes in the P2P network compete with each other to mine new blocks. This
+    competition is inherently non-cooperative, i.e. the nodes do not cooperate among
+    themselves for the task of block mining.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Mining of a block is a computation-intensive task. For Bitcoin, a substantial
+    amount of computational power is required to ensure a significant probability
+    of success in mining a block. An individual entity with limited computational
+    power may not be able to successfully mine a block within a reasonable amount
+    of time. This is the motivation for a group of entities to pool together their
+    computational resources towards the goal of block mining. The pool as a whole
+    acquires sufficient computational capability to ensure that a block is mined within
+    a reasonable time. When a block is mined, the block reward is distributed among
+    the members of the pool according to some formula based on the shares of the work
+    done by each of the entities. The goal for an entity is that joining a pool ensures
+    a steady flow of income rather than waiting for a few years before being able
+    to successfully mine a block on its own.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A mining pool represents a cooperative process. The method of sharing the block
+    reward among the members of the pool provides the incentive mechanism. There are
+    several such incentive mechanisms which are used in practice.
+  prefs: []
+  type: TYPE_NORMAL
+- en: While the overall task of block mining is non-cooperative, entities with low
+    computational powers can cooperate among themselves to create mining pools. Thus,
+    the activity of block mining shows both non-cooperative and cooperative characteristics.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 19.2 Change of Rules
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: It has been mentioned several times that a cryptocurrency system (or protocol)
+    operates under certain rules. These rules are implemented by the software which
+    the nodes in the P2P network run. The basis for the operation of a cryptocurrency
+    system is consensus. The rules which regulate the cryptocurrency operations are
+    accepted by all the nodes. A set of rules is initially written and implemented
+    in the software for the cryptocurrency system. Entities which would like to join
+    the system, download the software and run them on computers and thus become nodes
+    in the network. Entities can also have their own version of the software for possibly
+    improving efficiency. Any such software will have to implement the same set of
+    rules.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As the system evolves with more and more nodes joining and transactions taking
+    place, it may become necessary to change some of the rules. Consensus will also
+    be required for such a change of rules. Cryptocurrency systems usually have in
+    place some kind of mechanism for proposing and accepting a change of rule. We
+    explain this issue in more detail with reference to Bitcoin.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A proposal for a change of rules in Bitcoin is called a Bitcoin Improvement
+    Protocol (BIP). A BIP is initially proposed by a handful of developers. One month
+    after a BIP is defined it moves into a phase called the *started* phase. At this
+    stage, support to the BIP has to be indicated by the participants in the network.
+    The metadata for all blocks contain a provision for indicating support to a proposed
+    BIP. This is in the form of a bit. The miner which mines the block, sets the bit
+    to 1 if it supports the associated BIP, otherwise it is set to 0\. Several BIPs
+    may be simultaneously under consideration. For each such BIP, a miner indicates
+    its support or lack of it by setting the associated bit in the metadata of the
+    newly mined block.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A constant difficulty period is a window of 2,016 blocks during which the difficulty
+    of block mining remains the same. Since mining a block takes about 10 minutes,
+    a constant difficulty period lasts for about 2 weeks. In a year, there are about
+    26 such constant difficulty periods. If in any such constant difficulty period,
+    a BIP obtains support above a certain threshold number of blocks, then in the
+    next difficulty period, all entities who wish to adopt the new rules can do so.
+    The required threshold is 1,916 blocks (which is roughly 95% of 2016, the number
+    of blocks mined in a 2-week period). Once the desired level of support is obtained
+    for a BIP, it gets activated. After that, transactions and blocks following the
+    new rules are accepted by the nodes in the network.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A BIP is said to time-out or fail if it is not activated within 1 year of it
+    being started. At that point, it is no longer considered for voting by the setting
+    of bits in the newly mined blocks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 19.3 Forks
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: We have mentioned how forking may arise when a node receives new blocks which
+    require modifying its copy of the blockchain. This kind of forking is localised
+    at the node itself. To handle such a fork, the node discards blocks from its blockchain
+    and adopts the new blocks so as to be consistent with the other nodes. So, this
+    kind of forking is transient, and the individual node of the system soon gets
+    in synchronisation with the consensus public blockchain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Forking of a blockchain can be more serious. Transactions and blocks have to
+    follow the consensus rules. If the rules change and some of the nodes choose to
+    follow the new rules, but the other nodes adhere to the old rules, then forking
+    occurs. Such a forking leads to two distinct blockchains. The two blockchains
+    have a common history, i.e. they have the same blocks up to a certain point and
+    after that there is a bifurcation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are two types of forks, namely soft and hard forks. Suppose a rule change
+    is such that the blocks following the new rule are compatible with the older rules,
+    then the nodes which choose to follow the older rules will continue incorporating
+    such blocks into their blockchain. On the other hand, blocks generated by the
+    old rules may not be acceptable to the nodes which follow the new rules. This
+    leads to a fork. Such a fork is called a soft fork. A hard fork occurs when blocks
+    which follow the new rules are incompatible with the old rules and are rejected
+    by the nodes which follow the old rules. In view of this, a soft fork is said
+    to be backward compatible while a hard fork is not.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To consider common examples of soft and hard forks, suppose initially there
+    is no limit on the number of transactions that can be included in a block. A later
+    rule change imposes a size limit of a block. Then blocks following the new rule
+    are compatible with the old rule and will be accepted by the nodes following the
+    old rule. On the other hand, blocks generated using the old rule may be larger
+    than the new size limit. Such blocks will be rejected by the nodes following the
+    new rule. This leads to a soft fork. Now suppose that a further rule change takes
+    place which increases the size limit of a block. Then a block following the new
+    rule may be of size greater than that mandated by the old rules. Such a block
+    will be rejected by the nodes which follow the old rules. This leads to a hard
+    fork.
+  prefs: []
+  type: TYPE_NORMAL
+- en: While the above example is provided at several places, the two situations considered
+    in the examples are not really that different. In the case of soft fork, generated
+    blocks which follow either the old or the new rules will be accepted by the nodes
+    which follow the old rules, while generated blocks which follow the new rules
+    will be accepted only by the nodes which follow the new rules. On the other hand,
+    in the case of hard fork, generated blocks which follow either the old or the
+    new rules will be accepted by the nodes which follow the new rules, while generated
+    blocks which follow the old rules will be accepted only by the nodes which follow
+    the old rules. As such there is no essential difference between these two types
+    of forks. One set of nodes accept blocks which follow either of the two rules,
+    while another set of nodes accept blocks which follow only one set of rules. The
+    blockchain of the nodes which follow either of the two rules will grow faster
+    than the blockchain of the nodes which follow one set of rules.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In a hard fork, blocks following the new rules are incompatible with the old
+    rules. This does not say anything about whether blocks following the old rules
+    are compatible with the new rules. It is possible that they are compatible as
+    in the example of hard fork described above. On the other hand, it is also possible
+    that the blocks following the old rule are incompatible with the new rules. This
+    latter scenario means that blocks generated by one set of rules are incompatible
+    with the other set of rules. Such a fork is irreconcilable.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Either a soft or a hard fork can be resolved by all the nodes adopting the new
+    set of rules. The sooner this happens, the better it is for the cryptocurrency.
+    If, however, one set of nodes continues to follow the old rules while the other
+    nodes follow the new rules, then this leads to a split in the network and the
+    blockchain. Such an eventuality can cause major disruption and lead to a cryptocurrency
+    itself being bifurcated into two distinct currencies.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If a fork results in the creation of two distinct cryptocurrencies, a peculiar
+    situation may arise. The two cryptocurrencies will be supported by two blockchains.
+    The two blockchains, however, will be the same up to a certain point and will
+    bifurcate after that. Suppose an amount of cryptocurrency was transferred to a
+    public key *pk* *U* in a transaction *T* which is present in the common part of
+    the two blockchains. The transaction *T* will be considered to be valid in all
+    subsequent blocks. In particular, *T* will be considered to be valid by both the
+    blockchains. As a result, the entity which possesses the corresponding signing
+    key *sk* *U* can now spend the amount on the two parts after the forking has taken
+    place. This essentially constitutes spending the same amount on both the blockchains.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 19.4 Value of a Cryptocurrency
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Unlike fiat currencies, a cryptocurrency is not backed by any sovereign power.
+    A cryptocurrency system becomes functional when a software implementing the system
+    is made available to the public. This, by itself, is not sufficient to guarantee
+    that the cryptocurrency will be adopted. As more and more computers become nodes
+    on the P2P network by downloading and running the software, the acceptance of
+    the cryptocurrency grows. Conversely, nodes join the P2P network if there is some
+    value in doing so and this value arises from a broad acceptability of the cryptocurrency.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A currency is used to pay for receiving some goods or services. Fundamentally,
+    for a cryptocurrency to be used, there must be a set of entities who trust the
+    system and are willing to accept payment in the currency for providing goods and
+    services. As the size of such a set of entities grows, so does the acceptability
+    of the cryptocurrency. Within a cryptocurrency system, the price of any particular
+    goods and services in the cryptocurrency is determined by the market, just as
+    in any other currency. Controlling the rate at which new amounts of the cryptocurrency
+    is created (through block mining) provides a way to control inflationary pressure
+    on the market.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Within the ambit of the cryptocurrency system, the relative values of different
+    goods and services are determined by their availability and the demand for them
+    among the holders of the cryptocurrency. As such, there is no intrinsic value
+    of one unit of the cryptocurrency.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 19.5 Cryptocurrency Exchange
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Suppose an entity receives payment using a cryptocurrency in return for providing
+    some goods and services. This amount of cryptocurrency can be used for further
+    payments of other goods and services. It is possible that an entity possessing
+    a certain amount of cryptocurrency wishes to purchase some goods or service which
+    is not available from entities who are willing to accept payment using the cryptocurrency.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To take another example, we have mentioned that the process of mining requires
+    investment to increase computational power. This investment will typically be
+    in terms of some fiat currency. The block reward for successful mining of a block
+    is available in terms of the cryptocurrency. The miner needs to determine its
+    net profit (or, loss) which is the difference between the return on block rewards
+    and the investment. Unless both these quantities can be expressed in the same
+    base, the difference cannot be computed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Scenarios such as the above have motivated the emergence of cryptocurrency exchanges
+    such as Coinbase or Kraken. A particular exchange may accept a few cryptocurrencies.
+    On such an exchange it is possible to sell the accepted cryptocurrency and receive
+    fiat currency in return. These exchanges also provide the facility for buying
+    cryptocurrency. So, one may sell fiat currency and obtain cryptocurrency in return.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Suppose an entity holds a certain amount of cryptocurrency against a public
+    key *pk* for which it possesses the corresponding signing key *sk*. Selling the
+    cryptocurrency amounts to issuing a transaction where the spender public key is
+    *pk* and the recipient public key is *pk*′ for which the receiving entity possesses
+    the corresponding signing key *sk*′. Once this transaction is confirmed on the
+    blockchain, the receiving entity transfers the agreed upon amount of the fiat
+    currency to the seller of the cryptocurrency. Buying an amount of cryptocurrency
+    in exchange for fiat currency is similar. Many major cities across the world have
+    Bitcoin ATMs, which pay cash against Bitcoins. Some of these ATMs also accept
+    other cryptocurrencies such as Litecoin and Ethereum. Further, there are also
+    cryptocurrency debit cards like Monaco, Bitpay, CoinJar, and BCCPay.
+  prefs: []
+  type: TYPE_NORMAL
+- en: One of the original purposes of cryptocurrency exchanges was to facilitate the
+    conversion of cryptocurreny to and from fiat currencies. Presently, however, cryptocurrency
+    exchanges have developed beyond this original goal. They are gradually developing
+    functionalities similar to that of regular stock exchanges. In a stock exchange,
+    traders buy and sell assets or their derivatives, making profit from the price
+    fluctuations of the items that are traded. Some cryptocurrency exchanges provide
+    the opportunity to trade pairs. Such a pair could consist of a cryptocurrency
+    and a fiat currency, or it could consist of two different cryptocurrencies. Profit
+    or loss is made by the trader depending upon how the prices of the two currencies
+    in a pair change relative to each other.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 19.6 Cryptocurrency Community
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: A cryptocurrency community consists of all entities who participate in the activities
+    related to the functioning of the cryptocurrency. At the lowermost level are the
+    users who use the cryptocurrency for payments and also themselves make payments
+    using the cryptocurrency. Miners are entities who are involved in the task of
+    mining of blocks resulting in the creation of new amounts of the cryptocurrency.
+    As discussed earlier, mining pools can be formed by entities to combine the computational
+    resource required to mine a block. Finally, there are the cryptocurrency exchanges.
+  prefs: []
+  type: TYPE_NORMAL
+- en: All the entities in a cryptocurrency community are bound by the rules governing
+    the currency. These rules are not enforced by any central agency. Rather, the
+    force of the rules arise from their being accepted by all the entities in the
+    system.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 19.7 Stablecoin
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The exchange rate of a cryptocurrency can vary quite a lot. This is possibly
+    due to speculative pressure. A wide variation in the exchange rate can deter people
+    from adopting and using a crytocurrency. Several ideas and projects have been
+    introduced to tackle this problem.
+  prefs: []
+  type: TYPE_NORMAL
+- en: At a basic level, the idea of stabilising the price of a cryptocurrency is to
+    peg it to another asset. This later asset can be a fiat currency or some exchange-traded
+    commodity, or it could even be another cryptocurrency. A cryptocurrency which
+    has been designed to withstand high price volatility is called a stablecoin. A
+    stablecoin could be either centralised or decentralised.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In a centralised stablecoin, a trusted third party backs the cryptocurrency
+    by performing the peg. The peg itself could be to a fiat currency which is maintained
+    in some bank or in some kind of regulated financial institution which can serve
+    as a depositary of the fiat currency used to peg the stablecoin. Alternatively,
+    the peg could be to some exchange-traded commodity such as precious metals. The
+    amount of the back-up currency or commodity used for the peg has to reflect the
+    actual amount of the stablecoin in circulation. Since the value of the peg varies
+    outside the space of the stablecoin, it protects the stablecoin from wild price
+    fluctuations. Variation in the price of the underlying asset, however, will have
+    an effect on the price of the stablecoin. Nonetheless, due to arbitrage, it is
+    unlikely that the price of a stablecoin will drop below the price of the asset
+    used for the peg. The main criticism of centralised stablecoin is the use of the
+    trusted party which goes against the basic ethos of cryptocurrency.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A decentralised stablecoin is pegged to another cryptocurrency. The mechanism
+    is enforced through smart contracts on the blockchain itself. Since it is decentralised,
+    there is no single centralised trusted party. For one thing, a decentralised stablecoin
+    is more complicated to implement. Also, the variation in the prices of different
+    crytocurrencies are usually correlated, so a stablecoin pegged to another cryptocurrency
+    may not be sufficiently immune to wide price fluctuations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are other more complicated variants of stablecoin which we do not include
+    in this brief description.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 19.8 Criticisms of Cryptocurrencies
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Cryptocurrencies are a new and potentially disruptive technology. The rapid
+    growth of Bitcoin and other cryptocurrencies have also brought in a fair share
+    of criticism. The main arguments against cryptocurrencies are summarised below.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Use in illegal transactions:** Cryptocurrencies bypass national boundaries
+    and regulations. This makes them useful for making payments which are outside
+    the scope of legal frameworks of nations. One such application would be payment
+    for contraband substances. There are reports that such usage of Bitcoin has indeed
+    been made.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**High electricity consumption:** In a proof-of-work type cryptocurrency, the
+    process of mining requires a huge amount of energy. Moreover, since the miners
+    compete and there is only one winner, the energy consumption by the other miners
+    is essentially wasted. This has led miners to relocate to locations with cheaper
+    sources of energy. Nonetheless, considering energy itself to be a scarce resource,
+    wastage of energy is undesirable.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Technical flaws:** There have been reports of hacks into exchanges where
+    the hackers made away with a considerable sum. Even without hacking, a fork in
+    a cryptocurrency can cause confusion and result in decrease of value. The burden
+    of the loss for such events has fallen on individual owners of cryptocurrencies.
+    Such technical issues dent user confidence.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Tendency towards centralisation:** A fundamental property of a cryptocurrency
+    is that it is decentralised so that no single entity needs to be trusted. On the
+    other hand, there has been an increasing tendency towards centralisation. The
+    entry of miners with massive computational apparatus and the formation of mining
+    pools have essentially shut out individuals from the process of mining. This has
+    resulted in mining power being centralised in the hands of a few. Further, code
+    maintenance and software updates are in practice also controlled by a small number
+    of people.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Inadequate for retail payments:** Due to the rather long confirmation time
+    of a cryptocurrency transaction, it becomes impractical to use these for making
+    small purchases.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Not money:** In economics, money is something which should have three properties:
+    a store of value, a medium of exchange and a unit of account. It has been alleged
+    that cryptocurrencies have none of these properties, though some have stated that
+    they at least serve as a medium of exchange.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Price volatility:** The exchange rates of cryptocurrencies against fiat currencies
+    have varied quite a lot in the past. This has encouraged speculative purchase
+    of cryptocurrencies which has sometimes led to losses for the investors. Some
+    national regulatory agencies have issued investor alerts about cryptocurrencies.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Economic bubble/Ponzi scheme:** Several eminent personalities have mentioned
+    that Bitcoin is an economic bubble which will burst sooner rather than later.
+    There have also been criticisms that Bitcoin is a Ponzi scheme.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 19.9 Government Regulations
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Nations across the world have taken notice of the growth of Bitcoin and cryptocurrencies.
+    The reactions have mostly been negative though the degree of hostility varies.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The US Financial Crimes Enforcement Network (FinCEN) have established regulations
+    for controlling activities related to cryptocurrencies. Miners who sell their
+    generated coins are considered to be Money Service Businesses and are required
+    by FinCEN to register and operate within the legal framework. Various US agencies
+    have officially seized Bitcoins in the process, granting them some kind of a legal
+    coginsance.
+  prefs: []
+  type: TYPE_NORMAL
+- en: China has been the home to some of the largest miners of Bitcoins. However,
+    it is illegal to buy any real-world goods with any virtual currency. The People's
+    Bank of China has prohibited Chinese financial institutions from using Bitcoins.
+    Further, China has also banned trading in Bitcoin.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Due to the decentralised nature of cryptocurrencies, it is difficult to come
+    up with a regulatory framework. It is possible, however, to criminalise the use
+    of cryptocurrencies and shut down exchanges. This would constitute a de facto
+    blanket ban of cryptocurrencies. The legal status of cryptocurrencies varies across
+    nations. As of the date of this writing, an absolute ban applies in Algeria, Bolivia,
+    Egypt, Iraq, Morocco, Nepal, Pakistan and United Arab Emirates. Some form of implicit
+    ban applies in Bahrain, Bangladesh, China, Colombia, the Dominican Republic, Indonesia,
+    Iran, Kuwait, Lesotho, Lithuania, Macau, Oman, Qatar, Saudi Arabia and Taiwan.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are some nations where cryptocurrency-related activities are legal. These
+    include the European Union, the United States, Mexico, Japan, South Korea and
+    others. There are other countries such as Canada and India where cryptocurrencies
+    are not illegal, but there there is a banking ban.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 19.10 Central Bank–issued Digital Currency
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Central banks of different countries have started exploring the idea of issuing
+    digital currencies. Such a currency could be pegged to the national currency creating
+    a stablecoin. The backbone for a central bank–issued digital currency would still
+    be a blockchain. This blockchain would be maintained in a distributed form. However,
+    only the central bank would have the authority to add new blocks and to create
+    new amounts of the digital currency. This would lead to a centralised currency.
+    Holders of the digital currency would have to trust the central bank. This is
+    opposed to the trustless system of cryptocurrencies such as Bitcoin. Till date,
+    there has been no concrete implementations of digital currencies by any central
+    bank.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Digital currencies issued by central banks can make it easier to make cross-border
+    payments. For example, Saudi Arabia and UAE have launched a pilot cryptocurrency
+    for easier cross-border payments. The Central Bank of Singapore has launched projects
+    to improve inter-bank payments and to facilitate bank users exchange currencies
+    with each other. The Bank of Israel is actively considering the possibility of
+    launching a digital currency.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In 2017, a study entitled ‘Global Blockchain Benchmarking Study’ was conducted
+    by the Cambridge Centre for Alternative Finance. The study found that central
+    banks were very positive about adopting blockchain technology for some purpose
+    within the next two years. Also, a number of central banks were enthusiastic about
+    issuing their own digital currencies. The main reason for such enthusiasm is the
+    potential for cost reductions in terms of transactions, settlements and reconciliation
+    costs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: From a national point of view, replacing physical cash with digital currency
+    has an advantage. Cash transactions are anonymous and cannot be tracked. On the
+    other hand, transactions made by digital currency are recorded on the blockchain
+    and are auditable. This will lead to a widening of the tax base and possible prevention
+    of untaxed transactions. On the flip side, it would also lead to a loss of privacy.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 19.11 Lightning Network
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: A major problem with a proof-of-work cryptocurrency is scalability. The number
+    of transactions that can be processed per second is very limited. For example,
+    Bitcoin can process about seven transactions per second. Payment systems such
+    as Visa can process about two thousand transactions per second. So, if Bitcoin
+    is to become competitive with Visa, there must be some way of speeding up transaction
+    settlements. Further, for small payments, such as for a cup of coffee, waiting
+    several minutes for the relevant transaction to be confirmed is rather impractical.
+  prefs: []
+  type: TYPE_NORMAL
+- en: One proposed solution to this problem has been called the lightning network.
+    The idea is *not* to use the blockchain to confirm each and every transaction.
+    Suppose two entities transfer funds between themselves quite often. To do this,
+    they create a payment channel. Such a channel is created by both of them depositing
+    an agreed upon amount of cryptocurrency to a 2-out-of-2 multi-signature address.
+    Such an address arises from a special type of signature scheme which requires
+    the consent of both the parties for the amount to be spent. Such a payment channel
+    is a transaction, but it is not immediately broadcast to the network. Once the
+    payment channel is created, the two entities can issue transactions to each other
+    which essentially redistribute the total amount in the payment channel between
+    themselves. These transactions are scripted so that the previous transactions
+    are invalidated. None of these transactions are broadcast to the network. At some
+    point, both or one of the entities may wish to finalise the deal. The latest transaction
+    is then broadcast to the network and confirmed on the blockchain. So, instead
+    of all the micropayments that occurred on the payment channel, only one transaction
+    gets confirmed on the blockchain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It is not feasible for every pair of entities to set up payment channels between
+    themselves. Instead it is envisaged that there will be a network of such small
+    micropayment channels. The two entities which wish to transact will be connected
+    by an appropriate path of payment channels.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This technology has the potential to speed up transaction processing to millions
+    of transactions per second. It was initially proposed for Bitcoin. Subsequent
+    work has led to development of lightning network for other cryptocurrencies. Note
+    that transactions made on the payment channel are not confirmed on the blockchain.
+    So, it is unlikely that large payments will be made using the lightning network.
+    Rather, it is envisaged that small payments such as that of a cup of coffee will
+    benefit from the speed of the lightning network.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 19.12 Sidechain
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The concept of sidechains has been introduced to provide flexibility to a blockchain-based
+    cryptocurrency. It also provides interoperability between different cryptocurrencies.
+    Sidechains are also called childchains.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To understand the notion, consider two separate cryptocurrencies – each operating
+    with its independent blockchain. One of these chains is identified as the main
+    chain, and the other chain is called a sidechain. Suppose it is required to transfer
+    a certain amount from the main chain to the sidechain. To do this, an entity issues
+    a transaction on the main chain where a payment is made to a specified address.
+    This locks the amount on the main chain and the entity can no longer use this
+    amount on the main chain. After a waiting period, an equivalent amount of cryptocurrency
+    is released on the sidechain to the entity. This entity can now make payments
+    on the sidechain. This essentially pegs the amount on the sidechain to the amount
+    locked on the main chain. A similar procedure is adopted to transfer money from
+    the sidechain to the mainchain. The two-way peg is enabled by a federation which
+    is a group of servers acting as an intermediary between the main chain and the
+    sidechain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Each sidechain has its own security and a breakdown of a sidechain does not
+    affect the main chain. This makes sidechains a great way to experiment with new
+    ideas. Further, sidechains can be launched for specific purposes such as to deal
+    with transactions of only a specific type. Sidechains can also be used to enhance
+    the capabilities of a blockchain. For example, the Bitcoin blockchain does not
+    have support for smart contracts. There has been a sidechain to the main Bitcoin
+    blockchain which allows smart contracts to be implemented.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 19.13 Proof of Stake
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The process of mining a block is energy intensive. Miners simultaneously compete
+    to create a new block. Only one miner is successful, while the efforts of the
+    other miners are wasted. Further, as the difficulty of creating a new block is
+    raised, miners have to put in ever increasing efforts to create a proof of work.
+    So, proof-of-work-based cryptocurrencies are energy inefficient.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Alternative approaches have been suggested to the problem of creating a new
+    block. In a proof-of-work-based cryptocurrency, all nodes in the P2P network can
+    participate in the block creation process. The node which first presents the required
+    proof of work gets to add a new block to the blockchain. The alternative strategy
+    is to allow only a subset of nodes to participate in the mining process. For example,
+    entities which hold a certain amount of the cryptocurrency can only participate
+    in the generation of the next block. The amount of cryptocurrency held by an entity
+    is verifiable from the blockchain. The entity is considered to be a valid stakeholder
+    in the cryptocurrency, and its holding of the cryptocurrency is a proof of its
+    stake.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using only the amount of cryptocurrency to determine the creation of a new block
+    will lead to undesirable centralisation since only the wealthiest entity will
+    get to add blocks to the blockchain. To alleviate this problem, a combination
+    of age and wealth has been suggested to select the entity for adding a new block.
+    Here age refers to the number of days the coins have been held.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Ouroboros is a cryptocurrency mechanism which uses proof of stake to elect an
+    entity to add a new block. In this procedure, all entities which hold a certain
+    minimum amount of the cryptocurrency has a chance of being elected. The probability
+    of an entity being elected is proportional to the amount of cryptocurrency which
+    it holds. Time is divided into slots, and in each slot an elected entity can add
+    a new block to the blockchain. Simultaneously, all the stakeholders participate
+    in the election of the entity which will be adding a block in the next slot. This
+    election process is fairly complicated and requires a secure multiparty computation
+    of random bits.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Algorand is a cryptocurrency which follows a method for block selection similar
+    to proof-of-stake protocols. In particular, voting power is proportional to the
+    amount of funds held. In each round, a random committee is selected which will
+    decide the next block to be added to the blockchain. The selection of the committee
+    is done by each entity doing a private computation and determining from the result
+    whether it is part of the committee. No interaction is required at this step.
+    The committee members exchange messages to determine the next block. The scheme
+    introduces a notion called player replacability whereby the committee need not
+    remain the same for all the messages. Theoretical basis for the scheme arises
+    from secure consensus protocols for Byzantine fault tolerance.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 20
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Examples of Cryptocurrencies
+  prefs: []
+  type: TYPE_NORMAL
+- en: Bitcoin was the first proposed cryptocurrency. Since then many other cryptocurrencies
+    have been proposed. These are sometimes referred to as altcoins standing for alternative
+    cryptocurrencies. We briefly discuss a few important cryptocurrencies.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Our description of how cryptocurrency systems work has been based on Bitcoin.
+    For the other cryptocurrencies, we briefly mention how their technology differs
+    from Bitcoin.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 20.1 Bitcoin
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Bitcoin was proposed in 2009 by an unknown person (or a group of persons) under
+    the name of Satoshi Nakamoto (see Nakamoto, 2009). The first implementation was
+    also released by Satoshi Nakamoto as an open source software. On 3 January 2009,
+    the genesis block was mined by Satoshi. Hal Finney downloaded the Bitcoin software
+    on its release date. On 12 January 2009, the first Bitcoin transaction was made
+    when Hal Finney received 10 Bitcoins from Satoshi Nakamoto. During the early days,
+    Nakamoto is estimated to have mined one million Bitcoins. He [¹](#fn1) disappeared
+    in 2010\. Before disappearing he handed over the password of the code repository
+    to Gavin Andresen. Later Andresen decided to decentralise control.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Since its release, over the last decade, Bitcoin has grown from an obscure cryptocurrency
+    to being a potentially breakthrough technology. As of January 2018, the size of
+    the full Bitcoin blockchain was about 150 GB. Presently several million users
+    use Bitcoin. The unit of the Bitcoin system is a Bitcoin. A Bitcoin is divisible.
+    The smallest amount is 10^(−8) Bitcoin which is called a Satoshi.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If the private key of a Bitcoin address is lost, then there is no way to spend
+    the amount of Bitcoin associated with the address. In 2013, a person claimed to
+    have lost 7,500 Bitcoins when he accidentally discarded a hard drive containing
+    his private key. It is believed that about 20% of all Bitcoins has been lost.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The monetory policy of Bitcoin has been described earlier. Successful mining
+    of a block creates a certain amount of Bitcoins. Initially, this was 50 Bitcoins.
+    After every 210,000 blocks (which takes about 4 years), the amount of Bitcoin
+    created per block is halved. The total amount of Bitcoins that will ever be created
+    is 21 million which will be reached around the year 2140\. The rate of supply
+    of Bitcoin ensures that Bitcoin remains valuable.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Client software to operate Bitcoin is called a wallet. These can operate in
+    several ways. Full clients store the full copy of the blockchain and can perform
+    the full validation checks. Due to the large size of the blockchain, it is not
+    feasible to store the entire blockchain on computing devices which have limited
+    memory. Lightweight clients are wallets which do not store the full blockchain,
+    but interact with full clients for sending and receiving transactions. Consequently,
+    lightweight wallets are easier to set up and operate on low-power, low-bandwidth
+    devices such as smartphones. The trade-off is that such a wallet must trust the
+    server. Wallets can as well be provided online by a third party. The credentials
+    are stored with the online provider rather than on the user's device. This requires
+    complete trust in the online provider. The Bitcoin Core is the best known implementation
+    of the client software.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Bitcoin has been forked several times. A hard fork on 1 August 2017 created
+    a new cryptocurrency called the Bitcoin Cash. The goal of Bitcoin Cash was to
+    allow larger block size so that the rate of transaction processing could be increased.
+    Another hard fork created the Bitcoin Gold on 24 October 2017.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Decentralisation is a cherished goal of Bitcoin. There has been, however, a
+    tendency towards centralisation. One aspect of this is the creation of mining
+    pools. The mining pools together contribute a large fraction of the computational
+    power of the network. In 2013, about 75% of the hash rate of the network was controlled
+    by six mining pools. More alarmingly, in 2014, the mining pool Ghash.io obtained
+    51% of the hash rate giving them the power to launch a 51% attack (see Section
+    18.13). Since then, the pool has voluntarily capped their hash rate at 39.99%
+    for the benefit of the whole network. Other parts of the Bitcoin ecosystem, such
+    as the maintenance of the software, are also controlled by a small set of entities.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Bitcoin supposedly provides a measure of anonymity. This is due to the fact
+    that the funds are associated with addresses, where the owners of the addresses
+    are not required to be identified. Analysis of the transactions available on the
+    blockchain, however, indicates holding patterns. Further, cryptocurrency exchanges
+    can be required by law to collect personal information. Technically speaking,
+    all Bitcoins are equivalent. The blockchain, on the other hand, records the history
+    of each Bitcoin. Some users may refuse to accept Bitcoins coming from controversial
+    transactions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A transaction in a Bitcoin is a description of transfer of coins from input
+    to output addresses which is signed using the signing keys of the input addresses.
+    While this is a very basic functionality, Bitcoin also provides for transactions
+    to describe somewhat more complex conditions. For example, it is possible to create
+    a multi-signature transaction, i.e. one which is signed by several entities.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 20.2 Ethereum and Smart Contracts
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Ethereum brought in a new innovation to the blockchain technology. At a bare
+    bones level, a blockchain is a linked chain of blocks, where each block contains
+    a list of transactions. A transaction essentially transfers cryptocurrency from
+    a set of input addresses to a set of output addresses. Transactions are signed
+    using the signing key of the sender. While Bitcoin transactions describe more
+    general conditions, it does not go all the way.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The pertinent question that is raised is how much more complex scenarios can
+    be handled? For example, one may wish to describe a contract between two parties.
+    Such a contract could be a simple thing like a small loan or it could even be
+    the sale of a car. Further, the execution of a contract could depend on an event
+    in the future such as the price of some share in a stock exchange. The main innovation
+    of Ethereum is the ability to handle all such scenarios and more.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To understand the capability of Ethereum, we need to step back for a moment
+    and consider what it means to compute something. This was an important question
+    in the early decades of the twentieth century. An answer was provided by Alan
+    Turing who proposed a very simple model of computation which is now called a Turing
+    machine. Turing also introduced the notion of universality and proposed the construction
+    of a universal Turing machine which is capable of simulating any Turing machine.
+    The intuitive notion of computation by itself is hard to define and so it cannot
+    be formally proved that Turing machines can indeed compute all that may be intuitively
+    considered to be computable. The Church–Turing thesis is the hypothesis that this
+    is indeed the case, i.e. our intuitive notion of computation is exactly captured
+    by a universal Turing machine.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Turing machines are not the only possible models of computation. Alternative
+    systems such as the lambda calculus and recursive functions have been proposed.
+    All of these systems have been shown to be equivalent. In particular, this means,
+    for example, that the lambda calculus system of rules can be used to simulate
+    a universal Turing machine. More generally, a language consisting of rules to
+    manipulate data is said to be Turing complete if it can be used to simulate a
+    universal Turing machine and by extension any Turing machine.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In view of the above, a theoretical goal for designing a language which can
+    describe complex scenarios is to ensure that the language is Turing complete.
+    Ethereum provides such a language (subject to some practical limitations). This
+    allows Ethereum to describe contracts, and more generally, to describe autonomous
+    agents of almost arbitrary complexity.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Before describing Ethereum, let us consider the Bitcoin blockchain once more.
+    A useful view of what happens is that of a state transition system. At any point
+    of time, among other things, the blockchain provides a record of all the Bitcoins
+    that have been generated so far. This information can be summarised as a state
+    where the state is a list of addresses and the amount of Bitcoins held by each
+    address. A block consists of a list of transactions which essentially transfers
+    Bitcoins from one set of addresses to another set of addresses. After the creation
+    of a new block, we obtain a new state. So, the processing of a list of transactions
+    by the creation of a new block can be considered to be transition from one state
+    to another.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Ethereum starts off with such a state transition view of the blockchain. States
+    in Ethereum, however, are more complex than those of Bitcoin.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The basic object in Ethereum is an ‘account’ which consists of four items:
+    a nonce; the account''s present Ether balance (Ether is a unit of currency in
+    Ethereum); a program to describe a contract (which is optional); and the account''s
+    storage. Each account has an address. Accounts are of two types, namely, user
+    (or externally owned) account and contract account. A user account does not have
+    any program, while contract accounts have associated programs. Each account has
+    an address which is computed by applying a hash function to the address of the
+    creator of the account along with the relevant nonce of the creator account.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Interaction between accounts is enabled by passing messages from one account
+    to another. Messages can be created by both user and contract accounts and can
+    contain data. Further, if the recipient of a message is a contract account, then
+    there is an option to return a response. In Ethereum, the term transaction is
+    used to denote a signed message sent from a user account. The sending of a message
+    from any account increments the nonce of the account. For a contract account,
+    every time a message is received, the code is activated. This allows the contract
+    account to read and write its internal storage and send other messages or even
+    create new contracts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: An Ethereum state is a snapshot of the set of accounts. A state transition takes
+    place by the processing of a list of messages. Each message alters the values
+    of the internal variables of one or more accounts. This alteration may be due
+    to the execution of the code inside a contract account. Processing of a message
+    may also lead to the creation of new accounts. So, a snapshot of the set of accounts
+    after processing of the messages is the new state of the system.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let us now see how this state transition view is mapped to a blockchain. A block
+    in the Ethereum blockchain contains a copy of the messages/transactions that have
+    been processed as well as the most recent state. Along with this, it stores two
+    other values, the block number and the difficulty. Blocks are chained together
+    through a proof-of-work style mechanism using a hash function. This part is the
+    same as the basic blockchain technology. Validating a block consists of several
+    actions such as verifying timestamp, reference to the previous block, difficulty
+    and other checks. One important check is to ensure that applying the messages
+    in the present block to the state recorded in the previous block leads to the
+    state recorded in the present block. Note that this validation step requires applying
+    messages to the individual accounts which for contract accounts means running
+    the program embedded in such accounts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The execution of contracts in Ethereum can also be initiated by external information.
+    For example, one may describe a contract account to transfer a certain amount
+    of money if the price of some share in a stock exchange reaches a certain value.
+    Once such a contract is released to the network, mining nodes will check the relevant
+    stock ticker and execute the code at the appropriate time in the future. It will
+    not be required for the original creator of the account to initiate any further
+    action. Such a provision can greatly facilitate the generation and execution of
+    financial derivatives.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Ethereum operates in a P2P network in a manner similar to that of other distributed
+    permissionless cryptocurrencies. Nodes introduce messages and transactions into
+    the network. Miners collect together a set of such messages/transactions and compete
+    with each other to create the next block to be inserted into the blockchain. Newly
+    created blocks are propagated through the P2P network. Nodes maintain their private
+    copies of the blockchain and follow the consensus algorithm of Ethereum for updating
+    this copy. Before adding a new block to their private copies, nodes have to validate
+    the block. Among other things, this constitutes running the programs for the relevant
+    contract accounts. So, the programs for each contract account are executed on
+    all the nodes of the network. While this can be considered to be a wastage of
+    computational power, such independent executions of a contract program by the
+    nodes essentially ensures that no trusted third party is required in the entire
+    set-up.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Ethereum was proposed in late 2013 by Vitalik Buterin and the system started
+    on 30 July 2015\. The currency of Ethereum is denoted as Ether. The system started
+    with 72 million premined coins. Ethereum provides a monetory policy for the generation
+    of Ether and a sophisticated incentive policy for execution of contracts so as
+    to reimburse the cost of the miners who run the code for the contracts. Over the
+    years, Ethereum has suffered its own problems such as the exploitation of a software
+    flaw in a contract to steal the equivalent of about $50 million Ether. There have
+    also been disputes leading to a hard fork of the blockchain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 20.3 Ripple and Payment Systems
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: In the present set-up, transferring funds across banks and across national boundaries
+    is a difficult and time-consuming procedure. It can take up to several days to
+    transfer funds and involve substantial commissions to the intermediaries involved
+    in the process. A major innovation of Ripple is to harness the technology of distributed
+    systems to provide an efficient and low-cost solution to the problem.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Ripple is a payment system. Using Ripple, it is possible to transfer almost
+    any kind of financial token. Such tokens could be fiat currencies, cryptocurrencies,
+    frequent flier miles, etc. Ripple also provides an in-built cryptocurrency called
+    XRP. A total of 100 billion XRP was created at the beginning by Ripple Lab, the
+    creator of Ripple. There is no provision for creating any more XRP. Ripple Labs
+    have slowly released XRP into the system.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Ripple technology is *not* based on blockchain. So, there is no concept
+    of mining to create new currency. Ripple provides a kind of semi-permissioned
+    and semi-decentralised system. Even though XRP was created by Ripple Labs and
+    presently 55% is still held by them, it is arguably possible for the Ripple network
+    to operate even if Ripple Labs shuts down.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Users of the Ripple system hold accounts. Transactions consist of payments from
+    a set of accounts to another set of accounts. Users can directly make payments
+    to users they trust. Alternatively, the Ripple network attempts to build a line
+    of trust between two users where two consecutive parties in the line have mutual
+    trust. One of the major roles of XRP is to serve as the main liquidity holding
+    in the network. An entity can convert its preferred token to XRP, the payment
+    is made in XRP and at the receiving end, XRP is converted into the preferred token
+    of the recipient. Another role of XRP is to secure the network against certain
+    kinds of overloading attacks. Each transaction requires burning up a small amount
+    of XRP. The amount by itself is so small that for a transaction it is an insignificant
+    cost. However, if an entity tries to overload the system with a huge number of
+    transactions, then the cost in XRP to such an entity will also be huge which serves
+    as a deterrent.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A ledger in Ripple is a record of the amount of currency in each user's account.
+    Ripple follows a distributed system. Nodes in the network are servers running
+    the Ripple server software. Banks and financial institutions join the Ripple network
+    by becoming a node in the network. Each server maintains a copy of the ledger.
+    The ledger is updated every few seconds using a consensus mechanism. The last-closed
+    ledger is the most recent state of the ledger that has been ratified by the consensus
+    mechanism. The open ledger is the one which is currently being confirmed. Once
+    confirmed this becomes the last closed ledger. The history of all payments is
+    available in the list of states of the ledgers that have been confirmed till date.
+    For the purposes of approving payments, it is not required to keep the entire
+    ledger history, though most nodes still do so.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Ledger updation is done by the nodes following a consensus mechanism. Each node
+    maintains a list of unique node list (UNL) which it consults. The set of UNL is
+    not the set of all nodes in the network. It is sufficient that the node should
+    trust the nodes in UNL as a whole. For this, individual trust in each node in
+    UNL is not required. For example, if the UNL of a node includes a bank in the
+    US and a bank in China, the node may assume that two such banks are unlikely to
+    collude even if it may not trust the individual banks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Any server can broadcast transactions to be included in the next updation of
+    the ledger. All the servers attempt to include every valid transaction when a
+    new consensus round starts. The consensus protocol proceeds in several rounds.
+    To start the protocol, each server takes all valid transactions it has received
+    prior to the beginning of the consensus protocol which have not yet been applied.
+    The server makes these transactions public as a candidate list of transactions.
+    Each server then takes the union of the candidate sets of all the nodes in its
+    UNL and votes on the transactions. A server decides to proceed with a transaction
+    in the next round if the transaction receives a certain minimum percentage of
+    approving votes. For the final round of consensus, a server decides to accept
+    a transaction if the transaction is approved by at least 80% of the server's UNL.
+    Finally, the server applies the accepted transactions to its copy of the open
+    ledger, and the updated ledger becomes the last closed ledger.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are three crucial properties of the consensus protocol, namely correctness,
+    agreement and termination. Correctness is shown by arguing that if the number
+    of Byzantine nodes in the network is below a certain level, then no invalid transaction
+    will be confirmed by the consensus protocol. Agreement refers to the fact that
+    if the nodes start out with the same state of the ledger, then after the execution
+    of the consensus protocol, all the nodes again have the same state of the ledger.
+    Finally, it can be argued that the consensus protocol terminates and each valid
+    transaction gets applied to the ledger within a finite amount of time. In practice,
+    Ripple network is reported to be able to handle about 1,500 transactions per second,
+    making it much faster than blockchain-based technologies such as Bitcoin or Ethereum.
+  prefs: []
+  type: TYPE_NORMAL
+- en: ¹Since the identity of Satoshi Nakamoto is unknown, use of the pronoun ‘he’
+    is possibly inaccurate. We use it only for the sake of convenience.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 21
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Applications of Blockchain
+  prefs: []
+  type: TYPE_NORMAL
+- en: The underlying technology behind Bitcoin and most other cryptocurrencies is
+    blockchain. In this context, the blockchain is permissionless, trustless and distributed.
+    The basic technology of blockchain, however, is amenable to other applications
+    including permissioned and trusted scenarios. In this chapter, we briefly describe
+    a few such applications.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Since a blockchain essentially implements a ledger, any application which utilises
+    a ledger can potentially benefit from the use of blockchain. Depending on the
+    access control mechanism of the ledger, it is possible to realise an appropriate
+    blockchain. The fundamental idea of implementing a ledger by a blockchain opens
+    up immense potential for the blockchain technology.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 21.1 Fintech Applications
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: We have already discussed Ripple which provides a solution for making international
+    payments in an efficient and low cost manner. Ripple, however, does not use a
+    blockchain. We mention a few other financial technology solutions which have already
+    been proposed. These have features which can also be used for making international
+    payments.
+  prefs: []
+  type: TYPE_NORMAL
+- en: One of the leading investment banks, JPMorgan Chase & Co., has launched a product
+    called Quorum, which is a permissioned blockchain. The design of Quorum is based
+    upon Ethereum with some differences. The basic difference, of course, is that
+    Quorum is a permissioned blockchain, meaning that not everybody can join the network.
+    The nodes of the network are people who have been verified and authenticated by
+    the network authority. A major consideration for banks is the privacy of transactions.
+    Quorum provides support for both public and private transactions. The innovation
+    is to support private transactions without breaking the blockchain. Another more
+    technical difference is that unlike Ethereum, the consensus mechanism in Quorum
+    uses voting.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A recently formed company called R3 leads an industry consortium. R3 has launched
+    a product called Corda which is a distributed ledger solution geared specifically
+    towards the financial world. Corda does not use a blockchain. In this aspect,
+    it is similar to Ripple, though the background technology for the two systems
+    is different. The goal of Corda is to provide a platform with some basic services
+    so that other services can be built on top of the platform in a manner which is
+    compatible between the network participants.
+  prefs: []
+  type: TYPE_NORMAL
+- en: IBM Blockchain is a blockchain-based solution for the financial industry. This
+    includes banking and in particular cross-border payments. MasterCard Blockchain
+    is another solution for the payment industry.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As a response to various distributed ledger technologies (blockchain or otherwise),
+    the previous global leader in cross-border payments, SWIFT, has launched a new
+    product called the Global Payment Initiative (GPI). This does not use distributed
+    ledger and is instead built upon the existing SWIFT technology. In the coming
+    years, it remains to be seen how the hugely lucrative market of international
+    payment plays out.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 21.2 Logistics Management
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Traditionally logistics requires intermediaries whose role is to verify, maintain
+    and forward records. The presence of such intermediaries pushes up the cost and
+    the delay in the processing of the paperwork. A prime example is the shipping
+    industry. The processing of paperwork for international container shipping can
+    take many days, resulting in major delays. The distributed ledger technology based
+    upon blockchain has the potential to cut through the dense formalities and significantly
+    speed up the entire logistics processing. IBM and Maersk have teamed up to develop
+    a blockchain solution for the shipping industry. As competition, five ocean shipping
+    lines and four terminal operators have teamed up to form the Global Shipping Business
+    Network (GSBN) which will provide blockchain-based solution to the logistics management
+    problem in the shipping industry.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 21.3 Supply Chain Management
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Today, leading companies run supply chain management and enterprise resource
+    planning (ERP) software for managing their supply chains. These software allow
+    products to be tracked from their origins to the final form. There are, however,
+    periods when companies have limited visibilities of the products. Such scenarios
+    arise due to gaps between different systems within a company as well as across
+    companies. Existing technology provides mechanism for bridging such gaps, but,
+    due to lack of complete synchronisation, it is possible that the same product
+    appears to be at two places at the same time. This violates a basic requirement
+    of inventory management.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Over the years, global supply chains have become part of a huge ecosystem rather
+    than being part of a vertically integrated company. Also, supply chains have become
+    more dynamic with shorter product life cycles. These issues have accentuated the
+    gaps in the existing software solutions for supply chain management.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It is in this context that blockchain-based distributed ledger technology has
+    the potential to deliver substantial benefits. The blockchain is to be used as
+    a ledger for transactions which record movement of products. For one thing, this
+    will prevent an item appearing simultaneously at two places. The visibility of
+    all the parts and the entire product will be clear from the blockchain. Sharing
+    the same blockchain with all entities of the supply chain ecosystem will eliminate
+    the intercompany gaps. Further, a blockchain will provide immediate proof about
+    how various goods were obtained and their compliance with necessary regulations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: BHP, the largest mining company in the world, has announced that it will use
+    blockchain to record movements of wellbore rock and fluid samples and to better
+    secure the real-time data that are generated during delivery. IBM has also announced
+    a blockchain-based solution for the supply chain industry.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 21.4 Governance
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: A government is duty-bound to provide certain services to the citizens. Such
+    services are to be provided in a transparent and accountable manner and at the
+    same time ensure the enforcement of any possible service delivery guarantee. Examples
+    of government services would include access to property records, birth/death/marriage
+    registration, delivery of subsidies and access to information. All these require
+    maintaining some kind of records by various governmental agencies. A typical bureaucratic
+    process often delays the processing and access to information that may be required
+    by citizens. It is in this aspect that blockchain-based digital technology provides
+    very promising resolution. At a very broad level, uploading documents to the blockchain
+    ensures their integrity, persistence and availability.
+  prefs: []
+  type: TYPE_NORMAL
+- en: While the idea of blockchain-based e-governance has a great deal of potential,
+    till date there have been no significant implementations. One possible reason
+    is that moving to a blockchain-based solution will be a huge technological step
+    for both governmental offices and the citizens. There has to be significant preparatory
+    work in the society before such a move can take place. Another reason is possible
+    lack of interest in such a move from the government itself. While governments
+    over the world are interested in cutting costs, unless forced they are unwilling
+    to take steps which make governance accountable and transparent. Blockchain technology
+    will indeed cut costs, but it will also at the same time introduce accountability
+    and transparency.
+  prefs: []
+  type: TYPE_NORMAL
