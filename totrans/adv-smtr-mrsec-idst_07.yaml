@@ -1,0 +1,883 @@
+- en: Chapter 7
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: An End-to-End Video Content Encryption Module for HLS Video Streaming
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Kazim Rizvi
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Vellore Institute of Technology, India
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: Bhavisha J. Dholakia
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Vellore Institute of Technology, India
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: Aditya Kaushik
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Vellore Institute of Technology, India
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: Aswani Kumar Cherukuri
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[![Orcid Image](i/orcid.svg) https://orcid.org/0000-0001-8455-9108](https://orcid.org/0000-0001-8455-9108)'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: Vellore Institute of Technology, India
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: Chandra Mouliswaran S.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Vellore Institute of Technology, India
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: ABSTRACT
+  prefs: []
+  type: TYPE_NORMAL
+- en: For an individual or a small organization, protecting and securing content could
+    be a new and challenging task. The existing options do not completely fulfill
+    the demands for today’s content consumption and security while providing a good
+    customer experience. The authors came across this problem of content security
+    as a small group while building an application and tried to find a simple solution
+    to secure content for playback on Android, so that the end users would be able
+    to stream seamlessly and without any hindrance caused due to the enhanced security.
+    They explore the way of securing video content through AES and using HLS to enable
+    streaming of those video files over the internet. At the client’s end, they have
+    used Google’s exoplayer to decrypt the data and play it directly after authentication
+    and authorization. They performed a comparative analysis of the current models
+    with the given model of securing content. Overall, with the aim to create an end-to-end
+    module, they show how all the elements interact and work together as a system
+    to provide protection against external threats.
+  prefs: []
+  type: TYPE_NORMAL
+- en: INTRODUCTION
+  prefs: []
+  type: TYPE_NORMAL
+- en: Nowadays, the most popular type of content being consumed is videos. With around
+    1 billion hours of video content being watched from only YouTube, and based on
+    the studies (https://www.bento4.com/documentation/mp42hls/) showing us that 32
+    percent of the total people consuming video content on a daily basis and 72 percent
+    of the total videos coming from a video website or app, we can clearly state that
+    the security of the content becomes a priority and in the near future, with the
+    introduction of various social video applications such as tiktok, this demand
+    is going to rise very high. In this kind of a situation, security is always an
+    integral part. Small startups and individuals who cannot invest in building huge
+    architectures need a simple solution to ensure the safety and security of the
+    content in their applications.
+  prefs: []
+  type: TYPE_NORMAL
+- en: One of the best ways of securing data is using cryptography to make it accessible
+    to only those people who are authorized to do so. For this project, we explored
+    various symmetric encryption algorithms based on their speed and efficiency and
+    found that AES outperformed compare to all others in case of encryption as well
+    as decryption. (Chakraborty, Dev & Naganur, 2015).
+  prefs: []
+  type: TYPE_NORMAL
+- en: The comparative study between symmetric and asymmetric encryption provides us
+    the details about the difference between the two types of algorithms on the basis
+    of speed, complexity, nature, vulnerabilities etc. (Kumar, Munjal & Sharma, 2011;
+    Maqsood, Ahmed, Ali & Shah, 2017). In terms of security, speed, effectiveness
+    and possible attacks the comparison between symmetric algorithms, Princy (2015)
+    have showed good results for blowfish and AES. After analysis of these studies
+    we concluded that, in this case, AES would be the right algorithm for the encryption
+    and decryption of huge files because of the lesser decryption time which eventually
+    would result in a better user experience while providing security at the same
+    time.
+  prefs: []
+  type: TYPE_NORMAL
+- en: HLS stands for HTTP Live streaming protocol. It has been developed by Apple
+    (https://developer.apple.com/streaming/) and was released in 2009\. HLS protocol
+    divides the video content into chunks of small videos that are further streamed
+    over HTTP. One of the main features of HTTP streaming protocols like HLS and DASH
+    is adaptive bitrate streaming which enables the user to stream at different bitrates
+    depending on the client’s bandwidth (Jain, Shrivastava & Moghe, 2020). They allow
+    multiple types of content consumption methods such as VOD and Live. Additional
+    features of the HTTP streaming protocols include switching streams, ad insertion
+    and variable segmentation (Jugović & Banduka, 2017). The HLS works by downloading
+    the master playlist once and then fetching the adapted streams. The delay between
+    the client and server during an HLS live stream can be optimized using open source
+    software such as FFmpeg (Kuchta & Miklošík, 2017). For the conversion of simple
+    mp4, mpeg, etc video files to multiple segmented streams of .ts files and a manifest.m3u8
+    file, we can use libraries like Bento and FFmpeg (https://www.bento4.com/documentation/mp42hls/).
+  prefs: []
+  type: TYPE_NORMAL
+- en: DRM (Digital Rights Management) is an approach to securing digital content and
+    preventing unauthorized access. The basic need for a model of DRM includes encryption
+    which provides the supplier to put constraints on the consumption of data (Mushtaq
+    et al., 2017).The architecture of DRM involves a DRM server in between the client
+    and the publisher which acts as a medium for authentication and sharing data between
+    the two parties (Oyman & Singh, 2012). The comparison of multiple DRMs allows
+    us to check their support on various client platforms and the type of content
+    they deliver (Princy, 2015). The DRM model can be used for multiple applications
+    too, such as in the healthcare industry, hence allowing our architecture to have
+    a wide range of possible use cases in the real world (Sheppard, Safavi-Naini &
+    Jafari, 2009).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exoplayer is an extensive and multipurpose library used in android devices for
+    video playback and streaming. It is developed by google and is expanding its support
+    for other platforms such as flutter, etc. The exoplayer library can be used for
+    the implementation of HTTP streaming protocols such as HLS and DASH including
+    the adaptive bitrate streaming (Singh, 2013). This project implements the exoplayer
+    library in android.
+  prefs: []
+  type: TYPE_NORMAL
+- en: With the combination of HLS and AES-128 we have proposed this system to ensure
+    security and a better user experience (Sodagar, 2011). However, AES can be tweaked
+    a bit to provide a better security which can be done as a future work.
+  prefs: []
+  type: TYPE_NORMAL
+- en: BACKGROUND
+  prefs: []
+  type: TYPE_NORMAL
+- en: The background talks about the ways and the mediums which inspired us to take
+    up this topic. Here, we have discussed the literature survey, which enables us
+    to get in depth information about the already existing papers and how the existing
+    research has been going on in the domain of exoplayer, HTTP Adaptive streaming
+    along with using various other ways which ensure security.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We have also talked about problem definition and contributions of the work in
+    the same section.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Table 1\. Analysis of the literature.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| S. No. | Title | Author | Year | Abstract |'
+  prefs: []
+  type: TYPE_TB
+- en: '| 1. | Cooperative Server-Client HTTP Adaptive Streaming System for Live Video
+    Streaming (Han, Go, Noh & Song, 2019). | Sangwook Han, Yunmin Go, Hyunmin Noh
+    and Hwangjun Song. | 2019 | The authors proposed an agreeable server–client HTTP
+    versatile streaming framework that can give great video to clients utilizing a
+    live video web-based feature. To accomplish this, the server adaptively signifies
+    the section encoding bitrates dependent on the k-means clustering technique for
+    the assessed data transmission of the clients. The client demands a fragment from
+    the server by thinking about the assessed transmission capacity, the video quality
+    change, and the cradled playback time. They directed a reenactment to check the
+    presentation of the proposed DASH framework. The reproduction results demonstrated
+    that the proposed framework can give excellent video higher transmission capacity
+    usage and stable video quality contrasted with the current DASH framework. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| 2. | User Friendly Digital Rights Management System Based on Smart Cards
+    (Lee & Lee, 2009). | Narn-Yih Lee and Tzu-Yi Lee | 2009 | The creators improve
+    the convention proposed by Sun et al''s. DRM framework dependent on the smart
+    card. The strategy utilizes diverse encryption keys to give protection and security.
+    Purchasers can utilize their own keen cards openly on any agreeable physical gadget.
+    Each advanced substance can be played in both on-line and disconnected situations.
+    Besides, it makes the buyer play similar advanced substance on agreeable gadgets
+    without paying at least multiple times. Subsequently, the proposed framework is
+    very appealing and easy to use. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| 3. | A Digital Rights Management Model for Healthcare (Sheppard, Safavi-Naini
+    & Jafari, 2009). | Nicholas Paul Sheppard, Reihaneh Safavi-Naini and Mohammad
+    Jafari | 2009 | Digital rights management can be joined with thoughts from electronic
+    assent and work process based admittance control to authorize security strategies
+    that consolidate the necessities of medical care specialists with the wants of
+    patients. Digital rights management broadens conventional access control frameworks
+    with assurance that perseveres all through incorporated information bases, singular
+    medical services offices, and different associations that have a need to get to
+    medical services data. The medical services can be transformed if we are able
+    to use the DRM in this field. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| 4. | From AES-128 to AES-192 and AES-256, How to Adapt Differential Fault
+    Analysis Attacks on Key Expansion (Floissac & L''Hyver, 2011) | No´emie Floissac
+    and Yann L’Hyver | 2011 | Through this paper, authors consider variation of DFA
+    assault on AES-128 to the variations AES192 and AES-256\. They recognize two fundamental
+    parts in the variation: the first comprises in broadening the first assault and
+    the subsequent one in recreating this assault on a front round. The variation
+    of the DFA on Key Expansion with this technique is more mind boggling than the
+    DFA on state and each assault must be considered as a particular case. For this
+    sort of DFA, they propose three principle issues to be understood to acquire enough
+    round key bytes so as to uncover the underlying key.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: On account of the C. H. Kim and J. Quisquater's assault, they prevail with regards
+    to adjusting the first assault by utilizing two explicit stunts. Their transformation
+    requires 16 couples for both 192-piece and 256-piece keys variations relating
+    to the twofold of AES-128 number of required couples. |
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| 5. | Strengthening digital rights management using a new driver-hidden rootkit
+    (Tsaur, 2012). | Woei-Jiunn Tsaur | 2012 | In this article, researchers propose
+    another driver-covered up rootkit for reinforcing the DRM in securing against
+    the illicit appropriation and utilization of copyrighted digital sight and sound
+    substance. The proposed new driver-covered up rootkit with five tricks dependent
+    on DKOM has effectively evaded the notable rootkit finders, and hence can be utilized
+    to keep unapproved clients from eliminating the rootkit of disguising the digital
+    right management programming by utilizing hostile to rootkit devices. The examination
+    is significant for expanding the security of the DRM programming, and can be an
+    incredible motivation to DRM programming producers to viably improve the current
+    strategies of ensuring against the illicit circulation and utilization of copyrighted
+    digital mixed media content. Besides, this examination additionally rouses safeguards
+    to viably strengthen the genuine uses by the covertness stunts of the proposed
+    modern rootkit. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| 6. | An Implementation of the AES cipher using HLS (Meurer, Mück & Fröhlich,
+    2013) | Rodrigo Schmitt Meurer, Tiago Rogério Mück and Antônio Augusto Fröhlich
+    | 2013 | In this paper, the authors have investigated diverse hardware executions
+    of the AES utilizing HLS. They built up an elite programming usage that necessary
+    just little change to be effectively incorporated to hardware. By investigating
+    various HLS mandates and memory apportioning advancements they lessened the zone
+    involved by the plan while additionally diminishing the quantity of cycles important
+    to scramble a square. In spite of empowering the quick plan space investigation
+    of hardware miniature models, the HLS cycle required adjustments on the source
+    code to produce effective hardware. This yields in any event two distinctive base
+    AES usage: one focusing on programming, and one focusing on hardware. Considering
+    a situation wherein the AES could be actualized as hardware or programming, keeping
+    up two unique usages for a similar segment can be blunder inclined and lead to
+    useful findings. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| 7. | Digital rights management with ABAC implementation to improve enterprise
+    document protection (BudimanBadarsyah & Rosmansyah, 2014) | BudimanBadarsyah and
+    Yusep Rosmansyah | 2014 | DRM is one of the interesting issues in information
+    security today that can give ideal insurance from robbery of licensed property
+    in the digital media content. Through seclusion of the 4 pillars of DRM, we can
+    alter as per the necessities of the association. And with an end goal to improve
+    execution, particularly as far as the dispersion of archives/information/data,
+    an open ecological association to all partners in an association can give adequacy
+    in dynamic in a brief timeframe. At that point an entrance control that bolsters
+    the receptiveness of information/data without eliminating the security turns into
+    a significant achievement key that cannot be dodged. Expected with the execution
+    of ABAC in big business DRM, clients can all the more effectively perform information
+    conveyance both in the formal and arranged with simpler, open and safer way. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| 8. | AES Implementation for RFID Tags: The Hardware and Software Approaches
+    (Hongsongkiat & Chongstitvatana, 2014) | Thanapol Hongsongkiat and Prabhas Chongstitvatana
+    | 2014 | The two frequency ranges in which AES encryption is generally utilized
+    are low frequency range (LF, 120-150 kHz) and high frequency range (HF, 13.56
+    MHz). These two applications have various requirements as far as encryption time.
+    The LF applications expect encryption to complete inside a couple hundred RF cycles,
+    In HF applications, AES preparing time can be up to a few thousand RF cycles.
+    The product AES program is executed dependent on our exclusive instruction set.
+    The asset use of the program can fit in the microcontroller. The preparing time
+    additionally meet our determination for high-frequency RFID applications. Two
+    strategies to accelerate the microcontroller preparing time are additionally proposed.
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| 9. | Enhancing AES algorithm with arithmetic coding (Mukesh, Pandya & Pathak,
+    2013). | Patel Sanket Mukesh, Morli S Pandya and Shreyas Pathak | 2013 | This
+    article helps us to understand how AES can be strengthened. The input data used
+    in the paper is either 128 or 256 bits in AES. By using MATLAB the sequence is
+    encoded, encrypted, decrypted and decoded sequentially. Before encryption compression
+    of data has been done by arithmetic coding in MATLAB. Error detection and correction
+    capabilities are proved to be high. This paper has high future improvements in
+    the field of network security and shows much promise. This particular strategy
+    can be used for multiple other protocols and much more efficient compressing techniques
+    can be used before encryption. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| 10. | DES and AES performance evaluation (Bhat, Ali & Gupta, 2015). | Bawna
+    Bhat, Abdul Wahid Ali and Apurva Gupta. | 2015 | Nowadays utilization of digital
+    data trade is expanding step by step in every field. Information security plays
+    very significant job in putting away and sending the data. At the point when we
+    send a mixed media data, for example, sound, video, pictures and so forth over
+    the system, cryptography gives security. In cryptography, we encode data before
+    sending it and decipher it on accepting, for this reason, we utilize numerous
+    cryptographic calculations. AES and DES are most usually utilized cryptographic
+    calculations. AES gives the encryption to make sure about the data before the
+    transmission and DES additionally gives security as AES. In this paper we talked
+    about AES and DES and their correlation utilizing MATLAB programming. We think
+    about their outcome based on avalanche effect, re-enactment time and memory required
+    by AES and DES. As compared to DES, AES provides a better security, even though
+    it utilizes much more time when it comes to computation. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| 11. | Automated monitoring of HTTP live streaming QoE factors on Android
+    STB (Kovacevic, Kovacevic, Stefanovic & Novak, 2015) | Marko Kovacevic, Branimir
+    Kovacevic, Dejan Stefanovic, Sebastian Novak | 2015 | This paper proposes a framework
+    for automated monitoring of elements that impact Quality of Experience of media
+    player on Android STB. Media player uses HTTP live web based convention where
+    the video is isolated into little portions (chunks) and encoded in different quality
+    levels (portrayals). In light of the organization conditions media player application
+    chooses which video fragments to download, causing exchanging between the diverse
+    video quality levels. These quality switches, along with elements, for example,
+    introductory postponement, video slowing down, synchronization of sound and video,
+    sway the end-client Quality of Experience. The framework introduced in this paper
+    is planned for automated monitoring of these components, so as to help content
+    suppliers to confine reasons for low QoE and to fix them simpler.           Proposed
+    framework presents an expansion of the framework for automated discovery testing
+    of Android STBs by including modules for estimating and identification of variables
+    that impact HLS, for example, recurrence of changing video quality levels, playback
+    introductory deferral, video slowing down, outline drops, sound/video synchronization.
+    Framework encourages content suppliers to confine reasons for low QoE and to fix
+    them simpler. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| 12. | Adaptive bitrate transcoding for power efficient video streaming in
+    mobile devices (Hemalatha, Yadav & Ramasubramanian, 2015) | K. Hemalatha, Praveen
+    Kumar Yadav and N. Ramasubramanian | 2015 | Power consumption by video application
+    relies upon factors like organization load, signal quality, data transfer capacity
+    and it tends to be improved through heuristics-based streaming. The work introduced
+    here adventures versatile bitrate spilling to decide the ideal bitrate for accessible
+    transfer speed. The determination of ideal bitrate guarantees quality conveyance
+    of video just as the ideal power consumption of the gadget. Moving Picture Expert
+    Group - Dynamic Adaptive Streaming over HTTP (MPEG-DASH) has been utilized for
+    executing the exchanging between the bitrates. The fifteen bitrates chose for
+    encoding are nearer to the mean worth which is accessible for streaming. The methodology
+    has been tried on an Android based tablet more than thirty recordings to check
+    the reliance of the variables on one another. This is the significant way to deal
+    with set up a connection among bitrate and power consumption for video web based.
+    The outcome acquired shows a 14 level of power-sharing with least buffering and
+    great nature of administration. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| 13. | Digital Signature Security in Data Communication (Rahim et. al., 2018).
+    | Rahim et. al. | 2018 | Authenticity of access in very information are very important
+    in the current era of Internet-based technology, there are many ways to secure
+    information from irresponsible parties with various security attacks, some of
+    technique can use for defend attack from irresponsible parties are using steganography,
+    cryptography or also use digital signatures. Digital signatures could be one of
+    solution where the authenticity of the message will be verified to prove that
+    the received message is the original message without any change, Ong-Schnorr-Shamir
+    is the algorithm are used in this research and the experiment are perform on the
+    digital signature scheme and the hidden channel scheme. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| 14. | An AES Cryptosystem For Small Scale Network (Arom-oon, 2017) | Ukrit
+    Arom-oon | 2017 | This paper was finished with the usage of the ECB-AES calculation
+    with 128-bit, 192-bit and 256-bit keys running on Free RTOS. The Free RTOS was
+    utilized for managing tasks and resources in the time imperatives. Plaintexts
+    was encoded and then unraveled to the first plaintexts. The encryption productivity
+    was tested dependent on UAV messages, and the outcomes were demonstrated that
+    the MCU can handle all messages without loss. The deferrals and throughput for
+    cryptosystem were tested. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| 15. | Secure Implementation for Video Streams Based on Fully and Permutation
+    Encryption Techniques (Elshamy et al., 2017) | Ahmed M. Elshamy, Aziza I. Hussein,
+    Hesham F. A. Hamed, Hamdy M. Kelash, M. A. Abdelghany and Ahmad Q. Alhamad | 2017
+    | This article discusses a video stream encryption method based on Henon Chaotic
+    Map and Optical phase modulation. This process is carried by splitting the video
+    into frames and converting the color 3D images to grayscale 2D and provides good
+    result in encryption quality metrics. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| 16. | Secure H.264 Video Coding Using AES/CFB/PKCS5 Padding Encryption on
+    Various Video Frames (I, P, B) (Adiguna, 2016) | Tahta Adiguna | 2016 | This paper
+    discusses the process of encrypting H.264 video coding along with comparing different
+    algorithms for the purpose of encryption. The idea discussed is to encrypt various
+    video frames (I, P, B). It uses the NAL (Network Abstraction Layer) unit during
+    the encryption of I, P and B frames of the video. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| 17. | Look Ahead: A DASH Adaptation Algorithm (Belda, De Fez, Arce & Guerri,
+    2018) | Román Belda, Ismael De Fez, Pau Arce and Juan Carlos Guerri | 2018 | This
+    article has demonstrated that the immediate bitrate variability of video substance
+    is a key factor for DASH variation calculations. Indeed, even in consistent bandwidth
+    conditions, which would give enough bandwidth to a un-interrupting playback at
+    the normal video bitrate, not considering this data about momentary video fragment
+    bitrate can prompt slows down during the video playback. The paper has introduced
+    a calculation called Look Ahead which considers the fluctuation of the bitrate
+    to compute the best portrayal level so as to evade interferences. Results demonstrate
+    that both the number and term of video playback slows down (rebuffering) are profoundly
+    diminished, contrasted with the versatile calculation utilized by ExoPlayer and
+    the Müller and SARA calculations, to the detriment of somewhat diminishing the
+    normal video quality. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| 18. | Accelerating the AES Algorithm using OpenCL (Sanida, Sideris & Dasygenis,
+    2020) | Theodora Sanida, Argyrios Sideris and Minas Dasygenis | 2020 | Cryptography
+    plays a significant function in every field these days as we have to secure a
+    wide range of data, be it literary or media. With the expansion in the size of
+    the document/content the general encryption measure requires a ton of assets so
+    the general time taken is obliged inside as far as possible. For this reason,
+    this paper assesses the distinction in the proficiency of scrambling information
+    utilizing CPU versus GPU. Since significantly different assignments today are
+    being performed by the GPUs, for example, cryptocurrency mining, video/picture
+    handling, and so forth, this paper attempts to implement the same for encryption
+    and decryption |'
+  prefs: []
+  type: TYPE_TB
+- en: '| 19. | A robust computational DRM framework for protecting multimedia contents
+    using AES and ECC (Hassan, Tahoun & ElTaweel, 2020). | Heba El-Rahman Hassan,
+    Mohamed Tahoun and Gh.S. ElTaweel | 2020 | The article discusses the use of AES-256
+    for the encryption and decryption of multimedia content and ECC-256 for the encryption
+    and decryption of shared keys to create a DRM framework to guarantee confidentiality,
+    authentication, data integrity and non-repudiation. The architecture is based
+    on a cloud server and takes the advantage of cloud computing to build an end to
+    end solution. The result system proposes high performance in terms of protecting
+    author’s rights, ownership of the content and to prevent illegal activities. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| 20. | Image Encryption Based on AES and RSA Algorithms (Alsaffar et. al.,
+    2020) | Alsaffar, Dalia Mubarak, Atheer Sultan Almutiri, Bashaier Alqahtani, Rahaf
+    Mohammed Alamri, Hanan Fahhad Alqahtani, Nada Nasser Alqahtani, and Azza A. Ali.
+    | 2020 | This investigation in this paper expects to do a comparison between Advanced
+    Encryption Standard (AES) and Rivest-Shamir-Adleman (RSA) encryption calculations
+    in image encryption utilizing MATLAB. The examination is done in the terms of
+    testing image encryption quality for every calculation. Along with this, dissecting
+    the histogram and connection results are also examined. The outcomes demonstrated
+    that AES calculation has a superior image encryption quality with more convergent
+    segments in the histogram. Besides, AES calculation connection coefficient will
+    in general be nearer to the zero, in this manner a more grounded relationship.
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: With this detailed literature analysis, we formulate the problem as encrypting
+    Video content using AES-128 along with conversion to HLS format and streaming
+    encrypted data through a server for secured live decryption and playback on the
+    client device using Exoplayer. The literary sources utilized for the literature
+    review have helped us understand the existing frameworks and models for video
+    streaming. With this in mind, we have done critical analysis of these models and
+    understood their downsides. Hence, we have proposed a new model which not only
+    provides security, but also can be utilized to give flexibility to our model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: SOLUTIONS AND RECOMMENDATIONS
+  prefs: []
+  type: TYPE_NORMAL
+- en: Proposed Model
+  prefs: []
+  type: TYPE_NORMAL
+- en: Detailed Architecture
+  prefs: []
+  type: TYPE_NORMAL
+- en: We are trying to replace the current video streaming method with an AES-128
+    encrypted video streaming method that will provide security and authentication
+    to copyright videos on websites, apps, etc., and will prevent them from misuse/piracy.
+    We are trying to achieve that by creating an HLS encrypted video and then sharing
+    it over a server which will then be decrypted and played live on client’s device.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Encrypt the Videos
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| Figure 1\. Phase 1 - Encryption and conversion to HLS |'
+  prefs: []
+  type: TYPE_TB
+- en: '| ![Figure978-1-7998-8367-8.ch007.f01](i/ch007.f01.png) |'
+  prefs: []
+  type: TYPE_TB
+- en: Figure 1 depicts the first phase of the architecture which is converting the
+    video into AES-128 encrypted HLS files. The process starts with first converting
+    the files into HLS and then encrypting them using a 128 bit randomly generated
+    key. The next step is to save the encryption key to the KEY server and the encrypted
+    file to the FILE server. This key will be further used to decrypt the videos in
+    the client’s device.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Decrypt and Playback
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| Figure 2\. Phase 2 – Retrieving the key and decrypting the file |'
+  prefs: []
+  type: TYPE_TB
+- en: '| ![Figure978-1-7998-8367-8.ch007.f02](i/ch007.f02.png) |'
+  prefs: []
+  type: TYPE_TB
+- en: 'Figure 2 depicts the second phase of the implementation which consists of retrieving
+    the data on the client’s device and playing the encrypted videos. In this situation,
+    both the client and a server already possess a shared key called USER KEY. The
+    above depicted process can be divided into the following steps:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 1\. The user requests for the video file to be played on the client’s device
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 2\. The client device requests the File server for the encrypted data
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 3\. The File server responds with the requested data
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 4\. The client requests the Key server to obtain the key for the particular
+    video file
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 5\. The Key server encrypts the VIDEO KEY using the USER KEY, using AES, to
+    share it over the network safely, and sends it to the client
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 6\. The client receives the data and decrypts it using the same USER KEY to
+    obtain the VIDEO KEY
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 7\. The final VIDEO KEY is used to play the encrypted video files
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: FUNCTIONALITY
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The implementation of the complete model can again be divided into two parts:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Server Side
+  prefs: []
+  type: TYPE_NORMAL
+- en: The first step is to convert the video into HLS and encrypt them. For this process,
+    we can use open source software such as FFmpeg or Bento. It takes a video as an
+    input and outputs HLS converted videos containing the manifest m3u8 file. We can
+    also configure it to encrypt the input file at the same time.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To encrypt and convert the input file to HLS using bento we use the following
+    command:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: mp4hls -o. /output --encryption-key = {16 char hexadecimal key} ./input.mp4
+  prefs: []
+  type: TYPE_NORMAL
+- en: 16 characters of hexadecimal = 32 bytes = 256 bits
+  prefs: []
+  type: TYPE_NORMAL
+- en: Client Side
+  prefs: []
+  type: TYPE_NORMAL
+- en: The implementation of the client’s end in this implementation requires the creation
+    of an android application. Exoplayer is a video player library created by Google
+    and is used in this project for the playback of videos. It is a Java based library
+    and uses the Cipher class of Java to perform encryption decryption operations
+    on the segmented file. It has a wide support of video codecs and types and can
+    be configured to decrypt the videos and play them in real time.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| Figure 3\. Client side implementation (Exoplayer) |'
+  prefs: []
+  type: TYPE_TB
+- en: '| ![Figure978-1-7998-8367-8.ch007.f03](i/ch007.f03.png) |'
+  prefs: []
+  type: TYPE_TB
+- en: The main code to set up the exoplayer is shown in Figure III. It requires two
+    additional custom classes to be built to a) redirect custom requests to the servers
+    b) retrieve the file data through HTTP that are implemented as CustomDataSourceFactory.java
+    and DefaultHttpDataSource.java.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exoplayer comes with in-built classes for HLS based on the Cipher class of java
+    that we have used for this implementation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: EXPERIMENTAL RESULTS
+  prefs: []
+  type: TYPE_NORMAL
+- en: Server Side
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| Figure 4\. Input video |'
+  prefs: []
+  type: TYPE_TB
+- en: '| ![Figure978-1-7998-8367-8.ch007.f04](i/ch007.f04.png) |'
+  prefs: []
+  type: TYPE_TB
+- en: Figure 4 depicts the input video which goes through the process of conversion
+    and encryption.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| Figure 5\. Encrypted and segmented HLS output files |'
+  prefs: []
+  type: TYPE_TB
+- en: '| ![Figure978-1-7998-8367-8.ch007.f05](i/ch007.f05.png) |'
+  prefs: []
+  type: TYPE_TB
+- en: As shown in Figure 5, segmented output files generated after encryption and
+    conversion to HLS. These files are segmented into chunks of 10 second videos and
+    then encrypted. This feature of HLS allows smooth streaming over the internet
+    and reduces lag. The manifest file is stream.m3u8 and is the one which is passed
+    to the player. The manifest file contains the information about the chunked files
+    and along with their order of playback.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Client Side
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| Figure 6\. Decryption of incoming data |'
+  prefs: []
+  type: TYPE_TB
+- en: '| ![Figure978-1-7998-8367-8.ch007.f06](i/ch007.f06.png) |'
+  prefs: []
+  type: TYPE_TB
+- en: The Android app in Figure 6, with the help of the exoplayer library, decrypts
+    the incoming data from the File server using the VIDEO KEY and plays it to the
+    user in real time. The user experiences no lag in terms of usage as the video
+    is decrypted during playback.
+  prefs: []
+  type: TYPE_NORMAL
+- en: ANALYSIS
+  prefs: []
+  type: TYPE_NORMAL
+- en: Comparison with the Literature
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Currently we have a number of solutions for the purpose of securing digital
+    content. These solutions fall in one of the following categories that:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 1\. Provide good user experience but poor security
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 2\. Provide good security but poor user experience
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 3\. Have restrictions in the architecture/system
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 4\. Are complicated or difficult to implement
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Our solution provides both, a way to have security and a good user experience.
+    It becomes more suitable than the previous solutions for the current businesses
+    needs and hence becomes a possible simple solution for today’s requirements. The
+    model is simple to understand and implement, hence it can be incorporated into
+    different business solutions as well.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The security of the model is dependent on the security of the AES-128 algorithm
+    as we have used it while encrypting the files as well as while sharing the keys.
+    When it comes to the user experience, it is evident from the demonstration video
+    that there isn’t any lag or delay during the playback.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Comparison with the Current Industry Standard
+  prefs: []
+  type: TYPE_NORMAL
+- en: The current standard for protecting Digital Content is known as DRM which stands
+    for Digital Rights Management. It tries to control the use, modification and sharing
+    of copyright content. It can include the usage of technologies such as encryption,
+    authentication, regional lockout, etc.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Currently most of the big companies like Netflix, Prime Video, etc use proprietary
+    DRMs that use licensing servers in between to authorize users to be able to watch
+    content. For example, some proprietary DRMs are Widevine by Google, FairPlay by
+    Apple and PlayReady by Microsoft. The architecture of DRM uses certification that
+    is needed to be installed in the device by the manufacturer. For example, all
+    the Android devices require to have Google's widevine L1 certificate to be able
+    play HD and above quality content. Devices not possessing this certificate would
+    not be able to play high quality videos.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Our solution is platform independent and flexible and simple to implement as
+    compared to the existing ones. It provides the flexibility to have complete control
+    on the authorization, usage and other features of the architecture. It does not
+    restrict the quality of the content on any device but allows the businesses to
+    decide that.
+  prefs: []
+  type: TYPE_NORMAL
+- en: CONCLUSION
+  prefs: []
+  type: TYPE_NORMAL
+- en: As the world becomes completely digital, it is extremely crucial to make our
+    systems more secure so that we can prevent malicious access of our private content.
+    In such a scenario, it is hence the need of an hour to secure our digital content
+    and make the already existing frameworks better and more flexible as the time
+    progresses. Flexibility also becomes an important factor because the change in
+    advancement of technology is increasing for the better every day; hence we need
+    to come up with solutions which are flexible so that it can be used on all the
+    devices, be it older or newer ones. Therefore, this particular framework can prove
+    to be just the right one at this time. However, DRM, which is utilized by big
+    companies like Amazon and Netflix, is more stable and established at the moment.
+    For the future work, we believe that there is a huge scope to improve our current
+    model which can make it more secure and stable.
+  prefs: []
+  type: TYPE_NORMAL
+- en: REFERENCES
+  prefs: []
+  type: TYPE_NORMAL
+- en: Adiguna, T. (2016). Secure H. 264 Video Coding using AES/CFB/PKCS5 padding encryption
+    on various video frames (I, P, B). In 2016 10th International Conference on Telecommunication
+    Systems Services and Applications (TSSA) (pp. 1-5). IEEE.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Alsaffar, D. M., Almutiri, A. S., Alqahtani, B., Alamri, R. M., Alqahtani, H.
+    F., Alqahtani, N. N., & Ali, A. A. (2020). Image Encryption Based on AES and RSA
+    Algorithms. In 2020 3rd International Conference on Computer Applications & Information
+    Security (ICCAIS) (pp. 1-5). IEEE.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Arom-oonU. (2017). An AES cryptosystem for small scale network. In 2017 Third
+    Asian Conference on Defence Technology (ACDT) (pp. 49-53). IEEE. 10.1109/ACDT.2017.7886156
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'BeldaR.De FezI.ArceP.GuerriJ. C. (2018). Look ahead: a DASH adaptation algorithm.
+    In 2018 IEEE International Symposium on Broadband Multimedia Systems and Broadcasting
+    (BMSB) (pp. 1-5). IEEE.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Bento documentation for conversion from mp4 to HLS. (n.d.). https://www.bento4.com/documentation/mp42hls/
+  prefs: []
+  type: TYPE_NORMAL
+- en: BhatB.AliA. W.GuptaA. (2015). DES and AES performance evaluation. In International
+    Conference on Computing, Communication & Automation (pp. 887-890). IEEE. 10.1109/CCAA.2015.7148500
+  prefs: []
+  type: TYPE_NORMAL
+- en: BudimanBadarsyah, I., & Rosmansyah, Y. (2014). Digital rights management with
+    ABAC implementation to improve enterprise document protection. In 2014 8th International
+    Conference on Telecommunication Systems Services and Applications (TSSA) (pp.
+    1-6). IEEE.
+  prefs: []
+  type: TYPE_NORMAL
+- en: ChakrabortyP.DevS.NaganurR. H. (2015). Dynamic http live streaming method for
+    live feeds. In 2015 International Conference on Computational Intelligence and
+    Communication Networks (CICN) (pp. 1394-1398). IEEE. 10.1109/CICN.2015.333
+  prefs: []
+  type: TYPE_NORMAL
+- en: ElshamyA. M.AbdelghanyM. A.AlhamadA. Q.HamedH. F.KelashH. M.HusseinA. I. (2017).
+    Secure implementation for video streams based on fully and permutation encryption
+    techniques. In 2017 International Conference on Computer and Applications (ICCA)
+    (pp. 50-55). IEEE. 10.1109/COMAPP.2017.8079738
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exoplayer documentation. (n.d.). https://exoplayer.dev/hls.html
+  prefs: []
+  type: TYPE_NORMAL
+- en: FFMPEG documentation. (n.d.). https://ffmpeg.org/ffmpeg-formats.html
+  prefs: []
+  type: TYPE_NORMAL
+- en: FloissacN.L’HyverY. (2011). From AES-128 to AES-192 and AES-256, how to adapt
+    differential fault analysis attacks on key expansion. In 2011 Workshop on Fault
+    Diagnosis and Tolerance in Cryptography (pp. 43-53). IEEE. 10.1109/FDTC.2011.15
+  prefs: []
+  type: TYPE_NORMAL
+- en: HanS.GoY.NohH.SongH. (2019). Cooperative server-client http adaptive streaming
+    system for live video streaming. In 2019 International Conference on Information
+    Networking (ICOIN) (pp. 176-180). IEEE. 10.1109/ICOIN.2019.8718151
+  prefs: []
+  type: TYPE_NORMAL
+- en: Hassan, H. E. R., Tahoun, M., & ElTaweel, G. S. (2020). A robust computational
+    DRM framework for protecting multimedia contents using AES and ECC. Alexandria
+    Engineering Journal , 59(3), 1275–1286\. doi:10.1016/j.aej.2020.02.020
+  prefs: []
+  type: TYPE_NORMAL
+- en: Hemalatha, K., Yadav, P. K., & Ramasubramanian, N. (2015). Adaptive bitrate
+    transcoding for power efficient video streaming in mobile devices. In 2015 3rd
+    International Conference on Signal Processing, Communication and Networking (ICSCN)
+    (pp. 1-5). IEEE. 10.1109/ICSCN.2015.7219825
+  prefs: []
+  type: TYPE_NORMAL
+- en: HLS Article by Apple Inc. (n.d.). https://developer.apple.com/streaming/
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'HongsongkiatT.ChongstitvatanaP. (2014). AES implementation for RFID Tags: The
+    hardware and software approaches. In 2014 International Computer Science and Engineering
+    Conference (ICSEC) (pp. 118-123). IEEE. 10.1109/ICSEC.2014.6978180'
+  prefs: []
+  type: TYPE_NORMAL
+- en: JainN.ShrivastavaH.MogheA. A. (2020). Production-ready environment for HLS Player
+    using FFmpeg with automation on S3 Bucket using Ansible. In 2nd International
+    Conference on Data, Engineering and Applications (IDEA) (pp. 1-4). IEEE.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Jugović, D., & Banduka, M. L. (2017). Extending and integration of HLS software
+    support in Android based systems. In 2017 25th Telecommunication Forum (TELFOR)
+    (pp. 1-4). IEEE.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Kovacevic, M., Kovacevic, B., Stefanovic, D., & Novak, S. (2015). Automated
+    monitoring of HTTP live streaming QoE factors on Android STB. In 2015 IEEE 1st
+    International Workshop on Consumer Electronics (CE WS) (pp. 72-75). IEEE. 10.1109/CEWS.2015.7867159
+  prefs: []
+  type: TYPE_NORMAL
+- en: Kuchta, M., & Miklošík, A. (2017). Evolution of digital video consumption patterns.
+    Communication Today , 8(2), 58–69.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Kumar, Y., Munjal, R., & Sharma, H. (2011). Comparison of symmetric and asymmetric
+    cryptography with existing vulnerabilities and countermeasures. International
+    Journal of Computer Science and Management Studies , 11(03), 60–63.
+  prefs: []
+  type: TYPE_NORMAL
+- en: LeeN. Y.LeeT. Y. (2009). User friendly digital rights management system based
+    on smart cards. In 2009 Fifth International Conference on Intelligent Information
+    Hiding and Multimedia Signal Processing (pp. 869-872). IEEE. 10.1109/IIH-MSP.2009.130
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Maqsood, F., Ahmed, M., Ali, M. M., & Shah, M. A. (2017). Cryptography: A comparative
+    analysis for modern techniques. International Journal of Advanced Computer Science
+    and Applications , 8(6), 442–448\. doi:10.14569/IJACSA.2017.080659'
+  prefs: []
+  type: TYPE_NORMAL
+- en: MeurerR. S.MückT. R.FröhlichA. A. (2013). An Implementation of the AES cipher
+    using HLS. In 2013 III Brazilian Symposium on Computing Systems Engineering (pp.
+    113-118). IEEE. 10.1109/SBESC.2013.36
+  prefs: []
+  type: TYPE_NORMAL
+- en: MukeshP. S.PandyaM. S.PathakS. (2013). Enhancing AES algorithm with arithmetic
+    coding. In 2013 International Conference on Green Computing, Communication and
+    Conservation of Energy (ICGCE) (pp. 83-86). IEEE. 10.1109/ICGCE.2013.6823404
+  prefs: []
+  type: TYPE_NORMAL
+- en: Mushtaq, M. F., Jamel, S., Disina, A. H., Pindar, Z. A., Shakir, N. S. A., &
+    Deris, M. M. (2017). A survey on the cryptographic encryption algorithms. International
+    Journal of Advanced Computer Science and Applications , 8(11), 333–344.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Oyman, O., & Singh, S. (2012). Quality of experience for HTTP adaptive streaming
+    services. IEEE Communications Magazine , 50(4), 20–27\. doi:10.1109/MCOM.2012.6178830
+  prefs: []
+  type: TYPE_NORMAL
+- en: Panda, M. (2019). Text And Image Encryption Decryption Using Symmetric Key Algorithms
+    On Different Platforms. Int. J. Sci. Technol. Res , 8(09).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Princy, P. (2015). A comparison of symmetric key algorithms DES, AES, Blowfish,
+    RC4, RC6: A survey. International Journal of Computer Science and Engineering
+    Technology , 6(5), 328–331.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Rahim, R., Pranolo, A., Hadi, R., Nurdiyanto, H., Napitupulu, D., Ahmar, A.
+    S., . . . Abdullah, D. (2018). Digital Signature Security in Data Communication.
+    doi:10.2991/icedutech-17.2018.34
+  prefs: []
+  type: TYPE_NORMAL
+- en: Sanida, T., Sideris, A., & Dasygenis, M. (2020). Accelerating the AES Algorithm
+    using OpenCL. In 2020 9th International Conference on Modern Circuits and Systems
+    Technologies (MOCAST) (pp. 1-4). IEEE.
+  prefs: []
+  type: TYPE_NORMAL
+- en: SheppardN. P.Safavi-NainiR.JafariM. (2009). A digital rights management model
+    for healthcare. In 2009 IEEE International Symposium on Policies for Distributed
+    Systems and Networks (pp. 106-109). IEEE. 10.1109/POLICY.2009.8
+  prefs: []
+  type: TYPE_NORMAL
+- en: Singh, G. (2013). A study of encryption algorithms (RSA, DES, 3DES and AES)
+    for information security. International Journal of Computers and Applications
+    , 67(19).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Sodagar, I. (2011). The mpeg-dash standard for multimedia streaming over the
+    internet. IEEE MultiMedia , 18(4), 62–67\. doi:10.1109/MMUL.2011.71
+  prefs: []
+  type: TYPE_NORMAL
+- en: Tsaur, W. J. (2012). Strengthening digital rights management using a new driver-hidden
+    rootkit. IEEE Transactions on Consumer Electronics , 58(2), 479–483\. doi:10.1109/TCE.2012.6227450
+  prefs: []
+  type: TYPE_NORMAL
