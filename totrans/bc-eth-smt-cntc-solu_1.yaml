@@ -1,0 +1,4852 @@
+- en: Solidity smart contract supports calling another smart contract. If two
+  prefs: []
+  type: TYPE_NORMAL
+- en: smart contracts call each other’s function, there is a possibility that the
+  prefs: []
+  type: TYPE_NORMAL
+- en: call might enter into a loop and consume all the funds as shown in the
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'following example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '// security_callee.sol:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*pragma solidity 0.8.0;*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*contract Bob {*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*function ping(address c) public{*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*//do something*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*return;*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*}*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*}*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '279'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 7 programming Smart ContraCt with Solidity
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*contract Mallory {*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*fallback() external{*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Bob(msg.sender).ping(address(this));*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*}*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*}*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: // security_caller.sol
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*contract Bob {*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*bool sent = false;*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*function ping(address c) external {*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*if (!sent) {*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*c.call{value:2}("");*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*sent = true;*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*}}}*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The preceding example shows that a cross smart contract call might
+  prefs: []
+  type: TYPE_NORMAL
+- en: enter into a loop.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this example, security_callee.sol and security_caller.sol are both
+  prefs: []
+  type: TYPE_NORMAL
+- en: deployed to the blockchain. The contract Bob in security_caller.sol invokes
+  prefs: []
+  type: TYPE_NORMAL
+- en: a function called ping and an input from an external program. The ping
+  prefs: []
+  type: TYPE_NORMAL
+- en: function then calls another smart contract with the Mallory contract
+  prefs: []
+  type: TYPE_NORMAL
+- en: address. Mallory contract has a fallback function that will take in the ping
+  prefs: []
+  type: TYPE_NORMAL
+- en: function call from Bob contract. In Mallory contract, the Bob contract is
+  prefs: []
+  type: TYPE_NORMAL
+- en: also called, hence causing a loop where Bob calls the fallback function in
+  prefs: []
+  type: TYPE_NORMAL
+- en: Mallory while Mallory calls Bob’s ping function. Each step in the call will
+  prefs: []
+  type: TYPE_NORMAL
+- en: cause a value of 2 wei to be sent to the Mallory contract.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Data Type and Data Vulnerabilities**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Vulnerability: Variable Value Overflow or Underflow**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This happens when arithmetic operations cause the new value of a
+  prefs: []
+  type: TYPE_NORMAL
+- en: variable to exceed the maximum value or fall below the minimum value.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '280'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 7 programming Smart ContraCt with Solidity
+  prefs: []
+  type: TYPE_NORMAL
+- en: uint256 const PRICE_PER_TOKEN = 2;
+  prefs: []
+  type: TYPE_NORMAL
+- en: function
+  prefs: []
+  type: TYPE_NORMAL
+- en: buy(uint256 numTokens) public payable {
+  prefs: []
+  type: TYPE_NORMAL
+- en: require(msg.value == numTokens * PRICE_PER_TOKEN);
+  prefs: []
+  type: TYPE_NORMAL
+- en: balanceOf[msg.sender] += numTokens;
+  prefs: []
+  type: TYPE_NORMAL
+- en: '}'
+  prefs: []
+  type: TYPE_NORMAL
+- en: To fix this vulnerability, check the value range. If possible, use the
+  prefs: []
+  type: TYPE_NORMAL
+- en: SafeMath library in which the boundaries of arithmetic operations are
+  prefs: []
+  type: TYPE_NORMAL
+- en: checked.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Vulnerability: Shadowing State Variables**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: For a smart contract, there are state variables and function-specific
+  prefs: []
+  type: TYPE_NORMAL
+- en: variables. The state variables can be referred to in each function as well.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If a variable name is defined as both state variable and function variable,
+  prefs: []
+  type: TYPE_NORMAL
+- en: then the one defined in the function will have priority and shadow the one
+  prefs: []
+  type: TYPE_NORMAL
+- en: defined as state variable. Therefore, it is important to check the context
+  prefs: []
+  type: TYPE_NORMAL
+- en: and scope of the variables in a function. The following smart contract
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'shows how state variables are shadowed in the functions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*pragma solidity 0.8.0;*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*contract ShadowingVariables {*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*uint n = 2;*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*address public x = 0x1f2D3A67B8E96039bbAc84eB4bC0913C0c16778c;*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*function test_shadow1() public view returns (uint n) {*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*return n; // Will return 0*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*}*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*function test_shadow2() public view returns (address x) {*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '281'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 7 programming Smart ContraCt with Solidity
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*address x = 0x1111111111111111111111111111111111111111;*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*return x; // Will return*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*0x1111111111111111111111111111111111111111;*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*}*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*function test_shadow3() public view returns*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*(address x) {*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*return x; // Will return*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*0x0000000000000000000000000000000000000000*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*}*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*}*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the smart contract, state variables of uint n and address x are
+  prefs: []
+  type: TYPE_NORMAL
+- en: declared. The test_shadow1 function declared n as a return variable. It will
+  prefs: []
+  type: TYPE_NORMAL
+- en: return 0, and it is not assigned value and will take default 0\.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The second function, test_shadow2, redefine address x and assigns a
+  prefs: []
+  type: TYPE_NORMAL
+- en: new address 0x1111111111111111111111111111111111111111 and will
+  prefs: []
+  type: TYPE_NORMAL
+- en: return this address.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The third function, test_shadow3, redeclared address x but does not
+  prefs: []
+  type: TYPE_NORMAL
+- en: assign the address value. It will therefore return the default address value
+  prefs: []
+  type: TYPE_NORMAL
+- en: of 0x0000000000000000000000000000000000000000\.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It is very important to look at the same variable names appearing in
+  prefs: []
+  type: TYPE_NORMAL
+- en: different contexts and make sure correct values are associated with the
+  prefs: []
+  type: TYPE_NORMAL
+- en: variable.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Vulnerability: Authorization Through tx.origin**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Solidity smart contracts can use tx.origin as a global variable to refer to
+    the
+  prefs: []
+  type: TYPE_NORMAL
+- en: original sender of the transaction. Since a user or a smart contract can call
+  prefs: []
+  type: TYPE_NORMAL
+- en: a smart contract function that might be malicious, it is not a good practice
+  prefs: []
+  type: TYPE_NORMAL
+- en: to use tx.origin for authentication. Instead, msg.sender should be used for
+  prefs: []
+  type: TYPE_NORMAL
+- en: authentication as this is always the true address of the smart contract that
+  prefs: []
+  type: TYPE_NORMAL
+- en: '282'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 7 programming Smart ContraCt with Solidity
+  prefs: []
+  type: TYPE_NORMAL
+- en: calls another smart contract. For example, in the following programming,
+  prefs: []
+  type: TYPE_NORMAL
+- en: tx.origin is used to check if the sender is the owner of the smart contract.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This might have vulnerability as the tx.origin account might call a
+  prefs: []
+  type: TYPE_NORMAL
+- en: malicious smart contract and then call this sendTo function to bypass the
+  prefs: []
+  type: TYPE_NORMAL
+- en: required check to send the fund to a receiver specified by the hacker.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*pragma solidity 0.4.24;*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*contract MyContract {*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*address owner;*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*function MyContract() public {*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*owner = msg.sender;*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*}*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*function sendTo(address receiver, uint amount) public {*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*require(tx.origin == owner); // This should be changed*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*to tx.sender*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*receiver.transfer(amount);*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*}*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*}*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Vulnerability: Using Block Values to Represent Time**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Some smart contracts will need to handle operations such as asset locking
+  prefs: []
+  type: TYPE_NORMAL
+- en: or release that has dependency on time. Solidity has some special global
+  prefs: []
+  type: TYPE_NORMAL
+- en: variables such as block.timestamp and block.number that can be used
+  prefs: []
+  type: TYPE_NORMAL
+- en: to represent or infer elapsed time. However, since the block mining is
+  prefs: []
+  type: TYPE_NORMAL
+- en: not accurate and can be manipulated by miners, it is not recommended
+  prefs: []
+  type: TYPE_NORMAL
+- en: to use the block parameters as time stamps for functions that have time
+  prefs: []
+  type: TYPE_NORMAL
+- en: dependencies. Sometimes, it would be good to use time information from
+  prefs: []
+  type: TYPE_NORMAL
+- en: an Oracle implementation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '283'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 7 programming Smart ContraCt with Solidity
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Vulnerability: Writing to Arbitrary Storage Locations**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Ethereum EVM stores data in persistent locations for each account
+  prefs: []
+  type: TYPE_NORMAL
+- en: or smart contract address. It is important to protect the data storage
+  prefs: []
+  type: TYPE_NORMAL
+- en: location from malicious overwrites. Although Solidity does not support
+  prefs: []
+  type: TYPE_NORMAL
+- en: location pointers, there is still a possibility for writing data to wrong
+  prefs: []
+  type: TYPE_NORMAL
+- en: addresses. For example, in a dynamic array, if the array length is not
+  prefs: []
+  type: TYPE_NORMAL
+- en: set properly, the out-of-bound index will not be detected and cause the
+  prefs: []
+  type: TYPE_NORMAL
+- en: out-of-bound write to be valid. For example, in the following example,
+  prefs: []
+  type: TYPE_NORMAL
+- en: a dynamic length array bonusRecord is defined. The PopBonus
+  prefs: []
+  type: TYPE_NORMAL
+- en: function pops up one item at a time and decrements the length of the
+  prefs: []
+  type: TYPE_NORMAL
+- en: bonusRecord array. However, since “require(0 <= bonusRecord.length)”
+  prefs: []
+  type: TYPE_NORMAL
+- en: does not block length in 0 case, the next line of code “bonusRecord.
+  prefs: []
+  type: TYPE_NORMAL
+- en: length--” will cause an underflow, making the bonusRecord length to be
+  prefs: []
+  type: TYPE_NORMAL
+- en: '11579208923731619542357098500868790785326998466564'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 0564039457584007913129639935\.
+  prefs: []
+  type: TYPE_NORMAL
+- en: And since the array length is so large, the array index can be any
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'number, and the value can be written to arbitrary storage locations:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: uint[] private bonusRecord;
+  prefs: []
+  type: TYPE_NORMAL
+- en: address private owner;
+  prefs: []
+  type: TYPE_NORMAL
+- en: function PushBonus(uint c) public {
+  prefs: []
+  type: TYPE_NORMAL
+- en: bonusRecord.push(c);
+  prefs: []
+  type: TYPE_NORMAL
+- en: '}'
+  prefs: []
+  type: TYPE_NORMAL
+- en: function PopBonus() public {
+  prefs: []
+  type: TYPE_NORMAL
+- en: require(0 <= bonusRecord.length);
+  prefs: []
+  type: TYPE_NORMAL
+- en: // This is a bug. Once the length is zero, it should
+  prefs: []
+  type: TYPE_NORMAL
+- en: not allow the PopBonus operation
+  prefs: []
+  type: TYPE_NORMAL
+- en: bonusRecord.length--;
+  prefs: []
+  type: TYPE_NORMAL
+- en: '}'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '284'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 7 programming Smart ContraCt with Solidity
+  prefs: []
+  type: TYPE_NORMAL
+- en: function UpdateBonusRecordAt(uint idx, uint c) public
+  prefs: []
+  type: TYPE_NORMAL
+- en: returns (uint){
+  prefs: []
+  type: TYPE_NORMAL
+- en: require(idx < bonusRecord.length);
+  prefs: []
+  type: TYPE_NORMAL
+- en: bonusRecord[idx] = c;
+  prefs: []
+  type: TYPE_NORMAL
+- en: return bonusRecord.length;
+  prefs: []
+  type: TYPE_NORMAL
+- en: '}'
+  prefs: []
+  type: TYPE_NORMAL
+- en: To fix the preceding arbitrary write issue, simply change “require(0 <=
+  prefs: []
+  type: TYPE_NORMAL
+- en: bonusRecord.length)” to “require(0 < bonusRecord.length)”.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Vulnerability: Unused Variables**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: It is quite common for developers to have variables declared but not used.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In Solidity, all computations and storage consume gas for the transactions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Therefore, it is best practice to remove all functions and variables that are
+  prefs: []
+  type: TYPE_NORMAL
+- en: defined but not used for the deployed smart contracts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Compiler Vulnerabilities**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Outdated Compilers**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Compiler version compatibility is a complex issue. Solidity allows a
+  prefs: []
+  type: TYPE_NORMAL
+- en: smart contract to be declared as applied to a single version of compiler,
+  prefs: []
+  type: TYPE_NORMAL
+- en: or a range of compilers. Although it is recommended to use the latest
+  prefs: []
+  type: TYPE_NORMAL
+- en: compilers, there is a challenge of compatibility with older versions of
+  prefs: []
+  type: TYPE_NORMAL
+- en: libraries. Sometimes, libraries were written by third parties, or in the
+  prefs: []
+  type: TYPE_NORMAL
+- en: public domain, rewriting them to the latest version is not easy. Developers
+  prefs: []
+  type: TYPE_NORMAL
+- en: should look at both the compilation errors and warnings to ensure that the
+  prefs: []
+  type: TYPE_NORMAL
+- en: versions are compatible.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '285'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 7 programming Smart ContraCt with Solidity
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Randomness Vulnerability**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Vulnerability: Weak Randomness from**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Blockchain Attributes**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Smart contracts do not communicate with external programs directly and
+  prefs: []
+  type: TYPE_NORMAL
+- en: do not have a good source of random number generators. Sometimes, in
+  prefs: []
+  type: TYPE_NORMAL
+- en: applications such as gaming or lottery, there is a need for using random
+  prefs: []
+  type: TYPE_NORMAL
+- en: numbers. Developers need to know that some blockchain attributes are
+  prefs: []
+  type: TYPE_NORMAL
+- en: not as random as what they seem to be. For example, Ethereum miners
+  prefs: []
+  type: TYPE_NORMAL
+- en: might manipulate block.timestamp or blockhash by controlling block
+  prefs: []
+  type: TYPE_NORMAL
+- en: generation time or packaging different transactions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For applications that require a high degree of randomness, it is
+  prefs: []
+  type: TYPE_NORMAL
+- en: recommended to use external randomness generators and Oracle to bring
+  prefs: []
+  type: TYPE_NORMAL
+- en: the randomness to smart contracts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Signature Vulnerability**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Vulnerability: Signature Manipulation**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Sometimes, smart contracts implement cryptographic functions to verify
+  prefs: []
+  type: TYPE_NORMAL
+- en: signed messages and perform transfer operations accordingly. To ensure
+  prefs: []
+  type: TYPE_NORMAL
+- en: security, the smart contract functions need to ensure that the signed
+  prefs: []
+  type: TYPE_NORMAL
+- en: messages are authentic and the message cannot be replayed. When using
+  prefs: []
+  type: TYPE_NORMAL
+- en: a message, a private key and a message are supplied as input to create a
+  prefs: []
+  type: TYPE_NORMAL
+- en: signature. One important thing to note is that the signature is not unique.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A hacker can manipulate (r,s,v) parameters to create a different yet valid
+  prefs: []
+  type: TYPE_NORMAL
+- en: signature for the same private key and message. Hence, signature or hash
+  prefs: []
+  type: TYPE_NORMAL
+- en: cannot be used as a unique identifier of a message transaction. Otherwise,
+  prefs: []
+  type: TYPE_NORMAL
+- en: hackers can take advantage of this by creating different valid signatures to
+  prefs: []
+  type: TYPE_NORMAL
+- en: replay previously signed messages.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, the following msgid is not unique and should not be used
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'as an identifier for the signed message:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '286'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 7 programming Smart ContraCt with Solidity
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*bytes32 msgid = keccak256(abi.encodePacked(getTransferHash(_to,*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*_value, _gasPrice, _nonce), _signature));*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*require(!signatureUsed[msgid]);*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here, msgid is supported to be unique for the same message signed by
+  prefs: []
+  type: TYPE_NORMAL
+- en: a private key. However, since _signature is not unique, msgid can be made
+  prefs: []
+  type: TYPE_NORMAL
+- en: different, and the same signed message can be replayed multiple times to
+  prefs: []
+  type: TYPE_NORMAL
+- en: trigger other actions that might involve asset transfer.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To fix this problem, simply remove _signature in the hashing function
+  prefs: []
+  type: TYPE_NORMAL
+- en: to make the msgid to be unique to block the replay of the message.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*bytes32 msgid = keccak256(abi.encodePacked(getTransferHash(_to,*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*_value, _gasPrice, _nonce)));*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*require(!signatureUsed[msgid]);*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Module Summary**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Security is the most essential component for smart contract development.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To ensure security, there should be a security framework in place, and
+  prefs: []
+  type: TYPE_NORMAL
+- en: developers should also focus on details for each line of code. There will be
+  prefs: []
+  type: TYPE_NORMAL
+- en: more discussion of security in Chapter [8\.](https://doi.org/10.1007/978-1-4842-8164-2_8)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Module 5: Tools, Test, and Debug**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In Chapter [1](https://doi.org/10.1007/978-1-4842-8164-2_1), we discussed basic
+    tools such as setting up a smart contract development environment by using Truffle
+    and Remix to compile and
+  prefs: []
+  type: TYPE_NORMAL
+- en: deploy smart contracts. In this module, we continue to introduce useful
+  prefs: []
+  type: TYPE_NORMAL
+- en: tools such as smart contract visualization tools, security scanning tools,
+  prefs: []
+  type: TYPE_NORMAL
+- en: and gas estimation tools. We also discuss how to test and debug smart
+  prefs: []
+  type: TYPE_NORMAL
+- en: contract programs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '287'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](index-299_1.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: Chapter 7 programming Smart ContraCt with Solidity
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Tools**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**MythX: A Security Scanning Tool**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: MythX is a security scanning tool that is released as a fee-based service of
+  prefs: []
+  type: TYPE_NORMAL
+- en: mythx.io, or a CLI package, or a plug-in for other tools.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here, we explain how to use MythX as a plug-in for Remix. To use
+  prefs: []
+  type: TYPE_NORMAL
+- en: Remix, follow the instructions in Chapt[er 6](https://doi.org/10.1007/978-1-4842-8164-2_6)
+    and launch your application.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To enable MythX, simply click the Plugin Manager icon to bring up
+  prefs: []
+  type: TYPE_NORMAL
+- en: the manager. Type “mythx” in the search box and you can see MYTHX
+  prefs: []
+  type: TYPE_NORMAL
+- en: SECURITY VERIFICATION plug-in. Click the Activate button to activate
+  prefs: []
+  type: TYPE_NORMAL
+- en: this plug-in (Figur[e 7-6).](#p299)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Figure 7-6\.** Activation of MythX security scanning tool in Remix*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '288'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](index-300_1.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: Chapter 7 programming Smart ContraCt with Solidity
+  prefs: []
+  type: TYPE_NORMAL
+- en: Once the MYTHX SECURITY VERIFICATION is activated, it needs
+  prefs: []
+  type: TYPE_NORMAL
+- en: to communicate with the MythX cloud service to perform the scanning.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Developers need to apply for an API key from mythx.io website and enter
+  prefs: []
+  type: TYPE_NORMAL
+- en: the API token information in the plug-in setting (Figure [7-7](#p300)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Figure 7-7\.** Sign in needed to use MythX APIs*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: MythX security scanning also provides a plug-in for Truffle tool and
+  prefs: []
+  type: TYPE_NORMAL
+- en: an extension for Visual Studio vscode IDE tool. One thing to note is that
+  prefs: []
+  type: TYPE_NORMAL
+- en: MythX security verification is a fee-based service. Developers need to pay
+  prefs: []
+  type: TYPE_NORMAL
+- en: a subscription fee for the security scanning service.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '289'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](index-301_1.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: Chapter 7 programming Smart ContraCt with Solidity
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Solidity Static Analysis: A Security Plug-in for Remix**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Unlike MythX, which charges a subscription fee for security scanning,
+  prefs: []
+  type: TYPE_NORMAL
+- en: Solidity Static Analysis (SSA) plug-in for Remix is free and also provides
+  prefs: []
+  type: TYPE_NORMAL
+- en: basic features for static code scanning. To enable SSA, simply open the
+  prefs: []
+  type: TYPE_NORMAL
+- en: Plugin Manager and type in Solidity Static Analysis and click the Activate
+  prefs: []
+  type: TYPE_NORMAL
+- en: button to activate it (Figur[e 7-8).](#p301)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Figure 7-8\.** Using Solidity Static Analysis for security scan in Remix*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Once the plug-in is activated, click its icon on the plug-in panel and
+  prefs: []
+  type: TYPE_NORMAL
+- en: it will start to analyze the active Solidity program on the Remix screen.
+  prefs: []
+  type: TYPE_NORMAL
+- en: SSA not only scans source code for security vulnerabilities, it also perform
+  prefs: []
+  type: TYPE_NORMAL
+- en: checks on the gas consumption, ERC (Ethereum Request for Comment),
+  prefs: []
+  type: TYPE_NORMAL
+- en: and some miscellaneous analysis (Figure [7-9](#p302)). Developers can filter
+    what categories to analyze and show.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '290'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](index-302_1.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: Chapter 7 programming Smart ContraCt with Solidity
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Figure 7-9\.** Running Solidity Static Analysis scan*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '291'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](index-303_1.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: Chapter 7 programming Smart ContraCt with Solidity
+  prefs: []
+  type: TYPE_NORMAL
+- en: Although Static Analysis tools are very helpful to catch some obvious
+  prefs: []
+  type: TYPE_NORMAL
+- en: vulnerabilities, they should not replace more complex security audits and
+  prefs: []
+  type: TYPE_NORMAL
+- en: penetration tests, especially for smart contracts that handle asset transfers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Solidity to UML: Smart Contract Visualization Tool**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Solidity is an object-oriented programming language that is easy to
+  prefs: []
+  type: TYPE_NORMAL
+- en: understand. Sometimes, when there are many functions and smart
+  prefs: []
+  type: TYPE_NORMAL
+- en: contracts for a dApp project, it becomes challenging to make sense of
+  prefs: []
+  type: TYPE_NORMAL
+- en: the workflow of smart contracts. In this case, it would be good to convert
+  prefs: []
+  type: TYPE_NORMAL
+- en: Solidity code to Unified Modeling Language (UML) to visualize the
+  prefs: []
+  type: TYPE_NORMAL
+- en: relationship of smart contracts and functions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Solidity to UML for Remix**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are several tools to convert Solidity to UML. Remix provides a plug-
+  prefs: []
+  type: TYPE_NORMAL
+- en: in for this as well. Simply activate the Solidity UML and launch the plug-in
+  prefs: []
+  type: TYPE_NORMAL
+- en: to convert the Solidity code to UML diagram (Figure [7-10).](#p303)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Figure 7-10\.** Plugin for Solidity to UML conversion*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '292'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 7 programming Smart ContraCt with Solidity
+  prefs: []
+  type: TYPE_NORMAL
+- en: Once Solidity 2 UML plug-in is activated, it can be used to parse
+  prefs: []
+  type: TYPE_NORMAL
+- en: Solidity smart contracts and generate UML diagrams.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Solidity to UML Stand-Alone Tools**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Besides Remix plug-in, there are also nodejs package or CLI package that
+  prefs: []
+  type: TYPE_NORMAL
+- en: can be used to generate UML diagram.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, sol2uml package is a versatile tool to generate UML
+  prefs: []
+  type: TYPE_NORMAL
+- en: from smart contract source code; it can also fetch UML for smart contract
+  prefs: []
+  type: TYPE_NORMAL
+- en: deployed to Ethereum blockchain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To install sol2uml, simply type the following command by using node
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'package manager (npm):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: npm install sol2uml --only=production
+  prefs: []
+  type: TYPE_NORMAL
+- en: Once sol2uml is installed, it can be run with various parameters as
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'shown in the following help menu:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*$ sol2uml -h*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Usage: sol2uml <fileFolderAddress> [options]*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Generates UML diagrams from Solidity source code.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*If no file, folder or address is passed as the first*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*argument, the working folder is used.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*When a folder is used, all *.sol files are found in that*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*folder and all subfolders.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*If an Ethereum address with a 0x prefix is passed, the*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*verified source code from Etherscan will be used.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Options:*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*-v, --verbose run with debugging statements*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*-f, --outputFormat <value> output file format: svg, png,*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*dot or all (default: "svg")*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*-o, --outputFileName <value> output file name*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '293'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 7 programming Smart ContraCt with Solidity
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*-d, --depthLimit <depth> number of sub folders that*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*will be recursively searched*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*for Solidity files. Default*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*-1 is unlimited (default: -1)*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*-n, --network <network> mainnet, ropsten, kovan,*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*rinkeby or goerli (default:*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*"mainnet")*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*-k, --etherscanApiKey <key> Etherscan API Key*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*-c, --clusterFolders Cluster contracts into*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*source folders*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*-h, --help output usage information*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: To generate UML diagram for smart contracts in a local directory, type
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'the following command:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: sol2uml ./contracts
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here, ./contracts is the directory location for smart contract files.
+  prefs: []
+  type: TYPE_NORMAL
+- en: sol2uml can also fetch UML files for smart contracts deployed to
+  prefs: []
+  type: TYPE_NORMAL
+- en: Ethereum blockchain. For example, to get a UML for a particular address
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'in the Ropsten blockchain, run the following command:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: sol2uml smartcontract_address -n ropsten
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here, smartcontract_address is the address of the smart contract that
+  prefs: []
+  type: TYPE_NORMAL
+- en: has been deployed to Ethereum blockchain. “-n ropsten” means that this is
+  prefs: []
+  type: TYPE_NORMAL
+- en: for smart contracts in the Ropsten blockchain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To understand a UML diagram, we use part of a smart contract for
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'USDT ERC20 token. This UML diagram as shown in Figur[e 7-11 c](#p306)an be
+    fetched by typing the following address in a browser URL:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[https://etherscan.io/viewsvg?t=1&a=0xdAC17F958D2ee52](https://etherscan.io/viewsvg?t=1&a=0xdAC17F958D2ee523a2206206994597C13D831ec7)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[3a2206206994597C13D831ec7](https://etherscan.io/viewsvg?t=1&a=0xdAC17F958D2ee523a2206206994597C13D831ec7)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '294'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](index-306_1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Chapter 7 programming Smart ContraCt with Solidity
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Figure 7-11\.** UML diagram for USDT ERC20 token*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this diagram, each box represents a smart contract class, an
+  prefs: []
+  type: TYPE_NORMAL
+- en: interface, or a library.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are multiple sections for each box. The top bar is the smart
+  prefs: []
+  type: TYPE_NORMAL
+- en: contract name. Then each scope of variables and functions are grouped
+  prefs: []
+  type: TYPE_NORMAL
+- en: into their respective sections such as internal, public, and external. Each
+  prefs: []
+  type: TYPE_NORMAL
+- en: section contains a list of variable names, function names, and parameters.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Lines with arrows are drawn between boxes to represent entity
+  prefs: []
+  type: TYPE_NORMAL
+- en: relationships. If smart contract A uses smart contract B, meaning that B
+  prefs: []
+  type: TYPE_NORMAL
+- en: is a parent of A, then a directed line is drawn from B to A. If entity A is
+    an
+  prefs: []
+  type: TYPE_NORMAL
+- en: abstract smart contract or an interface, then a dash line instead of a solid
+  prefs: []
+  type: TYPE_NORMAL
+- en: line is drawn.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In Solidity, an abstract class is a special smart contract in which
+  prefs: []
+  type: TYPE_NORMAL
+- en: functions are defined but not implemented. The contract that uses or
+  prefs: []
+  type: TYPE_NORMAL
+- en: inherits an abstract smart contract will need to implement those functions
+  prefs: []
+  type: TYPE_NORMAL
+- en: defined. Also interfaces are special smart contracts in which only function
+  prefs: []
+  type: TYPE_NORMAL
+- en: names are defined. There are no variables declared in interfaces.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '295'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 7 programming Smart ContraCt with Solidity
+  prefs: []
+  type: TYPE_NORMAL
+- en: Besides interfaces, smart contracts can also define and call library
+  prefs: []
+  type: TYPE_NORMAL
+- en: functions. Libraries in Solidity are defined with the “library” keyword
+  prefs: []
+  type: TYPE_NORMAL
+- en: and have functions that can be called by other smart contracts. Library is
+  prefs: []
+  type: TYPE_NORMAL
+- en: stateless and cannot have state variables.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Solidity Test**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Solidity Unit Testing: A Remix Plug-in for Testing**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[https://remix- ide.readthedocs.io/en/latest/unittesting.html](https://remix-ide.readthedocs.io/en/latest/unittesting.html)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Solidity has a good set of tools to provide unit tests or automatic
+  prefs: []
+  type: TYPE_NORMAL
+- en: tests. When source smart contracts are written, developers can write test
+  prefs: []
+  type: TYPE_NORMAL
+- en: programs to wrap around the smart contract to perform automatic tests.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Tools such as Remix and Truffle all have test suites to help writing and
+  prefs: []
+  type: TYPE_NORMAL
+- en: executing test programs. In the following, we mention Solidity Unit Test as
+  prefs: []
+  type: TYPE_NORMAL
+- en: a Remix plug-in.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To activate Solidity Unit Testing plug-in, simply click at the Plugin
+  prefs: []
+  type: TYPE_NORMAL
+- en: Manager panel and type in Solidity Unit Testing to search. Then click the
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Activate button to activate the plug-in as shown in Figure [7-12](#p308):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '296'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](index-308_1.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: Chapter 7 programming Smart ContraCt with Solidity
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Figure 7-12\.** Plugin for Solidity unit testing*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: One thing to note is that test files in Solidity Unit Test plug-in will not
+  prefs: []
+  type: TYPE_NORMAL
+- en: support functions with parameters. For smart contracts with parameters,
+  prefs: []
+  type: TYPE_NORMAL
+- en: there should be a wrapper test file that will call the functions with
+  prefs: []
+  type: TYPE_NORMAL
+- en: parameters from another function that does not have parameters.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To run Solidity Unit Testing, first, click at the plug-in icon to bring up
+  prefs: []
+  type: TYPE_NORMAL
+- en: the unit testing panel. Then choose a directory to store the test suite files.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the following screenshot, a directory of unit_test is chosen for the test
+  prefs: []
+  type: TYPE_NORMAL
+- en: files. Then developers need to generate a test file for the source smart
+  prefs: []
+  type: TYPE_NORMAL
+- en: contracts (Figur[e 7-13](#p309)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '297'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](index-309_1.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: Chapter 7 programming Smart ContraCt with Solidity
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Figure 7-13\.** Generation of Solidity unit test file*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: To generate a test file for a source file, first, open the source smart
+  prefs: []
+  type: TYPE_NORMAL
+- en: contract and make it active in the file view panel. Then select the directory
+  prefs: []
+  type: TYPE_NORMAL
+- en: where the test file will reside. Click the “Generate” button to generate a test
+  prefs: []
+  type: TYPE_NORMAL
+- en: file in the specified directory for the file that is opened in the view panel.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Once a test suite file is generated, it is automatically opened in the file
+  prefs: []
+  type: TYPE_NORMAL
+- en: view panel. This test suite will have the basic code template for testing the
+  prefs: []
+  type: TYPE_NORMAL
+- en: source contract. It has code segments of test library import, target source
+  prefs: []
+  type: TYPE_NORMAL
+- en: files import, and testing function stubs. Developers can then initialize a
+  prefs: []
+  type: TYPE_NORMAL
+- en: target smart contract and simulate the function calls for the smart contract
+  prefs: []
+  type: TYPE_NORMAL
+- en: and then use the built-in logical checking function to assert the test results.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, the following code shows how to write unit test code to
+  prefs: []
+  type: TYPE_NORMAL
+- en: test if the global variables and local variables are the same. The source
+  prefs: []
+  type: TYPE_NORMAL
+- en: code is very simple. Variable x is declared as a global variable at the
+  prefs: []
+  type: TYPE_NORMAL
+- en: beginning of the code. And then x is also declared as a local variable in the
+  prefs: []
+  type: TYPE_NORMAL
+- en: function of localVariable.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '298'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 7 programming Smart ContraCt with Solidity
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*pragma solidity >=0.4.22 <0.9.0;*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*contract VariableScope {*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*address public x = 0x1f2D3A67B8E96039bbAc84eB4bC0913C0c16778c;*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*function localVariable() public view returns (address x) {*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*address x = 0x1111111111111111111111111111111111111111;*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*return x; // Will return*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*0x1111111111111111111111111111111111111111;*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*}*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*function globalVariable() public view returns (address) {*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*return x; // Will return*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*0x1f2D3A67B8E96039bbAc84eB4bC0913C0c16778c;*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*}*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*}*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The unit test is to check if the variable x is the same at the global scope
+  prefs: []
+  type: TYPE_NORMAL
+- en: and local scope. To test this, the following test suite is generated and
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'modified:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*pragma solidity >=0.4.22 <0.9.0;*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*// This import is automatically injected by Remix*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*import "remix_tests.sol";*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*// This import is required to use custom transaction context*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*// Although it may fail compilation in ''Solidity*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Compiler'' plugin*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*// But it will work fine in ''Solidity Unit Testing'' plugin*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*import "remix_accounts.sol";*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*import "../variable_scope.sol";*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '299'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 7 programming Smart ContraCt with Solidity
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*// File name has to end with ''_test.sol'', this file can contain*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*more than one testSuite contracts*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*contract testSuite {*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*VariableScope vs;*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*/// ''beforeAll'' runs before all other tests*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*/// More special functions are: ''beforeEach'', ''beforeAll'',*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*''afterEach'' & ''afterAll''*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*function beforeAll() public {*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*// <instantiate contract>*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*vs = new VariableScope();*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*// Assert.equal(uint(1), uint(1), "1 should be*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*equal to 1");*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*}*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*function checkNotEqual() public {*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*// Use ''Assert'' methods: https://remix-ide.readthedocs.io/*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*en/latest/assert_library.html*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*address x1 = vs.x.address;*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*address x2 = vs.localVariable();*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Assert.notEqual(x1, x2, "variables are supposed to be*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*not equal");*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*}*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*}*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the test suite code, source file is imported, and VariableScope
+  prefs: []
+  type: TYPE_NORMAL
+- en: smart contract vs is instantiated. Then checkNotEqual() function is
+  prefs: []
+  type: TYPE_NORMAL
+- en: called to generate a local and global variable x in the vs and then make a
+  prefs: []
+  type: TYPE_NORMAL
+- en: comparison.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The test suite is run in Remix and shows that it passes the Unit
+  prefs: []
+  type: TYPE_NORMAL
+- en: Test (Figure [7-14), me](#p312)aning that the global variable and local variable
+    are indeed different even though they have the same name.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '300'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](index-312_1.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: Chapter 7 programming Smart ContraCt with Solidity
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Figure 7-14\.** Unit test run example*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using the Remix Solidity Unit Testing plug-in, it is very easy to write
+  prefs: []
+  type: TYPE_NORMAL
+- en: scripts to test smart contracts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It is important to note that test files in Solidity Unit Test plug-in will not
+  prefs: []
+  type: TYPE_NORMAL
+- en: support functions with parameters. For smart contracts with parameters,
+  prefs: []
+  type: TYPE_NORMAL
+- en: there should be a wrapper test file that will call the functions with
+  prefs: []
+  type: TYPE_NORMAL
+- en: parameters from another function that does not have parameters.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Besides the Remix plug-in for unit testing, Truffle also has good unit
+  prefs: []
+  type: TYPE_NORMAL
+- en: test modules that support manual and automatic testing. The workflow
+  prefs: []
+  type: TYPE_NORMAL
+- en: and functionality are similar to the Remix plug-in.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Solidity Debug**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Sometimes, Solidity smart contracts might encounter issues during
+  prefs: []
+  type: TYPE_NORMAL
+- en: executions. It would be good to step through the execution of each source
+  prefs: []
+  type: TYPE_NORMAL
+- en: code and analyze various debugging information such as call stacks and
+  prefs: []
+  type: TYPE_NORMAL
+- en: local variable values. Solidity does have some debugging tools that can
+  prefs: []
+  type: TYPE_NORMAL
+- en: help with this. Here, we introduce the Debugger plug-in for Remix.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '301'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](index-313_1.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: Chapter 7 programming Smart ContraCt with Solidity
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Enable the Debugger**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: To enable Remix debugger, simply open the Plugin Manager and type in
+  prefs: []
+  type: TYPE_NORMAL
+- en: debugger in the search box and enable this plug-in (Figure [7-15).](#p313)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Figure 7-15\.** Enabling debugger plugin in in Remix*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Launch the Debugger**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Once the debugger is enabled, a bug-like icon will show up in the plug-
+  prefs: []
+  type: TYPE_NORMAL
+- en: in panel. To debug a Solidity program, developers need to compile a
+  prefs: []
+  type: TYPE_NORMAL
+- en: contract source code, deploy the smart contract to a local EVM, and then
+  prefs: []
+  type: TYPE_NORMAL
+- en: create a transaction to get a transaction hash. After that, developers can
+  prefs: []
+  type: TYPE_NORMAL
+- en: enter the transaction ID to the debugger configuration panel and start the
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'debugging process (Figure [7-16](#p314)):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '302'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](index-314_1.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: Chapter 7 programming Smart ContraCt with Solidity
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Figure 7-16\.** Launching Solidity debugger*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Debug the Smart Contract**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: When the debugger is started, a debugging window as shown in the
+  prefs: []
+  type: TYPE_NORMAL
+- en: following will pop up, and developers can step through the code to see the
+  prefs: []
+  type: TYPE_NORMAL
+- en: execution of each line of code. Debugger supports steps functions such as
+  prefs: []
+  type: TYPE_NORMAL
+- en: step into, step over, and step into breaking point.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The debugger shows all the EVM execution context, storage, and
+  prefs: []
+  type: TYPE_NORMAL
+- en: calling stack information including function stacks, Solidity locals, Solidity
+  prefs: []
+  type: TYPE_NORMAL
+- en: state, step details, stack, memory, storage, call stack, call data, global
+  prefs: []
+  type: TYPE_NORMAL
+- en: variables, return value, and full storage changes. Some of the information
+  prefs: []
+  type: TYPE_NORMAL
+- en: might not be available, but the debugger generally gives a good amount of
+  prefs: []
+  type: TYPE_NORMAL
+- en: bytecode execution information (Figur[e 7-17).](#p315)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '303'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](index-315_1.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: Chapter 7 programming Smart ContraCt with Solidity
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Figure 7-17\.** Stepping through a debugging program*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: One thing that is not obvious with the debugger is how to add a
+  prefs: []
+  type: TYPE_NORMAL
+- en: breakpoint for the debugger. To add the breakpoint, simply open the
+  prefs: []
+  type: TYPE_NORMAL
+- en: source code in the edit window and click at the line number (not the
+  prefs: []
+  type: TYPE_NORMAL
+- en: '304'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](index-316_1.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: Chapter 7 programming Smart ContraCt with Solidity
+  prefs: []
+  type: TYPE_NORMAL
+- en: source code itself). A blue dot will show up beside the line number to
+  prefs: []
+  type: TYPE_NORMAL
+- en: indicate that a breaking point is inserted to that line (Figure [7-18).](#p316)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Figure 7-18\.** Adding a breaking point in the source code*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Although the debugger is a great tool to debug a Solidity program, we
+  prefs: []
+  type: TYPE_NORMAL
+- en: find that when debugging a more complex smart contract, there is still
+  prefs: []
+  type: TYPE_NORMAL
+- en: some information that cannot be seen in the debugging windows. It is
+  prefs: []
+  type: TYPE_NORMAL
+- en: a good practice to modularize smart contracts to simplify unit tests and
+  prefs: []
+  type: TYPE_NORMAL
+- en: debugging.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Module 6: Client Considerations**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In Chapter [6](https://doi.org/10.1007/978-1-4842-8164-2_6), and previous modules
+    of Chapter [7, w](https://doi.org/10.1007/978-1-4842-8164-2_7)e discussed how
+    to program Solidity smart contracts and deploy them to blockchains. Once
+  prefs: []
+  type: TYPE_NORMAL
+- en: smart contracts are deployed to a blockchain, they are accessible publicly
+  prefs: []
+  type: TYPE_NORMAL
+- en: and will never be removed or altered once the blocks are finalized. Smart
+  prefs: []
+  type: TYPE_NORMAL
+- en: contracts are bytecodes that are not user-friendly. To interact with dApps,
+  prefs: []
+  type: TYPE_NORMAL
+- en: clients need to be developed to facilitate user interaction with smart
+  prefs: []
+  type: TYPE_NORMAL
+- en: '305'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](index-317_1.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: Chapter 7 programming Smart ContraCt with Solidity
+  prefs: []
+  type: TYPE_NORMAL
+- en: contracts. The clients for dApps can be web browsers, mobile application,
+  prefs: []
+  type: TYPE_NORMAL
+- en: desktop application, or command-line interface (CLI). In this module, we
+  prefs: []
+  type: TYPE_NORMAL
+- en: will discuss the pros and cons of these clients and also give examples for
+  prefs: []
+  type: TYPE_NORMAL
+- en: building a dApp client.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Types of dApp clients**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: dApp clients can be in a graphic user interface (GUI) format or command-
+  prefs: []
+  type: TYPE_NORMAL
+- en: line interface (CLI) format. The GUI format can be web-based app, mobile
+  prefs: []
+  type: TYPE_NORMAL
+- en: app, or desktop app that requires user inputs and operations as shown in
+  prefs: []
+  type: TYPE_NORMAL
+- en: the following figure. CLI formats are normally for automatically scripting
+  prefs: []
+  type: TYPE_NORMAL
+- en: to perform testing or for application programming interfaces. In the
+  prefs: []
+  type: TYPE_NORMAL
+- en: following diagram (Figure [7-19), w](#p317)e describe different kinds of clients.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Figure 7-19\.** Types of clients for decentralized applications*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '306'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 7 programming Smart ContraCt with Solidity
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Browser Client**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Browser client is the most basic user experience for a decentralized
+  prefs: []
+  type: TYPE_NORMAL
+- en: application. Users are directly introduced to a website to use the dApp.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, to access CryptoKitty dApp, users just need to point their
+  prefs: []
+  type: TYPE_NORMAL
+- en: web browser t[o www.cryptokitty.com](http://www.cryptokitty.com). As shown in
+    the client topology diagram, the browser needs a web extension/plug-in to connect
+    to an
+  prefs: []
+  type: TYPE_NORMAL
+- en: Ethereum node through RPC protocol. The most common web extension
+  prefs: []
+  type: TYPE_NORMAL
+- en: is MetaMask. MetaMask serves as a crypto wallet for web applications.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To design a web application with a crypto account interaction,
+  prefs: []
+  type: TYPE_NORMAL
+- en: developers need to develop web pages that connect to MetaMask or
+  prefs: []
+  type: TYPE_NORMAL
+- en: other wallets. When a user connects to a URL through a browser, the
+  prefs: []
+  type: TYPE_NORMAL
+- en: browser script will check if MetaMask is installed and prompt users
+  prefs: []
+  type: TYPE_NORMAL
+- en: to install it if not found. This is normally called “Connecting Wallet.”
+  prefs: []
+  type: TYPE_NORMAL
+- en: Normally, JavaScript scripts are written to use the Web3 library to connect
+  prefs: []
+  type: TYPE_NORMAL
+- en: to Ethereum nodes. We will have a detailed coding example later in
+  prefs: []
+  type: TYPE_NORMAL
+- en: this module.
+  prefs: []
+  type: TYPE_NORMAL
+- en: One of the challenges of browser-based dApp is the security of wallet.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Since browsers are prone to hacker attack, it is possible that MetaMask
+  prefs: []
+  type: TYPE_NORMAL
+- en: storage and private keys might be hacked in some browsers. It is
+  prefs: []
+  type: TYPE_NORMAL
+- en: recommended that when storing large amounts of crypto assets, hardware
+  prefs: []
+  type: TYPE_NORMAL
+- en: wallets should be used. MetaMask does support connecting to hardware
+  prefs: []
+  type: TYPE_NORMAL
+- en: wallets to sign transactions to ensure safety of the wallet.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Mobile Clients**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Mobile apps can also be developed to interact with smart contracts in
+  prefs: []
+  type: TYPE_NORMAL
+- en: the Ethereum blockchain. Since mobile apps normally do not have a
+  prefs: []
+  type: TYPE_NORMAL
+- en: large footprint, they rely on API or RPC to communicate with blockchain
+  prefs: []
+  type: TYPE_NORMAL
+- en: nodes. Similar to web wallet, mobile wallet does not have hardware grade
+  prefs: []
+  type: TYPE_NORMAL
+- en: security, and it should not be used to store large amounts of crypto assets.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '307'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 7 programming Smart ContraCt with Solidity
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Desktop Client**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Both web client and mobile client need to connect to external nodes to
+  prefs: []
+  type: TYPE_NORMAL
+- en: interact with the Ethereum blockchain. Desktop clients have enough
+  prefs: []
+  type: TYPE_NORMAL
+- en: storage and computing power and might be able to run an Ethereum node
+  prefs: []
+  type: TYPE_NORMAL
+- en: by itself. This means the desktop client might carry its own RPC server and
+  prefs: []
+  type: TYPE_NORMAL
+- en: does not have dependency on third-party RPC nodes. One disadvantage is
+  prefs: []
+  type: TYPE_NORMAL
+- en: that desktop apps need installation and need to have a desktop to run the
+  prefs: []
+  type: TYPE_NORMAL
+- en: application.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**CLI Client**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: CLI client is to use a command-line interface to run the scripts that
+  prefs: []
+  type: TYPE_NORMAL
+- en: interact with Ethereum blockchain. This is typically done in unit tests or
+  prefs: []
+  type: TYPE_NORMAL
+- en: automatic scripting of projects. CLI is handy for those who like to use text-
+  prefs: []
+  type: TYPE_NORMAL
+- en: based typing rather than GUI-based browsing.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Each client has its own pros and cons, and we have seen that web
+  prefs: []
+  type: TYPE_NORMAL
+- en: clients are becoming more and more popular. In the following, we provide
+  prefs: []
+  type: TYPE_NORMAL
+- en: a use case for designing web pages for a deployed smart contract.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Web Client Example for Interacting**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**with Smart Contract**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this example, we demonstrate how to write a web page to interact with
+  prefs: []
+  type: TYPE_NORMAL
+- en: a deployed smart contract. To make the demo an end-to-end experience,
+  prefs: []
+  type: TYPE_NORMAL
+- en: we do the following to deploy the smart contract to the development
+  prefs: []
+  type: TYPE_NORMAL
+- en: environment.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Step 1: Create an Ethereum development blockchain**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: An Ethereum development blockchain is created by downloading geth
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'application and running the following commands:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '308'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 7 programming Smart ContraCt with Solidity
+  prefs: []
+  type: TYPE_NORMAL
+- en: ./geth --datadir test-chain-dir --http --dev --http.corsdomain
+  prefs: []
+  type: TYPE_NORMAL
+- en: '"https://remix.ethereum.org,http://remix.ethereum.org"'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This command creates a private development blockchain and allows
+  prefs: []
+  type: TYPE_NORMAL
+- en: Remix development tools to interact with it. The data storage is located in
+  prefs: []
+  type: TYPE_NORMAL
+- en: test-chain-dir, and a development account will be generated by default.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The location of the keystore of this account is located in the test-chain-dir/
+  prefs: []
+  type: TYPE_NORMAL
+- en: keystore directory. This address and keystore can be used to manage the
+  prefs: []
+  type: TYPE_NORMAL
+- en: account.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For more details, refer t[o http://geth.ethereum.org/docs/getting-](http://geth.ethereum.org/docs/getting-started/dev-mode)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[started/dev- mode](http://geth.ethereum.org/docs/getting-started/dev-mode).
+    Use geth attach <IPC_LOCATION> to attach to the node and use eth.sendTransaction
+    to send from coinbase to the target'
+  prefs: []
+  type: TYPE_NORMAL
+- en: account.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Once the development blockchain is started, the next step is to
+  prefs: []
+  type: TYPE_NORMAL
+- en: deploy a smart contract to it. Here, we develop a smart contract with two
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'functions: storeMessage and retrieve.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '// SPDX-License-Identifier: GPL-3.0'
+  prefs: []
+  type: TYPE_NORMAL
+- en: pragma solidity >=0.7.0 <0.9.0;
+  prefs: []
+  type: TYPE_NORMAL
+- en: /**
+  prefs: []
+  type: TYPE_NORMAL
+- en: '* @title MessageStorage'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '* @dev Store & retrieve value in a variable'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*/'
+  prefs: []
+  type: TYPE_NORMAL
+- en: contract MessageStorage {
+  prefs: []
+  type: TYPE_NORMAL
+- en: string message;
+  prefs: []
+  type: TYPE_NORMAL
+- en: /**
+  prefs: []
+  type: TYPE_NORMAL
+- en: '* @dev Store value in variable'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '* @param messageInput value to store'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*/'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '309'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 7 programming Smart ContraCt with Solidity
+  prefs: []
+  type: TYPE_NORMAL
+- en: function storeMessage(string memory messageInput) public {
+  prefs: []
+  type: TYPE_NORMAL
+- en: message = messageInput;
+  prefs: []
+  type: TYPE_NORMAL
+- en: '}'
+  prefs: []
+  type: TYPE_NORMAL
+- en: /**
+  prefs: []
+  type: TYPE_NORMAL
+- en: '* @dev Return value'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '* @return value of ''message'''
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*/'
+  prefs: []
+  type: TYPE_NORMAL
+- en: function retrieve() public view returns (string memory){
+  prefs: []
+  type: TYPE_NORMAL
+- en: return message;
+  prefs: []
+  type: TYPE_NORMAL
+- en: '}'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '}'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Step 2: Compile and deploy the smart contract**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**to the development blockchain**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Once the smart contract is written, use Remix or Truffle to compile it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To use Remix, simply go t[o http://remix.ethereum.org and cr](http://remix.ethereum.org/)eate
+    a file for the preceding smart contract. Upon a successful compilation, an
+  prefs: []
+  type: TYPE_NORMAL
+- en: Application Bytecode Interface (ABI) file and bytecode file are generated.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The bytecode file will be deployed to the blockchain. The ABI will be used
+  prefs: []
+  type: TYPE_NORMAL
+- en: for dApp clients to interact with the smart contract. The ABI will need to
+  prefs: []
+  type: TYPE_NORMAL
+- en: be copied by clicking at the ABI button and saved to client code. In the
+  prefs: []
+  type: TYPE_NORMAL
+- en: example, the following ABI file describes the format of the functions and
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'variables defined in the smart contract:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '['
+  prefs: []
+  type: TYPE_NORMAL
+- en: '{'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '"inputs": [],'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '"name": "retrieve",'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '310'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 7 programming Smart ContraCt with Solidity
+  prefs: []
+  type: TYPE_NORMAL
+- en: '"outputs": ['
+  prefs: []
+  type: TYPE_NORMAL
+- en: '{'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '"internalType": "string",'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '"name": "",'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '"type": "string"'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '}'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '],'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '"stateMutability": "view",'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '"type": "function"'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '},'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '{'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '"inputs": ['
+  prefs: []
+  type: TYPE_NORMAL
+- en: '{'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '"internalType": "string",'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '"name": "messageInput",'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '"type": "string"'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '}'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '],'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '"name": "storeMessage",'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '"outputs": [],'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '"stateMutability": "nonpayable",'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '"type": "function"'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '}'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ']'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Step 3: Deploy the smart contract**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Once the smart contract is compiled, go to deploy panel and deploy to the
+  prefs: []
+  type: TYPE_NORMAL
+- en: development blockchain (Figure [7-20):](#p323)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '311'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](index-323_1.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: Chapter 7 programming Smart ContraCt with Solidity
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Figure 7-20\.** Remix smart contract deployment panel*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '312'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 7 programming Smart ContraCt with Solidity
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here, Environment should specify Web3 provider and point to
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[http://127.0.0.1:8545](http://127.0.0.1:8545/), which is the endpoint of the
+    development chain.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Once the smart contract is deployed successfully, a smart contract
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'address will be returned as shown in the bottom of the screen:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '0x16d29C0A07dcDBe6e1097257Ee39DEe18136d672'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Developers can copy this smart contract address for the web browser
+  prefs: []
+  type: TYPE_NORMAL
+- en: to interact with.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Step 4: Write web client to interact**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**with the smart contract**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: For a web client to interact with a smart contract, several parameters are
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'needed, including the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**An** **RPC endpoint** **of the blockchain** – This is'
+  prefs: []
+  type: TYPE_NORMAL
+- en: the entry to the blockchain. In this example, it
+  prefs: []
+  type: TYPE_NORMAL
+- en: is [http://127.0.0.1:8545](http://127.0.0.1:8545/). Web wallets such as
+  prefs: []
+  type: TYPE_NORMAL
+- en: MetaMask will need to connect to the blockchain
+  prefs: []
+  type: TYPE_NORMAL
+- en: through this RPC endpoint.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**ABI for the smart contract** – This is created when'
+  prefs: []
+  type: TYPE_NORMAL
+- en: the smart contract is compiled.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Smart contract address** – This address is returned'
+  prefs: []
+  type: TYPE_NORMAL
+- en: after a successful deployment of the smart contract.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the following, we have an HTML/JavaScript page to show the UI for
+  prefs: []
+  type: TYPE_NORMAL
+- en: interacting with the smart contract. The HTML portion shows the layout
+  prefs: []
+  type: TYPE_NORMAL
+- en: of the buttons. The JavaScript portion shows the scripting code to interact
+  prefs: []
+  type: TYPE_NORMAL
+- en: with the smart contract.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The following shows the web UI of the HTML/script code (Figur[e 7-21](#p325)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: On the left side of the GUI, there are three buttons that allow users to
+  prefs: []
+  type: TYPE_NORMAL
+- en: connect to a wallet and get the wallet address, to set a message to write to
+  prefs: []
+  type: TYPE_NORMAL
+- en: '313'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](index-325_1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Chapter 7 programming Smart ContraCt with Solidity
+  prefs: []
+  type: TYPE_NORMAL
+- en: blockchain, and then a button to retrieve the message. The top right is a
+  prefs: []
+  type: TYPE_NORMAL
+- en: pop-up of MetaMask that allows users to sign transactions to interact with
+  prefs: []
+  type: TYPE_NORMAL
+- en: blockchain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Figure 7-21\.** Example of a user interface to interact with smart*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*contract*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A code snippet for the three HTML buttons is shown below:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: “Connect Wallet” button will trigger enableEthereumButton and get
+  prefs: []
+  type: TYPE_NORMAL
+- en: the wallet account address.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*<DIV class="container">*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*<H1 class="display-4">Message Storage</H1>*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*<P>Click connect to wallet</P>*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*<P><BUTTON class=*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '314'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 7 programming Smart ContraCt with Solidity
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*"btn btn-secondary enableEthereumButton">Connect Wallet*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*</BUTTON><BR>*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Wallet Address:<span class="showAccount"></span></P>*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*</DIV>*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: “Set Message” button will trigger the setMessage() function in the
+  prefs: []
+  type: TYPE_NORMAL
+- en: JavaScript.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*<P>Enter a string for the message</P>*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*<DIV class="cluegene">*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*<LABEL for="cluegene"><B>Message to set</B></LABEL>*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*<INPUT type="text" class="ignore-form-control" id=*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*"cluegene" placeholder="" value="[My_Message]"*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*size="20"*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*required="">*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*</DIV>*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*<P><A class="btn btn-secondary" onclick="setMessage()"*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*role="button">Set Message</A></P>*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '“Retrieve Message” button will trigger the getMessage() function:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: <DIV class="row" id="getmessagerow">
+  prefs: []
+  type: TYPE_NORMAL
+- en: <DIV class="col-lg-6 text-center">
+  prefs: []
+  type: TYPE_NORMAL
+- en: <H2>Get Message From Blockchain</H2>
+  prefs: []
+  type: TYPE_NORMAL
+- en: <P>Click to retrieve message</P>
+  prefs: []
+  type: TYPE_NORMAL
+- en: <P><A class="btn btn-secondary" onclick="getMessage()"
+  prefs: []
+  type: TYPE_NORMAL
+- en: role="button">Retrieve Message</A></P>
+  prefs: []
+  type: TYPE_NORMAL
+- en: <DIV id="GetMessageValue"></DIV>
+  prefs: []
+  type: TYPE_NORMAL
+- en: </DIV>
+  prefs: []
+  type: TYPE_NORMAL
+- en: The three functions are implemented in JavaScript code.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For getting the address of the wallet, an eth_requestAccounts request
+  prefs: []
+  type: TYPE_NORMAL
+- en: is sent as an Ethereum request to fetch the accounts enabled by the
+  prefs: []
+  type: TYPE_NORMAL
+- en: MetaMask.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '315'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 7 programming Smart ContraCt with Solidity
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**async function getAccount() {**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**const accounts = await ethereum.request({ method:**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**''eth_requestAccounts'' });**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**const account = accounts[0];**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**account0 = account;**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**showAccount.innerHTML = account;**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**}**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For setting the message, the following workflow is coded:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: • The setMessage function first checks if the MetaMask
+  prefs: []
+  type: TYPE_NORMAL
+- en: is installed. If it is installed, get the account associated
+  prefs: []
+  type: TYPE_NORMAL
+- en: with the MetaMask.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • JavaScript code creates a smart contract object with the
+  prefs: []
+  type: TYPE_NORMAL
+- en: specified contract address and ABI information. The
+  prefs: []
+  type: TYPE_NORMAL
+- en: ABI can be in a separate file to be imported.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Package data for the transaction. This step takes the
+  prefs: []
+  type: TYPE_NORMAL
+- en: message to be set from the input field and package with
+  prefs: []
+  type: TYPE_NORMAL
+- en: embedded encodeABI() function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Send the transaction with the sendTransaction function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*function setMessage() {*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*if (!ethEnabled()) {*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*alert("Please install an Ethereum-compatible browser or*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*extension like MetaMask to use this dApp!");*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*}*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*web3.eth.getAccounts(function(err, accounts) {*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*var myContract = new web3.eth.Contract(messagestorage_abi,*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*messagestorage_contract.toLowerCase());*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*var gene = $(''.cluegene input'').val();*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*var auctionData = myContract.methods.storeMessage(gene).*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*encodeABI();*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '316'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 7 programming Smart ContraCt with Solidity
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*var tx_genescience = web3.eth.sendTransaction({*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*from: accounts[0].toLowerCase(),*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*to: messagestorage_contract.toLowerCase(),*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*data: auctionData*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*}, function(err, transactionHash) {*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*document.getElementById("SetMessageValue").innerHTML =*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*"setMessage tx:" + transactionHash;*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*})*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*})*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*}*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Similar to the setMessage function, the getMessage function also
+  prefs: []
+  type: TYPE_NORMAL
+- en: creates a smart contract object and a call retrieve function in the smart
+  prefs: []
+  type: TYPE_NORMAL
+- en: contract. Since getMessage is a function that does not write to blockchain,
+  prefs: []
+  type: TYPE_NORMAL
+- en: a call() function is called directly. This call() function does not need
+  prefs: []
+  type: TYPE_NORMAL
+- en: MetaMask to sign the transaction and does not cost gas fee.
+  prefs: []
+  type: TYPE_NORMAL
+- en: function getMessage() {
+  prefs: []
+  type: TYPE_NORMAL
+- en: if (!ethEnabled()) {
+  prefs: []
+  type: TYPE_NORMAL
+- en: alert("Please install an Ethereum-compatible browser or
+  prefs: []
+  type: TYPE_NORMAL
+- en: extension like MetaMask to use this dApp!");
+  prefs: []
+  type: TYPE_NORMAL
+- en: '}'
+  prefs: []
+  type: TYPE_NORMAL
+- en: var myContract = new web3.eth.Contract(messagestorage_abi,
+  prefs: []
+  type: TYPE_NORMAL
+- en: messagestorage_contract.toLowerCase());
+  prefs: []
+  type: TYPE_NORMAL
+- en: var tx_getmessage = myContract.methods.retrieve().
+  prefs: []
+  type: TYPE_NORMAL
+- en: call(function(err, result) {
+  prefs: []
+  type: TYPE_NORMAL
+- en: document.getElementById("GetMessageValue").innerHTML =
+  prefs: []
+  type: TYPE_NORMAL
+- en: '"message retrieved:" + result;'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '})'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '}'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '317'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 7 programming Smart ContraCt with Solidity
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Summary**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this chapter, we describe Solidity programming with examples, syntax,
+  prefs: []
+  type: TYPE_NORMAL
+- en: data structure, functions, events, client applications, security, test, debug,
+  prefs: []
+  type: TYPE_NORMAL
+- en: and deployment. This should lay down a good foundation for basic Solidity
+  prefs: []
+  type: TYPE_NORMAL
+- en: programming for decentralized applications.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '318'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**CHAPTER 8**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Security**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Considerations**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Introduction**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We went through many aspects of Solidity smart contract programming
+  prefs: []
+  type: TYPE_NORMAL
+- en: already in previous chapters. We covered Solidity programming syntax,
+  prefs: []
+  type: TYPE_NORMAL
+- en: using Remix or Truffle to compile source code, and deploying bytecode
+  prefs: []
+  type: TYPE_NORMAL
+- en: to an embedded EVM or development blockchain. We also mentioned
+  prefs: []
+  type: TYPE_NORMAL
+- en: the token economy and token design such as choosing fungible or
+  prefs: []
+  type: TYPE_NORMAL
+- en: nonfungible tokens and using the tokens to represent assets and elements
+  prefs: []
+  type: TYPE_NORMAL
+- en: for business use cases.
+  prefs: []
+  type: TYPE_NORMAL
+- en: On the storage and communication side, we talked about the
+  prefs: []
+  type: TYPE_NORMAL
+- en: importance of Ethereum blockchain state and event concepts as well as
+  prefs: []
+  type: TYPE_NORMAL
+- en: different networks such as mainnet, Rinkeby testnet, and Ropsten testnet.
+  prefs: []
+  type: TYPE_NORMAL
+- en: On the architecture side, we talked about building end-to-end
+  prefs: []
+  type: TYPE_NORMAL
+- en: solutions with building blockchain nodes to connect to the Ethereum
+  prefs: []
+  type: TYPE_NORMAL
+- en: blockchain, deploying smart contracts, developing web clients or mobile
+  prefs: []
+  type: TYPE_NORMAL
+- en: apps, and using Web3 to connect clients with blockchains.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this chapter, we are going to cover Ethereum blockchain and smart
+  prefs: []
+  type: TYPE_NORMAL
+- en: contract security. Security is one of the most critical aspects of software
+  prefs: []
+  type: TYPE_NORMAL
+- en: development. It plays an even larger role in the Ethereum blockchain for
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'the reasons shown below in Figure [8-1](#p331):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: © Weijia Zhang and Tej Anand 2022
+  prefs: []
+  type: TYPE_NORMAL
+- en: '319'
+  prefs: []
+  type: TYPE_NORMAL
+- en: W. Zhang and T. Anand, *Blockchain and Ethereum Smart Contract Solution Development*,
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[https://doi.org/10.1007/978-1-4842-8164-2_8](https://doi.org/10.1007/978-1-4842-8164-2_8#DOI)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](index-331_1.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: Chapter 8 SeCurity ConSiderationS
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Figure 8-1\.** Complexity of blockchain security as compared to*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*conventional IT security*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: • **Decentralized nature of blockchain** – Any code
+  prefs: []
+  type: TYPE_NORMAL
+- en: written and deployed to the blockchain is going to run
+  prefs: []
+  type: TYPE_NORMAL
+- en: in thousands of machines. Anybody can access and run
+  prefs: []
+  type: TYPE_NORMAL
+- en: blockchain code.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • **Constraints of patches and upgradability** – Due to the
+  prefs: []
+  type: TYPE_NORMAL
+- en: immutability of blockchains, smart contracts deployed
+  prefs: []
+  type: TYPE_NORMAL
+- en: to blockchains cannot be modified. This increases the
+  prefs: []
+  type: TYPE_NORMAL
+- en: difficulty for upgrading decentralized applications.
+  prefs: []
+  type: TYPE_NORMAL
+- en: When security flaws are detected in blockchain
+  prefs: []
+  type: TYPE_NORMAL
+- en: applications, the cost of patching the applications
+  prefs: []
+  type: TYPE_NORMAL
+- en: is high, and sometimes, a fork of the blockchain
+  prefs: []
+  type: TYPE_NORMAL
+- en: is needed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • **Trustless and permissionless environment** – For
+  prefs: []
+  type: TYPE_NORMAL
+- en: public blockchains, both the client nodes and
+  prefs: []
+  type: TYPE_NORMAL
+- en: decentralized applications are open to global
+  prefs: []
+  type: TYPE_NORMAL
+- en: participants. There is no centralized authority to check
+  prefs: []
+  type: TYPE_NORMAL
+- en: the qualifications of participants. There is no security
+  prefs: []
+  type: TYPE_NORMAL
+- en: perimeter to block bad players from participating.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • **Privacy and anonymous nature of blockchain**
+  prefs: []
+  type: TYPE_NORMAL
+- en: –Blockchain users can remain anonymous. Smart
+  prefs: []
+  type: TYPE_NORMAL
+- en: contract functions do not have a way to check the
+  prefs: []
+  type: TYPE_NORMAL
+- en: profile of the users. Hackers can carry out blockchain
+  prefs: []
+  type: TYPE_NORMAL
+- en: attacks, get the assets, and remain unidentified.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '320'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 8 SeCurity ConSiderationS
+  prefs: []
+  type: TYPE_NORMAL
+- en: • **High value impact on business** – Smart contracts
+  prefs: []
+  type: TYPE_NORMAL
+- en: normally have a small footprint. Bigger projects might
+  prefs: []
+  type: TYPE_NORMAL
+- en: have over thousands of lines of code, while others may
+  prefs: []
+  type: TYPE_NORMAL
+- en: only have a few hundred. Smart contracts manage
+  prefs: []
+  type: TYPE_NORMAL
+- en: high value crypto assets, and each attack might bring
+  prefs: []
+  type: TYPE_NORMAL
+- en: catastrophic results to the decentralized application.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Some decentralized applications have suffered huge
+  prefs: []
+  type: TYPE_NORMAL
+- en: losses due to simple errors in smart contracts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Several smart contract breaches have been found in the past. We can
+  prefs: []
+  type: TYPE_NORMAL
+- en: classify these security issues as functional security holes and attackable
+  prefs: []
+  type: TYPE_NORMAL
+- en: security holes. Functional security holes are obvious code errors and can
+  prefs: []
+  type: TYPE_NORMAL
+- en: cause loss of funds with normal transactions and by bona fide users. The
+  prefs: []
+  type: TYPE_NORMAL
+- en: functional security holes for smart contract contain the following.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Functional Security Holes**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**in Smart Contracts**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Fund Deadlock**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is a security hole where a smart contract can take in fund transfer
+  prefs: []
+  type: TYPE_NORMAL
+- en: but will lock the funds in a smart contract indefinitely. For example, a
+  prefs: []
+  type: TYPE_NORMAL
+- en: smart contract can implement a receive function to take in funds but not
+  prefs: []
+  type: TYPE_NORMAL
+- en: to implement functions for send or transfer. In this case, funds sent to the
+  prefs: []
+  type: TYPE_NORMAL
+- en: smart contract will be owned by the smart contract, but there is no way
+  prefs: []
+  type: TYPE_NORMAL
+- en: to transfer funds out. Similar to a blackhole, this is a case that takes in
+  prefs: []
+  type: TYPE_NORMAL
+- en: everything with nothing going out.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '321'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 8 SeCurity ConSiderationS
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Fund Leakage**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is a functional security hole that can cause leak of funds by an
+  prefs: []
+  type: TYPE_NORMAL
+- en: unprivileged user. This is normally due to a lack of access rights and
+  prefs: []
+  type: TYPE_NORMAL
+- en: privilege checking. For example, a security hole can be caused by a
+  prefs: []
+  type: TYPE_NORMAL
+- en: function that has fund transfer capabilities but is declared public without
+  prefs: []
+  type: TYPE_NORMAL
+- en: authenticating the user’s ownership of the fund. In Solidity smart contract
+  prefs: []
+  type: TYPE_NORMAL
+- en: programming, there are several places where the security can be enforced,
+  prefs: []
+  type: TYPE_NORMAL
+- en: including setting the scope of a function to be public or private, setting
+  prefs: []
+  type: TYPE_NORMAL
+- en: the ownership access rights, and using require and assert to make sure
+  prefs: []
+  type: TYPE_NORMAL
+- en: access conditions are met before proceeding to the next line of code for
+  prefs: []
+  type: TYPE_NORMAL
+- en: execution. When a token is minted or transferred, the smart contract
+  prefs: []
+  type: TYPE_NORMAL
+- en: needs to make sure the caller of the function is the owner, or administrator,
+  prefs: []
+  type: TYPE_NORMAL
+- en: and an authorized user for the function. It is very important to define
+  prefs: []
+  type: TYPE_NORMAL
+- en: roles in smart contracts, and each role will have limited access rights. In
+  prefs: []
+  type: TYPE_NORMAL
+- en: CryptoKitty’s example, there are four roles defined including owner of
+  prefs: []
+  type: TYPE_NORMAL
+- en: smart contract, CEO of the project, COO, and CFO. For the mint function,
+  prefs: []
+  type: TYPE_NORMAL
+- en: the smart contract defines the mint right to COO. You have to be a
+  prefs: []
+  type: TYPE_NORMAL
+- en: COO of this project to mint an NFT token. There is also a pause/unpause
+  prefs: []
+  type: TYPE_NORMAL
+- en: function to handle emergency situations by halting the execution of
+  prefs: []
+  type: TYPE_NORMAL
+- en: smart contracts, and this right is given to the CEO. The CFO can do other
+  prefs: []
+  type: TYPE_NORMAL
+- en: things related to auctions. The owner of the smart contract is also a critical
+  prefs: []
+  type: TYPE_NORMAL
+- en: role. Normally, whoever deploys a smart contract to the blockchain is
+  prefs: []
+  type: TYPE_NORMAL
+- en: the owner of the smart contract by default. This owner can then transfer
+  prefs: []
+  type: TYPE_NORMAL
+- en: the ownership to another user, or to a smart contract address, or even
+  prefs: []
+  type: TYPE_NORMAL
+- en: renounce the ownership. Because the owner of a smart contract has the
+  prefs: []
+  type: TYPE_NORMAL
+- en: highest access privilege, it is very important to protect the private keys for
+  prefs: []
+  type: TYPE_NORMAL
+- en: the owner account.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '322'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 8 SeCurity ConSiderationS
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Disabled Smart Contract**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is another functional security hole where a nonprivileged user
+  prefs: []
+  type: TYPE_NORMAL
+- en: can call a function to kill the smart contract. This is another thing that
+  prefs: []
+  type: TYPE_NORMAL
+- en: needs to be watched. In a smart contract, there might be a function that
+  prefs: []
+  type: TYPE_NORMAL
+- en: can be executed to disable the whole smart contract by clearing the
+  prefs: []
+  type: TYPE_NORMAL
+- en: states, storage, and settings. If this function is incidentally called, it will
+  prefs: []
+  type: TYPE_NORMAL
+- en: completely ruin the smart contract.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Orphan Smart Contract**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: When a smart contract is deployed, the account that sends the deployment
+  prefs: []
+  type: TYPE_NORMAL
+- en: transaction is the owner, and it has high privilege administration rights to
+  prefs: []
+  type: TYPE_NORMAL
+- en: the smart contract. Sometimes, to increase the degree of decentralization,
+  prefs: []
+  type: TYPE_NORMAL
+- en: the owner might transfer the ownership to another owner account, a smart
+  prefs: []
+  type: TYPE_NORMAL
+- en: contract, or denounce the ownership. Once ownership of a smart contract is
+  prefs: []
+  type: TYPE_NORMAL
+- en: transferred or denounced after the deployment, the original owner does not
+  prefs: []
+  type: TYPE_NORMAL
+- en: have the right to administer the smart contract anymore. It is thus important
+  prefs: []
+  type: TYPE_NORMAL
+- en: to come up with a smart contract ownership plan during the design
+  prefs: []
+  type: TYPE_NORMAL
+- en: process. Once the smart contract is deployed and ownership transferred or
+  prefs: []
+  type: TYPE_NORMAL
+- en: denounced, there is no way to pause or upgrade the smart contracts when
+  prefs: []
+  type: TYPE_NORMAL
+- en: an emergency situation arises in the decentralized applications.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Attackable Security Holes in Smart**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Contracts**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This kind of security breach is caused by users with malicious intent.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It is less obvious than functional security holes and very difficult to be
+  prefs: []
+  type: TYPE_NORMAL
+- en: discovered. Hackers will normally need to construct artificial transactions
+  prefs: []
+  type: TYPE_NORMAL
+- en: and carry out multiple steps of attacks. The attackers also remain
+  prefs: []
+  type: TYPE_NORMAL
+- en: anonymous and have methods to transfer the funds. These kinds of
+  prefs: []
+  type: TYPE_NORMAL
+- en: '323'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 8 SeCurity ConSiderationS
+  prefs: []
+  type: TYPE_NORMAL
+- en: breaches can also include attacking blockchain nodes and Web3 clients
+  prefs: []
+  type: TYPE_NORMAL
+- en: and environments outside the smart contracts. Other breaches have also
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'happened with hackers doing the following: (1) calling faulty internal'
+  prefs: []
+  type: TYPE_NORMAL
+- en: functions with malicious transactions; (2) changing outside parameters
+  prefs: []
+  type: TYPE_NORMAL
+- en: and conditions for a function call; (3) changing whitelist addresses and
+  prefs: []
+  type: TYPE_NORMAL
+- en: names; and (4) attacking Oracle. The following are some examples of
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'attackable security holes:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Example 1: Pay bill to arbitrary accounts'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following is a code snippet with a security hole:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*pragma solidity ^0.8.6;*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*contract PayIssue {*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*function payBill ( address payable recipient, uint256 x_amount*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*) public payable {*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*recipient.transfer(x_amount);*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*}*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*}*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the preceding code, there is a function called payBill(address
+  prefs: []
+  type: TYPE_NORMAL
+- en: payable recipient, uint256 x_amount) public payable.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This payBill function when called will simply transfer “x_amount”
+  prefs: []
+  type: TYPE_NORMAL
+- en: of Ether to the recipient address specified in the function. This function
+  prefs: []
+  type: TYPE_NORMAL
+- en: is payable, which allows the funds to transfer to a receiver. Payable is a
+  prefs: []
+  type: TYPE_NORMAL
+- en: new keyword in Solidity to specify whether a function or an address can
+  prefs: []
+  type: TYPE_NORMAL
+- en: transfer or receive funds.
+  prefs: []
+  type: TYPE_NORMAL
+- en: One main functional security error with this smart contract is that
+  prefs: []
+  type: TYPE_NORMAL
+- en: it does not check the privilege of the users calling the function. As this
+  prefs: []
+  type: TYPE_NORMAL
+- en: function is public and payable, anyone can call this function and transfer
+  prefs: []
+  type: TYPE_NORMAL
+- en: funds to an arbitrary address they specify. In fact, users can call this smart
+  prefs: []
+  type: TYPE_NORMAL
+- en: '324'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 8 SeCurity ConSiderationS
+  prefs: []
+  type: TYPE_NORMAL
+- en: contract to deprive all the funds owned by the smart contract and send
+  prefs: []
+  type: TYPE_NORMAL
+- en: them to the hackers address. A simple error in function access scope can
+  prefs: []
+  type: TYPE_NORMAL
+- en: cause loss of assets and destroy an otherwise promising project.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Example 2: No guarding of kill or selfdestruct function'
+  prefs: []
+  type: TYPE_NORMAL
+- en: There was a security incident in which a “kill” function is coded in
+  prefs: []
+  type: TYPE_NORMAL
+- en: a smart contract but does not have privilege checking and eventually
+  prefs: []
+  type: TYPE_NORMAL
+- en: caused 300 million in loss of funds. In a community Telegram chat group,
+  prefs: []
+  type: TYPE_NORMAL
+- en: a transaction hash is posted. The message sender claimed to be a newbie
+  prefs: []
+  type: TYPE_NORMAL
+- en: in Ethereum but had just sent a transaction to call a kill function in a
+  prefs: []
+  type: TYPE_NORMAL
+- en: smart contract. Because the kill function does not check user privilege, the
+  prefs: []
+  type: TYPE_NORMAL
+- en: function call was executed and effectively reset the storage of the smart
+  prefs: []
+  type: TYPE_NORMAL
+- en: contract and destroyed the smart contract. The funds locked by this smart
+  prefs: []
+  type: TYPE_NORMAL
+- en: contract are 300 million, and there is no way to recover it once the kill
+  prefs: []
+  type: TYPE_NORMAL
+- en: function is executed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Functions such as kill, destroy, selfdestruct, or renounce are highly
+  prefs: []
+  type: TYPE_NORMAL
+- en: privileged operations that have the potential to invalidate a smart contract.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It is critical to implement thorough checks on the calling parameters to
+  prefs: []
+  type: TYPE_NORMAL
+- en: ensure there is no security risk when these functions are executed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Best Security Practices for Smart Contracts**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In previous sections, we described functional and attackable security holes
+  prefs: []
+  type: TYPE_NORMAL
+- en: and some examples. As shown in Figure [8-2](#p337), we are now switching to
+    the discussion of good security practices for designing smart contracts and
+  prefs: []
+  type: TYPE_NORMAL
+- en: writing code.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '325'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](index-337_1.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: Chapter 8 SeCurity ConSiderationS
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Figure 8-2\.** Best practice of blockchain security*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Have a Security Risk Mitigation Plan**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Ethereum and any public blockchains are open and permissionless
+  prefs: []
+  type: TYPE_NORMAL
+- en: systems where bad players have the same access to the smart contracts as
+  prefs: []
+  type: TYPE_NORMAL
+- en: good players. It is essential to have a mindset that there could be bugs and
+  prefs: []
+  type: TYPE_NORMAL
+- en: security holes in the smart contract, and some mitigation plans should
+  prefs: []
+  type: TYPE_NORMAL
+- en: be prepared. For example, in the smart contract of CryptoKitty, there is
+  prefs: []
+  type: TYPE_NORMAL
+- en: a pause function implemented, and only the CEO can pause or unpause
+  prefs: []
+  type: TYPE_NORMAL
+- en: the smart contract. If there is a security hack of smart contracts, the CEO
+  prefs: []
+  type: TYPE_NORMAL
+- en: can send a transaction to call the pause function and halt the minting and
+  prefs: []
+  type: TYPE_NORMAL
+- en: auction of CryptoKitties.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In addition, it is important to consider the trade-off between
+  prefs: []
+  type: TYPE_NORMAL
+- en: decentralization and upgradability. Blockchains are supposed to be
+  prefs: []
+  type: TYPE_NORMAL
+- en: immutable, and therefore, the smart contracts by default should be
+  prefs: []
+  type: TYPE_NORMAL
+- en: unalterable. On the other hand, there is no way to write Solidity code that
+  prefs: []
+  type: TYPE_NORMAL
+- en: is free of bugs or vulnerabilities. A better practice is to classify the smart
+  prefs: []
+  type: TYPE_NORMAL
+- en: contracts into two classes – one is stable and cannot be updated, while
+  prefs: []
+  type: TYPE_NORMAL
+- en: '326'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 8 SeCurity ConSiderationS
+  prefs: []
+  type: TYPE_NORMAL
+- en: the other is dynamic and can be upgraded by privileged administrators.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The smart contracts that are called by Web3 clients can be proxy smart
+  prefs: []
+  type: TYPE_NORMAL
+- en: contracts that are not upgradable and have a fixed address, while the other
+  prefs: []
+  type: TYPE_NORMAL
+- en: contracts that are called by the proxy smart contract can be upgraded.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Once a smart contract is upgraded due to bug fixes, the address of the
+  prefs: []
+  type: TYPE_NORMAL
+- en: newly deployed smart contract is updated in the proxy smart contract, and
+  prefs: []
+  type: TYPE_NORMAL
+- en: there is no need to change the Web3 clients.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Checking Both Main Source Code and Libraries**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Not only can security vulnerabilities happen in the code you write, but also
+  prefs: []
+  type: TYPE_NORMAL
+- en: they can exist in the libraries imported to your smart contract. The library’s
+  prefs: []
+  type: TYPE_NORMAL
+- en: code might also be written in different versions of Solidity and hence
+  prefs: []
+  type: TYPE_NORMAL
+- en: increase the complexities of integration and security risk. For example,
+  prefs: []
+  type: TYPE_NORMAL
+- en: some of the libraries are written in Solidity version 0.4, while the main
+  prefs: []
+  type: TYPE_NORMAL
+- en: smart contracts that you are working on might be in version 0.8\. Solidity
+  prefs: []
+  type: TYPE_NORMAL
+- en: version 0.4 does not support certain security features, and modifications
+  prefs: []
+  type: TYPE_NORMAL
+- en: are needed to integrate the libraries. This in turn increases vulnerabilities
+  prefs: []
+  type: TYPE_NORMAL
+- en: for the whole smart contract. Therefore, it is important to have compatible
+  prefs: []
+  type: TYPE_NORMAL
+- en: versions of main code and libraries, and the security review, audit, and test
+  prefs: []
+  type: TYPE_NORMAL
+- en: should include library code as well.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Put a Cap to the Max Funds**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Due to the complexity of smart contracts, sometimes, it is good to set a
+  prefs: []
+  type: TYPE_NORMAL
+- en: maximum amount of asset values a smart contract function can handle. A
+  prefs: []
+  type: TYPE_NORMAL
+- en: smart contract can have a global cap, and each function with asset transfer
+  prefs: []
+  type: TYPE_NORMAL
+- en: capability will compare the amount of assets to be transferred with the
+  prefs: []
+  type: TYPE_NORMAL
+- en: cap. If it exceeds the cap, the function will not execute the transfer. This
+  prefs: []
+  type: TYPE_NORMAL
+- en: provides an additional safety guard to prevent asset loss. In fact, the ERC20
+  prefs: []
+  type: TYPE_NORMAL
+- en: smart contracts have an “approve” function to set the maximum amount of
+  prefs: []
+  type: TYPE_NORMAL
+- en: funds that can be transferred by a user calling a transfer function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '327'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 8 SeCurity ConSiderationS
+  prefs: []
+  type: TYPE_NORMAL
+- en: Because total values of cryptocurrency processed by smart contracts
+  prefs: []
+  type: TYPE_NORMAL
+- en: are growing exponentially, projects such as Uniswap and Compound
+  prefs: []
+  type: TYPE_NORMAL
+- en: have billions of dollars of assets managed by smart contracts. If there is
+  prefs: []
+  type: TYPE_NORMAL
+- en: a security breach with the smart contract code, the impact is huge. It is
+  prefs: []
+  type: TYPE_NORMAL
+- en: always a good practice to have a design to put a threshold on the amount
+  prefs: []
+  type: TYPE_NORMAL
+- en: of funds that can be impacted if there is a security breach.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Make Your Smart Contract Open Source**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**and Leverage the Community Effort to Harden**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**the Security**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Smart contracts are used to power the DeFi world where there are no
+  prefs: []
+  type: TYPE_NORMAL
+- en: central authorities and big IT teams to bring trust and security to the
+  prefs: []
+  type: TYPE_NORMAL
+- en: platform. It is therefore important for the project community to play a
+  prefs: []
+  type: TYPE_NORMAL
+- en: critical role in hardening the smart contracts. Unlike legacy financial
+  prefs: []
+  type: TYPE_NORMAL
+- en: applications where software vendors use their engineering resources
+  prefs: []
+  type: TYPE_NORMAL
+- en: and services to ensure security and quality, smart contracts are normally
+  prefs: []
+  type: TYPE_NORMAL
+- en: open sourced so that the community and users can review the codes to
+  prefs: []
+  type: TYPE_NORMAL
+- en: make sure that the business logics are accurately encapsulated in the
+  prefs: []
+  type: TYPE_NORMAL
+- en: source code. Community developers are encouraged to review the source
+  prefs: []
+  type: TYPE_NORMAL
+- en: code, and big bounties are provided for experts who are able to find any
+  prefs: []
+  type: TYPE_NORMAL
+- en: functional, cosmetic, or security defects. Smart contracts are also deployed
+  prefs: []
+  type: TYPE_NORMAL
+- en: to testnets first with alpha and beta releases, and communities are
+  prefs: []
+  type: TYPE_NORMAL
+- en: requested to find defects and rewarded with bug bounties. Because dApps
+  prefs: []
+  type: TYPE_NORMAL
+- en: powered with smart contracts are normally projects that can issue tokens,
+  prefs: []
+  type: TYPE_NORMAL
+- en: sometimes, community developers are rewarded with project tokens
+  prefs: []
+  type: TYPE_NORMAL
+- en: when they find security issues or defects. Healthy and growing projects
+  prefs: []
+  type: TYPE_NORMAL
+- en: that manage billions of dollars of crypto assets always have enthusiastic
+  prefs: []
+  type: TYPE_NORMAL
+- en: community developers who work hard to improve the security of smart
+  prefs: []
+  type: TYPE_NORMAL
+- en: contracts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '328'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 8 SeCurity ConSiderationS
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Yes, There Are Blockchain Security Whitehats**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Sometimes, smart contracts get hacked with different endings. It happened
+  prefs: []
+  type: TYPE_NORMAL
+- en: several times that “hackers” did not have intention to steal the fund, but
+  prefs: []
+  type: TYPE_NORMAL
+- en: rather to teach a lesson to the project team. So if a security breach does
+  prefs: []
+  type: TYPE_NORMAL
+- en: happen, it is important to watch where the funds get moved to. Hackers
+  prefs: []
+  type: TYPE_NORMAL
+- en: who have intention to use the stolen funds will normally transfer the fund
+  prefs: []
+  type: TYPE_NORMAL
+- en: to a “mixer” to hide the identity and remove the traceability of the fund.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Whitehat hackers will just move the fund to a security location, tell the
+  prefs: []
+  type: TYPE_NORMAL
+- en: project team about the security breach, let the project team fix issues, and
+  prefs: []
+  type: TYPE_NORMAL
+- en: then move the fund back. So if a security breach does happen, don’t panic;
+  prefs: []
+  type: TYPE_NORMAL
+- en: the result might not be as bad as it looks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Have Smart Contract Audited**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Smart contracts auditing is a good practice to harden security. A security
+  prefs: []
+  type: TYPE_NORMAL
+- en: audit is a practice to hire an external professional company to evaluate and
+  prefs: []
+  type: TYPE_NORMAL
+- en: review token economy, smart contracts design, and code implementation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Auditors use automatic security scanning tools and manual penetration
+  prefs: []
+  type: TYPE_NORMAL
+- en: testing to produce a thorough report of the smart contracts. The security
+  prefs: []
+  type: TYPE_NORMAL
+- en: scan of smart contracts can reveal static security errors in syntax and
+  prefs: []
+  type: TYPE_NORMAL
+- en: programming styles. More in-depth review of smart contracts will require
+  prefs: []
+  type: TYPE_NORMAL
+- en: experts to go through each smart contract in UML diagrams and figure out
+  prefs: []
+  type: TYPE_NORMAL
+- en: the relationship between functions and inspect potential vulnerabilities.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Sometimes, meetings are held by the project team and audit team to go
+  prefs: []
+  type: TYPE_NORMAL
+- en: through the smart contract design to figure out if the end-to-end flow has
+  prefs: []
+  type: TYPE_NORMAL
+- en: security issues. Any issues found are labelled with severity levels, and
+  prefs: []
+  type: TYPE_NORMAL
+- en: critical issues will need to be fixed in order for the product to be released.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A security audit can not only improve security of smart contracts from
+  prefs: []
+  type: TYPE_NORMAL
+- en: catastrophic failure, it is also required when the project team later decides
+  prefs: []
+  type: TYPE_NORMAL
+- en: to work with other partners or wants to license their smart contracts to
+  prefs: []
+  type: TYPE_NORMAL
+- en: '329'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 8 SeCurity ConSiderationS
+  prefs: []
+  type: TYPE_NORMAL
+- en: other companies. Security audits have been a growing business in the
+  prefs: []
+  type: TYPE_NORMAL
+- en: blockchain industry, and there are often backlogs with audit requests.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Expedited audit normally requires much higher fees; therefore, security
+  prefs: []
+  type: TYPE_NORMAL
+- en: audit time should be built into the project release schedule.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Readable Smart Contract Logic**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We mentioned that smart contracts have high VLC (value per line of
+  prefs: []
+  type: TYPE_NORMAL
+- en: code). It is extremely important to make sure smart contract logic is
+  prefs: []
+  type: TYPE_NORMAL
+- en: straightforward and easy to read. If you read smart contract codes of good
+  prefs: []
+  type: TYPE_NORMAL
+- en: projects, you will probably find out that often there are more comments
+  prefs: []
+  type: TYPE_NORMAL
+- en: than source code itself. The comments are there to help readers to
+  prefs: []
+  type: TYPE_NORMAL
+- en: review and make sense of the source code. If you strip the code out of the
+  prefs: []
+  type: TYPE_NORMAL
+- en: Solidity file, you will find that the comments are actually good design and
+  prefs: []
+  type: TYPE_NORMAL
+- en: documentation for the smart contract functions. Good smart contracts are
+  prefs: []
+  type: TYPE_NORMAL
+- en: written and documented in a way that both technical and business experts
+  prefs: []
+  type: TYPE_NORMAL
+- en: can read it and get a good picture of the business logic.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Modularize the Smart Contract**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Solidity is an object-oriented programming (OOP) language where you
+  prefs: []
+  type: TYPE_NORMAL
+- en: can use hierarchy, inheritance, and polymorphy mechanisms to define
+  prefs: []
+  type: TYPE_NORMAL
+- en: classes and functions similar to Java and JavaScript. A good practice
+  prefs: []
+  type: TYPE_NORMAL
+- en: of modularizing smart contracts is to mimic the real-world scenarios
+  prefs: []
+  type: TYPE_NORMAL
+- en: and build the smart contracts as the components of the corresponding
+  prefs: []
+  type: TYPE_NORMAL
+- en: business logic.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '330'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 8 SeCurity ConSiderationS
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Using Well-Tested Libraries**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Relevant to modularization, using well-tested libraries is another way
+  prefs: []
+  type: TYPE_NORMAL
+- en: to increase security. Since the majority of smart contracts are open
+  prefs: []
+  type: TYPE_NORMAL
+- en: source, there are many handy and secure libraries that have been built
+  prefs: []
+  type: TYPE_NORMAL
+- en: and available for use. For example, OpenZeppelin provides a good set of
+  prefs: []
+  type: TYPE_NORMAL
+- en: libraries such as SafeMath, ERC20, and ERC721, while Oraclable provides
+  prefs: []
+  type: TYPE_NORMAL
+- en: Oracle libraries to use.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Well-established library code normally has better boundary checking
+  prefs: []
+  type: TYPE_NORMAL
+- en: for their smart contract functions. For example, SafeMath libraries
+  prefs: []
+  type: TYPE_NORMAL
+- en: have checks on the arithmetic data type ranges and division checks for
+  prefs: []
+  type: TYPE_NORMAL
+- en: denominators equal to zero case. Using library code from a well-tested
+  prefs: []
+  type: TYPE_NORMAL
+- en: project decreases the uncertainty of the main code.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Use a Good Random Number Generator**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In gaming applications, sometimes, smart contracts use a Random
+  prefs: []
+  type: TYPE_NORMAL
+- en: Number Generator (RNG) to generate a random number to pick a winner
+  prefs: []
+  type: TYPE_NORMAL
+- en: from a group of users. RNG is also used to enhance security by grouping
+  prefs: []
+  type: TYPE_NORMAL
+- en: actors randomly to prevent collusion. It is generally not a good idea to
+  prefs: []
+  type: TYPE_NORMAL
+- en: roll out your own RNG without a sound mathematical validation and
+  prefs: []
+  type: TYPE_NORMAL
+- en: thorough testing of the degree of randomness in RNG. For example,
+  prefs: []
+  type: TYPE_NORMAL
+- en: using the hash value of a blockchain block might seem to be random for
+  prefs: []
+  type: TYPE_NORMAL
+- en: some applications. However, if the smart contract of the dApp is handling
+  prefs: []
+  type: TYPE_NORMAL
+- en: large-scale and high-value gaming similar to Powerball, the randomness
+  prefs: []
+  type: TYPE_NORMAL
+- en: of blockchain hash is attack prone. A block producer can add or remove
+  prefs: []
+  type: TYPE_NORMAL
+- en: transactions in a proposed blockchain block and provide a manipulated
+  prefs: []
+  type: TYPE_NORMAL
+- en: hash. At this time, there is not a perfect RNG onchain, and full randomness
+  prefs: []
+  type: TYPE_NORMAL
+- en: has to be introduced through offchain computing and brought into
+  prefs: []
+  type: TYPE_NORMAL
+- en: blockchain by using Oracle.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '331'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 8 SeCurity ConSiderationS
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Review Gas Consumption in Security Context**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Gas usage and fees are designed as a way to compensate miners and increase
+  prefs: []
+  type: TYPE_NORMAL
+- en: the cost of deliberate attack on the Ethereum network. In a smart contract
+  prefs: []
+  type: TYPE_NORMAL
+- en: transaction, each function and storage will consume gas, and the gas cost is
+  prefs: []
+  type: TYPE_NORMAL
+- en: paid by the user who sends the transactions to the smart contract. There are
+  prefs: []
+  type: TYPE_NORMAL
+- en: several security factors to consider when dealing with gas consumptions in
+  prefs: []
+  type: TYPE_NORMAL
+- en: smart contracts. In a dApp application, if a proxy is used to send transactions
+  prefs: []
+  type: TYPE_NORMAL
+- en: for users, then it is important to review the functions to see if the gas
+  prefs: []
+  type: TYPE_NORMAL
+- en: consumption is a fixed value and if there is a potential for the function to
+    get
+  prefs: []
+  type: TYPE_NORMAL
+- en: into an infinite or large loop and deprive the Ether of the sender’s account.
+    In
+  prefs: []
+  type: TYPE_NORMAL
+- en: general, smart contracts should be designed and written in a way to minimize
+  prefs: []
+  type: TYPE_NORMAL
+- en: gas consumption. To achieve these, special attention should be given to avoid
+  prefs: []
+  type: TYPE_NORMAL
+- en: while-loops for long operations, large dynamic arrays for data storage, and
+  prefs: []
+  type: TYPE_NORMAL
+- en: complex function calls across smart contracts. When writing smart contracts,
+  prefs: []
+  type: TYPE_NORMAL
+- en: there are some gas estimate tools to help check the usage of gas in the code.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There is also a gas consumption table published by the Ethereum Foundation
+  prefs: []
+  type: TYPE_NORMAL
+- en: as a guide to optimize gas performance for smart contracts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Wisely Use Blockchain**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Some people have misconceptions that blockchain can solve all
+  prefs: []
+  type: TYPE_NORMAL
+- en: problems that conventional IT technologies cannot solve today. To some
+  prefs: []
+  type: TYPE_NORMAL
+- en: extent, blockchains do solve challenging problems such as consensus,
+  prefs: []
+  type: TYPE_NORMAL
+- en: decentralization, permissionless, and token economy. However, today,
+  prefs: []
+  type: TYPE_NORMAL
+- en: there are still many drawbacks for blockchain technology. For example,
+  prefs: []
+  type: TYPE_NORMAL
+- en: when a smart contract is executed, it runs on thousands of machines
+  prefs: []
+  type: TYPE_NORMAL
+- en: simultaneously. In fact, the Bitcoin blockchain has over 20,000 mining
+  prefs: []
+  type: TYPE_NORMAL
+- en: nodes, and Ethereum has thousands of nodes. All Ethereum nodes will
+  prefs: []
+  type: TYPE_NORMAL
+- en: have the same deployed smart contract and will run smart contracts to
+  prefs: []
+  type: TYPE_NORMAL
+- en: process the transactions. With this scale of redundancy in the blockchain,
+  prefs: []
+  type: TYPE_NORMAL
+- en: it drastically decreases overall performance and increases risks when
+  prefs: []
+  type: TYPE_NORMAL
+- en: something actually goes wrong.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '332'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 8 SeCurity ConSiderationS
+  prefs: []
+  type: TYPE_NORMAL
+- en: So from a security point of view, in a dApp architecture and design,
+  prefs: []
+  type: TYPE_NORMAL
+- en: it is a better practice to use blockchain for the system that requires
+  prefs: []
+  type: TYPE_NORMAL
+- en: decentralization, multiparty consensus, immutability, and transparency.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For components such as UI (User Interface), dynamic content storage,
+  prefs: []
+  type: TYPE_NORMAL
+- en: temporary data, and heavy computations, these can be done offchain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Take the example of CryptoKitty; the minting, gene generation, and
+  prefs: []
+  type: TYPE_NORMAL
+- en: management of kitty auctions are done onchain, while the UI and
+  prefs: []
+  type: TYPE_NORMAL
+- en: rendering of kitty are done offchain. Well-balanced onchain and
+  prefs: []
+  type: TYPE_NORMAL
+- en: offchain components of decentralized applications increase usability,
+  prefs: []
+  type: TYPE_NORMAL
+- en: upgradability, performance, and security.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Stay on Top of Security Breaches and Patches**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Blockchain is far away from a stabilized state, and security breaches
+  prefs: []
+  type: TYPE_NORMAL
+- en: happen quite often. So it is helpful to subscribe to blockchain security
+  prefs: []
+  type: TYPE_NORMAL
+- en: news alerts and evaluate any hacks that might impact your projects.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Blockchain hacks always get to the headline of the media. In the Ethereum
+  prefs: []
+  type: TYPE_NORMAL
+- en: community, workaround, security vulnerabilities are discussed and shared
+  prefs: []
+  type: TYPE_NORMAL
+- en: quite timely. It is important to have action plans if the security breaches
+  prefs: []
+  type: TYPE_NORMAL
+- en: impact your smart contracts deployed in the production network.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It is also best practice to upgrade the smart contract code to the
+  prefs: []
+  type: TYPE_NORMAL
+- en: latest version of Solidity as soon as possible. This is easy to say but is very
+  prefs: []
+  type: TYPE_NORMAL
+- en: difficult to actually do. Once the smart contracts are deployed, they cannot
+  prefs: []
+  type: TYPE_NORMAL
+- en: be patched due to immutability of blockchain. An upgrade will require
+  prefs: []
+  type: TYPE_NORMAL
+- en: abandoning the old smart contract and deploying a brand new one. Also
+  prefs: []
+  type: TYPE_NORMAL
+- en: there are various versions of Solidity programs coexisting in smart contract
+  prefs: []
+  type: TYPE_NORMAL
+- en: libraries and production codes. There are incompatibilities among
+  prefs: []
+  type: TYPE_NORMAL
+- en: different versions of Solidity compilers. Before deploying a smart contract,
+  prefs: []
+  type: TYPE_NORMAL
+- en: it is best to upgrade all source code for both main smart contracts and
+  prefs: []
+  type: TYPE_NORMAL
+- en: libraries to the latest version.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '333'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 8 SeCurity ConSiderationS
+  prefs: []
+  type: TYPE_NORMAL
+- en: Also there are some good security analysis and visualization tools
+  prefs: []
+  type: TYPE_NORMAL
+- en: that can be used to help developers write secure smart contracts. Security
+  prefs: []
+  type: TYPE_NORMAL
+- en: scanning tools can help developers to spot static security vulnerabilities
+  prefs: []
+  type: TYPE_NORMAL
+- en: and follow good security coding practice. Visualization tools help
+  prefs: []
+  type: TYPE_NORMAL
+- en: developers and reviewers to see the whole picture of the smart contracts
+  prefs: []
+  type: TYPE_NORMAL
+- en: and analyze potential attacking points from hackers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Blockchain Specific Security Tips**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: For programmers who used to develop stand-alone applications or web
+  prefs: []
+  type: TYPE_NORMAL
+- en: services, it should be noted that blockchains have some special properties
+  prefs: []
+  type: TYPE_NORMAL
+- en: and pitfalls to watch and avoid.
+  prefs: []
+  type: TYPE_NORMAL
+- en: When doing cross smart contract function calls, the calling function
+  prefs: []
+  type: TYPE_NORMAL
+- en: will take in the address of another smart contract and call the bytecode of
+  prefs: []
+  type: TYPE_NORMAL
+- en: a target function. Sometimes, that target function might contain malicious
+  prefs: []
+  type: TYPE_NORMAL
+- en: codes and alter the control flow of the calling function. It is very important
+  prefs: []
+  type: TYPE_NORMAL
+- en: to inspect the source code of the target smart contract to ensure it is free
+    of
+  prefs: []
+  type: TYPE_NORMAL
+- en: security vulnerability. If the address of the target smart contract is passed
+  prefs: []
+  type: TYPE_NORMAL
+- en: in from outside, it is vital to ensure that only privileged users can pass in
+  prefs: []
+  type: TYPE_NORMAL
+- en: the target address.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Ethereum blockchains are public, decentralized, and permissionless. If
+  prefs: []
+  type: TYPE_NORMAL
+- en: there is any function in a smart contract that is declared as public, anybody
+  prefs: []
+  type: TYPE_NORMAL
+- en: in any part of the world can call that function and pass in arbitrary
+  prefs: []
+  type: TYPE_NORMAL
+- en: parameters. So it is important to double-check the scope of function and
+  prefs: []
+  type: TYPE_NORMAL
+- en: have parameter check for all permutations that might cause security
+  prefs: []
+  type: TYPE_NORMAL
+- en: breach. Public functions in smart contracts are globally public and can be
+  prefs: []
+  type: TYPE_NORMAL
+- en: called in any order with any data. Therefore, it is extremely important to
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'check the following attributes for a smart contract function:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: • **Scope of function** – Declare whether it is public or
+  prefs: []
+  type: TYPE_NORMAL
+- en: private, or view.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '334'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 8 SeCurity ConSiderationS
+  prefs: []
+  type: TYPE_NORMAL
+- en: • **Scope of access** – Check who can call the function,
+  prefs: []
+  type: TYPE_NORMAL
+- en: maybe only owner, or only a predefined user role.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • **Parameter permutation** – Check parameter range of
+  prefs: []
+  type: TYPE_NORMAL
+- en: data. Check validity of inputs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Ethereum blockchain’s intrinsic security has some constraints. When
+  prefs: []
+  type: TYPE_NORMAL
+- en: a variable is declared in a smart contract, it can be a private variable.
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, a private variable is really not private as the Ethereum Virtual
+  prefs: []
+  type: TYPE_NORMAL
+- en: Machine (EVM) installed on blockchain nodes can reveal it. To ensure
+  prefs: []
+  type: TYPE_NORMAL
+- en: privacy of data in smart contracts, the data should be encrypted before
+  prefs: []
+  type: TYPE_NORMAL
+- en: sending to blockchain and then decrypted after receiving from the
+  prefs: []
+  type: TYPE_NORMAL
+- en: blockchain. Because of the transparency of public blockchain, onchain
+  prefs: []
+  type: TYPE_NORMAL
+- en: data encryption and decryption are not secure in smart contracts. The
+  prefs: []
+  type: TYPE_NORMAL
+- en: execution steps and internal data are viewable with an EVM with debugger
+  prefs: []
+  type: TYPE_NORMAL
+- en: enabled. The encryption and decryption should be performed through
+  prefs: []
+  type: TYPE_NORMAL
+- en: offchain computing.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For decentralized applications that need to use time sequence in
+  prefs: []
+  type: TYPE_NORMAL
+- en: computing, it is important to know that timestamps in blockchain are
+  prefs: []
+  type: TYPE_NORMAL
+- en: not accurate because miners can manipulate the block time by delaying
+  prefs: []
+  type: TYPE_NORMAL
+- en: or accelerating block computation and proposal. It is not a good practice
+  prefs: []
+  type: TYPE_NORMAL
+- en: to use block timestamp to check for sequencing execution and ordering
+  prefs: []
+  type: TYPE_NORMAL
+- en: transaction steps. The timestamp of blockchain or transactions should not
+  prefs: []
+  type: TYPE_NORMAL
+- en: be used as a unique identifier for multiple events as there is no guarantee
+  prefs: []
+  type: TYPE_NORMAL
+- en: of block timestamp collision within the range of seconds.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Security needs to be considered in all life cycles of smart contract
+  prefs: []
+  type: TYPE_NORMAL
+- en: development, from conceptions, requirements, token design, architecture,
+  prefs: []
+  type: TYPE_NORMAL
+- en: to implementation and operations. One important security factor to
+  prefs: []
+  type: TYPE_NORMAL
+- en: consider is safe-guarding private keys in the deployment process. Crypto
+  prefs: []
+  type: TYPE_NORMAL
+- en: assets are stored in accounts, and each account is represented by a private
+  prefs: []
+  type: TYPE_NORMAL
+- en: and public keypair. Private keys are used to sign transactions to send assets
+  prefs: []
+  type: TYPE_NORMAL
+- en: from one user to another. Whoever has the private key of an account owns
+  prefs: []
+  type: TYPE_NORMAL
+- en: the asset of that account. When deploying a smart contract to a blockchain,
+  prefs: []
+  type: TYPE_NORMAL
+- en: '335'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 8 SeCurity ConSiderationS
+  prefs: []
+  type: TYPE_NORMAL
+- en: there needs to be a user who sends the deployment transaction to the
+  prefs: []
+  type: TYPE_NORMAL
+- en: blockchain. To sign a transaction, the user needs to unlock the account
+  prefs: []
+  type: TYPE_NORMAL
+- en: with its private key. If an account is unlocked in a blockchain, its private
+  prefs: []
+  type: TYPE_NORMAL
+- en: key is open and can be stolen by a spoofer. This has happened many times
+  prefs: []
+  type: TYPE_NORMAL
+- en: in the cryptoworld.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are several secure ways to deploy smart contracts. For example,
+  prefs: []
+  type: TYPE_NORMAL
+- en: users can use a hardware wallet or use an offline wallet for the deployment.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In both cases, the private keys are kept in separate devices, and only
+  prefs: []
+  type: TYPE_NORMAL
+- en: signed transactions are copied to the online system to be sent out to the
+  prefs: []
+  type: TYPE_NORMAL
+- en: blockchain. Since a private key will never leave a dedicated device without
+  prefs: []
+  type: TYPE_NORMAL
+- en: network communication, it is completely secure unless the device is
+  prefs: []
+  type: TYPE_NORMAL
+- en: physically tempered.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Security Impact of Quantum Computing**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The security impact of quantum computing has been a major concern of
+  prefs: []
+  type: TYPE_NORMAL
+- en: the blockchain community. People worry if the supremacy of quantum
+  prefs: []
+  type: TYPE_NORMAL
+- en: computing will nullify blockchain advantages and bring cryptocurrency
+  prefs: []
+  type: TYPE_NORMAL
+- en: value to zero. Quantum computing is a revolutionary technology that
+  prefs: []
+  type: TYPE_NORMAL
+- en: takes advantage of quantum physics’ amazing principles and phenomena
+  prefs: []
+  type: TYPE_NORMAL
+- en: such as superposition, entanglement, and measurement uncertainty. In
+  prefs: []
+  type: TYPE_NORMAL
+- en: quantum computing, a qubit is used to represent the “0” and “1” state of
+  prefs: []
+  type: TYPE_NORMAL
+- en: a quantum system, similar to bits in conventional computing. Multiple
+  prefs: []
+  type: TYPE_NORMAL
+- en: qubits can be built into a register to become a compute and storage unit
+  prefs: []
+  type: TYPE_NORMAL
+- en: for quantum computing. Quantum computing provides much higher
+  prefs: []
+  type: TYPE_NORMAL
+- en: computing power and is going to impact blockchain in the following areas.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The hashing algorithm of sha-256 or sha-3 will no longer be valid. A
+  prefs: []
+  type: TYPE_NORMAL
+- en: hashing algorithm is a one-way function that takes in an input string and
+  prefs: []
+  type: TYPE_NORMAL
+- en: produces a fixed length output string. One important requirement for
+  prefs: []
+  type: TYPE_NORMAL
+- en: hashing is that different inputs should generate different outputs. Also,
+  prefs: []
+  type: TYPE_NORMAL
+- en: '336'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](index-348_1.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: Chapter 8 SeCurity ConSiderationS
+  prefs: []
+  type: TYPE_NORMAL
+- en: there should not exist a way to reversely compute an input from its hash
+  prefs: []
+  type: TYPE_NORMAL
+- en: value. With quantum computing, these rules will be broken, and any
+  prefs: []
+  type: TYPE_NORMAL
+- en: system that relies on hashing such as SHA256 will need to be overhauled.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The asymmetric public key–private key signature algorithm such as
+  prefs: []
+  type: TYPE_NORMAL
+- en: ECDSA or DSA that uses elliptic curve cryptography will no longer be
+  prefs: []
+  type: TYPE_NORMAL
+- en: secure. Quantum computing can compute private keys from public keys or
+  prefs: []
+  type: TYPE_NORMAL
+- en: break a signed message from a private key.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The impact of quantum computing on cryptography will in turn
+  prefs: []
+  type: TYPE_NORMAL
+- en: impact the security of blockchain in areas as shown in Figure [8-3](#p348).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Figure 8-3\.** Impact of quantum computing on blockchain security*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The fundamental immutability of blockchain will be impacted. Blocks
+  prefs: []
+  type: TYPE_NORMAL
+- en: in blockchains are uniquely identified by their block hashes. If hashes
+  prefs: []
+  type: TYPE_NORMAL
+- en: are no longer secure and can be manipulated with quantum computing,
+  prefs: []
+  type: TYPE_NORMAL
+- en: then blockchain can be altered with data changed inside but still keeps its
+  prefs: []
+  type: TYPE_NORMAL
+- en: hashes on the chain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The crypto assets are no longer secure because the private keys that
+  prefs: []
+  type: TYPE_NORMAL
+- en: control asset accounts can be hacked with a quantum computer.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The P2P network layer communication will no longer be secure.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Ethereum uses secp255k1 for nodeKey and nodeId generation. As
+  prefs: []
+  type: TYPE_NORMAL
+- en: secp256k1 will no longer be secure, the client node identification and
+  prefs: []
+  type: TYPE_NORMAL
+- en: communication mechanism will need to be changed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The smart contract of Ethereum blockchain is no longer valid because
+  prefs: []
+  type: TYPE_NORMAL
+- en: the owner of the smart contract can be hacked as well.
+  prefs: []
+  type: TYPE_NORMAL
+- en: All transactions signed with private keys with ECDSA and SECP256 are
+  prefs: []
+  type: TYPE_NORMAL
+- en: no longer valid, and new algorithms will need to be used.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '337'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 8 SeCurity ConSiderationS
+  prefs: []
+  type: TYPE_NORMAL
+- en: Even the proof-of-work (POW) consensus will be impacted. The POW
+  prefs: []
+  type: TYPE_NORMAL
+- en: is based on computing a matching hash to validate a miner who proposes
+  prefs: []
+  type: TYPE_NORMAL
+- en: a block. With quantum computing, the computation is so fast, and those
+  prefs: []
+  type: TYPE_NORMAL
+- en: with quantum computing power will build the longest chain, hence
+  prefs: []
+  type: TYPE_NORMAL
+- en: breaking the 51% computing power role.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To mitigate quantum computing supremacy, there are several key
+  prefs: []
+  type: TYPE_NORMAL
+- en: items to consider.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Firstly, Ethereum 2 is moving from POW to POS (proof of stake). This
+  prefs: []
+  type: TYPE_NORMAL
+- en: will mitigate the impact of quantum computing on consensus.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Secondly, there are quantum-resistant signature schemes developed
+  prefs: []
+  type: TYPE_NORMAL
+- en: already, including Lamport, XMSS, and SPHINCS.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Thirdly, the security compact of quantum computing is not just
+  prefs: []
+  type: TYPE_NORMAL
+- en: on blockchain, it is on all cryptography and network computing. The
+  prefs: []
+  type: TYPE_NORMAL
+- en: quantum solutions worked out in the general field can be ported to
+  prefs: []
+  type: TYPE_NORMAL
+- en: blockchain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Fourthly, the solution for the impact of quantum computing on
+  prefs: []
+  type: TYPE_NORMAL
+- en: blockchain security might go beyond the technology side of blockchain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There might be some legal regulations to prohibit using quantum
+  prefs: []
+  type: TYPE_NORMAL
+- en: computing power to hack information and blockchain systems. Similar
+  prefs: []
+  type: TYPE_NORMAL
+- en: to the nuclear nonproliferation policy, there might be some restriction on
+  prefs: []
+  type: TYPE_NORMAL
+- en: quantum devices released to the public domain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It is very important to follow the development of quantum computing
+  prefs: []
+  type: TYPE_NORMAL
+- en: and stay on top of the mitigation plans and get ready to make critical
+  prefs: []
+  type: TYPE_NORMAL
+- en: decisions. With IBM on the way to release 1000 qubit devices and Google
+  prefs: []
+  type: TYPE_NORMAL
+- en: making the leap jump on quantum computing, it is inevitable that
+  prefs: []
+  type: TYPE_NORMAL
+- en: computing will challenge and threaten the security of blockchain. It is
+  prefs: []
+  type: TYPE_NORMAL
+- en: highly recommended to learn about quantum computing technology
+  prefs: []
+  type: TYPE_NORMAL
+- en: and get ready to accept quantum-resistant technology for Ethereum
+  prefs: []
+  type: TYPE_NORMAL
+- en: blockchain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '338'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 8 SeCurity ConSiderationS
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Summary**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In summary, we just cannot overemphasize the importance of security
+  prefs: []
+  type: TYPE_NORMAL
+- en: in blockchains. Security breaches and bad things have happened in the
+  prefs: []
+  type: TYPE_NORMAL
+- en: past, are happening now, and will happen in the future. So when you write
+  prefs: []
+  type: TYPE_NORMAL
+- en: Solidity smart contracts, make sure the security procedures are followed;
+  prefs: []
+  type: TYPE_NORMAL
+- en: always go above and beyond to let the community test the smart contracts
+  prefs: []
+  type: TYPE_NORMAL
+- en: out before rolling them out to the blockchain mainnet.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '339'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**CHAPTER 9**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Layer 2 and**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Ethereum 2**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Problem with Ethereum Mainnet**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Ethereum mainnet is designed as a public blockchain rather than an
+  prefs: []
+  type: TYPE_NORMAL
+- en: Enterprise platform; hence, it lacks privacy, performance, scaling, and
+  prefs: []
+  type: TYPE_NORMAL
+- en: permissioning capacities.
+  prefs: []
+  type: TYPE_NORMAL
+- en: With regard to privacy, Ethereum mainnet stores all data in a
+  prefs: []
+  type: TYPE_NORMAL
+- en: permissionless fashion, and everyone has access to the data. All sensitive
+  prefs: []
+  type: TYPE_NORMAL
+- en: data will need to be encrypted before being sent to the blockchain,
+  prefs: []
+  type: TYPE_NORMAL
+- en: and transactions need to be obfuscated through smart contracts. Some
+  prefs: []
+  type: TYPE_NORMAL
+- en: institutes and states will not allow certain categories of data to be
+  prefs: []
+  type: TYPE_NORMAL
+- en: published to the public blockchain. Thus, the use of the public mainnet is
+  prefs: []
+  type: TYPE_NORMAL
+- en: limited to storing hashes or URLs of data resources. The original data are
+  prefs: []
+  type: TYPE_NORMAL
+- en: stored in private blockchains or nodes, and verified through public chains
+  prefs: []
+  type: TYPE_NORMAL
+- en: and channels.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For performance and scalability, Ethereum mainnet has already
+  prefs: []
+  type: TYPE_NORMAL
+- en: hit a bottleneck. The release of CryptoKitties has caused congestion in
+  prefs: []
+  type: TYPE_NORMAL
+- en: the Ethereum blockchain. Transaction fees have reached over $100 per
+  prefs: []
+  type: TYPE_NORMAL
+- en: transaction and hence limit feasible transactions to high-value and
+  prefs: []
+  type: TYPE_NORMAL
+- en: low- frequency applications. In order to speed up transactions, sometimes,
+  prefs: []
+  type: TYPE_NORMAL
+- en: © Weijia Zhang and Tej Anand 2022
+  prefs: []
+  type: TYPE_NORMAL
+- en: '341'
+  prefs: []
+  type: TYPE_NORMAL
+- en: W. Zhang and T. Anand, *Blockchain and Ethereum Smart Contract Solution Development*,
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[https://doi.org/10.1007/978-1-4842-8164-2_9](https://doi.org/10.1007/978-1-4842-8164-2_9#DOI)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](index-352_1.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: Chapter 9 Layer 2 and ethereum 2
+  prefs: []
+  type: TYPE_NORMAL
+- en: users have to set high gas prices to increase the chance for their
+  prefs: []
+  type: TYPE_NORMAL
+- en: transactions to be included by miners to their proposed blocks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For permissioning, public blockchains are designed as permissionless,
+  prefs: []
+  type: TYPE_NORMAL
+- en: but there are use cases where applications do want to have access control
+  prefs: []
+  type: TYPE_NORMAL
+- en: due to security and regulation considerations. The “public” nature of
+  prefs: []
+  type: TYPE_NORMAL
+- en: Ethereum mainnet deters some uses such as certificate issuance and
+  prefs: []
+  type: TYPE_NORMAL
+- en: personnel database.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To solve the issues in Ethereum mainnet, many Ethereum
+  prefs: []
+  type: TYPE_NORMAL
+- en: Improvement Proposals and solutions have been proposed, including
+  prefs: []
+  type: TYPE_NORMAL
+- en: layer 2 and Ethereum 2\. In this chapter, we discuss new scalability
+  prefs: []
+  type: TYPE_NORMAL
+- en: technologies for Ethereum, including layer 2 and Ethereum 2\. The
+  prefs: []
+  type: TYPE_NORMAL
+- en: following illustration (Figur[e 9-1) sho](#p352)ws the classification of scalability
+    solutions of Ethereum, and they are explained in detail in their respective
+  prefs: []
+  type: TYPE_NORMAL
+- en: sections.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Figure 9-1\.** Overview of scalability solutions for Ethereum*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*blockchain*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '342'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 9 Layer 2 and ethereum 2
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Layer 2 Technology**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Layer 2 is a suite of technologies to improve the performance and
+  prefs: []
+  type: TYPE_NORMAL
+- en: scalability of Ethereum layer 1 mainnet by moving the computing and
+  prefs: []
+  type: TYPE_NORMAL
+- en: storage of transactions from onchain to offchain through smart contracts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Onchain transactions require running EVM on all nodes and storing
+  prefs: []
+  type: TYPE_NORMAL
+- en: all states on Ethereum blockchain, hence decreasing performance and
+  prefs: []
+  type: TYPE_NORMAL
+- en: scalability. The mechanism for the layer 2 solution is to move some of the
+  prefs: []
+  type: TYPE_NORMAL
+- en: transactions off the main chain and only record the vital information on
+  prefs: []
+  type: TYPE_NORMAL
+- en: the mainnet to ensure security and transparency. One major difference
+  prefs: []
+  type: TYPE_NORMAL
+- en: between layer 2 and Ethereum 2 is that layer 2 uses smart contracts to
+  prefs: []
+  type: TYPE_NORMAL
+- en: connect offchain resources to the mainnet and thus does not require
+  prefs: []
+  type: TYPE_NORMAL
+- en: the mainnet blockchain to have a hard fork. Layer 2 solutions can be
+  prefs: []
+  type: TYPE_NORMAL
+- en: implemented by third-party projects using the existing Ethereum mainnet.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are several L2 mechanisms that are available, including state
+  prefs: []
+  type: TYPE_NORMAL
+- en: channel, plasma, and rollup; each has its own unique features.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Ethereum State Channel**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: State channel is one of the layer 2 solutions that allow two or more
+  prefs: []
+  type: TYPE_NORMAL
+- en: participants to send transactions among themselves offline and only
+  prefs: []
+  type: TYPE_NORMAL
+- en: send the beginning and final transactions of the state channel cycle to
+  prefs: []
+  type: TYPE_NORMAL
+- en: the mainnet blockchain. This way, mainnet is used as an escrow and
+  prefs: []
+  type: TYPE_NORMAL
+- en: auditing platform for the trusted channel between two or multiple parties.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, a state channel can be built as a proof of authority (POA)
+  prefs: []
+  type: TYPE_NORMAL
+- en: or Byzantine Fault Tolerance private blockchain that is permissioned
+  prefs: []
+  type: TYPE_NORMAL
+- en: for the participants only. To make it simpler, the private blockchain
+  prefs: []
+  type: TYPE_NORMAL
+- en: can be replaced with a smart wallet that can connect with other wallets
+  prefs: []
+  type: TYPE_NORMAL
+- en: and record the transactions among them. Participants use the private
+  prefs: []
+  type: TYPE_NORMAL
+- en: blockchain or smart wallet as a state channel to do fast and low cost
+  prefs: []
+  type: TYPE_NORMAL
+- en: transactions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '343'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](index-354_1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Chapter 9 Layer 2 and ethereum 2
+  prefs: []
+  type: TYPE_NORMAL
+- en: To illustrate a use case of a state channel, we use a payment system of
+  prefs: []
+  type: TYPE_NORMAL
+- en: a construction company in which the builder needs to record contracting
+  prefs: []
+  type: TYPE_NORMAL
+- en: employees earning on daily bases and pay them on a monthly basis. If the
+  prefs: []
+  type: TYPE_NORMAL
+- en: daily transactions are recorded on the blockchain, that would increase
+  prefs: []
+  type: TYPE_NORMAL
+- en: transaction fees dramatically as the cost for gas fees could reach $100 per
+  prefs: []
+  type: TYPE_NORMAL
+- en: transaction. Using the state channel, the owner of the company can pay
+  prefs: []
+  type: TYPE_NORMAL
+- en: daily transactions with the state channel and only pay employees the lump
+  prefs: []
+  type: TYPE_NORMAL
+- en: sum each month. This will save the cost at roughly 1/30 of the original cost.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The topology and workflow of a state channel is shown in the following
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'diagram (Figure [9-2](#p354)):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Figure 9-2\.** Topology and workflow of state channel solutions*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The preceding diagram shows the schema of a state channel that has
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'the following components:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: • State channel smart contract is deployed to the
+  prefs: []
+  type: TYPE_NORMAL
+- en: mainnet.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This smart contract is multisigned, and not a single user can alter or
+  prefs: []
+  type: TYPE_NORMAL
+- en: delete the smart contract.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '344'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 9 Layer 2 and ethereum 2
+  prefs: []
+  type: TYPE_NORMAL
+- en: The state channel smart contract can accept deposits for users and
+  prefs: []
+  type: TYPE_NORMAL
+- en: create a state channel for a group of users. The depositor needs to specify
+  prefs: []
+  type: TYPE_NORMAL
+- en: the participants’ account addresses.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The state channel smart contract also has functions to (a) process
+  prefs: []
+  type: TYPE_NORMAL
+- en: multisign signatures and distribute funds to participants and (b) process
+  prefs: []
+  type: TYPE_NORMAL
+- en: audit requests from any of the participants by accepting evidence sent by
+  prefs: []
+  type: TYPE_NORMAL
+- en: any participants.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Each user can have a state channel wallet (SC wallet).
+  prefs: []
+  type: TYPE_NORMAL
+- en: The wallet can interact among participants by sending transactions,
+  prefs: []
+  type: TYPE_NORMAL
+- en: requesting receipts, or multisigning a transaction for the main chain. The
+  prefs: []
+  type: TYPE_NORMAL
+- en: wallet also has storage to store local copies of the transaction history and
+  prefs: []
+  type: TYPE_NORMAL
+- en: receipts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The workflow is as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: • A payer uses a crypto wallet to deposit ether assets
+  prefs: []
+  type: TYPE_NORMAL
+- en: to the state channel smart contract and specify the
+  prefs: []
+  type: TYPE_NORMAL
+- en: payees’ accounts who will receive payments.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • The smart contract creates a record and returns a
+  prefs: []
+  type: TYPE_NORMAL
+- en: deposit record with balance and payee addresses.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The payee addresses are also recorded by the smart
+  prefs: []
+  type: TYPE_NORMAL
+- en: contract to process claims or audit requests.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • The payer gets the deposit receipt and starts sending
+  prefs: []
+  type: TYPE_NORMAL
+- en: payments through offchain signed transaction to
+  prefs: []
+  type: TYPE_NORMAL
+- en: payees. For each transaction, the state channel wallet
+  prefs: []
+  type: TYPE_NORMAL
+- en: will update the account balance offchain and have
+  prefs: []
+  type: TYPE_NORMAL
+- en: signed receipt for both sender and receiver. These
+  prefs: []
+  type: TYPE_NORMAL
+- en: transactions are offchain and hence have a low
+  prefs: []
+  type: TYPE_NORMAL
+- en: transaction fee or even no fee.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '345'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 9 Layer 2 and ethereum 2
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Once the operation of the state channel is completed,
+  prefs: []
+  type: TYPE_NORMAL
+- en: the offchain transactions will need to be transferred
+  prefs: []
+  type: TYPE_NORMAL
+- en: to the mainnet, and each participant’s balance will
+  prefs: []
+  type: TYPE_NORMAL
+- en: need to be updated. Each participant will check the
+  prefs: []
+  type: TYPE_NORMAL
+- en: local copy of their transaction receipt and sign the exit
+  prefs: []
+  type: TYPE_NORMAL
+- en: state channel transaction. Once the exit transaction
+  prefs: []
+  type: TYPE_NORMAL
+- en: is multisigned by all parties, it is sent to the mainnet
+  prefs: []
+  type: TYPE_NORMAL
+- en: state channel smart contract for processing. The
+  prefs: []
+  type: TYPE_NORMAL
+- en: mainnet smart contract will verify the information
+  prefs: []
+  type: TYPE_NORMAL
+- en: and then distribute the deposited funds to respective
+  prefs: []
+  type: TYPE_NORMAL
+- en: participants.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • If any of the participants does not sign the transaction,
+  prefs: []
+  type: TYPE_NORMAL
+- en: the other participants can send a transaction to call the
+  prefs: []
+  type: TYPE_NORMAL
+- en: smart contract’s claim or audit function and provide
+  prefs: []
+  type: TYPE_NORMAL
+- en: the needed local receipt as proof. If the state channel
+  prefs: []
+  type: TYPE_NORMAL
+- en: smart contract verifies the payer frauds, the deposited
+  prefs: []
+  type: TYPE_NORMAL
+- en: balance of the payer can be slashed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are different implementations for layer 2 state channel solutions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the aforementioned, we have offchain computing and storage built into
+  prefs: []
+  type: TYPE_NORMAL
+- en: the state channel wallet. This will increase the footprint of the wallet and
+  prefs: []
+  type: TYPE_NORMAL
+- en: need to customize the crypto wallet. Another solution is to implement
+  prefs: []
+  type: TYPE_NORMAL
+- en: the state channel offchain computing through a private blockchain using
+  prefs: []
+  type: TYPE_NORMAL
+- en: permissioned consensus such as proof of authority (POA) or Byzantine
+  prefs: []
+  type: TYPE_NORMAL
+- en: Fault Tolerance (BFT) blockchain. The private blockchain can process
+  prefs: []
+  type: TYPE_NORMAL
+- en: and record transactions among state channel participants. Only the entry
+  prefs: []
+  type: TYPE_NORMAL
+- en: and exit transactions of the state channel will be sent to mainnet for
+  prefs: []
+  type: TYPE_NORMAL
+- en: security and persistent record. The wallet can be a regular wallet such as a
+  prefs: []
+  type: TYPE_NORMAL
+- en: MetaMask wallet that can switch from mainnet chain to private chain for
+  prefs: []
+  type: TYPE_NORMAL
+- en: state channel transactions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '346'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 9 Layer 2 and ethereum 2
+  prefs: []
+  type: TYPE_NORMAL
+- en: Although state channels can improve scalability for Ethereum
+  prefs: []
+  type: TYPE_NORMAL
+- en: by moving transactions offchain, there are some limitations for this
+  prefs: []
+  type: TYPE_NORMAL
+- en: mechanism. First, state channel participants need to actively participate
+  prefs: []
+  type: TYPE_NORMAL
+- en: in the transactions. Their accounts will need to be registered in the state
+  prefs: []
+  type: TYPE_NORMAL
+- en: channel smart contract. A sender cannot send transactions to an arbitrary
+  prefs: []
+  type: TYPE_NORMAL
+- en: address not in the channel. Secondly, all state channel participants will
+  prefs: []
+  type: TYPE_NORMAL
+- en: need to be actively involved in the transactions by verifying transactions
+  prefs: []
+  type: TYPE_NORMAL
+- en: and multisign exit transactions. Thirdly, since the mainnet only has the
+  prefs: []
+  type: TYPE_NORMAL
+- en: initial state and final state, it will need to rely on the offchain participants
+  prefs: []
+  type: TYPE_NORMAL
+- en: to provide proof if there are discrepancies with the state channel
+  prefs: []
+  type: TYPE_NORMAL
+- en: transactions. Needing participants to be involved to secure state channels
+  prefs: []
+  type: TYPE_NORMAL
+- en: is a big drawback and makes it difficult to develop a generalized solution
+  prefs: []
+  type: TYPE_NORMAL
+- en: for state channels.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Plasma As a Layer 2 Technology**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Ethereum Plasma is another layer 2 scaling solution that uses smart
+  prefs: []
+  type: TYPE_NORMAL
+- en: contracts to link external blockchains with Ethereum mainnet as a security
+  prefs: []
+  type: TYPE_NORMAL
+- en: and arbitration platform. These children blockchains are called plasma
+  prefs: []
+  type: TYPE_NORMAL
+- en: chains, and their blockchain transaction records are merkelized, and the
+  prefs: []
+  type: TYPE_NORMAL
+- en: roots of the Merkle tree are sent to mainnet to be stored as proofs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The preceding diagram (Figure [9-3](index_split_006.html#p358)) shows the components
+    and
+  prefs: []
+  type: TYPE_NORMAL
+- en: workflow of plasma blockchain working as a layer 2 solution.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '347'
+  prefs: []
+  type: TYPE_NORMAL
