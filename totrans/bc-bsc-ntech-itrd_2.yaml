@@ -1,0 +1,5696 @@
+- en: The Process of Creating A New Block
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Creating a new block involves the following steps:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 1\. Get the root of the Merkle tree that contains the trans-
+  prefs: []
+  type: TYPE_NORMAL
+- en: action data to be added.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 2\. Create a hash reference to the header of that block that
+  prefs: []
+  type: TYPE_NORMAL
+- en: will be the predecessor from the new block header’s
+  prefs: []
+  type: TYPE_NORMAL
+- en: point of view.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3\. Obtain the required difficulty level.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 2Okupski, Krzysztof. Bitcoin developer reference. Working paper. 2014\.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](index-141_1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '140'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Step 16 | Protecting the Data Store***'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 4\. Get the current time.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 5\. Create a preliminary block header that contains the data
+  prefs: []
+  type: TYPE_NORMAL
+- en: mentioned in points 1 to 4\.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 6\. Solve the hash puzzle for the preliminary block header.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 7\. Finish the new block by adding the nonce that solves the
+  prefs: []
+  type: TYPE_NORMAL
+- en: hash puzzle to the preliminary header.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure [16-1 illustrates the hash puzzle that needs to be solv](index_split_002.html#141)ed
+    when adding a new block to the blockchain-data-structure. It shows the data of
+    the block
+  prefs: []
+  type: TYPE_NORMAL
+- en: header whose hash value has to fulfill the given restriction or difficulty level,
+    respectively. Note that the difficulty level is part of the block header and
+  prefs: []
+  type: TYPE_NORMAL
+- en: hence is also part of the block’s hash value. This ensures that no one can
+  prefs: []
+  type: TYPE_NORMAL
+- en: bypass the computational costs of the hash puzzle by arbitrarily reducing the
+  prefs: []
+  type: TYPE_NORMAL
+- en: difficulty level.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Figure 16-1\.** Schematic illustration of the hash puzzle required to be
+    solved when adding a new block to the blockchain-data-structure'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Validation Rules
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Every block header of has to fulfill the following rules:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 1\. It must contain a valid hash reference to a previous block.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 2\. It must contain a valid root of a Merkle tree containing
+  prefs: []
+  type: TYPE_NORMAL
+- en: transaction data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Blockchain Basics***'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '141'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3\. It must contain a correct difficulty level.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 4\. Its time stamp is after the time stamp of its preceding
+  prefs: []
+  type: TYPE_NORMAL
+- en: block header.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 5\. It must contain a nonce.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 6\. The hash value of all the five pieces of data combined
+  prefs: []
+  type: TYPE_NORMAL
+- en: together fulfills the difficulty level.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The validation rules ensure that only those blocks are added to the block-
+  prefs: []
+  type: TYPE_NORMAL
+- en: chain-data-structure for which the hash puzzle was solved and the computational
+  prefs: []
+  type: TYPE_NORMAL
+- en: costs were paid. Rule 4 ensures that the blocks and the transaction data are
+  prefs: []
+  type: TYPE_NORMAL
+- en: indeed ordered according to the time being added.
+  prefs: []
+  type: TYPE_NORMAL
+- en: ■ **Note** The activity of adding a new block to the blockchain-data-structure
+    by solving a hash puzzle is also called mining or block mining.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Why It Works
+  prefs: []
+  type: TYPE_NORMAL
+- en: The blockchain-data-structure makes any change of its data stand out due
+  prefs: []
+  type: TYPE_NORMAL
+- en: to the fragility of the hash references with respect to changes of the data
+  prefs: []
+  type: TYPE_NORMAL
+- en: being referred. This causes the need to rewrite all blocks that are affected
+  prefs: []
+  type: TYPE_NORMAL
+- en: by a manipulation. The hash puzzle causes costs for every block that needs
+  prefs: []
+  type: TYPE_NORMAL
+- en: to be rewritten in the course of embedding a manipulation. The accumulated
+  prefs: []
+  type: TYPE_NORMAL
+- en: costs of rewriting the blockchain-data-structure in the course of embedding
+    a
+  prefs: []
+  type: TYPE_NORMAL
+- en: manipulation make it unattractive to manipulate the transaction history in the
+  prefs: []
+  type: TYPE_NORMAL
+- en: first place. As a result, the blockchain-data-structure becomes an immutable
+  prefs: []
+  type: TYPE_NORMAL
+- en: append-only data store.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Costs of Manipulating the Blockchain-
+  prefs: []
+  type: TYPE_NORMAL
+- en: Data-Structure
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s assume we were going to try to manipulate a particular piece of transac-
+  prefs: []
+  type: TYPE_NORMAL
+- en: tion data that is part of a Merkle tree whose root belongs to a block header
+  prefs: []
+  type: TYPE_NORMAL
+- en: located 20 blocks below the current head of the blockchain-data-structure.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Embedding the manipulated transaction data requires the following work:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 1\. Rewrite the Merkle tree to which the manipulated trans-
+  prefs: []
+  type: TYPE_NORMAL
+- en: action belongs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 2\. Rewrite the block header to which the root of the rewrit-
+  prefs: []
+  type: TYPE_NORMAL
+- en: ten Merkle tree belongs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '142'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Step 16 | Protecting the Data Store***'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3\. Rewrite all succeeding block headers up to the head of
+  prefs: []
+  type: TYPE_NORMAL
+- en: the blockchain-data-structure.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Point 2 requires the solution of a hash puzzle because changing the Merkle
+  prefs: []
+  type: TYPE_NORMAL
+- en: root changes the hash value of the block header and hence the solution of its
+  prefs: []
+  type: TYPE_NORMAL
+- en: hash puzzle. Point 3 requires solving 20 hash puzzles due to successive changes
+  prefs: []
+  type: TYPE_NORMAL
+- en: of the hash references to the previous block header. Under the assumption
+  prefs: []
+  type: TYPE_NORMAL
+- en: that solving a hash puzzle takes on average 10 minutes, we would need in total
+  prefs: []
+  type: TYPE_NORMAL
+- en: 210 minutes to embed a manipulation in a transaction that belongs to a block
+  prefs: []
+  type: TYPE_NORMAL
+- en: header located 20 blocks below the current head. These huge costs deter
+  prefs: []
+  type: TYPE_NORMAL
+- en: nodes from changing the blockchain-data-structure.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Immutable Data Store in the Real World
+  prefs: []
+  type: TYPE_NORMAL
+- en: The immutability of the blockchain-data-structure depends on the computational
+  prefs: []
+  type: TYPE_NORMAL
+- en: costs induced by the hash puzzle. The difficulty of the hash puzzles determines
+  prefs: []
+  type: TYPE_NORMAL
+- en: how much computational effort and hence how much time is needed to solve
+  prefs: []
+  type: TYPE_NORMAL
+- en: them, which in turn determines the immutability of the blockchain-data-
+  prefs: []
+  type: TYPE_NORMAL
+- en: structure. If the difficulty is too low, the computational costs of changing
+  prefs: []
+  type: TYPE_NORMAL
+- en: the blockchain-data-structure will decline and may no longer be regarded as
+  prefs: []
+  type: TYPE_NORMAL
+- en: prohibitively high, which in turn may encourage nodes to manipulate the
+  prefs: []
+  type: TYPE_NORMAL
+- en: history of transaction data. On the other hand, if the difficulty is too high,
+    even the computational costs of adding a new block may be regarded as prohibitively
+    high, which in turn discourages nodes from adding new transaction data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Hence, a challenge in designing a blockchain is to determine the appropriate
+  prefs: []
+  type: TYPE_NORMAL
+- en: level of difficulty for the hash puzzles. This challenge is even more demanding
+    as computational power of computers changes due to technical advances. As a result,
+    the difficulty level may need to be determined dynamically.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Blockchain applications in the real world rarely utilize a constant difficulty
+  prefs: []
+  type: TYPE_NORMAL
+- en: level for all blocks. Instead they typically utilize a dynamic difficulty level
+    based on the speed at which new blocks are added. [3](index_split_002.html#143)
+    This ensures that the time needed to solve the hash puzzle stays at a level that
+    prevents nodes from
+  prefs: []
+  type: TYPE_NORMAL
+- en: manipulating the history of transaction data while the actual computational
+  prefs: []
+  type: TYPE_NORMAL
+- en: effort may increase.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3Okupski, Krzysztof. Bitcoin developer reference. Working paper. 2014; Wood,
+    Gavin.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Ethereum: A secure decentralized generalized transaction ledger. 2014\. [http://gavwood.](http://gavwood.com/paper.pdf)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[com/paper.pdf](http://gavwood.com/paper.pdf).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Blockchain Basics***'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '143'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Outlook
+  prefs: []
+  type: TYPE_NORMAL
+- en: This step explained that the blockchain prevents the history of transaction
+    data from being manipulated or forged by turning the blockchain-data-structure
+  prefs: []
+  type: TYPE_NORMAL
+- en: into an immutable append-only data store. The next step focuses on making
+  prefs: []
+  type: TYPE_NORMAL
+- en: that data store available to everyone in a distributed peer-to-peer system.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Summary
+  prefs: []
+  type: TYPE_NORMAL
+- en: • The blockchain protects the history of transaction data
+  prefs: []
+  type: TYPE_NORMAL
+- en: from manipulation and forgery by storing transaction
+  prefs: []
+  type: TYPE_NORMAL
+- en: data in an immutable data store.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • The history of a transaction is made immutable by utiliz-
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'ing two ideas:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Storing the transaction data in the change-sensitive
+  prefs: []
+  type: TYPE_NORMAL
+- en: blockchain-data-structure, which when being changed
+  prefs: []
+  type: TYPE_NORMAL
+- en: requires rewriting the data structure starting at the
+  prefs: []
+  type: TYPE_NORMAL
+- en: point that causes the change until the head of the
+  prefs: []
+  type: TYPE_NORMAL
+- en: whole chain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Requiring the solution of a hash puzzle for writing,
+  prefs: []
+  type: TYPE_NORMAL
+- en: rewriting, or adding every single block header in the
+  prefs: []
+  type: TYPE_NORMAL
+- en: blockchain-data-structure.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • The hash puzzle is unique for each block header because
+  prefs: []
+  type: TYPE_NORMAL
+- en: it depends on its unique content.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • The need to rewrite the blockchain-data-structure when it
+  prefs: []
+  type: TYPE_NORMAL
+- en: is changed and the costs of doing so make it unattractive to
+  prefs: []
+  type: TYPE_NORMAL
+- en: manipulate the history of transaction data in the first place.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Requiring the solution of a hash puzzle for every writing,
+  prefs: []
+  type: TYPE_NORMAL
+- en: rewriting or adding of block headers in the blockchain-data-
+  prefs: []
+  type: TYPE_NORMAL
+- en: structure turns is into an append-only data store.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '• A block header contains at least the following data:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: • A hash reference to the header of its preceding block
+  prefs: []
+  type: TYPE_NORMAL
+- en: • The root of a Merkle tree that contains transaction data
+  prefs: []
+  type: TYPE_NORMAL
+- en: • The difficulty of its hash puzzle
+  prefs: []
+  type: TYPE_NORMAL
+- en: • The time when solving the hash puzzle was started
+  prefs: []
+  type: TYPE_NORMAL
+- en: • The nonce that solves the hash puzzle
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**S T E P**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '17'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Distributing
+  prefs: []
+  type: TYPE_NORMAL
+- en: the Data Store
+  prefs: []
+  type: TYPE_NORMAL
+- en: Among Peers
+  prefs: []
+  type: TYPE_NORMAL
+- en: When computers gossip
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Step 16](http://dx.doi.org/10.1007/978-1-4842-2604-9_16) turned the blockchain-data-structure
+    into an immutable append-only data store, which can be used as a manipulation-resistant
+    ledger for transaction data. Having one immutable append-only history of transaction
+    data in'
+  prefs: []
+  type: TYPE_NORMAL
+- en: insolation may be of limited value for the goal of clarifying ownership based
+  prefs: []
+  type: TYPE_NORMAL
+- en: on a group of computers that acts as witnesses of ownership-related events.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Hence, this step focuses on establishing a purely distributed peer-to-peer sys-
+  prefs: []
+  type: TYPE_NORMAL
+- en: tem that allows sharing of information about transactions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Metaphor
+  prefs: []
+  type: TYPE_NORMAL
+- en: What is the best way to spread some personal news among all employees of
+  prefs: []
+  type: TYPE_NORMAL
+- en: a company if you do not have access to a global e-mail distribution list? One
+  prefs: []
+  type: TYPE_NORMAL
+- en: approach that guarantees that all employees will eventually receive the news
+  prefs: []
+  type: TYPE_NORMAL
+- en: is to share it with one or two well-connected and chatty colleagues and ask
+  prefs: []
+  type: TYPE_NORMAL
+- en: © Daniel Drescher 2017
+  prefs: []
+  type: TYPE_NORMAL
+- en: D. Drescher, *Blockchain Basics*, DOI 10.1007/978-1-4842-2604-9_17
+  prefs: []
+  type: TYPE_NORMAL
+- en: '146'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Step 17 | Distributing the Data Store Among Peers***'
+  prefs: []
+  type: TYPE_NORMAL
+- en: them to keep the news a secret. This approach works out because there is
+  prefs: []
+  type: TYPE_NORMAL
+- en: almost no other information that is more quickly exchanged among colleagues
+  prefs: []
+  type: TYPE_NORMAL
+- en: than personal news that is shared under conditions of confidentiality. The rea-
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'son for this fact is quite simple: Human beings are social creatures who have
+    a'
+  prefs: []
+  type: TYPE_NORMAL
+- en: genuine interest in their peers, and sharing information about others is a usual
+    behavioral pattern for renewing or strengthening social connections. This step
+  prefs: []
+  type: TYPE_NORMAL
+- en: considers an aspect of the blockchain that may portray peer-to-peer systems
+  prefs: []
+  type: TYPE_NORMAL
+- en: in a different and almost human light. The aspect that is discussed in this
+    step is the exchange of information among computers by means of communication.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Goal
+  prefs: []
+  type: TYPE_NORMAL
+- en: The blockchain is a purely distributed peer-to-peer system for managing own-
+  prefs: []
+  type: TYPE_NORMAL
+- en: ership. It consists of individual computers that maintain their own version
+    of
+  prefs: []
+  type: TYPE_NORMAL
+- en: an immutable ledger that stores the whole history of transaction data. Hence,
+  prefs: []
+  type: TYPE_NORMAL
+- en: the individual computers are equivalent to witnesses who can testify whether
+  prefs: []
+  type: TYPE_NORMAL
+- en: a certain transaction has happened according to their own memories. But
+  prefs: []
+  type: TYPE_NORMAL
+- en: how do the individual computers observe or learn about transactions in the
+  prefs: []
+  type: TYPE_NORMAL
+- en: first place? Hence, the major goal of this step is to ensure that the individual
+    computers that make up the peer-to-peer system get informed about transactions
+    and are able to maintain their own history of transaction data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Challenge
+  prefs: []
+  type: TYPE_NORMAL
+- en: A purely distributed peer-to-peer system does not have any central point of
+  prefs: []
+  type: TYPE_NORMAL
+- en: coordination or control. Hence, there is no central component that spreads
+  prefs: []
+  type: TYPE_NORMAL
+- en: information to all computers that make up the system. The existence of such
+  prefs: []
+  type: TYPE_NORMAL
+- en: a central information point would be a contradiction in terms. In addition,
+  prefs: []
+  type: TYPE_NORMAL
+- en: the distribution of information can fail due to technical problems. Hence, the
+  prefs: []
+  type: TYPE_NORMAL
+- en: challenge is to have all nodes of the system receiving information of all
+  prefs: []
+  type: TYPE_NORMAL
+- en: transactions without falling back to a central component.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Idea
+  prefs: []
+  type: TYPE_NORMAL
+- en: The idea is to let the computers that make up the peer-to-peer system share
+  prefs: []
+  type: TYPE_NORMAL
+- en: and exchange information in the same fashion as humans share news. If the
+  prefs: []
+  type: TYPE_NORMAL
+- en: nodes of the peer-to-peer system forward information to their peer nodes,
+  prefs: []
+  type: TYPE_NORMAL
+- en: which in turn forward the information to their peers, then eventually all nodes
+  prefs: []
+  type: TYPE_NORMAL
+- en: in the system will receive the information.
+  prefs: []
+  type: TYPE_NORMAL
+- en: On a more detailed level, the peer-to-peer system will mimic the way in which
+  prefs: []
+  type: TYPE_NORMAL
+- en: groups of humans, such as employees of a company, groups of friends, or the
+  prefs: []
+  type: TYPE_NORMAL
+- en: members of a sports club, communicate with one another. In a nutshell, the
+  prefs: []
+  type: TYPE_NORMAL
+- en: members of these groups are engaged in three different kinds of conversa-
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'tions that serve district purposes:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Blockchain Basics***'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '147'
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Small talk, which serves an important purpose from a
+  prefs: []
+  type: TYPE_NORMAL
+- en: social point of view as it keeps existing relationships alive
+  prefs: []
+  type: TYPE_NORMAL
+- en: but it does not contain any substantial information.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • News, comprising conversations in which substantial
+  prefs: []
+  type: TYPE_NORMAL
+- en: information is exchanged among the participants.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Introducing new peers, the kinds of conversations that are
+  prefs: []
+  type: TYPE_NORMAL
+- en: necessary to let new people join the existing group of friends
+  prefs: []
+  type: TYPE_NORMAL
+- en: or colleagues. Establishing a new relationship and accepting a
+  prefs: []
+  type: TYPE_NORMAL
+- en: new member to a group always require some form of initia-
+  prefs: []
+  type: TYPE_NORMAL
+- en: tion rite. This is the point where aspiring members are made
+  prefs: []
+  type: TYPE_NORMAL
+- en: familiar with the group’s history and their values and are
+  prefs: []
+  type: TYPE_NORMAL
+- en: introduced to prominent members of the group.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'How It Works: The Overvie[w1](index_split_002.html#147)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Peer-to-peer systems of computers are the digital equivalent to groups of
+  prefs: []
+  type: TYPE_NORMAL
+- en: people. The individual computers that make up the peer-to-peer system also
+  prefs: []
+  type: TYPE_NORMAL
+- en: have small talk, exchange news, and accept new members through an initiation
+  prefs: []
+  type: TYPE_NORMAL
+- en: rite. These interactions are an integral part of any peer-to-peer system. Similar
+    to human beings who communicate with one another via the medium of spo-ken words,
+    computers in a distributed peer-to-peer system communicate via a
+  prefs: []
+  type: TYPE_NORMAL
+- en: digital network. The largest network that connects a huge number of comput-
+  prefs: []
+  type: TYPE_NORMAL
+- en: ers is the Internet. Hence, the least expensive way to construct a peer-to-peer
+  prefs: []
+  type: TYPE_NORMAL
+- en: system is to let the nodes communicate with one another over the Internet.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Hence, the distributed peer-to-peer system utilizing the Internet as a medium
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'of communication is characterized by the following facts:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Each computer is connected with the system through the
+  prefs: []
+  type: TYPE_NORMAL
+- en: Internet.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Each computer is identified by a unique address.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Each computer can disconnect and reconnect with the
+  prefs: []
+  type: TYPE_NORMAL
+- en: system at any given time.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Each computer independently maintains a list of peers it
+  prefs: []
+  type: TYPE_NORMAL
+- en: communicates with.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Communication between nodes is based on messages.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Messages are sent from one node to another over the
+  prefs: []
+  type: TYPE_NORMAL
+- en: Internet by using their unique Internet addresses.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '1Tanenbaum, Andrew S., and Maarten Van Steen. *Distributed systems: principles
+    and paradigms* (2nd ed.). Upper Saddle River, NJ: Pearson Prentice Hall, 2007;
+    Tanenbaum, Andrew S., and David J. Wetherall. *Computer networks* (5th ed.). Upper
+    Saddle River, NJ: Prentice Hall, 2010\.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '148'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Step 17 | Distributing the Data Store Among Peers***'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The fact that the nodes communicate over a network and that they can dis-
+  prefs: []
+  type: TYPE_NORMAL
+- en: connect and reconnect at any time influences the delivery of messages. The
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'delivery of messages in such a network has the following characteristics:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Messages are not guaranteed to arrive at the addressees,
+  prefs: []
+  type: TYPE_NORMAL
+- en: they may get lost instead.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Messages may arrive more than once.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Messages may arrive in a different order than they were
+  prefs: []
+  type: TYPE_NORMAL
+- en: sent.
+  prefs: []
+  type: TYPE_NORMAL
+- en: These characteristics cause some hurdles in the communication, but they are
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'solved in the following ways:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Messages are sent in a gossip style. Every node that
+  prefs: []
+  type: TYPE_NORMAL
+- en: receives new information will forward it to the peers it
+  prefs: []
+  type: TYPE_NORMAL
+- en: communicates with, which in turn will handle the news
+  prefs: []
+  type: TYPE_NORMAL
+- en: in the same way. This ensures that eventually every node
+  prefs: []
+  type: TYPE_NORMAL
+- en: receives the news, even if some individual messages get
+  prefs: []
+  type: TYPE_NORMAL
+- en: lost.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Due to the fact that messages can be identified by their
+  prefs: []
+  type: TYPE_NORMAL
+- en: digital fingerprint or cryptographic hash value, nodes can
+  prefs: []
+  type: TYPE_NORMAL
+- en: identify duplicates easily and ignore them.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • The fact that transaction data as well as block headers
+  prefs: []
+  type: TYPE_NORMAL
+- en: contain time stamps allows the nodes to order them
+  prefs: []
+  type: TYPE_NORMAL
+- en: based on an objective criterion.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'How It Works: The Details'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The communication between the nodes that make up the distributed peer-to-
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'peer system has the following three purposes:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Keeping existing connections alive
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Establishing new connections
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Distributing new information
+  prefs: []
+  type: TYPE_NORMAL
+- en: The first two kinds of communication are mainly focused on the peer-to-peer
+  prefs: []
+  type: TYPE_NORMAL
+- en: system itself. They are concerned with keeping the network of peers together
+  prefs: []
+  type: TYPE_NORMAL
+- en: and doing some digital housekeeping. But the purpose of the peer-to-peer
+  prefs: []
+  type: TYPE_NORMAL
+- en: system is not keeping itself busy just for the sake of staying busy. Instead,
+  prefs: []
+  type: TYPE_NORMAL
+- en: the purpose of the peer-to-peer system is the management of ownership.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Hence, the third type of communication focuses on new transaction data and
+  prefs: []
+  type: TYPE_NORMAL
+- en: new blocks to be added to the blockchain-data-structure. This information is
+  prefs: []
+  type: TYPE_NORMAL
+- en: needed by every node of the system in order to maintain its own version of
+  prefs: []
+  type: TYPE_NORMAL
+- en: the transaction history.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Blockchain Basics***'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '149'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Keeping Existing Connections Alive
+  prefs: []
+  type: TYPE_NORMAL
+- en: Each computer in the network independently maintains a list of peers it com-
+  prefs: []
+  type: TYPE_NORMAL
+- en: municates with. This list contains only a subset of all nodes that make up the
+  prefs: []
+  type: TYPE_NORMAL
+- en: whole system. This is similar to employees who maintain social connections
+  prefs: []
+  type: TYPE_NORMAL
+- en: to some of their colleagues, comprising only a subgroup of all the employees
+  prefs: []
+  type: TYPE_NORMAL
+- en: of the same company. On a regular basis, each computer verifies that these
+  prefs: []
+  type: TYPE_NORMAL
+- en: peers are still available. This is done by sending peers a small message, often
+  prefs: []
+  type: TYPE_NORMAL
+- en: called ping, with the request to answer it with a message called pong. Peers
+  prefs: []
+  type: TYPE_NORMAL
+- en: that repeatedly do not answer these messages are removed from the list of
+  prefs: []
+  type: TYPE_NORMAL
+- en: peers. This is similar to small talk between colleagues, which mainly serves
+    the purpose of keeping the social relationship alive.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Establishing New Connections
+  prefs: []
+  type: TYPE_NORMAL
+- en: Every computer can request to join the peer-to-peer system by sending a cor-
+  prefs: []
+  type: TYPE_NORMAL
+- en: responding request message to any of the nodes that make up the system. The
+  prefs: []
+  type: TYPE_NORMAL
+- en: requested node adds the address of the inquirer to its list of peers and sends
+  prefs: []
+  type: TYPE_NORMAL
+- en: a confirmation as reply. When receiving the reply the node will add the address
+  prefs: []
+  type: TYPE_NORMAL
+- en: of the sender to its own list of peers as well. As a result, a new connection
+    is established and the system has grown by one more node. Having only one connection
+    to the system is risky as every node can terminate a connection, shut
+  prefs: []
+  type: TYPE_NORMAL
+- en: down, or even crash at any time. Hence, when joining a peer-to-peer system,
+  prefs: []
+  type: TYPE_NORMAL
+- en: a computer typically establishes connections to many different nodes that are
+  prefs: []
+  type: TYPE_NORMAL
+- en: already part of the system. This ensures that the connection to the system as
+    a
+  prefs: []
+  type: TYPE_NORMAL
+- en: whole is maintained, even if individual nodes disconnect or shut down.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Distributing New Information
+  prefs: []
+  type: TYPE_NORMAL
+- en: This kind of communication serves the application goal of the system that
+  prefs: []
+  type: TYPE_NORMAL
+- en: is managing ownership. This is done by forwarding new transaction data and
+  prefs: []
+  type: TYPE_NORMAL
+- en: new blocks to be added to the blockchain-data-structure in a gossip type of
+  prefs: []
+  type: TYPE_NORMAL
+- en: information forwarding. Sharing ownership-related information happens in the
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'following three occasions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '• In an ongoing fashion: new information (e.g., new transac-'
+  prefs: []
+  type: TYPE_NORMAL
+- en: tion data and new blocks) are distributed as they occur.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Every node connected to the system will eventually
+  prefs: []
+  type: TYPE_NORMAL
+- en: receive all news.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '• As an update: nodes that reconnect to the system after'
+  prefs: []
+  type: TYPE_NORMAL
+- en: they were disconnected for a while will receive all trans-
+  prefs: []
+  type: TYPE_NORMAL
+- en: action data and blocks they have missed out in the
+  prefs: []
+  type: TYPE_NORMAL
+- en: meantime.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '150'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Step 17 | Distributing the Data Store Among Peers***'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '• As part of the on-boarding procedure: new nodes that'
+  prefs: []
+  type: TYPE_NORMAL
+- en: join the system have not had the chance to build their
+  prefs: []
+  type: TYPE_NORMAL
+- en: own history of transactions because they have never been
+  prefs: []
+  type: TYPE_NORMAL
+- en: connected with the system before. Hence, they need to
+  prefs: []
+  type: TYPE_NORMAL
+- en: get the whole history of transactions that happened up
+  prefs: []
+  type: TYPE_NORMAL
+- en: to the time they joined the system. Transferring a copy
+  prefs: []
+  type: TYPE_NORMAL
+- en: of the whole up-to-date version of the blockchain-data-
+  prefs: []
+  type: TYPE_NORMAL
+- en: structure to the newbie node ensures that it becomes
+  prefs: []
+  type: TYPE_NORMAL
+- en: a full-fledged node after joining the system. This type of
+  prefs: []
+  type: TYPE_NORMAL
+- en: information delivery can be seen as an extreme case of
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'an update: an update of the whole history of transactions'
+  prefs: []
+  type: TYPE_NORMAL
+- en: that have ever happened in the system.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Why It Works
+  prefs: []
+  type: TYPE_NORMAL
+- en: The different kinds of communication ensure that new computers can join
+  prefs: []
+  type: TYPE_NORMAL
+- en: the system and hence contribute to its growth. Additionally, the system is
+  prefs: []
+  type: TYPE_NORMAL
+- en: kept together based on communication that focuses on establishing new and
+  prefs: []
+  type: TYPE_NORMAL
+- en: maintaining existing connections. Most important, the system utilizes a gossip
+  prefs: []
+  type: TYPE_NORMAL
+- en: type of communication that ensures that eventually all members of the peer-
+  prefs: []
+  type: TYPE_NORMAL
+- en: to-peer system will receive all transaction data and blocks to be added to the
+  prefs: []
+  type: TYPE_NORMAL
+- en: blockchain-data-structure.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Outlook
+  prefs: []
+  type: TYPE_NORMAL
+- en: This step focused on how individual computers become nodes of a distrib-
+  prefs: []
+  type: TYPE_NORMAL
+- en: uted peer-to-peer system and how the computers that make up the system
+  prefs: []
+  type: TYPE_NORMAL
+- en: communicate with one another. In particular, this step focused on the aspects
+  prefs: []
+  type: TYPE_NORMAL
+- en: of message delivery in an unreliable network. However, this discussion did
+  prefs: []
+  type: TYPE_NORMAL
+- en: not consider what the individual nodes do with the information once they
+  prefs: []
+  type: TYPE_NORMAL
+- en: received it, but processing information is as important as receiving informa-
+  prefs: []
+  type: TYPE_NORMAL
+- en: tion. Hence, the next step discusses how transaction data are processed
+  prefs: []
+  type: TYPE_NORMAL
+- en: within the individual nodes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Summary
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Computers in a distributed peer-to-peer system commu-
+  prefs: []
+  type: TYPE_NORMAL
+- en: nicate with one another via a digital network.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Due to the omnipresence of the Internet, it is compelling
+  prefs: []
+  type: TYPE_NORMAL
+- en: to create a distributed peer-to-peer system by connect-
+  prefs: []
+  type: TYPE_NORMAL
+- en: ing the individual nodes via the Internet.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Blockchain Basics***'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '151'
+  prefs: []
+  type: TYPE_NORMAL
+- en: • A peer-to-peer system that uses the Internet as a medium
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'of communication is characterized by the following facts:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: • The computers are connected with one another via
+  prefs: []
+  type: TYPE_NORMAL
+- en: the Internet.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Each computer is identified by a unique address.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Each computer can disconnect and reconnect to the
+  prefs: []
+  type: TYPE_NORMAL
+- en: system at any given time.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Each computer independently maintains a list of peers
+  prefs: []
+  type: TYPE_NORMAL
+- en: with which it communicates.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Communication between nodes is based on messages.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Messages are sent from one node to another over
+  prefs: []
+  type: TYPE_NORMAL
+- en: the Internet by using their unique addresses.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Due to the adversaries of networks, the communication
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'among the nodes is characterized by the following facts:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Messages are not guaranteed to arrive at the addressees,
+  prefs: []
+  type: TYPE_NORMAL
+- en: but they may get lost instead.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Messages may arrive more than once.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Messages may arrive in a different order than they
+  prefs: []
+  type: TYPE_NORMAL
+- en: were sent.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • The blockchain counteracts the adversaries of communi-
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'cating over an unreliable network in the following ways:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Messages are sent in a gossip style. Every node that
+  prefs: []
+  type: TYPE_NORMAL
+- en: receives a message will forward it to the peers it
+  prefs: []
+  type: TYPE_NORMAL
+- en: communicates with, which in turn will handle the
+  prefs: []
+  type: TYPE_NORMAL
+- en: message in the same way.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Duplicates of transactions or blocks are identified
+  prefs: []
+  type: TYPE_NORMAL
+- en: and filtered out based on their cryptographic hash
+  prefs: []
+  type: TYPE_NORMAL
+- en: values.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Each node can order the received information
+  prefs: []
+  type: TYPE_NORMAL
+- en: because transaction data and block headers contain
+  prefs: []
+  type: TYPE_NORMAL
+- en: time stamps.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • The communication among the computers that make up the
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'peer-to-peer system serves the following three purposes:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Keeping existing connections alive
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Establishing new connections
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Distributing new information
+  prefs: []
+  type: TYPE_NORMAL
+- en: '152'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Step 17 | Distributing the Data Store Among Peers***'
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Forwarding ownership-related information happens on
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'three occasions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: • In an ongoing fashion by forwarding new transaction
+  prefs: []
+  type: TYPE_NORMAL
+- en: data and new blocks to all nodes that are connected
+  prefs: []
+  type: TYPE_NORMAL
+- en: to the system
+  prefs: []
+  type: TYPE_NORMAL
+- en: • As an update for nodes that reconnect to the system
+  prefs: []
+  type: TYPE_NORMAL
+- en: after being disconnected for a while
+  prefs: []
+  type: TYPE_NORMAL
+- en: • As part of the on-boarding procedure that transfers
+  prefs: []
+  type: TYPE_NORMAL
+- en: a copy of the whole up-to-date version of the
+  prefs: []
+  type: TYPE_NORMAL
+- en: blockchain-data-structure to the new nodes to ensure
+  prefs: []
+  type: TYPE_NORMAL
+- en: that they become full-fledged nodes after joining the
+  prefs: []
+  type: TYPE_NORMAL
+- en: system
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**S T E P**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '18'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Verif ying
+  prefs: []
+  type: TYPE_NORMAL
+- en: and Adding
+  prefs: []
+  type: TYPE_NORMAL
+- en: Transactions
+  prefs: []
+  type: TYPE_NORMAL
+- en: Ruling a group of computers with carrot and
+  prefs: []
+  type: TYPE_NORMAL
+- en: stick
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[In Step 17](http://dx.doi.org/10.1007/978-1-4842-2604-9_17) individual computers
+    were turned into nodes of a purely distributed peer-to-peer system that communicate
+    with one another about transaction data'
+  prefs: []
+  type: TYPE_NORMAL
+- en: and new blocks to be added to the blockchain-data-structure. This step focuses
+  prefs: []
+  type: TYPE_NORMAL
+- en: on what happens once a node receives transaction data and how to ensure that
+  prefs: []
+  type: TYPE_NORMAL
+- en: only valid transaction data and blocks are added to the blockchain-data-structure.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Metaphor
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let’s consider a company that offers a simple service: grading multiple-choice'
+  prefs: []
+  type: TYPE_NORMAL
+- en: tests for schools and universities. Schools and universities can send the
+  prefs: []
+  type: TYPE_NORMAL
+- en: multiple-choice answer forms of their students together with the correct
+  prefs: []
+  type: TYPE_NORMAL
+- en: © Daniel Drescher 2017
+  prefs: []
+  type: TYPE_NORMAL
+- en: D. Drescher, *Blockchain Basics*, DOI 10.1007/978-1-4842-2604-9_18
+  prefs: []
+  type: TYPE_NORMAL
+- en: '154'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Step 18 | Verif ying and Adding Transactions***'
+  prefs: []
+  type: TYPE_NORMAL
+- en: solutions to the company, which in turn will grade all of the answer sheets.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Unfortunately, the employees of the company show little motivation to do
+  prefs: []
+  type: TYPE_NORMAL
+- en: their job well. As a result, the company turns all of its employees into contractors
+    who only receive a performance-related compensation that is governed
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'by the following three rules:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 1\. All answer sheets to be marked, the solutions as well as
+  prefs: []
+  type: TYPE_NORMAL
+- en: all marked answer sheets are available to all contractors
+  prefs: []
+  type: TYPE_NORMAL
+- en: at any time through the company’s software system.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 2\. Only the first contractor who marks an answer sheet
+  prefs: []
+  type: TYPE_NORMAL
+- en: correctly receives one dollar as a reward.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3\. If a contractor finds out that another contractor marked
+  prefs: []
+  type: TYPE_NORMAL
+- en: an answer sheet incorrectly, the contractor who made
+  prefs: []
+  type: TYPE_NORMAL
+- en: the mistake has to repay the compensation and the one
+  prefs: []
+  type: TYPE_NORMAL
+- en: who found and corrected the mistake will receive the
+  prefs: []
+  type: TYPE_NORMAL
+- en: compensation instead.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Consequences
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'There are several consequences for the rules of the above scenario:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Due to the fact that the contractors only receive perfor-
+  prefs: []
+  type: TYPE_NORMAL
+- en: mance-related compensation, they have a strong economic
+  prefs: []
+  type: TYPE_NORMAL
+- en: incentive to follow the rules.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Due to rule 1, all contractors have the same chance to
+  prefs: []
+  type: TYPE_NORMAL
+- en: contribute work and earn money.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Due to rule 1, all contractors have the necessary informa-
+  prefs: []
+  type: TYPE_NORMAL
+- en: tion to control and correct the work of their coworkers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Due to rule 2, each contractor has an incentive to work
+  prefs: []
+  type: TYPE_NORMAL
+- en: fast. However, the quality of work may suffer due to speed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Due to rule 3, each contractor has an incentive to work
+  prefs: []
+  type: TYPE_NORMAL
+- en: conscientiously.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Due to rule 3, each contractor has an incentive to con-
+  prefs: []
+  type: TYPE_NORMAL
+- en: trol and correct the work of its coworkers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Due to these rules, the efficiency of the company increased significantly
+  prefs: []
+  type: TYPE_NORMAL
+- en: but after some months, the company received massive complaints from its
+  prefs: []
+  type: TYPE_NORMAL
+- en: customers. The quality of work had dropped dramatically. It seems that all
+  prefs: []
+  type: TYPE_NORMAL
+- en: multiple-choice tests were marked completely randomly. After doing some
+  prefs: []
+  type: TYPE_NORMAL
+- en: research, the company found that the contractors had made a pact. They
+  prefs: []
+  type: TYPE_NORMAL
+- en: agreed among themselves not to control any coworker’s results and instead
+  prefs: []
+  type: TYPE_NORMAL
+- en: to do the marking as quickly as possible. Since assigning marks randomly is
+  prefs: []
+  type: TYPE_NORMAL
+- en: the fastest way to do the job, all contractors eventually ended up using that
+  prefs: []
+  type: TYPE_NORMAL
+- en: marking strategy.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Blockchain Basics***'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '155'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The lesson learned from this metaphor is that the combination of reward,
+  prefs: []
+  type: TYPE_NORMAL
+- en: punishment, peer pressure, and competition can be used to manage a group of
+  prefs: []
+  type: TYPE_NORMAL
+- en: independently acting individuals as long as they do not collectively counteract.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This step explains the blockchain-algorithm, which it is nothing more than a
+  prefs: []
+  type: TYPE_NORMAL
+- en: clever implementation of the carrot-and-stick approach combined with com-
+  prefs: []
+  type: TYPE_NORMAL
+- en: petition and peer pressure that works in a similar fashion as the company in
+  prefs: []
+  type: TYPE_NORMAL
+- en: this example. However, the challenge is to get all the details right.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Goal
+  prefs: []
+  type: TYPE_NORMAL
+- en: The goal is to allow everyone to add new transaction data to the history of
+  prefs: []
+  type: TYPE_NORMAL
+- en: transaction data while preserving its integrity.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Challenge
+  prefs: []
+  type: TYPE_NORMAL
+- en: The blockchain is completely open. Everyone, even the most dishonest, can
+  prefs: []
+  type: TYPE_NORMAL
+- en: connect computers to the system and as a result can create transactions and
+  prefs: []
+  type: TYPE_NORMAL
+- en: send them to all other nodes that make up the system. As a result, it cannot
+  prefs: []
+  type: TYPE_NORMAL
+- en: be guaranteed that the transactions sent through the network are correct.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Hence, the challenge is to keep the system open to everyone while ensuring
+  prefs: []
+  type: TYPE_NORMAL
+- en: that only valid transactions are added.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Idea
+  prefs: []
+  type: TYPE_NORMAL
+- en: In order to ensure that only valid transactions are added to the system, all
+  prefs: []
+  type: TYPE_NORMAL
+- en: nodes of the system are allowed to also act as supervisors of their peers
+  prefs: []
+  type: TYPE_NORMAL
+- en: and reward them for adding valid and authorized transactions and for find-
+  prefs: []
+  type: TYPE_NORMAL
+- en: ing errors in the work of others. As a result, all nodes of the system have
+    an
+  prefs: []
+  type: TYPE_NORMAL
+- en: incentive to process transactions correctly and to supervise and point out any
+  prefs: []
+  type: TYPE_NORMAL
+- en: mistake made by an[y of its peers.1](index_split_002.html#155)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'How It Works: The Building Blocks'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The blockchain-algorithm is a sequence of instructions that governs how
+  prefs: []
+  type: TYPE_NORMAL
+- en: nodes process new transaction data and blocks. The individual rules and pro-
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'cedures can be traced back to the following building blocks:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Validation rules
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Reward
+  prefs: []
+  type: TYPE_NORMAL
+- en: '1Nakamoto, Satoshi. Bitcoin: A peer-to-peer electronic cash system. 2008\.
+    [https://](https://bitcoin.org/bitcoin.pdf)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[bitcoin.org/bitcoin.pdf](https://bitcoin.org/bitcoin.pdf).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '156'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Step 18 | Verif ying and Adding Transactions***'
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Punishment
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Competition
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Peer control
+  prefs: []
+  type: TYPE_NORMAL
+- en: Validation Rules
+  prefs: []
+  type: TYPE_NORMAL
+- en: The ultimate goal of the blockchain-algorithm is to ensure that the block-
+  prefs: []
+  type: TYPE_NORMAL
+- en: chain-data-structure only contains valid blocks, which in turn consist of valid
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'transaction data and valid block headers. The validity of these data is evaluated
+    based on two distinct groups of validation rules:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Validation rules for transaction data
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Validation rules for block headers
+  prefs: []
+  type: TYPE_NORMAL
+- en: Validation Rules for Transaction Data
+  prefs: []
+  type: TYPE_NORMAL
+- en: Validation rules for transaction data define which data are required for describing
+    a transaction. These rules encompass formal correctness, semantic correct-
+  prefs: []
+  type: TYPE_NORMAL
+- en: ness, and authorization. [Step 9](http://dx.doi.org/10.1007/978-1-4842-2604-9_9)
+    discussed the validation rules for transaction data. These rules are specific
+    to the application goal of the blockchain. Hence, a blockchain for managing ownership
+    in digital bonus points may have different
+  prefs: []
+  type: TYPE_NORMAL
+- en: validation rules than a blockchain that manages ownership of real estate.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Validation Rules for Block Headers
+  prefs: []
+  type: TYPE_NORMAL
+- en: The validation rules for block headers focus on the formal and semantic cor-
+  prefs: []
+  type: TYPE_NORMAL
+- en: rectness of the block headers. These rules are agnostic to the content of
+  prefs: []
+  type: TYPE_NORMAL
+- en: the transaction data; instead they are concerned with the way information is
+  prefs: []
+  type: TYPE_NORMAL
+- en: added to the blockchain-data-structure. [Step 16](http://dx.doi.org/10.1007/978-1-4842-2604-9_16)
+    discussed the compulsory data of block headers and their validation rules. A central
+    element of validating block headers is the verification of the proof of work or
+    the has puzzle
+  prefs: []
+  type: TYPE_NORMAL
+- en: respectively. Only blocks whose headers contains a correct solution of its
+  prefs: []
+  type: TYPE_NORMAL
+- en: individual hash puzzle are processed further. Every block whose header fails
+  prefs: []
+  type: TYPE_NORMAL
+- en: the verification of its proof of work is discarded immediately.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Reward
+  prefs: []
+  type: TYPE_NORMAL
+- en: Creating valid blocks costs energy, time, and money because it requires solv-
+  prefs: []
+  type: TYPE_NORMAL
+- en: ing the computationally expensive hash puzzle that is unique for every block.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The hash puzzle is the integral element to make the blockchain-data-structure
+  prefs: []
+  type: TYPE_NORMAL
+- en: immutable. Hence, solving the hash puzzle is absolutely indispensible and so
+  prefs: []
+  type: TYPE_NORMAL
+- en: are the entailed costs. The only way to convince peers to carry the burden of
+  prefs: []
+  type: TYPE_NORMAL
+- en: solving the hash puzzle is to offer them a reward as compensation for their
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Blockchain Basics***'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '157'
+  prefs: []
+  type: TYPE_NORMAL
+- en: work. Hence, the blockchain-algorithm defines how nodes that submit valid
+  prefs: []
+  type: TYPE_NORMAL
+- en: blocks are rewarded. From a more abstract point of view, one can state that
+  prefs: []
+  type: TYPE_NORMAL
+- en: the reward is the compensation for all burdens related to achieve and main-
+  prefs: []
+  type: TYPE_NORMAL
+- en: tain the integrity of the whole system.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Punishment
+  prefs: []
+  type: TYPE_NORMAL
+- en: Reward is only one instrument to provide peers an incentive to validate trans-
+  prefs: []
+  type: TYPE_NORMAL
+- en: action data and to create valid blocks. The blockchain also needs a way to
+  prefs: []
+  type: TYPE_NORMAL
+- en: punish peers for counteracting the integrity of the system. Typical measures
+  prefs: []
+  type: TYPE_NORMAL
+- en: of punishment are reclaiming the reward for blocks that were accepted in
+  prefs: []
+  type: TYPE_NORMAL
+- en: the past but were identified as invalid or useless later on. Another form of
+  prefs: []
+  type: TYPE_NORMAL
+- en: punishment is the absence of reward. Letting nodes do the proof of work but
+  prefs: []
+  type: TYPE_NORMAL
+- en: not rewarding them because of identifying the block as duplicate, being too
+  prefs: []
+  type: TYPE_NORMAL
+- en: old, or being useless is a punishment in its own right. This is true since the
+  prefs: []
+  type: TYPE_NORMAL
+- en: creation of a valid block requires the solution of an hash puzzle, which in
+    turn incurs costs. Not getting rewarded for creating a block implies that the
+    costs
+  prefs: []
+  type: TYPE_NORMAL
+- en: for creating it cannot be covered. Hence, not realizing a reward is a form of
+  prefs: []
+  type: TYPE_NORMAL
+- en: punishment too.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Competition
+  prefs: []
+  type: TYPE_NORMAL
+- en: Rewarding nodes for submitting valid blocks is a core concept of the block-
+  prefs: []
+  type: TYPE_NORMAL
+- en: chain-algorithm, but handing out rewards costs resources. Hence, it is impor-
+  prefs: []
+  type: TYPE_NORMAL
+- en: tant to prevent wasting resources by giving rewards to nodes that do not
+  prefs: []
+  type: TYPE_NORMAL
+- en: contribute significantly to the maintenance of the system. The best way to
+  prefs: []
+  type: TYPE_NORMAL
+- en: achieve a high quality of work while reducing costs is to establish a competi-
+  prefs: []
+  type: TYPE_NORMAL
+- en: tion for rewards based on a well-defined criterion. The blockchain-algorithm
+  prefs: []
+  type: TYPE_NORMAL
+- en: holds a continuous competition for rewards based on two criteria. The com-
+  prefs: []
+  type: TYPE_NORMAL
+- en: petition is actually a combination of the following competitions that are held
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'sequentially:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Speed competition
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Quality competition
+  prefs: []
+  type: TYPE_NORMAL
+- en: Only the node that wins both competitions receives the reward for submit-
+  prefs: []
+  type: TYPE_NORMAL
+- en: ting a new block. The trick of the competition is that the losers of the speed
+  prefs: []
+  type: TYPE_NORMAL
+- en: competition are the referees in the quality competition, and they validate the
+  prefs: []
+  type: TYPE_NORMAL
+- en: block that the winner of the speed competition submits. This ensures a strict
+  prefs: []
+  type: TYPE_NORMAL
+- en: examination of the submitted block.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '158'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Step 18 | Verif ying and Adding Transactions***'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Speed Competition
+  prefs: []
+  type: TYPE_NORMAL
+- en: The speed competition among the nodes is based on the hash puzzle. The
+  prefs: []
+  type: TYPE_NORMAL
+- en: central element of creating a valid block is creating the proof of work, which
+  prefs: []
+  type: TYPE_NORMAL
+- en: means solving the unique hash puzzle of the new block. Based on the nature
+  prefs: []
+  type: TYPE_NORMAL
+- en: of cryptographic hash functions, solving the hash puzzle takes an unknown
+  prefs: []
+  type: TYPE_NORMAL
+- en: period of time. There is no way to solve a hash puzzle in advance because the
+  prefs: []
+  type: TYPE_NORMAL
+- en: puzzle depends on the content of the block itself. As a result, all nodes take
+  prefs: []
+  type: TYPE_NORMAL
+- en: part in a competition for solving the hash puzzle of a new block. Once a node
+  prefs: []
+  type: TYPE_NORMAL
+- en: submits a new block, the speed competition is over. The first node that sub-
+  prefs: []
+  type: TYPE_NORMAL
+- en: mits a new block with a valid solution of its hash puzzle is the winner of the
+  prefs: []
+  type: TYPE_NORMAL
+- en: speed competition and becomes the only candidate in the quality competition.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Quality Competition
+  prefs: []
+  type: TYPE_NORMAL
+- en: The quality competition focuses on the correctness of the submitted block.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Once a node submits a new block, it is sent to all nodes of the system. By
+  prefs: []
+  type: TYPE_NORMAL
+- en: receiving a new block, each node has to act as a referee in the quality com-
+  prefs: []
+  type: TYPE_NORMAL
+- en: petition, which means validating the new block based on the validation rules
+  prefs: []
+  type: TYPE_NORMAL
+- en: for transaction data and block headers. If the block is found valid, the node
+  prefs: []
+  type: TYPE_NORMAL
+- en: that submitted the new block receives the reward and a new speed competi-
+  prefs: []
+  type: TYPE_NORMAL
+- en: tion opens with transaction data that were left over or have arrived in the
+  prefs: []
+  type: TYPE_NORMAL
+- en: meantime. If the block is found to be invalid, it is thrown away and the speed
+  prefs: []
+  type: TYPE_NORMAL
+- en: competition reopens with all the transactions that were already at stake.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The quality competition has an interesting aspect of peer control. By receiving
+  prefs: []
+  type: TYPE_NORMAL
+- en: a new block, each node realizes that it has already lost the speed competi-
+  prefs: []
+  type: TYPE_NORMAL
+- en: tion and that it has to work as a referee in the quality competition. It goes
+  prefs: []
+  type: TYPE_NORMAL
+- en: without saying that these referees are the most meticulous and strict referees
+  prefs: []
+  type: TYPE_NORMAL
+- en: one can imagine because they have already lost the speed competition and
+  prefs: []
+  type: TYPE_NORMAL
+- en: hence have nothing more to lose. Actually, all nodes know that they can get
+  prefs: []
+  type: TYPE_NORMAL
+- en: back in the game for the reward if they can prove that the submitted block is
+  prefs: []
+  type: TYPE_NORMAL
+- en: invalid. In this case, the speed competition reopens and they have the chance
+  prefs: []
+  type: TYPE_NORMAL
+- en: to finish their own block, whose completion was interrupted, and to win the
+  prefs: []
+  type: TYPE_NORMAL
+- en: race themselves. As a result, the quality competition or the examination of
+  prefs: []
+  type: TYPE_NORMAL
+- en: the submitted block, respectively, will be done at a very high level of accuracy.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Peer Control
+  prefs: []
+  type: TYPE_NORMAL
+- en: Even the best rules are useless if no one follows them, observes that they
+  prefs: []
+  type: TYPE_NORMAL
+- en: were followed, and enforces their fulfillment. Unfortunately, purely distributed
+    peer-to-peer systems neither have nor would accept a central point of control
+  prefs: []
+  type: TYPE_NORMAL
+- en: or coordination that could supervise the adherence to the rules and enforce
+  prefs: []
+  type: TYPE_NORMAL
+- en: their implementation. Hence, the blockchain-algorithm makes all nodes of the
+  prefs: []
+  type: TYPE_NORMAL
+- en: system the supervisors of all other nodes. The nodes of the system are work-
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Blockchain Basics***'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '159'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ers and supervisors at the same time because they verify transactions and
+  prefs: []
+  type: TYPE_NORMAL
+- en: create new blocks while receiving, reviewing, and validating the blocks created
+  prefs: []
+  type: TYPE_NORMAL
+- en: by other nodes as well. The work of each node contributes to the creation
+  prefs: []
+  type: TYPE_NORMAL
+- en: of new valid blocks as well as to the detection, refusal, or removal of invalid
+  prefs: []
+  type: TYPE_NORMAL
+- en: transaction data or invalid blocks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'How It Works: The Skeleton'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The rules of the competition establish a simple two-step rhythm that governs
+  prefs: []
+  type: TYPE_NORMAL
+- en: the work of every node in the network. At any given point in time, all nodes
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'of the system are in either of the two phases:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 1\. Evaluating a new block that was created and submitted by
+  prefs: []
+  type: TYPE_NORMAL
+- en: one of the peers
+  prefs: []
+  type: TYPE_NORMAL
+- en: 2\. Trying hard to be the next node that creates a new block
+  prefs: []
+  type: TYPE_NORMAL
+- en: that in turn has to be evaluated by all others
+  prefs: []
+  type: TYPE_NORMAL
+- en: One of the most important results of the blockchain-algorithm is that it not
+  prefs: []
+  type: TYPE_NORMAL
+- en: only ensures validation of transaction data and blocks but also ensures all
+  prefs: []
+  type: TYPE_NORMAL
+- en: nodes have an identical working rhythm. This identical working rhythm is the
+  prefs: []
+  type: TYPE_NORMAL
+- en: core concept to ensure that all blocks maintain an identical history of trans-
+  prefs: []
+  type: TYPE_NORMAL
+- en: action data. However, the working rhythm is not imposed on the nodes by a
+  prefs: []
+  type: TYPE_NORMAL
+- en: central clock because that would be a contradiction to the purely distributed
+  prefs: []
+  type: TYPE_NORMAL
+- en: nature of the system. What makes the rhythm tick is the arrival of messages
+  prefs: []
+  type: TYPE_NORMAL
+- en: at the individual nodes. As soon as a node receives a message that contains
+    a
+  prefs: []
+  type: TYPE_NORMAL
+- en: new block, it switches to the evaluation phase; and as soon as the evaluation
+  prefs: []
+  type: TYPE_NORMAL
+- en: phase finishes, the node switches back to verifying new transaction data and
+  prefs: []
+  type: TYPE_NORMAL
+- en: creating a new block itself.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'How It Works: The Details'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The procedure that governs how nodes deal with new transaction data and
+  prefs: []
+  type: TYPE_NORMAL
+- en: blocks they receive from their peers consists of the following rules (the rules
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'printed in bold are the one that establish the two-step rhythm):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 1\. New transaction data as well as new blocks are for-
+  prefs: []
+  type: TYPE_NORMAL
+- en: warded to all nodes in a gossip fashion.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 2\. Each node collects new transaction data in an inbox and
+  prefs: []
+  type: TYPE_NORMAL
+- en: selects them for processing.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '160'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Step 18 | Verif ying and Adding Transactions***'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3\. **Each node processes new blocks immediately**
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**with highest priority.**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 4\. Each node processes new transaction data by validat-
+  prefs: []
+  type: TYPE_NORMAL
+- en: ing them for authorization and formal and semantic
+  prefs: []
+  type: TYPE_NORMAL
+- en: correctness.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 5\. Each node collects only valid transaction data into a
+  prefs: []
+  type: TYPE_NORMAL
+- en: Merkle tree and starts creating a new block by solving its
+  prefs: []
+  type: TYPE_NORMAL
+- en: hash puzzle.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 6\. **As soon as a node finishes the hash puzzle, it sends**
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**the newly created block to all other nodes.**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 7\. Each node processes new blocks by verifying the solution
+  prefs: []
+  type: TYPE_NORMAL
+- en: of its hash puzzle and by verifying all its containing trans-
+  prefs: []
+  type: TYPE_NORMAL
+- en: action data for formal correctness, semantic correctness,
+  prefs: []
+  type: TYPE_NORMAL
+- en: and authorization.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 8\. Each node adds valid blocks to its own copy of the
+  prefs: []
+  type: TYPE_NORMAL
+- en: blockchain-data-structure.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 9\. If a newly arrived block has been identified as invalid, it
+  prefs: []
+  type: TYPE_NORMAL
+- en: will be discarded and the nodes continue with process-
+  prefs: []
+  type: TYPE_NORMAL
+- en: ing transaction data or with finishing the hash puzzle of a
+  prefs: []
+  type: TYPE_NORMAL
+- en: new block.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 10\. If a newly arrived block has been identified as valid, the
+  prefs: []
+  type: TYPE_NORMAL
+- en: node removes those transactions that are contained in
+  prefs: []
+  type: TYPE_NORMAL
+- en: the new block from its own inbox and starts with pro-
+  prefs: []
+  type: TYPE_NORMAL
+- en: cessing transaction data and the creation of a new block.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 11\. If a block that was added to the blockchain-data-struc-
+  prefs: []
+  type: TYPE_NORMAL
+- en: ture is identified as invalid or useless later on, that block
+  prefs: []
+  type: TYPE_NORMAL
+- en: as well as all its subsequent blocks will be removed[2 fr](index_split_002.html#160)om
+    the blockchain-data-structure and their transactions will
+  prefs: []
+  type: TYPE_NORMAL
+- en: be added to the inbox to be processed again.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 12\. The node whose block was accepted will receive the fees
+  prefs: []
+  type: TYPE_NORMAL
+- en: for all transactions contained in the block as reward.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 13\. If a block is removed from the blockchain-data-structure,
+  prefs: []
+  type: TYPE_NORMAL
+- en: then the reward for adding it is withdrawn from the node
+  prefs: []
+  type: TYPE_NORMAL
+- en: that initially received it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 2Blocks that are identified as invalid later on are actually not physically
+    removed from the blockchain-data-structure. Instead, they are marked as invalid
+    and treated as if they had been removed. As a result, all changes are retained
+    as documented.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Blockchain Basics***'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '161'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Why It Works
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The reasons the preceding rules work are:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Due to rule 1, all nodes receive all information needed to
+  prefs: []
+  type: TYPE_NORMAL
+- en: validate and add transaction data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Due to rule 2, nodes process new transaction data they
+  prefs: []
+  type: TYPE_NORMAL
+- en: receive.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Due to rule 3, the blocks created by other nodes are pro-
+  prefs: []
+  type: TYPE_NORMAL
+- en: cessed immediately on arrival at the nodes inbox.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Due to rule 4, only valid transaction data are added to the
+  prefs: []
+  type: TYPE_NORMAL
+- en: blockchain-data-structure.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Due to rule 5, all nodes take part in a race for solving the
+  prefs: []
+  type: TYPE_NORMAL
+- en: hash puzzle. Due to the nature of the hash puzzle it is
+  prefs: []
+  type: TYPE_NORMAL
+- en: unpredictable which node will solve it first.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Due to rule 6, all nodes are informed when a node solves
+  prefs: []
+  type: TYPE_NORMAL
+- en: the hash puzzle of a new block.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Due to rules 6 and 3, all nodes receive the newly created
+  prefs: []
+  type: TYPE_NORMAL
+- en: block and recognize the winner of the race for solving
+  prefs: []
+  type: TYPE_NORMAL
+- en: the hash puzzle.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Due to rule 7, all nodes of the system review and verify
+  prefs: []
+  type: TYPE_NORMAL
+- en: newly created blocks and ensure that only correct blocks
+  prefs: []
+  type: TYPE_NORMAL
+- en: are accepted.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Due to rule 8, all nodes add new blocks to their own
+  prefs: []
+  type: TYPE_NORMAL
+- en: copy of the blockchain-data-structure and hence grow
+  prefs: []
+  type: TYPE_NORMAL
+- en: the transaction history.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Due to rule 9, the collectively maintained transaction
+  prefs: []
+  type: TYPE_NORMAL
+- en: history is kept free of invalid transactions and hence
+  prefs: []
+  type: TYPE_NORMAL
+- en: maintains integrity.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Due to rule 10, no transaction data will be added twice.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Due to rule 11, no valid transaction will get lost even if
+  prefs: []
+  type: TYPE_NORMAL
+- en: previously processed blocks are reprocessed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Due to rule 11, the system is able to perform ex post
+  prefs: []
+  type: TYPE_NORMAL
+- en: validity checks on the transaction history and correct it
+  prefs: []
+  type: TYPE_NORMAL
+- en: retrospectively.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Due to rule 12, nodes have an incentive to process trans-
+  prefs: []
+  type: TYPE_NORMAL
+- en: actions and to create new blocks quickly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '162'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Step 18 | Verif ying and Adding Transactions***'
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Due to rule 12, all nodes have an incentive to inform all
+  prefs: []
+  type: TYPE_NORMAL
+- en: other nodes about a new block because earning a reward
+  prefs: []
+  type: TYPE_NORMAL
+- en: depends on having transactions examined and accepted
+  prefs: []
+  type: TYPE_NORMAL
+- en: by all other nodes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Due to rule 13, nodes have an incentive to work cor-
+  prefs: []
+  type: TYPE_NORMAL
+- en: rectly, to avoid accepting any invalid transaction data, or
+  prefs: []
+  type: TYPE_NORMAL
+- en: producing invalid blocks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Due to rule 13, nodes have an incentive to review and
+  prefs: []
+  type: TYPE_NORMAL
+- en: revalidate blocks and transactions in a retrospective way.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Dealing with Dishonest Behavior
+  prefs: []
+  type: TYPE_NORMAL
+- en: The blockchain aims to create integrity and trust in a completely open peer-to-
+  prefs: []
+  type: TYPE_NORMAL
+- en: peer system that is made up of an unknown number of nodes with unknown
+  prefs: []
+  type: TYPE_NORMAL
+- en: reliability and trustworthiness. The most prominent kinds of dishonest behav-
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'ior in peer-to-peer systems that manage ownership are:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Submitting transactions by pretending to be someone
+  prefs: []
+  type: TYPE_NORMAL
+- en: else
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Accepting invalid transaction data or blocks
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Overwhelming a node with many transaction data with
+  prefs: []
+  type: TYPE_NORMAL
+- en: the goal to make it crash
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Refusing to process certain transaction data
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Refusing to forward information
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'All of these cases of dishonest behavior are already covered by:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: • The security concept of the transactions (identification,
+  prefs: []
+  type: TYPE_NORMAL
+- en: authentication, and authorization via asymmetric cryp-
+  prefs: []
+  type: TYPE_NORMAL
+- en: tography and digital signatures) that restricts access to an
+  prefs: []
+  type: TYPE_NORMAL
+- en: account to the owner of the corresponding private key
+  prefs: []
+  type: TYPE_NORMAL
+- en: • The gossip communication model that ensures that every
+  prefs: []
+  type: TYPE_NORMAL
+- en: node eventually receives all information
+  prefs: []
+  type: TYPE_NORMAL
+- en: • The architecture of the system that ensures that the
+  prefs: []
+  type: TYPE_NORMAL
+- en: whole system stays alive even if some individual nodes
+  prefs: []
+  type: TYPE_NORMAL
+- en: crash or stop processing data
+  prefs: []
+  type: TYPE_NORMAL
+- en: • The blockchain-algorithm
+  prefs: []
+  type: TYPE_NORMAL
+- en: The most important weapon of the blockchain against dishonest nodes is the
+  prefs: []
+  type: TYPE_NORMAL
+- en: power of the honest majority and the effects of reward and punishment. Even
+  prefs: []
+  type: TYPE_NORMAL
+- en: if some nodes send forged transactions or accept invalid transaction data or
+  prefs: []
+  type: TYPE_NORMAL
+- en: invalid blocks, the majority of honest nodes and their striving for reward will
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Blockchain Basics***'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '163'
+  prefs: []
+  type: TYPE_NORMAL
+- en: outweigh the attempts of the dishonest to counteract the integrity of the
+  prefs: []
+  type: TYPE_NORMAL
+- en: system. Clearly, this approach depends on the assumption that there really is
+  prefs: []
+  type: TYPE_NORMAL
+- en: a majority of honest nodes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Outlook
+  prefs: []
+  type: TYPE_NORMAL
+- en: This step explained how the blockchain processes transaction data and adds
+  prefs: []
+  type: TYPE_NORMAL
+- en: them to the blockchain-data-structure and thereby includes them in the offi-
+  prefs: []
+  type: TYPE_NORMAL
+- en: cial history of transaction data. The instructions discussed in this step are
+  prefs: []
+  type: TYPE_NORMAL
+- en: supposed to ensure that all nodes in the system maintain identical versions
+  prefs: []
+  type: TYPE_NORMAL
+- en: of the blockchain-data-structure and hence maintain the identical history of
+  prefs: []
+  type: TYPE_NORMAL
+- en: transaction data. However, sometimes nodes maintain different histories, and
+  prefs: []
+  type: TYPE_NORMAL
+- en: this means they do not agree on one identical history of transaction data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Resolving these conflicts is another task of the blockchain-algorithm, which
+  prefs: []
+  type: TYPE_NORMAL
+- en: will be considered in the next step.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Summary
+  prefs: []
+  type: TYPE_NORMAL
+- en: • The blockchain-algorithm is a series of rules and instruc-
+  prefs: []
+  type: TYPE_NORMAL
+- en: tions that governs the way in which transaction data are
+  prefs: []
+  type: TYPE_NORMAL
+- en: processed and added to the system.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • The challenge solved by the blockchain-algorithm is to
+  prefs: []
+  type: TYPE_NORMAL
+- en: keep the system open to everyone while ensuring that
+  prefs: []
+  type: TYPE_NORMAL
+- en: only valid and authorized transactions are added.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • The blockchain-algorithm utilizes the carrot-and-stick
+  prefs: []
+  type: TYPE_NORMAL
+- en: approach, combined with competition and peer control.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • The major idea of the blockchain-algorithm is to allow all
+  prefs: []
+  type: TYPE_NORMAL
+- en: nodes of the system to act as supervisors of their peers
+  prefs: []
+  type: TYPE_NORMAL
+- en: and reward them for adding valid and authorized transac-
+  prefs: []
+  type: TYPE_NORMAL
+- en: tions and for finding errors in the work of others.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Due to the rules of the blockchain-algorithm, all nodes of
+  prefs: []
+  type: TYPE_NORMAL
+- en: the system have an incentive to process transactions cor-
+  prefs: []
+  type: TYPE_NORMAL
+- en: rectly and to supervise and point out any mistakes made
+  prefs: []
+  type: TYPE_NORMAL
+- en: by the other peers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • The blockchain-algorithm is based on the following
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'concepts:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Validation rules for transaction data and block
+  prefs: []
+  type: TYPE_NORMAL
+- en: headers
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Reward for submitting valid blocks
+  prefs: []
+  type: TYPE_NORMAL
+- en: '164'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Step 18 | Verif ying and Adding Transactions***'
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Punishment for counteracting the integrity of the
+  prefs: []
+  type: TYPE_NORMAL
+- en: system
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Competition among peers for earning reward based
+  prefs: []
+  type: TYPE_NORMAL
+- en: on processing speed and quality
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Peer control
+  prefs: []
+  type: TYPE_NORMAL
+- en: • The rules of the competition establish a two-step rhythm
+  prefs: []
+  type: TYPE_NORMAL
+- en: that governs the work of every node in the network. At
+  prefs: []
+  type: TYPE_NORMAL
+- en: any given point in time, all nodes of the system are in
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'either of the two phases:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Evaluating a new block that was created by others
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Trying hard to be the next node that creates a new
+  prefs: []
+  type: TYPE_NORMAL
+- en: block that has to be evaluated by all others
+  prefs: []
+  type: TYPE_NORMAL
+- en: • The working rhythm is imposed by the arrival of mes-
+  prefs: []
+  type: TYPE_NORMAL
+- en: sages at the individual nodes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • The majority of honest nodes and their striving for
+  prefs: []
+  type: TYPE_NORMAL
+- en: reward will outweigh the attempts of dishonest nodes to
+  prefs: []
+  type: TYPE_NORMAL
+- en: counteract the integrity of the system.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**S T E P**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '19'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Choosing a
+  prefs: []
+  type: TYPE_NORMAL
+- en: Transaction
+  prefs: []
+  type: TYPE_NORMAL
+- en: History
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let computers vote with their feet
+  prefs: []
+  type: TYPE_NORMAL
+- en: Step [18](http://dx.doi.org/10.1007/978-1-4842-2604-9_18) explained how the
+    nodes of the blockchain process transaction data and new blocks. However, the
+    transaction history maintained by the individual
+  prefs: []
+  type: TYPE_NORMAL
+- en: nodes of the system may still differ due to delays or errors in message passing.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Hence, this step focuses on resolving conflicts among the different versions
+  prefs: []
+  type: TYPE_NORMAL
+- en: of the transaction history maintained by the individual nodes of the system.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Metaphor
+  prefs: []
+  type: TYPE_NORMAL
+- en: When was the last time you took a walk through a park? Have you noticed
+  prefs: []
+  type: TYPE_NORMAL
+- en: a phenomenon that can be observed in most parks all over the world? They
+  prefs: []
+  type: TYPE_NORMAL
+- en: have paved paths that were created based on the plans and ideas of landscape
+  prefs: []
+  type: TYPE_NORMAL
+- en: architects, and there are also beaten paths created by visitors. Often these
+  prefs: []
+  type: TYPE_NORMAL
+- en: beaten paths are straight lines across the lawn and provide efficient shortcuts
+  prefs: []
+  type: TYPE_NORMAL
+- en: between two landmarks, two park benches, or other points of interest. Beaten
+  prefs: []
+  type: TYPE_NORMAL
+- en: © Daniel Drescher 2017
+  prefs: []
+  type: TYPE_NORMAL
+- en: D. Drescher, *Blockchain Basics*, DOI 10.1007/978-1-4842-2604-9_19
+  prefs: []
+  type: TYPE_NORMAL
+- en: '166'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Step 19 | Choosing a Transaction History***'
+  prefs: []
+  type: TYPE_NORMAL
+- en: paths emerge at places where many people independently and consistently
+  prefs: []
+  type: TYPE_NORMAL
+- en: decide to walk off the paved paths because doing so appears to be more
+  prefs: []
+  type: TYPE_NORMAL
+- en: desirable than following the paved path. Hence, the creation of dirt paths
+  prefs: []
+  type: TYPE_NORMAL
+- en: in parks can be seen as the result of a very basic form of democracy. There
+  prefs: []
+  type: TYPE_NORMAL
+- en: are no official polls or elections that rule the creation of these paths, instead
+    every visitor contributes to their emergence with his or her own independent
+  prefs: []
+  type: TYPE_NORMAL
+- en: decision to walk or not to walk along certain paths and to leave his or her
+  prefs: []
+  type: TYPE_NORMAL
+- en: footprints on the ground. Less-often–used beaten paths disappear as nature
+  prefs: []
+  type: TYPE_NORMAL
+- en: takes back its territory, but others remain since many people continue to walk
+  prefs: []
+  type: TYPE_NORMAL
+- en: on them. This learning step explains an aspect of the blockchain that functions
+  prefs: []
+  type: TYPE_NORMAL
+- en: similar to the emergence and disappearance of beaten paths in parks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Goal
+  prefs: []
+  type: TYPE_NORMAL
+- en: The goal is to maintain one unambiguous history of transaction data among
+  prefs: []
+  type: TYPE_NORMAL
+- en: all nodes in the network that as a result yields identical outcomes when
+  prefs: []
+  type: TYPE_NORMAL
+- en: clarifying ownership requests, regardless of the specific node being contacted
+  prefs: []
+  type: TYPE_NORMAL
+- en: or requested.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Challenge
+  prefs: []
+  type: TYPE_NORMAL
+- en: The blockchain-algorithm as explained in S[tep 18 imposes a tw](http://dx.doi.org/10.1007/978-1-4842-2604-9_18)o-step
+    rhythm to all nodes of the system. At any given point in time, each node of the
+    system
+  prefs: []
+  type: TYPE_NORMAL
+- en: is either examining a new block that was created by one of their peers or
+  prefs: []
+  type: TYPE_NORMAL
+- en: trying hard to be the next node that creates a new block that subsequently
+  prefs: []
+  type: TYPE_NORMAL
+- en: has to be examined by all others. However, there is no global clock that rules
+  prefs: []
+  type: TYPE_NORMAL
+- en: the nodes and stipulates which of the two kinds of work has to be done at any
+  prefs: []
+  type: TYPE_NORMAL
+- en: given time. The arrival of new blocks at the inboxes of the individual nodes
+    is
+  prefs: []
+  type: TYPE_NORMAL
+- en: the clock-pulse generator that governs the work of any given node. However,
+  prefs: []
+  type: TYPE_NORMAL
+- en: the arrival of new blocks at the inboxes of the individual nodes is highly
+  prefs: []
+  type: TYPE_NORMAL
+- en: influenced by the message delivery capabilities of the network, which has its
+  prefs: []
+  type: TYPE_NORMAL
+- en: own adversities. Messages may get lost, may be delivered with time delay, or
+  prefs: []
+  type: TYPE_NORMAL
+- en: may arrive in any order. As a result, the nodes of the network do not have
+  prefs: []
+  type: TYPE_NORMAL
+- en: the identical information at their disposal at the same time. Furthermore, the
+  prefs: []
+  type: TYPE_NORMAL
+- en: switch between the two working phases does not take place at the identical
+  prefs: []
+  type: TYPE_NORMAL
+- en: time for all the nodes. Instead, each node switches between the two working
+  prefs: []
+  type: TYPE_NORMAL
+- en: phases at its own individual time governed by the arrival of messages in its
+  prefs: []
+  type: TYPE_NORMAL
+- en: inbox. This causes an overlap of the working phases of the individual nodes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Both effects impose a huge obstacle toward maintaining one unambiguous
+  prefs: []
+  type: TYPE_NORMAL
+- en: history of transaction data among all peers in the network. Hence, the
+  prefs: []
+  type: TYPE_NORMAL
+- en: challenge is to find a way to identify one unambiguous history of transaction
+  prefs: []
+  type: TYPE_NORMAL
+- en: data in the face of all message delivery adversities and without falling back
+    to a centralized solution.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Blockchain Basics***'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '167'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Idea
+  prefs: []
+  type: TYPE_NORMAL
+- en: The example of beaten paths in parks shows that a group of people can
+  prefs: []
+  type: TYPE_NORMAL
+- en: reach agreement or consensus in collective decision-making problems by
+  prefs: []
+  type: TYPE_NORMAL
+- en: independently and consistently voting with their feet. The result of that kind
+  prefs: []
+  type: TYPE_NORMAL
+- en: of voting is often called distributed consensus because is its reached among
+  prefs: []
+  type: TYPE_NORMAL
+- en: independently acting individuals without a central element of control or
+  prefs: []
+  type: TYPE_NORMAL
+- en: coordination.
+  prefs: []
+  type: TYPE_NORMAL
+- en: ■ **Note** Consensus is a synonym for an agreement among independent individuals.
+    Distributed consensus is an agreement among the members of a purely distributed
+    peer-to-peer system.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Situations in which a crowd or swarm of independently acting individuals
+  prefs: []
+  type: TYPE_NORMAL
+- en: solves a collective problem can be characterized by the following conditions[1:](index_split_002.html#167)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 1\. A group of individuals operate in the identical environment.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 2\. A collective decision-making problem exists.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3\. The individuals independently strive to achieve an identical
+  prefs: []
+  type: TYPE_NORMAL
+- en: goal.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 4\. The individual actions performed to achieve one’s goal
+  prefs: []
+  type: TYPE_NORMAL
+- en: leave visible marks in the environment that help to decide
+  prefs: []
+  type: TYPE_NORMAL
+- en: the collective decision-making problem.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 5\. The individuals use identical criterion for evaluating the
+  prefs: []
+  type: TYPE_NORMAL
+- en: decision-making problem based on the alteration of their
+  prefs: []
+  type: TYPE_NORMAL
+- en: environment.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The idea of the blockchain is to let all nodes independently vote with their
+  prefs: []
+  type: TYPE_NORMAL
+- en: feet and thereby reach a collective agreement regarding the selection of one
+  prefs: []
+  type: TYPE_NORMAL
+- en: version of the transaction history. The blockchain as we know it at this point
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'of the book fulfills the first four conditions of collective decision making:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 1\. All nodes operate in the identical environment consisting
+  prefs: []
+  type: TYPE_NORMAL
+- en: of the network, nodes that maintain their individual copies
+  prefs: []
+  type: TYPE_NORMAL
+- en: of the blockchain-data-structure, and the blockchain-
+  prefs: []
+  type: TYPE_NORMAL
+- en: algorithm that governs the behavior of the nodes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 2\. The decision-making problem is to select one transaction
+  prefs: []
+  type: TYPE_NORMAL
+- en: history collectively.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '1Hassanien, Aboul Ella, and Eid Emary. S *warm intelligence: Principles, advances,
+    and applications*.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Boca Raton, FL: CRC Press, 2016\.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '168'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Step 19 | Choosing a Transaction History***'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3\. All nodes strive to maximize their individual income
+  prefs: []
+  type: TYPE_NORMAL
+- en: earned as reward for adding new valid blocks to the
+  prefs: []
+  type: TYPE_NORMAL
+- en: blockchain-data-structure.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 4\. In order to achieve their goals, all nodes send their new
+  prefs: []
+  type: TYPE_NORMAL
+- en: blocks to all their peers to have them examined and
+  prefs: []
+  type: TYPE_NORMAL
+- en: accepted. As a result, each node leaves its individual
+  prefs: []
+  type: TYPE_NORMAL
+- en: footprint in the environment that is the collectively
+  prefs: []
+  type: TYPE_NORMAL
+- en: maintained blockchain-data-structure.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'However, a fifth point is missing: a criterion that all nodes use for making
+    a'
+  prefs: []
+  type: TYPE_NORMAL
+- en: decision based on the alteration of their environment. The idea of how to
+  prefs: []
+  type: TYPE_NORMAL
+- en: select a history of transaction data is based on how new blocks are added
+  prefs: []
+  type: TYPE_NORMAL
+- en: to the blockchain-data-structure and how the data are protected against
+  prefs: []
+  type: TYPE_NORMAL
+- en: manipulation. Due to the proof of work, adding a new block is computationally
+  prefs: []
+  type: TYPE_NORMAL
+- en: expensive and makes attempts to manipulate the transaction history even more
+  prefs: []
+  type: TYPE_NORMAL
+- en: computationally expensive. Hence, the amount of aggregated computational
+  prefs: []
+  type: TYPE_NORMAL
+- en: effort spent on creating a transaction history seems to be a natural criterion
+  prefs: []
+  type: TYPE_NORMAL
+- en: for selecting a history of transaction data in the case that more than one
+  prefs: []
+  type: TYPE_NORMAL
+- en: conflicting version exists. If all nodes of the system apply the identical criterion
+    for selecting a transaction history, then all nodes of the system eventually
+  prefs: []
+  type: TYPE_NORMAL
+- en: agree on the identical version of the history. The collectively selected version
+    of the transaction history is often called the authoritative chain or history.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How It Works
+  prefs: []
+  type: TYPE_NORMAL
+- en: The idea of selecting a transaction history based on the computational effort
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'that was spent for creating it has led to the following two criteria:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: • [The longest-chain-criterion2](index_split_002.html#168)
+  prefs: []
+  type: TYPE_NORMAL
+- en: • The heaviest-chain-criterion[3](index_split_002.html#168)
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Longest-Chain-Criterion
+  prefs: []
+  type: TYPE_NORMAL
+- en: The longest-chain-criterion is based on the idea that the blockchain-data-
+  prefs: []
+  type: TYPE_NORMAL
+- en: structure that comprises the most blocks represents the most aggregated
+  prefs: []
+  type: TYPE_NORMAL
+- en: computational effort. In order to study this criterion, let’s consider an initial
+    situation were all the nodes of a distributed system maintain and agree on
+  prefs: []
+  type: TYPE_NORMAL
+- en: '2Nakamoto, Satoshi. Bitcoin: A peer-to-peer electronic cash system. 2008\.
+    [https://bitcoin.](https://bitcoin.org/bitcoin.pdf)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[org/bitcoin.pdf](https://bitcoin.org/bitcoin.pdf).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '3Wood, Gavin. Ethereum: A secure decentralized generalized transaction ledger.
+    2014\.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[http://gavwood.com/paper.pdf;](http://gavwood.com/paper.pdf) Okupski, Krzysztof.
+    Bitcoin developer reference.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Working paper. 2014\.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](index-169_1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '***Blockchain Basics***'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '169'
+  prefs: []
+  type: TYPE_NORMAL
+- en: the identical version of the blockchain-data-structure, as depicted in Figure
+    [19-1,](index_split_002.html#169)
+  prefs: []
+  type: TYPE_NORMAL
+- en: which presents a schematic blockchain-data-structure that omits many details
+  prefs: []
+  type: TYPE_NORMAL
+- en: for simplicity. Each of the boxes represents one block that is identified with
+  prefs: []
+  type: TYPE_NORMAL
+- en: a shortened hash value. The arrow that points from one box to another
+  prefs: []
+  type: TYPE_NORMAL
+- en: represents the hash reference that links a block header to its predecessor.
+    In
+  prefs: []
+  type: TYPE_NORMAL
+- en: this initial situation, all nodes agree on one history of the transaction data
+    and strive for extending the existing chain with another block that refers to
+    block
+  prefs: []
+  type: TYPE_NORMAL
+- en: A397 as its predecessor.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Figure 19-1\.** Initial blockchain-data-structure in a distributed system'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Finding a new block is a race among all nodes because it requires the
+  prefs: []
+  type: TYPE_NORMAL
+- en: solution of the block-specific hash puzzle. Figure [19-2 sho](index_split_002.html#170)ws
+    the blockchain-data-structure that the *majority* of nodes maintain after one
+    node solved the hash puzzle of a new block and sent it to its peers. As a result,
+    those
+  prefs: []
+  type: TYPE_NORMAL
+- en: nodes that maintain a blockchain-data-structure as depicted in Figure [19-2](index_split_002.html#170)
+  prefs: []
+  type: TYPE_NORMAL
+- en: strive to extend it with a new block that refers to block AB12 as its
+  prefs: []
+  type: TYPE_NORMAL
+- en: predecessor. From the majority point of view, only one version of the
+  prefs: []
+  type: TYPE_NORMAL
+- en: blockchain-data-structure consisting of three blocks exists. However,
+  prefs: []
+  type: TYPE_NORMAL
+- en: sending a new block through a network costs time and it encounters all
+  prefs: []
+  type: TYPE_NORMAL
+- en: sorts of adversaries. Due to a delay in the message passing, a minority of
+  prefs: []
+  type: TYPE_NORMAL
+- en: nodes have not received block AB12 yet. Hence, they still try to extend the
+  prefs: []
+  type: TYPE_NORMAL
+- en: chain depicted in Figure [19-1](index_split_002.html#169). Eventually, one of
+    them successfully solves the hash puzzle for a new block with the hash value DD01
+    and passes it to its
+  prefs: []
+  type: TYPE_NORMAL
+- en: peers. Eventually, the majority of nodes have received both block AB12 and
+  prefs: []
+  type: TYPE_NORMAL
+- en: block DD01\. As a result, the majority of nodes maintain a blockchain-data-
+  prefs: []
+  type: TYPE_NORMAL
+- en: structure as depicted in Figure [19-3,](index_split_002.html#170) which consists
+    of two branches on top of a common trunk. In such a situation, the longest-chain-criterion
+    does not
+  prefs: []
+  type: TYPE_NORMAL
+- en: yield an unambiguous result because both chains (AB12  A397  33FF
+  prefs: []
+  type: TYPE_NORMAL
+- en: and DD01  A397  33FF) have the same length.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](index-170_1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '![](index-170_2.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '170'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Step 19 | Choosing a Transaction History***'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Figure 19-2\.** Result of adding a new block to the existing blockchain-data-structure
+    In the situation presented in Figure [19-3,](index_split_002.html#170) the nodes
+    are free to decide which branch to extend.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Figure 19-3\.** The blockchain-data-structure after a delayed block was delivered'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](index-171_1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '***Blockchain Basics***'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '171'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Some nodes may strive to find a new block that refers to block AB12 as
+  prefs: []
+  type: TYPE_NORMAL
+- en: its predecessor, while other nodes strive for finding a new block that refers
+  prefs: []
+  type: TYPE_NORMAL
+- en: to block DD01 as its predecessor. Suddenly, the majority of nodes receive
+  prefs: []
+  type: TYPE_NORMAL
+- en: two new blocks, BB11 and CCC1, which both refer to block AB12 as its
+  prefs: []
+  type: TYPE_NORMAL
+- en: predecessor. This can happen due to two nodes finishing the proof of work
+  prefs: []
+  type: TYPE_NORMAL
+- en: for their blocks nearly at the same time. The result of incorporating these
+  prefs: []
+  type: TYPE_NORMAL
+- en: two new blocks into the blockchain-data-structure is a data structure that
+  prefs: []
+  type: TYPE_NORMAL
+- en: contains three chains, as shown in Figure [19-4\.](index_split_002.html#171)
+    One of the chains only consists of three blocks, while the other two consist of
+    four blocks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The longest-chain-criterion clearly rules out the shortest chain, which is the
+  prefs: []
+  type: TYPE_NORMAL
+- en: chain DD01  A397  33FF. However, the longest-chain-criterion does not
+  prefs: []
+  type: TYPE_NORMAL
+- en: yield an unambiguous result because there are two chains of the same length.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As a result, some nodes may strive to find a new block that refers to block
+  prefs: []
+  type: TYPE_NORMAL
+- en: BB11 as its predecessor, while other nodes may strive to find a new block that
+  prefs: []
+  type: TYPE_NORMAL
+- en: refers to block CCC1 as its predecessor.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Figure 19-4\.** A blockchain-data-structure after two nodes finish the proof
+    of work at nearly the same time'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](index-172_1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '172'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Step 19 | Choosing a Transaction History***'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Eventually, one new block arrives that refers to block BB11 as its predecessor,
+  prefs: []
+  type: TYPE_NORMAL
+- en: which yields the data structure as depicted in Figure [19-5\.](index_split_002.html#172)
+    The blockchain-data-structure depicted in Figure [19-5 contains man](index_split_002.html#172)y
+    conflicting versions of the transaction history, but the longest-chain-criterion
+    yields one unambiguous result that is the chain consisting of the blocks 0101
+     BB11  AB12  A397  33FF.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The majority of nodes and eventually all nodes of the system will use that chain
+    for clarifying ownership-related requests. The majority of nodes and eventually
+    all nodes of the system will strive to extend this branch by finding a new block
+    that refers to block 0101 as its predecessor.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Figure 19-5\.** Schematic illustration of a blockchain-data-structure that
+    contains one longest chain after a new block arrived'
+  prefs: []
+  type: TYPE_NORMAL
+- en: An important result is that the blockchain-data-structure actually does not
+  prefs: []
+  type: TYPE_NORMAL
+- en: look like a straight chain, instead it looks more like a tree or a columnar
+    cactus, a blockcactus so to speak. The branches of the tree represent conflicting
+  prefs: []
+  type: TYPE_NORMAL
+- en: versions of the transaction history, but based on the longest-chain-criterion,
+  prefs: []
+  type: TYPE_NORMAL
+- en: all nodes eventually identify the identical version of the transaction history
+  prefs: []
+  type: TYPE_NORMAL
+- en: consentaneously.
+  prefs: []
+  type: TYPE_NORMAL
+- en: ■ **Note** Due to its shape, the blockchain-data-structure is often referred
+    to as a tree-data-structure. The very first and therefore oldest block in the
+    blockchain-data-structure is the one that has no predecessor, and it is often
+    called the root of the tree-shaped structure. A block without a successor is called
+    the leaf. A straight sequence of blocks from the root to a leaf is called the
+    path.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Blockchain Basics***'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '173'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Heaviest-Chain-Criterion
+  prefs: []
+  type: TYPE_NORMAL
+- en: In Step [16](http://dx.doi.org/10.1007/978-1-4842-2604-9_16) you learned that
+    blockchain applications rarely utilize a constant difficulty level for the hash
+    puzzle to be solved for adding a new block to
+  prefs: []
+  type: TYPE_NORMAL
+- en: the blockchain-data-structure. Instead, they typically determine the difficulty
+  prefs: []
+  type: TYPE_NORMAL
+- en: level dynamically, which causes the blocks to differ with respect to the
+  prefs: []
+  type: TYPE_NORMAL
+- en: computational effort that was spent for adding them to the blockchain-data-
+  prefs: []
+  type: TYPE_NORMAL
+- en: structure. On the other hand, the longest-chain-criterion is based on the idea
+  prefs: []
+  type: TYPE_NORMAL
+- en: that the path that contains the most blocks is the one that represents the
+  prefs: []
+  type: TYPE_NORMAL
+- en: most computational effort. However, in the case of heterogeneous difficulty
+  prefs: []
+  type: TYPE_NORMAL
+- en: levels, the longest path is not necessarily the one that represents the most
+  prefs: []
+  type: TYPE_NORMAL
+- en: computational effort.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For each path, the computational effort that was spent upon it can be measured
+  prefs: []
+  type: TYPE_NORMAL
+- en: by adding up the difficulty level of all blocks that belong to it. This value
+    can be calculated by utilizing the fact that the block header contains the difficulty
+    level of its hash puzzle. The aggregated difficulty level of a path is often called
+    its weight. Figure [19-6](index_split_002.html#174) depicts the identical blockchain-data-structure
+    as shown in Figure [19-5](index_split_002.html#172) but this time it also shows
+    the difficulty level for each of its blocks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The longest chain (the path from root 33FF to leaf 0101) has a weight of 5,
+  prefs: []
+  type: TYPE_NORMAL
+- en: while the second-longest chain (the path from root 33FF to leaf CCC1) has
+  prefs: []
+  type: TYPE_NORMAL
+- en: a weight of 6\. Hence, the blockchain-data-structure depicted in Figure [19-6](index_split_002.html#174)
+  prefs: []
+  type: TYPE_NORMAL
+- en: illustrates the situation where the longest-chain-criterion will cause the nodes
+    to select a chain that does not represent the most computational effort.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As a result, blockchains that determine the difficulty level dynamically do
+    not
+  prefs: []
+  type: TYPE_NORMAL
+- en: utilize the longest-chain-criterion. Instead, they utilize the heaviest-chain-
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'criterion: they select that history of transaction data, which is represented
+    by the heaviest chain. In the case that the difficulty level is identical for
+    all blocks, the longest path is identical with the heaviest path and both the
+    longest-chain-criterion and the heaviest-chain-criterion yield the identical result.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](index-174_1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '174'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Step 19 | Choosing a Transaction History***'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Figure 19-6\.** Schematic illustration of a blockchain-data-structure with
+    difficulty levels Consequences of Selecting One Chain'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Selecting one specific chain among conflicting versions and establishing it
+    as
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'the authoritative chain has the following consequences:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Orphan blocks
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Reclaimed reward
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Clarifying ownership
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Reprocessing of transactions
+  prefs: []
+  type: TYPE_NORMAL
+- en: • A growing common trunk
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Eventual consistency
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Robustness against manipulations
+  prefs: []
+  type: TYPE_NORMAL
+- en: Orphan Blocks
+  prefs: []
+  type: TYPE_NORMAL
+- en: The blockchain-data-structure that is grown collectively looks like a tree
+  prefs: []
+  type: TYPE_NORMAL
+- en: whose branches represent different conflicting versions of the transaction
+  prefs: []
+  type: TYPE_NORMAL
+- en: history. Applying a selection criterion actually means selecting one path of
+  prefs: []
+  type: TYPE_NORMAL
+- en: that tree and establishing it as the authoritative version of the history of
+  prefs: []
+  type: TYPE_NORMAL
+- en: transaction data. All blocks in the tree-shaped data structure that are not
+  prefs: []
+  type: TYPE_NORMAL
+- en: part of the authoritative path are abandoned by the nodes and are called
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Blockchain Basics***'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '175'
+  prefs: []
+  type: TYPE_NORMAL
+- en: orphan blocks. [4 F](index_split_002.html#175)or example, when applying the
+    longest-chain-criterion to the situation depicted in Figure [19-4](index_split_002.html#171),
+    the block DD01 is an orphan block, while in Figure [19-5](index_split_002.html#172),
+    the blocks DD01 and CCC1 are not part of the longest chain and are abandoned.
+    When applying the heaviest-chain-criterion to the situation
+  prefs: []
+  type: TYPE_NORMAL
+- en: depicted in Figure [19-6,](index_split_002.html#174) the blocks 0101, BB11,
+    and DD01 are not part of the authoritative chain and therefore are abandoned.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Reclaimed Reward
+  prefs: []
+  type: TYPE_NORMAL
+- en: Orphan blocks are useless for the purpose of clarifying ownership, as they
+  prefs: []
+  type: TYPE_NORMAL
+- en: do not contribute to the authoritative chain. As a result, the reward given
+    to
+  prefs: []
+  type: TYPE_NORMAL
+- en: the node that created and submitted them is reclaimed. This is due to rule 11
+  prefs: []
+  type: TYPE_NORMAL
+- en: and rule 13 of the blockchain-algorithm as explained in Step [18](http://dx.doi.org/10.1007/978-1-4842-2604-9_18),
+    which state that if a block that was added to the blockchain-data-structure is
+    identified as invalid or useless later on, that block as well as all its subsequent
+    blocks will be logically removed from the blockchain-data-structure and the reward
+    that
+  prefs: []
+  type: TYPE_NORMAL
+- en: was given for adding it is withdrawn from the node that initially received it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Clarifying Ownership
+  prefs: []
+  type: TYPE_NORMAL
+- en: Only those transactions that are part of the authoritative chain are considered
+  prefs: []
+  type: TYPE_NORMAL
+- en: to have happened and are used to clarify ownership-related requests. Orphan
+  prefs: []
+  type: TYPE_NORMAL
+- en: blocks are not part of the collectively selected chain. Hence, their transaction
+    data are not part of the history of the transaction data. Instead they are
+  prefs: []
+  type: TYPE_NORMAL
+- en: considered as if they never happened, and they are treated as nonexistent
+  prefs: []
+  type: TYPE_NORMAL
+- en: when it comes to clarifying ownership-related requests.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Reprocessing of Transactions
+  prefs: []
+  type: TYPE_NORMAL
+- en: Transaction data that are part of orphan blocks were originally submitted
+  prefs: []
+  type: TYPE_NORMAL
+- en: with the goal of adding them to the transaction history. The fact that they
+    are
+  prefs: []
+  type: TYPE_NORMAL
+- en: treated as if they never happened was never planned beforehand, instead, it
+    is
+  prefs: []
+  type: TYPE_NORMAL
+- en: the result of the random nature of the proof of work and its role in growing
+    the blockchain-data-structure. Transaction data that unluckily ended up in orphan
+  prefs: []
+  type: TYPE_NORMAL
+- en: blocks are given another chance to become part of the selected transaction
+  prefs: []
+  type: TYPE_NORMAL
+- en: history by putting them in the node’s inbox again to be reprocessed and
+  prefs: []
+  type: TYPE_NORMAL
+- en: added to the blockchain-data-structure later on. This is due to rule 11 of
+  prefs: []
+  type: TYPE_NORMAL
+- en: the blockchain-algorithm, as explained in S[tep 18\.](http://dx.doi.org/10.1007/978-1-4842-2604-9_18)
+    As a result, transactions that were once part of the authoritative chain can disappear
+    for a while if
+  prefs: []
+  type: TYPE_NORMAL
+- en: the majority of nodes abandon the block to which they belong, but they will
+  prefs: []
+  type: TYPE_NORMAL
+- en: appear later as soon as they have been reprocessed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 4Okupski, Krzysztof. Bitcoin developer reference. Working paper. 2014\.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '176'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Step 19 | Choosing a Transaction History***'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A Growing Common Trunk
+  prefs: []
+  type: TYPE_NORMAL
+- en: Applying a selection criterion does not always yield an unambiguous result.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, in situations such as those depicted in Figure [19-3 and Figur](index_split_002.html#170)e
+    [19-](index_split_002.html#171)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[4,](index_split_002.html#171) more than one longest chain exists. In these
+    situations, the blockchain-data-structure has two equal length paths that arise
+    from a common trunk. In'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure [19-3](index_split_002.html#170), the common trunk consists of just two
+    blocks that form a short chain A397  33FF. In Figure [19-4](index_split_002.html#171),
+    the common trunk already consists of three blocks that form the chain AB12  A397
+     33FF, which includes the
+  prefs: []
+  type: TYPE_NORMAL
+- en: common trunk of the previous situation. Hence, even if a selection criterion
+  prefs: []
+  type: TYPE_NORMAL
+- en: yields ambiguous results, the conflicting versions of the transaction history
+  prefs: []
+  type: TYPE_NORMAL
+- en: arise from a less ambiguous common trunk. The deeper down the blockchain
+  prefs: []
+  type: TYPE_NORMAL
+- en: you look, the less ambiguous the decision whether or not a block is part of
+  prefs: []
+  type: TYPE_NORMAL
+- en: the longest chain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Eventual Consistency
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s consider the situation depicted in Figure [19-4,](index_split_002.html#171)
+    where the longest-chain-criterion does not yield an unambiguous result. As you
+    can see in Figure [19-5](index_split_002.html#172), the next block being added
+    to the blockchain-data-structure determines whether
+  prefs: []
+  type: TYPE_NORMAL
+- en: block BB11 or CCC1 will either be part of the longest chain or be abandoned
+  prefs: []
+  type: TYPE_NORMAL
+- en: instead. But who decides that the next block being added to the blockchain-
+  prefs: []
+  type: TYPE_NORMAL
+- en: data-structure shown in Figure [19-4 r](index_split_002.html#171)efers to block
+    BB11 as its predecessor and hence abandons block CCC1? The surprising and maybe
+    disappointing
+  prefs: []
+  type: TYPE_NORMAL
+- en: answer is that it is purely random. In the situation shown in Figure [19-4,](index_split_002.html#171)
+    the nodes are free to decide which branch to extend. As a result, some nodes
+  prefs: []
+  type: TYPE_NORMAL
+- en: may strive to find a new block that refers to block BB11 as its predecessor,
+  prefs: []
+  type: TYPE_NORMAL
+- en: while other nodes may strive to find a new block that refers to block CCC1
+  prefs: []
+  type: TYPE_NORMAL
+- en: as its predecessor. Which of them finishes the new block first depends on the
+  prefs: []
+  type: TYPE_NORMAL
+- en: solution of the hash puzzle, which takes a finite but random length of time.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The node that solves the hash puzzle of a new block first decides which of the
+  prefs: []
+  type: TYPE_NORMAL
+- en: conflicting branches gets extended and which blocks get abandoned. Hence,
+  prefs: []
+  type: TYPE_NORMAL
+- en: the growth of the tree-shaped blockchain-data-structure exhibits a random
+  prefs: []
+  type: TYPE_NORMAL
+- en: behavior due to the speed race for solving the hash puzzle and the random
+  prefs: []
+  type: TYPE_NORMAL
+- en: fluctuations in messages passing through the network. The next block, whose
+  prefs: []
+  type: TYPE_NORMAL
+- en: time of appearance is governed by the random duration needed to solve its
+  prefs: []
+  type: TYPE_NORMAL
+- en: hash puzzle, determines which of the paths will be extended and which block
+  prefs: []
+  type: TYPE_NORMAL
+- en: will be abandoned.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As previously discussed, conflicting branches of the tree-shaped blockchain-
+  prefs: []
+  type: TYPE_NORMAL
+- en: data-structure share a common trunk that stays constant regardless of the
+  prefs: []
+  type: TYPE_NORMAL
+- en: blocks or leafs that are abandoned. Hence, the blocks located at or near
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Blockchain Basics***'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '177'
+  prefs: []
+  type: TYPE_NORMAL
+- en: the top of the authoritative chain are most affected by the random nature
+  prefs: []
+  type: TYPE_NORMAL
+- en: of the arrival of new blocks, while blocks deeper down in the blockchain-
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'data-structure are less affected. Hence, it can be stated: The *deeper down*
+    the authoritative chain a block is located:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: • The *further in* the past it was added
+  prefs: []
+  type: TYPE_NORMAL
+- en: • The *more time* has passed since its inclusion in the
+  prefs: []
+  type: TYPE_NORMAL
+- en: blockchain-data-structure
+  prefs: []
+  type: TYPE_NORMAL
+- en: • The *more common effort* has been spend on adding
+  prefs: []
+  type: TYPE_NORMAL
+- en: subsequent blocks
+  prefs: []
+  type: TYPE_NORMAL
+- en: • The *less it is* affected by random changes of the blocks
+  prefs: []
+  type: TYPE_NORMAL
+- en: that belong to the longest chain
+  prefs: []
+  type: TYPE_NORMAL
+- en: • The *less likely* it will be abandoned
+  prefs: []
+  type: TYPE_NORMAL
+- en: • The *more accepted* it is by the nodes of the system
+  prefs: []
+  type: TYPE_NORMAL
+- en: • The *more anchored* it is in the common history of the nodes
+  prefs: []
+  type: TYPE_NORMAL
+- en: The fact that certainty concerning the inclusion of blocks in the authoritative
+  prefs: []
+  type: TYPE_NORMAL
+- en: chain increases as time goes by and more blocks are added eventually is called
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*eventually consistency*.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Robustness Against Manipulations
+  prefs: []
+  type: TYPE_NORMAL
+- en: That path of the tree-shaped blockchain-data-structure that represents the
+  prefs: []
+  type: TYPE_NORMAL
+- en: most computational effort is the authoritative version of the transaction
+  prefs: []
+  type: TYPE_NORMAL
+- en: history. Establishing and maintaining the authoritative path is just a matter
+  prefs: []
+  type: TYPE_NORMAL
+- en: of controlling the majority of the computational power of the whole system.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Establishing a new authoritative path that starts at one of the inner blocks
+    of
+  prefs: []
+  type: TYPE_NORMAL
+- en: the blockchain-data-structure requires catching up with and overtaking the
+  prefs: []
+  type: TYPE_NORMAL
+- en: path maintained by the majority. This fact is the basis for the robustness of
+  prefs: []
+  type: TYPE_NORMAL
+- en: the blockchain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As long as honest nodes own the majority of computational resources of the
+  prefs: []
+  type: TYPE_NORMAL
+- en: whole system, the path maintained by them will grow fastest and outpace any
+  prefs: []
+  type: TYPE_NORMAL
+- en: competing paths. In order to manipulate an inner block, an attacker would
+  prefs: []
+  type: TYPE_NORMAL
+- en: have to redo the proof of work of that block and subsequently redo the hash
+  prefs: []
+  type: TYPE_NORMAL
+- en: puzzle of all blocks after it and then catch up with and overtake the path
+  prefs: []
+  type: TYPE_NORMAL
+- en: maintained by the honest nodes[2\.](index_split_002.html#168) However, establishing
+    a new path by catching up with and overtaking the path maintained by the majority
+    is impossible for
+  prefs: []
+  type: TYPE_NORMAL
+- en: any attacker that controls less computational power than the majority. Hence,
+  prefs: []
+  type: TYPE_NORMAL
+- en: '178'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Step 19 | Choosing a Transaction History***'
+  prefs: []
+  type: TYPE_NORMAL
+- en: any attempt to establish a new authoritative path that contains fraudulent
+  prefs: []
+  type: TYPE_NORMAL
+- en: transactions will be outpaced and therefore abandoned by the path that is
+  prefs: []
+  type: TYPE_NORMAL
+- en: maintained by the honest majority. As a result, the history of transactions
+  prefs: []
+  type: TYPE_NORMAL
+- en: maintained by the system is robust against manipulations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Threats to the Voting Schema
+  prefs: []
+  type: TYPE_NORMAL
+- en: Any procedure of collective decision making will be the target of manipulations
+  prefs: []
+  type: TYPE_NORMAL
+- en: if it appears to be worthwhile to influence the outcome of the whole process.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The blockchain and its distributed consensus algorithm is no exception to that.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are many discussions about how the blockchain consensus algorithm
+  prefs: []
+  type: TYPE_NORMAL
+- en: can be manipulated. Regardless of how diverse these manipulations may appear,
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'they have only one goal: turning blocks that are part of the authoritative
+    chain into orphan blocks and establishing a new authoritative chain that represents'
+  prefs: []
+  type: TYPE_NORMAL
+- en: a history of transaction data and an alternative distribution of ownership
+  prefs: []
+  type: TYPE_NORMAL
+- en: rights that is more favorable from the attackers point of view.
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, one can discuss these manipulations from a variety of viewpoints.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Economically, these manipulations try to change the allocation of ownership
+  prefs: []
+  type: TYPE_NORMAL
+- en: rights by changing the collective history of transaction data. Regarding
+  prefs: []
+  type: TYPE_NORMAL
+- en: collective decision making, these manipulations try to gather the majority of
+  prefs: []
+  type: TYPE_NORMAL
+- en: voting power in order to enforce a desired result. From a technical point of
+  prefs: []
+  type: TYPE_NORMAL
+- en: view, any attempt to manipulate the collective decision-making process aims
+  prefs: []
+  type: TYPE_NORMAL
+- en: to undermine the integrity of the system. Regarding the distributed nature of
+  prefs: []
+  type: TYPE_NORMAL
+- en: the system, these manipulations try to establish, at least temporarily, a hidden
+    element of centrality that changes the state of the system. Hence, these attacks
+    are often called 51 percent attacks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: ■ **Note** A 51 percent attack is an attempt to gather or control the majority
+    of the whole voting power in a collective decision-making process.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Role of the Hash Puzzle
+  prefs: []
+  type: TYPE_NORMAL
+- en: In Step [16](http://dx.doi.org/10.1007/978-1-4842-2604-9_16) you learned how
+    to make the blockchain-data-structure immutable.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Hence, from a purely technical point of view, the hash puzzle is just a means
+    to an end to make the blockchain-data-structure immutable. However, when you
+  prefs: []
+  type: TYPE_NORMAL
+- en: consider the usage of the blockchain-data-structure, another aspect of the
+  prefs: []
+  type: TYPE_NORMAL
+- en: hash puzzle is seen. In the course of reaching a collective agreement regarding
+  prefs: []
+  type: TYPE_NORMAL
+- en: the transaction history, the individual blocks that make up the blockchain-
+  prefs: []
+  type: TYPE_NORMAL
+- en: data-structure can be seen as a voting ballot, while the hash puzzle can be
+  prefs: []
+  type: TYPE_NORMAL
+- en: seen as a price that makes submitting a ballot costly and hence detains the
+  prefs: []
+  type: TYPE_NORMAL
+- en: dishonest from taking part in the vote.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Blockchain Basics***'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '179'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Any attempt to manipulate the collective decision-making process of the
+  prefs: []
+  type: TYPE_NORMAL
+- en: blockchain aims to gather the majority of the voting power. Due to the fact
+  prefs: []
+  type: TYPE_NORMAL
+- en: that the blockchain binds voting power on computational power via the hash
+  prefs: []
+  type: TYPE_NORMAL
+- en: puzzle, any attempt to gather the majority of voting power actually means
+  prefs: []
+  type: TYPE_NORMAL
+- en: gathering the majority of the computational power of the whole peer-to-peer
+  prefs: []
+  type: TYPE_NORMAL
+- en: system. The reliability and trustworthiness of the way the blockchain reaches
+  prefs: []
+  type: TYPE_NORMAL
+- en: collective agreement relies on the assumption that no single person or entity
+  prefs: []
+  type: TYPE_NORMAL
+- en: can acquire or gather the majority of accumulated computational power of
+  prefs: []
+  type: TYPE_NORMAL
+- en: the whole peer-to-peer system.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Why It Works
+  prefs: []
+  type: TYPE_NORMAL
+- en: Building up the blockchain-data-structure collectively is a bit like taking
+    part in a continuous voting schema. Each single node has only a tiny voice in
+    the
+  prefs: []
+  type: TYPE_NORMAL
+- en: ongoing poll about which transaction history should be chosen, but all nodes
+  prefs: []
+  type: TYPE_NORMAL
+- en: together form a powerful population that consistently selects its own history.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This works because taking part in the ongoing voting scheme is neither
+  prefs: []
+  type: TYPE_NORMAL
+- en: without costs nor is it unaccommodating. Taking part in the vote costs work
+  prefs: []
+  type: TYPE_NORMAL
+- en: necessary to solve the hash puzzle, and by submitting a vote or a new block,
+  prefs: []
+  type: TYPE_NORMAL
+- en: a node commits itself to it in order to receive a reward. Since all nodes
+  prefs: []
+  type: TYPE_NORMAL
+- en: independently utilize the identical criterion for selecting a transaction history,
+    eventually all nodes reach a consensus.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Outlook
+  prefs: []
+  type: TYPE_NORMAL
+- en: This step focused on the way the nodes of a purely distributed peer-to-peer
+  prefs: []
+  type: TYPE_NORMAL
+- en: system reach an agreement concerning the collectively maintained history
+  prefs: []
+  type: TYPE_NORMAL
+- en: of transaction data and highlighted the importance of the hash puzzle for
+  prefs: []
+  type: TYPE_NORMAL
+- en: reaching consensus and maintaining integrity. The next step discusses the
+  prefs: []
+  type: TYPE_NORMAL
+- en: importance of reward and the instrument of payment used to compensate
+  prefs: []
+  type: TYPE_NORMAL
+- en: the peers for contributing to the integrity of the system.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Summary
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Delays in sending new blocks across the network or two
+  prefs: []
+  type: TYPE_NORMAL
+- en: nodes creating new blocks nearly at the same time cause
+  prefs: []
+  type: TYPE_NORMAL
+- en: the blockchain-data-structure to grow into the shape of a
+  prefs: []
+  type: TYPE_NORMAL
+- en: tree or a columnar cactus with branches that arise from a
+  prefs: []
+  type: TYPE_NORMAL
+- en: common trunk that represent conflicting versions of the
+  prefs: []
+  type: TYPE_NORMAL
+- en: transaction history.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Selecting an identical version of the transaction history is
+  prefs: []
+  type: TYPE_NORMAL
+- en: a collective decision-making problem.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '180'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Step 19 | Choosing a Transaction History***'
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Distributed consensus is an agreement among the
+  prefs: []
+  type: TYPE_NORMAL
+- en: members of a purely distributed peer-to-peer system in a
+  prefs: []
+  type: TYPE_NORMAL
+- en: collective decision-making problem.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • The collective decision-making problem of the blockchain
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'is characterized by the following facts:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: • All nodes operate in the identical environment,
+  prefs: []
+  type: TYPE_NORMAL
+- en: consisting of the network, nodes that maintain their
+  prefs: []
+  type: TYPE_NORMAL
+- en: individual copies of the blockchain-data-structure,
+  prefs: []
+  type: TYPE_NORMAL
+- en: and the blockchain-algorithm that governs the
+  prefs: []
+  type: TYPE_NORMAL
+- en: behavior of the nodes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • The decision-making problem is to select the identical
+  prefs: []
+  type: TYPE_NORMAL
+- en: transaction history across all nodes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • All nodes strive to maximize their individual income
+  prefs: []
+  type: TYPE_NORMAL
+- en: earned as a reward for adding new valid blocks to the
+  prefs: []
+  type: TYPE_NORMAL
+- en: blockchain-data-structure.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • In order to achieve their goals, all nodes send their new
+  prefs: []
+  type: TYPE_NORMAL
+- en: blocks to all their peers to have them examined and
+  prefs: []
+  type: TYPE_NORMAL
+- en: accepted. As a result, each nodes leaves its individual
+  prefs: []
+  type: TYPE_NORMAL
+- en: footprint in the environment that is the collectively
+  prefs: []
+  type: TYPE_NORMAL
+- en: maintained blockchain-data-structure.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • All nodes use the identical criterion for selecting a
+  prefs: []
+  type: TYPE_NORMAL
+- en: history of transaction data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • The longest-chain-criterion states that each node
+  prefs: []
+  type: TYPE_NORMAL
+- en: independently chooses the path of the tree-shaped
+  prefs: []
+  type: TYPE_NORMAL
+- en: blockchain-data-structure that contains the most blocks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • The heaviest-chain-criterion states that each node
+  prefs: []
+  type: TYPE_NORMAL
+- en: independently chooses that path of the tree-shaped
+  prefs: []
+  type: TYPE_NORMAL
+- en: blockchain-data-structure that has the highest aggregated
+  prefs: []
+  type: TYPE_NORMAL
+- en: difficulty.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Selecting one path of the tree-shaped blockchain-data-
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'structure has the following consequences:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Orphan blocks
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Reclaimed reward
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Clarifying ownership
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Reprocessing of transactions
+  prefs: []
+  type: TYPE_NORMAL
+- en: • A growing common trunk
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Blockchain Basics***'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '181'
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Eventual consistency
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Robustness against manipulations
+  prefs: []
+  type: TYPE_NORMAL
+- en: '• The deeper down the authoritative chain a block is located:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: • The further in the past it was added
+  prefs: []
+  type: TYPE_NORMAL
+- en: • The more time has passed since its inclusion in the
+  prefs: []
+  type: TYPE_NORMAL
+- en: blockchain-data-structure
+  prefs: []
+  type: TYPE_NORMAL
+- en: • The more common effort has been spent on adding
+  prefs: []
+  type: TYPE_NORMAL
+- en: subsequent blocks
+  prefs: []
+  type: TYPE_NORMAL
+- en: • The less it is affected by random changes of the
+  prefs: []
+  type: TYPE_NORMAL
+- en: blocks that belong to the longest chain
+  prefs: []
+  type: TYPE_NORMAL
+- en: • The less likely it will be abandoned
+  prefs: []
+  type: TYPE_NORMAL
+- en: • The more accepted it is by the nodes of the system
+  prefs: []
+  type: TYPE_NORMAL
+- en: • The more anchored it is in the common history of
+  prefs: []
+  type: TYPE_NORMAL
+- en: the nodes
+  prefs: []
+  type: TYPE_NORMAL
+- en: • The fact that certainty concerning the inclusion of blocks
+  prefs: []
+  type: TYPE_NORMAL
+- en: in the authoritative chain increases as time goes by and
+  prefs: []
+  type: TYPE_NORMAL
+- en: as more blocks are added eventually is called eventually
+  prefs: []
+  type: TYPE_NORMAL
+- en: consistency.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • A 51 percent attack is an attempt to gather or control
+  prefs: []
+  type: TYPE_NORMAL
+- en: the majority of the whole voting power in a collective
+  prefs: []
+  type: TYPE_NORMAL
+- en: decision-making process with the goal to turn blocks that
+  prefs: []
+  type: TYPE_NORMAL
+- en: are part of the authoritative chain into orphan blocks
+  prefs: []
+  type: TYPE_NORMAL
+- en: and establish a new authoritative chain that contains
+  prefs: []
+  type: TYPE_NORMAL
+- en: a transaction history that is more favorable from the
+  prefs: []
+  type: TYPE_NORMAL
+- en: attackers point of view.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '• A 51 percent attack has the following characteristics:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '• Economically: Changing the allocation of ownership'
+  prefs: []
+  type: TYPE_NORMAL
+- en: rights by changing the collective history of
+  prefs: []
+  type: TYPE_NORMAL
+- en: transaction data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '• Decision making: Gathering the majority of voting'
+  prefs: []
+  type: TYPE_NORMAL
+- en: power in order to enforce a desired result.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '• Technically: Undermining the integrity of the system.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '• Architecturally: Establish at least temporarily a'
+  prefs: []
+  type: TYPE_NORMAL
+- en: hidden element of centrality that changes the state
+  prefs: []
+  type: TYPE_NORMAL
+- en: of the system.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**S T E P**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '20'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Paying for
+  prefs: []
+  type: TYPE_NORMAL
+- en: Integrity
+  prefs: []
+  type: TYPE_NORMAL
+- en: Neither integrity nor the creation of trust is
+  prefs: []
+  type: TYPE_NORMAL
+- en: without costs
+  prefs: []
+  type: TYPE_NORMAL
+- en: The discussion of how the blockchain processes new transaction data and
+  prefs: []
+  type: TYPE_NORMAL
+- en: how the nodes of the system reach an agreement concerning the true history
+  prefs: []
+  type: TYPE_NORMAL
+- en: of transactions revealed the importance of the hash puzzle. Solving the hash
+  prefs: []
+  type: TYPE_NORMAL
+- en: puzzle plays an important role in achieving and maintaining the integrity of
+    the system. But solving the hash puzzle costs computational resources and, as
+    a
+  prefs: []
+  type: TYPE_NORMAL
+- en: consequence, it costs money. For that reason, it is necessary to compensate
+  prefs: []
+  type: TYPE_NORMAL
+- en: the nodes that contribute to the integrity of the system for doing so. However,
+  prefs: []
+  type: TYPE_NORMAL
+- en: throughout the discussion, it has been assumed that the nodes are compen-
+  prefs: []
+  type: TYPE_NORMAL
+- en: sated somehow without asking which instrument of payment is used to do so.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Hence, this step focuses exclusively on how nodes are compensated for their
+  prefs: []
+  type: TYPE_NORMAL
+- en: contribution to the integrity of the system.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Metaphor
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s imagine you are the owner of a bakery. One day you come up with
+  prefs: []
+  type: TYPE_NORMAL
+- en: a great idea on how to improve your business. You realized that money is
+  prefs: []
+  type: TYPE_NORMAL
+- en: scarce, but you always have bread for sale in your bakery, and at the end of
+  prefs: []
+  type: TYPE_NORMAL
+- en: © Daniel Drescher 2017
+  prefs: []
+  type: TYPE_NORMAL
+- en: D. Drescher, *Blockchain Basics*, DOI 10.1007/978-1-4842-2604-9_20
+  prefs: []
+  type: TYPE_NORMAL
+- en: '184'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Chapter 20 | Paying for Integrity***'
+  prefs: []
+  type: TYPE_NORMAL
+- en: most business days there is a significant amount of bread left over. Hence,
+  prefs: []
+  type: TYPE_NORMAL
+- en: you decide to pay your employees with bread instead of paying them money.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This will accomplish two things: save you money and avoid the need to throw'
+  prefs: []
+  type: TYPE_NORMAL
+- en: away leftover bread. Your employees are not excited about this idea, but
+  prefs: []
+  type: TYPE_NORMAL
+- en: soon other companies imitate you and finally all companies begin to apply
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'this compensation schedule: car manufacturers pay their employees with'
+  prefs: []
+  type: TYPE_NORMAL
+- en: cars, construction companies pay their employees with houses, and so on.
+  prefs: []
+  type: TYPE_NORMAL
+- en: One day your friends are complaining about their impractical compensation,
+  prefs: []
+  type: TYPE_NORMAL
+- en: except for one of them who is still getting paid with money. Which company
+  prefs: []
+  type: TYPE_NORMAL
+- en: or institution do you think this person works for? It turns out that he works
+  prefs: []
+  type: TYPE_NORMAL
+- en: for a central bank, which happens to be a producer of money!
+  prefs: []
+  type: TYPE_NORMAL
+- en: This example plays with the dependency between the goods we create by
+  prefs: []
+  type: TYPE_NORMAL
+- en: fulfilling our jobs and the goods we receive as compensation. This step dis-
+  prefs: []
+  type: TYPE_NORMAL
+- en: cusses that connection in the context of the blockchain. It will turn out
+  prefs: []
+  type: TYPE_NORMAL
+- en: that under some conditions it may become desirable for the blockchain to
+  prefs: []
+  type: TYPE_NORMAL
+- en: become more like a central bank that pays its employees with the bank notes
+  prefs: []
+  type: TYPE_NORMAL
+- en: it produces. But before I discuss this special case, let’s review in more detail
+    the role of fees and the importance of compensation within the blockchain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Role of Fees Within the Blockchain
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Step 18](http://dx.doi.org/10.1007/978-1-4842-2604-9_18) highlighted that
+    the blockchain utilizes the carrot-and-stick approach in order to get the peers
+    that make up the system control one another. Competition'
+  prefs: []
+  type: TYPE_NORMAL
+- en: for reward and threat of punishment are the two forces that keep peers of the
+  prefs: []
+  type: TYPE_NORMAL
+- en: system verifying transactions orderly and selecting that transaction history
+    that unites the most collective effort. Reward and punishment are implemented
+    with
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'rewards based on transaction fees and proof of w[ork.1 T](index_split_002.html#183)his
+    effect is universal in all blockchain applications regardless of their concrete
+    application goal. However, the choice of a concrete instrument of payment used
+    to compensate the main-tainers of the system is not identical in all blockchain
+    applications. Defining and using an instrument of payment that will be given to
+    the peers for verifying and adding new blocks to the blockchain is considered
+    one of the major challenges in establishing a blockchain application. As a result,
+    the following consequences of choosing an instrument of payment have to be considered:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: • The impact on the integrity of the system
+  prefs: []
+  type: TYPE_NORMAL
+- en: • The impact on the openness of the system
+  prefs: []
+  type: TYPE_NORMAL
+- en: • The impact on the distributed nature of the system
+  prefs: []
+  type: TYPE_NORMAL
+- en: • The impact on the philosophy of the system
+  prefs: []
+  type: TYPE_NORMAL
+- en: '1Nakamoto, Satoshi. Bitcoin: A peer-to-peer electronic cash system. 2008\.
+    [https://](https://bitcoin.org/bitcoin.pdf)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[bitcoin.org/bitcoin.pdf](https://bitcoin.org/bitcoin.pdf).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Blockchain Basics***'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '185'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Impact on the Integrity of the System
+  prefs: []
+  type: TYPE_NORMAL
+- en: The forces of reward and punishment are the foundation of achieving and
+  prefs: []
+  type: TYPE_NORMAL
+- en: maintaining integrity in the blockchain. This works because the peers of the
+  prefs: []
+  type: TYPE_NORMAL
+- en: system receive a valuable compensation for maintaining the integrity of the
+  prefs: []
+  type: TYPE_NORMAL
+- en: system. But how do we know that the peers indeed receive a valuable com-
+  prefs: []
+  type: TYPE_NORMAL
+- en: pensation for their work in the first place? Well, that is the whole point.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Which instrument of payment is considered valuable and worthwhile for
+  prefs: []
+  type: TYPE_NORMAL
+- en: doing the work of maintaining the system? What happens if this instrument of
+  prefs: []
+  type: TYPE_NORMAL
+- en: payment is known to lose its value or is not trustworthy? Can we expect that
+  prefs: []
+  type: TYPE_NORMAL
+- en: the peers who maintain the blockchain will continue doing so when they are
+  prefs: []
+  type: TYPE_NORMAL
+- en: compensated with an untrustworthy and worthless instrument of payment?
+  prefs: []
+  type: TYPE_NORMAL
+- en: No, we cannot. Lack of trust in the instrument of payment used to compen-
+  prefs: []
+  type: TYPE_NORMAL
+- en: sate the peers of the system will contaminate the whole system. Hence, the
+  prefs: []
+  type: TYPE_NORMAL
+- en: instrument of payment used for compensating the supporters of the system
+  prefs: []
+  type: TYPE_NORMAL
+- en: directly impacts the trustworthiness of the blockchain itself.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Impact on the Openness of the System
+  prefs: []
+  type: TYPE_NORMAL
+- en: The blockchain is supposed to be an open peer-to-peer system. Everyone can
+  prefs: []
+  type: TYPE_NORMAL
+- en: connect his or her computer to the system and will be rewarded for contrib-
+  prefs: []
+  type: TYPE_NORMAL
+- en: uting to the maintenance of its integrity. But what happens if the instrument
+  prefs: []
+  type: TYPE_NORMAL
+- en: of payment used to compensate peers is not as open as the blockchain itself?
+  prefs: []
+  type: TYPE_NORMAL
+- en: What if the compensation is done by using an instrument of payment that is
+  prefs: []
+  type: TYPE_NORMAL
+- en: available or accepted only in specific countries or is subject to capital move-
+  prefs: []
+  type: TYPE_NORMAL
+- en: ment restrictions? In this case, the instrument of payment counteracts the
+  prefs: []
+  type: TYPE_NORMAL
+- en: technical openness of the system by inducing economic constraints.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Impact on the Distributed Nature of the System
+  prefs: []
+  type: TYPE_NORMAL
+- en: The blockchain is a purely distributed peer-to-peer system without any ele-
+  prefs: []
+  type: TYPE_NORMAL
+- en: ment of central control or coordination. But what happens if the instrument
+  prefs: []
+  type: TYPE_NORMAL
+- en: of payment used to compensate peers is controlled and governed by one cen-
+  prefs: []
+  type: TYPE_NORMAL
+- en: tral institution? This means allowing centrality to enter the system through
+  prefs: []
+  type: TYPE_NORMAL
+- en: the back door. It would counteract the distributed nature of the system.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Impact on the Philosophy of the System
+  prefs: []
+  type: TYPE_NORMAL
+- en: The preceding discussion revealed that the properties of the instrument
+  prefs: []
+  type: TYPE_NORMAL
+- en: of payment used to compensate peers for supporting the system have the
+  prefs: []
+  type: TYPE_NORMAL
+- en: potential to counteract major aspects of the blockchain. This raises a fun-
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'damental question: How can a purely distributed peer-to-peer system that'
+  prefs: []
+  type: TYPE_NORMAL
+- en: is designed to stay free of centralized control be considered credible if it
+  prefs: []
+  type: TYPE_NORMAL
+- en: '186'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Chapter 20 | Paying for Integrity***'
+  prefs: []
+  type: TYPE_NORMAL
+- en: uses an instrument of payment to compensate its peers that counteracts its
+  prefs: []
+  type: TYPE_NORMAL
+- en: major values? Every blockchain that claims to be completely open and purely
+  prefs: []
+  type: TYPE_NORMAL
+- en: distributed has to find a satisfying answer to this question.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Desirable Properties of an Instrument of
+  prefs: []
+  type: TYPE_NORMAL
+- en: Payment for Compensating Peers
+  prefs: []
+  type: TYPE_NORMAL
+- en: In order to interfere as little as possible with the goals and values of the
+  prefs: []
+  type: TYPE_NORMAL
+- en: blockchain, an instrument of payment to be used for compensating peers
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'should:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Be available in digital form; otherwise it cannot be included
+  prefs: []
+  type: TYPE_NORMAL
+- en: in the blockchain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Be accepted as an instrument of payment in the real
+  prefs: []
+  type: TYPE_NORMAL
+- en: world; otherwise peers cannot use their income from
+  prefs: []
+  type: TYPE_NORMAL
+- en: supporting the system to pay their bills in the real world.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Be accepted as an instrument of payment in all countries;
+  prefs: []
+  type: TYPE_NORMAL
+- en: otherwise supporting the system will become unattractive
+  prefs: []
+  type: TYPE_NORMAL
+- en: to peers who live in those countries that do not accept it
+  prefs: []
+  type: TYPE_NORMAL
+- en: as an instrument of payment.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Not be subject to capital movement restrictions;
+  prefs: []
+  type: TYPE_NORMAL
+- en: otherwise its transfer to peers is restricted.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Have a stable value; otherwise the peers have an economic
+  prefs: []
+  type: TYPE_NORMAL
+- en: risk of losing purchasing power.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Be trustworthy; otherwise it undermines the ability of
+  prefs: []
+  type: TYPE_NORMAL
+- en: the blockchain to create trust.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Not be controlled by one single central organization
+  prefs: []
+  type: TYPE_NORMAL
+- en: or state; otherwise it causes a serious conflict to the
+  prefs: []
+  type: TYPE_NORMAL
+- en: distributed nature of the blockchain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This list of properties reads like a wish list for the perfect world currency.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Hence, it is no surprise that none of the existing fiat currencies fulfills
+    these desired properties.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A Detour to the Emergence of Cryptographic
+  prefs: []
+  type: TYPE_NORMAL
+- en: Currencies
+  prefs: []
+  type: TYPE_NORMAL
+- en: The previous section listed desired properties of an instrument of payment
+  prefs: []
+  type: TYPE_NORMAL
+- en: for compensating peers of a blockchain. The finding that none of the exist-
+  prefs: []
+  type: TYPE_NORMAL
+- en: ing fiat currencies fulfills these properties is a bit sobering because they
+    are
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Blockchain Basics***'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '187'
+  prefs: []
+  type: TYPE_NORMAL
+- en: desirable in their own right. A currency or an instrument of payment that has
+  prefs: []
+  type: TYPE_NORMAL
+- en: these properties would also be useful in many occasions other than compen-
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'sating peers of a distributed system. It turns out that many people have already
+    thought about that problem. The first and most prominent blockchain application
+    was formed to solve this problem. The idea of that blockchain is brilliant: It
+    is a purely distributed peer-to-peer system that manages ownership of a'
+  prefs: []
+  type: TYPE_NORMAL
+- en: new kind of digital money, which, in turn, is used to compensate the peers of
+  prefs: []
+  type: TYPE_NORMAL
+- en: the system for verifying and adding new blocks to the blockchain-data-struc-
+  prefs: []
+  type: TYPE_NORMAL
+- en: ture. This particular new money connects its application goal, the management
+  prefs: []
+  type: TYPE_NORMAL
+- en: of ownership of a new kind of money, with the need to have a trustworthy
+  prefs: []
+  type: TYPE_NORMAL
+- en: instrument of payment for compensating its contributors. I am talking about
+  prefs: []
+  type: TYPE_NORMAL
+- en: Bitcoin. The Bitcoin system not only manages ownership of the new digital
+  prefs: []
+  type: TYPE_NORMAL
+- en: money in a purely distributed peer-to-peer system but it also compensates its
+  prefs: []
+  type: TYPE_NORMAL
+- en: peers with the money to whose integrity they contribute. Due to the fact that
+  prefs: []
+  type: TYPE_NORMAL
+- en: the blockchain relies heavily on cryptography, this new kind of money is also
+  prefs: []
+  type: TYPE_NORMAL
+- en: called cryptographic money or cryptocurrency for short. As a rule of thumb,
+  prefs: []
+  type: TYPE_NORMAL
+- en: you could say that Bitcoin and many other cryptographic currencies are like
+  prefs: []
+  type: TYPE_NORMAL
+- en: bakeries that pay their employees with the bread they produce, with the dif-
+  prefs: []
+  type: TYPE_NORMAL
+- en: ference being that the bread they produce is actually a new digital currency.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Outlook
+  prefs: []
+  type: TYPE_NORMAL
+- en: This step highlighted the importance of the instrument of payment used to
+  prefs: []
+  type: TYPE_NORMAL
+- en: compensate the peers of the blockchain. This step is the last of a series of
+  prefs: []
+  type: TYPE_NORMAL
+- en: steps, which focus on the fundamental principles of the blockchain individually.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The next step will bring all the pieces together and summarize what you have
+  prefs: []
+  type: TYPE_NORMAL
+- en: learned in the preceding learning steps.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Summary
+  prefs: []
+  type: TYPE_NORMAL
+- en: • The blockchain utilizes fees for compensating its peers
+  prefs: []
+  type: TYPE_NORMAL
+- en: for contributing to the integrity of the system.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • The instrument of payment used to compensate peers
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'has an impact on major aspects of the blockchain such as:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Integrity
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Openness
+  prefs: []
+  type: TYPE_NORMAL
+- en: • The distributed nature
+  prefs: []
+  type: TYPE_NORMAL
+- en: • The philosophy of the system
+  prefs: []
+  type: TYPE_NORMAL
+- en: '188'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Chapter 20 | Paying for Integrity***'
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Desirable properties of an instrument of payment for
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'compensating peers are:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Being available in digital form
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Being accepted in the real world
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Being accepted in all countries
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Not being the subject to capital movement
+  prefs: []
+  type: TYPE_NORMAL
+- en: restrictions
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Being trustworthy
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Not being controlled by one single central
+  prefs: []
+  type: TYPE_NORMAL
+- en: organization or state
+  prefs: []
+  type: TYPE_NORMAL
+- en: • A cryptocurrency is an independent digital currency
+  prefs: []
+  type: TYPE_NORMAL
+- en: whose ownership is managed by a blockchain that uses it
+  prefs: []
+  type: TYPE_NORMAL
+- en: as an instrument of payment for compensating its peers
+  prefs: []
+  type: TYPE_NORMAL
+- en: for maintaining the integrity of the system.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**S T E P**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '21'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Bringing the
+  prefs: []
+  type: TYPE_NORMAL
+- en: Pieces Together
+  prefs: []
+  type: TYPE_NORMAL
+- en: More than just the sum of its pieces
+  prefs: []
+  type: TYPE_NORMAL
+- en: This step is the summit of this book’s intellectual journey toward an understanding
+    of the blockchain. W[hile Steps 9](http://dx.doi.org/10.1007/978-1-4842-2604-9_9)[-20
+    explor](http://dx.doi.org/10.1007/978-1-4842-2604-9_20)ed the individual concepts
+    that make up the blockchain in isolation, this step brings all these pieces together.
+    As a result, you will gain not only an understanding of the blockchain as a whole
+  prefs: []
+  type: TYPE_NORMAL
+- en: but also see how the different concepts work together. This learning step
+  prefs: []
+  type: TYPE_NORMAL
+- en: starts with reviewing the major concepts and technologies of the blockchain
+  prefs: []
+  type: TYPE_NORMAL
+- en: and continues with an explanation about what the blockchain is based on the
+  prefs: []
+  type: TYPE_NORMAL
+- en: technical knowledge gained in the previous steps. Finally, this step provides
+  prefs: []
+  type: TYPE_NORMAL
+- en: a review of the definition of the blockchain-technology-suite, which conse-
+  prefs: []
+  type: TYPE_NORMAL
+- en: quently opens the blockchain to a wide range of application areas.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Reviewing Concepts and Technologies
+  prefs: []
+  type: TYPE_NORMAL
+- en: The intellectual journey toward an understanding of the blockchain started
+  prefs: []
+  type: TYPE_NORMAL
+- en: in Step [8](http://dx.doi.org/10.1007/978-1-4842-2604-9_8) where we planned
+    the design of a purely distributed peer-to-peer system for managing ownership.
+    Table [21-1 pr](index_split_002.html#189)esents these tasks, their goals, the
+    corresponding steps, and the corresponding concepts of the blockchain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: © Daniel Drescher 2017
+  prefs: []
+  type: TYPE_NORMAL
+- en: D. Drescher, *Blockchain Basics*, DOI 10.1007/978-1-4842-2604-9_21
+  prefs: []
+  type: TYPE_NORMAL
+- en: '190'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Step 21 | Bringing the Pieces Together***'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Table 21-1\.** Review of the Tasks of Designing a Distributed Peer-to-Peer
+    System for Managing Ownership'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Task Number**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Goal**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Step Number**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Major Concept**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '1'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Describing Ownership
+  prefs: []
+  type: TYPE_NORMAL
+- en: '9'
+  prefs: []
+  type: TYPE_NORMAL
+- en: History of Transaction Data
+  prefs: []
+  type: TYPE_NORMAL
+- en: '2'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Protecting Ownership
+  prefs: []
+  type: TYPE_NORMAL
+- en: 10–13
+  prefs: []
+  type: TYPE_NORMAL
+- en: Digital Signature
+  prefs: []
+  type: TYPE_NORMAL
+- en: '3'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Storing Transaction Data
+  prefs: []
+  type: TYPE_NORMAL
+- en: 10, 11, 14, 15
+  prefs: []
+  type: TYPE_NORMAL
+- en: Blockchain-Data-Structure
+  prefs: []
+  type: TYPE_NORMAL
+- en: '4'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Preparing Ledgers for
+  prefs: []
+  type: TYPE_NORMAL
+- en: '16'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Immutability
+  prefs: []
+  type: TYPE_NORMAL
+- en: Being Distributed
+  prefs: []
+  type: TYPE_NORMAL
+- en: '5'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Distributing Ledgers
+  prefs: []
+  type: TYPE_NORMAL
+- en: '17'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Information Forwarding in
+  prefs: []
+  type: TYPE_NORMAL
+- en: Networks
+  prefs: []
+  type: TYPE_NORMAL
+- en: '6'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Adding New Transactions
+  prefs: []
+  type: TYPE_NORMAL
+- en: '18'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Blockchain-Algorithm
+  prefs: []
+  type: TYPE_NORMAL
+- en: '7'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Deciding Which Ledger
+  prefs: []
+  type: TYPE_NORMAL
+- en: '19'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Distributed Consensus
+  prefs: []
+  type: TYPE_NORMAL
+- en: Represents the Truth
+  prefs: []
+  type: TYPE_NORMAL
+- en: It is important to understand that these major concepts that make up the
+  prefs: []
+  type: TYPE_NORMAL
+- en: blockchain rely on other concepts and technologies. Understanding the block-
+  prefs: []
+  type: TYPE_NORMAL
+- en: chain requires at least an appreciation of these concepts as well. For that
+  prefs: []
+  type: TYPE_NORMAL
+- en: reason, Table [21-2 summarizes on a mor](index_split_002.html#189)e detailed
+    level the technologies that make up the blockchain. The remainder of this step
+    draws on the concepts
+  prefs: []
+  type: TYPE_NORMAL
+- en: exhibited in these two tables.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Table 21-2\.** Technical Concepts of the Blockchain, Their Purpose, and Metaphor
+    **Concept**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Purpose**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Metaphor Used**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Transaction Data
+  prefs: []
+  type: TYPE_NORMAL
+- en: Describing transfer of ownership Bank transfer form
+  prefs: []
+  type: TYPE_NORMAL
+- en: Transaction History
+  prefs: []
+  type: TYPE_NORMAL
+- en: Proving the current state of
+  prefs: []
+  type: TYPE_NORMAL
+- en: The course of a relay race
+  prefs: []
+  type: TYPE_NORMAL
+- en: ownership
+  prefs: []
+  type: TYPE_NORMAL
+- en: Cryptographic Hash Value
+  prefs: []
+  type: TYPE_NORMAL
+- en: Identifying any kind of data
+  prefs: []
+  type: TYPE_NORMAL
+- en: Human fingerprints
+  prefs: []
+  type: TYPE_NORMAL
+- en: uniquely
+  prefs: []
+  type: TYPE_NORMAL
+- en: Asymmetric Cryptography
+  prefs: []
+  type: TYPE_NORMAL
+- en: Encrypting and decrypting data
+  prefs: []
+  type: TYPE_NORMAL
+- en: Public mailbox with lock
+  prefs: []
+  type: TYPE_NORMAL
+- en: Digital Signature
+  prefs: []
+  type: TYPE_NORMAL
+- en: Stating agreement with the
+  prefs: []
+  type: TYPE_NORMAL
+- en: Handwritten signature
+  prefs: []
+  type: TYPE_NORMAL
+- en: content of transaction data
+  prefs: []
+  type: TYPE_NORMAL
+- en: Hash Reference
+  prefs: []
+  type: TYPE_NORMAL
+- en: A reference that becomes
+  prefs: []
+  type: TYPE_NORMAL
+- en: Cloakroom tickets that
+  prefs: []
+  type: TYPE_NORMAL
+- en: invalid once the data being
+  prefs: []
+  type: TYPE_NORMAL
+- en: utilize hash values for
+  prefs: []
+  type: TYPE_NORMAL
+- en: referred are changed
+  prefs: []
+  type: TYPE_NORMAL
+- en: identifying cloak hooks
+  prefs: []
+  type: TYPE_NORMAL
+- en: Change-Sensitive Data
+  prefs: []
+  type: TYPE_NORMAL
+- en: Storing data in a way that makes Jackets that carry
+  prefs: []
+  type: TYPE_NORMAL
+- en: Structures
+  prefs: []
+  type: TYPE_NORMAL
+- en: any manipulation stand out
+  prefs: []
+  type: TYPE_NORMAL
+- en: cloakroom tickets in their
+  prefs: []
+  type: TYPE_NORMAL
+- en: immediately
+  prefs: []
+  type: TYPE_NORMAL
+- en: pockets
+  prefs: []
+  type: TYPE_NORMAL
+- en: (continued)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Blockchain Basics***'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '191'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Table 21-2\.** (continued)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Concept**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Purpose**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Metaphor Used**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Hash Puzzle
+  prefs: []
+  type: TYPE_NORMAL
+- en: Imposing a computationally
+  prefs: []
+  type: TYPE_NORMAL
+- en: Opening a number lock by
+  prefs: []
+  type: TYPE_NORMAL
+- en: expensive task
+  prefs: []
+  type: TYPE_NORMAL
+- en: trial and error
+  prefs: []
+  type: TYPE_NORMAL
+- en: Blockchain-Data-Structure
+  prefs: []
+  type: TYPE_NORMAL
+- en: Storing transaction data in
+  prefs: []
+  type: TYPE_NORMAL
+- en: A library with a card
+  prefs: []
+  type: TYPE_NORMAL
+- en: a change-sensitive way and
+  prefs: []
+  type: TYPE_NORMAL
+- en: catalog
+  prefs: []
+  type: TYPE_NORMAL
+- en: maintaining their order
+  prefs: []
+  type: TYPE_NORMAL
+- en: Immutability
+  prefs: []
+  type: TYPE_NORMAL
+- en: Making it impossible to change
+  prefs: []
+  type: TYPE_NORMAL
+- en: Attempt to establish a fake
+  prefs: []
+  type: TYPE_NORMAL
+- en: the history of transaction data
+  prefs: []
+  type: TYPE_NORMAL
+- en: family history
+  prefs: []
+  type: TYPE_NORMAL
+- en: Distributed Peer-to-Peer
+  prefs: []
+  type: TYPE_NORMAL
+- en: Sharing the transaction history
+  prefs: []
+  type: TYPE_NORMAL
+- en: Groups of independent
+  prefs: []
+  type: TYPE_NORMAL
+- en: Network
+  prefs: []
+  type: TYPE_NORMAL
+- en: among all nodes of a network
+  prefs: []
+  type: TYPE_NORMAL
+- en: witnesses
+  prefs: []
+  type: TYPE_NORMAL
+- en: Message Passing
+  prefs: []
+  type: TYPE_NORMAL
+- en: Ensure that all nodes of the
+  prefs: []
+  type: TYPE_NORMAL
+- en: Gossip among people
+  prefs: []
+  type: TYPE_NORMAL
+- en: system eventually receive all
+  prefs: []
+  type: TYPE_NORMAL
+- en: information
+  prefs: []
+  type: TYPE_NORMAL
+- en: Blockchain-Algorithm
+  prefs: []
+  type: TYPE_NORMAL
+- en: Ensure that only valid
+  prefs: []
+  type: TYPE_NORMAL
+- en: Carrot-and-stick approach to
+  prefs: []
+  type: TYPE_NORMAL
+- en: transaction data are added to
+  prefs: []
+  type: TYPE_NORMAL
+- en: ruling contractors
+  prefs: []
+  type: TYPE_NORMAL
+- en: the blockchain-data-structure
+  prefs: []
+  type: TYPE_NORMAL
+- en: Distributed Consensus
+  prefs: []
+  type: TYPE_NORMAL
+- en: Ensure that all nodes of the
+  prefs: []
+  type: TYPE_NORMAL
+- en: Beaten path in a park as a
+  prefs: []
+  type: TYPE_NORMAL
+- en: system use the identical history result of visitors voting with
+  prefs: []
+  type: TYPE_NORMAL
+- en: of transaction data
+  prefs: []
+  type: TYPE_NORMAL
+- en: their feet
+  prefs: []
+  type: TYPE_NORMAL
+- en: Compensation
+  prefs: []
+  type: TYPE_NORMAL
+- en: Giving nodes an incentive to
+  prefs: []
+  type: TYPE_NORMAL
+- en: Bakery that pays its
+  prefs: []
+  type: TYPE_NORMAL
+- en: maintain integrity
+  prefs: []
+  type: TYPE_NORMAL
+- en: employees with bread
+  prefs: []
+  type: TYPE_NORMAL
+- en: What Is the Blockchain?
+  prefs: []
+  type: TYPE_NORMAL
+- en: After gaining an overview of the individual concepts that make up the block-
+  prefs: []
+  type: TYPE_NORMAL
+- en: chain, it is important to see how they work together. The approach of analyzing
+  prefs: []
+  type: TYPE_NORMAL
+- en: systems by identifying functional and nonfunctional aspects of their applica-
+  prefs: []
+  type: TYPE_NORMAL
+- en: tion and implementation layer provides support for tackling the challenge of
+  prefs: []
+  type: TYPE_NORMAL
+- en: understanding how the concepts of the blockchain work together. Table [21-3](index_split_002.html#191)
+  prefs: []
+  type: TYPE_NORMAL
+- en: provides an overview of the layers and the aspects of the blockchain, which
+  prefs: []
+  type: TYPE_NORMAL
+- en: will guide you in bringing the concepts together.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '192'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Step 21 | Bringing the Pieces Together***'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Table 21-3\.** Layers and Aspects of the Blockchain'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Layer**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Functional** A**spects**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Nonfunctional** A**spects**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Application
+  prefs: []
+  type: TYPE_NORMAL
+- en: Clarifying ownership
+  prefs: []
+  type: TYPE_NORMAL
+- en: Highly available
+  prefs: []
+  type: TYPE_NORMAL
+- en: Transferring ownership
+  prefs: []
+  type: TYPE_NORMAL
+- en: Reliable
+  prefs: []
+  type: TYPE_NORMAL
+- en: Open
+  prefs: []
+  type: TYPE_NORMAL
+- en: Pseudoanonymous
+  prefs: []
+  type: TYPE_NORMAL
+- en: Implementation
+  prefs: []
+  type: TYPE_NORMAL
+- en: Ownership logic
+  prefs: []
+  type: TYPE_NORMAL
+- en: Secure
+  prefs: []
+  type: TYPE_NORMAL
+- en: Transaction security
+  prefs: []
+  type: TYPE_NORMAL
+- en: Resilient
+  prefs: []
+  type: TYPE_NORMAL
+- en: Transaction processing logic
+  prefs: []
+  type: TYPE_NORMAL
+- en: Eventually consistent
+  prefs: []
+  type: TYPE_NORMAL
+- en: Storage logic
+  prefs: []
+  type: TYPE_NORMAL
+- en: Keeping Integrity
+  prefs: []
+  type: TYPE_NORMAL
+- en: Consensus logic
+  prefs: []
+  type: TYPE_NORMAL
+- en: Purely distributed peer-to-peer architecture
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The Purpose of the Blockchain: Functional Aspects'
+  prefs: []
+  type: TYPE_NORMAL
+- en: of the Application Layer
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The blockchain serves two purposes:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Clarifying ownership
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Transferring ownership
+  prefs: []
+  type: TYPE_NORMAL
+- en: Clarifying Ownership
+  prefs: []
+  type: TYPE_NORMAL
+- en: Clarifying ownership means answering the major question that constitutes
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'ownership, which is: Who owns what amount of what object at what time?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Transferring Ownership
+  prefs: []
+  type: TYPE_NORMAL
+- en: Transferring ownership means changing the current state of ownership. With
+  prefs: []
+  type: TYPE_NORMAL
+- en: regard to this purpose, the blockchain lets owners transfer their property to
+  prefs: []
+  type: TYPE_NORMAL
+- en: someone else. Hence, it answers another major question for proving owner-
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'ship, which is: Who has transferred ownership of what by which amount to'
+  prefs: []
+  type: TYPE_NORMAL
+- en: whom at what time?
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Blockchain Basics***'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '193'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Properties of the Blockchain: Nonfunctional Aspects'
+  prefs: []
+  type: TYPE_NORMAL
+- en: When interacting with the blockchain, you will notice how it fulfills its duties.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The quality at which the blockchain serves its purpose is described by its
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'nonfunctional aspects:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Highly available
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Censorship proof
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Reliable
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Open
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Pseudoanonymous
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Secure
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Resilient
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Eventually consistent
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Keeping integrity
+  prefs: []
+  type: TYPE_NORMAL
+- en: Highly Available
+  prefs: []
+  type: TYPE_NORMAL
+- en: The blockchain does not have a downtime. Instead, the blockchain is available
+  prefs: []
+  type: TYPE_NORMAL
+- en: all the time 24 hours a day, 7 days a week, the whole year all the time. It
+    does not even have a switch off button.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Censorship Proof
+  prefs: []
+  type: TYPE_NORMAL
+- en: There is no one who individually dictates the content of the blockchain or can
+  prefs: []
+  type: TYPE_NORMAL
+- en: switch off the whole system.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Reliable
+  prefs: []
+  type: TYPE_NORMAL
+- en: The blockchain fulfills its purpose consistently with a good quality. One can
+  prefs: []
+  type: TYPE_NORMAL
+- en: trust the blockchain in clarifying and transferring ownership correctly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Open
+  prefs: []
+  type: TYPE_NORMAL
+- en: The blockchain does not exclude certain users or computers from utilizing its
+  prefs: []
+  type: TYPE_NORMAL
+- en: services. Instead, it is open to everyone.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Pseudoanonymous
+  prefs: []
+  type: TYPE_NORMAL
+- en: The blockchain identifies owners uniquely but it neither maintains nor reveals
+  prefs: []
+  type: TYPE_NORMAL
+- en: their real-world identity.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '194'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Step 21 | Bringing the Pieces Together***'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Secure
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The blockchain is secure in two aspects: (1) on the level of individual transac-'
+  prefs: []
+  type: TYPE_NORMAL
+- en: tions, (2) on the level of the whole system. Regarding the individual level,
+    the blockchain ensures that ownership is kept exclusive to the disposal of the
+  prefs: []
+  type: TYPE_NORMAL
+- en: lawful owner only. On the overall level, the blockchain protects the ownership
+  prefs: []
+  type: TYPE_NORMAL
+- en: of all owners from manipulation, forgery, counterfeiting, double spending, and
+  prefs: []
+  type: TYPE_NORMAL
+- en: unauthorized access.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Resilient
+  prefs: []
+  type: TYPE_NORMAL
+- en: The blockchain is able to clarify and transfer ownership correctly even under
+  prefs: []
+  type: TYPE_NORMAL
+- en: difficult conditions. The blockchain withstands a wide range of attacks on
+  prefs: []
+  type: TYPE_NORMAL
+- en: ownership such as forgery, double spending, counterfeiting, and accessing ones
+  prefs: []
+  type: TYPE_NORMAL
+- en: property by pretending to be someone else.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Eventually Consistent
+  prefs: []
+  type: TYPE_NORMAL
+- en: The blockchain will not yield consistent results all the time. Instead, the
+    chance of getting consistent results will increase over time and will eventually
+    reach
+  prefs: []
+  type: TYPE_NORMAL
+- en: full consistency throughout the whole system.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Keeping Integrity
+  prefs: []
+  type: TYPE_NORMAL
+- en: The blockchain maintains its integrity by displaying behavior that is free of
+  prefs: []
+  type: TYPE_NORMAL
+- en: logical errors. It maintains data consistency and ensures security on the level
+  prefs: []
+  type: TYPE_NORMAL
+- en: of individual transactions and the whole history of transaction data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Internal Functioning: Functional Aspects of the'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Implementation Layer
+  prefs: []
+  type: TYPE_NORMAL
+- en: The internal functioning of the blockchain can be traced back to the following
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'major components:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Ownership logic
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Transaction security
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Transaction processing logic
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Storage logic
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Peer-to-peer architecture
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Consensus logic
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](index-194_1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '***Blockchain Basics***'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '195'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Ownership Logic
+  prefs: []
+  type: TYPE_NORMAL
+- en: The ownership logic governs how ownership is clarified and transferred. The
+  prefs: []
+  type: TYPE_NORMAL
+- en: blockchain utilizes individual transaction data for describing the transfer
+    of
+  prefs: []
+  type: TYPE_NORMAL
+- en: ownership and maintains the whole transaction data for clarifying owner-
+  prefs: []
+  type: TYPE_NORMAL
+- en: ship. Figure [21-1 illustrates the o](index_split_002.html#194)wnership logic
+    and its underlying concepts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Concepts shown by boxes on the top depend on those below them. The very
+  prefs: []
+  type: TYPE_NORMAL
+- en: bottom row of boxes exhibits the concepts on which the ownership logic
+  prefs: []
+  type: TYPE_NORMAL
+- en: depends and that need to be specified further.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Figure 21-1\.** Ownership logic and its underlying concepts'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The ownership logic utilized by the blockchain relies on a storage logic that
+  prefs: []
+  type: TYPE_NORMAL
+- en: maintains the whole history of transaction data and a consensus logic that
+  prefs: []
+  type: TYPE_NORMAL
+- en: ensures its consistency. Additionally, the ownership logic relies on a transac-
+  prefs: []
+  type: TYPE_NORMAL
+- en: tion processing logic that ensures that only valid transaction data are added
+  prefs: []
+  type: TYPE_NORMAL
+- en: to the data store and transaction security that ensures that only the lawful
+  prefs: []
+  type: TYPE_NORMAL
+- en: owner can transfer his or her property to another account. These four con-
+  prefs: []
+  type: TYPE_NORMAL
+- en: cerns are addressed by the remaining components of the blockchain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Transaction Security
+  prefs: []
+  type: TYPE_NORMAL
+- en: Transaction security ensures that only the lawful owner can access and trans-
+  prefs: []
+  type: TYPE_NORMAL
+- en: fer his or her ownership to another account. Figure [21-2 illustrates the con](index_split_002.html#195)-
+  prefs: []
+  type: TYPE_NORMAL
+- en: cepts involved in implementing transaction security. Basic concepts such as
+  prefs: []
+  type: TYPE_NORMAL
+- en: cryptographic hash values and asymmetric cryptography are located in boxes
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](index-195_1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '196'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Step 21 | Bringing the Pieces Together***'
+  prefs: []
+  type: TYPE_NORMAL
+- en: at the very bottom since they serve as the foundation for all other concepts
+  prefs: []
+  type: TYPE_NORMAL
+- en: located in boxes above them. For example, digital signature is located below
+  prefs: []
+  type: TYPE_NORMAL
+- en: authorization because it is a measure to authorize a transaction, but it is
+  prefs: []
+  type: TYPE_NORMAL
+- en: located above cryptographic hash values and private key since it utilizes these
+  prefs: []
+  type: TYPE_NORMAL
+- en: concepts. In a similar fashion, Figure [21-2 mak](index_split_002.html#195)es
+    the dependence between authentication and identification on lower-level cryptography
+    more obvious.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Figure 21-2\.** Transaction security and its underlying concepts'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Transaction Processing Logic
+  prefs: []
+  type: TYPE_NORMAL
+- en: The transaction logic ensures that only valid transaction data are added to
+    the
+  prefs: []
+  type: TYPE_NORMAL
+- en: collectively maintained history of transaction data. It clearly depends on the
+  prefs: []
+  type: TYPE_NORMAL
+- en: validation of transaction data that represent the genuine goal of the system.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Every single node of the system in isolation can do the validation of transac-
+  prefs: []
+  type: TYPE_NORMAL
+- en: tion data. However, a single node could make errors in validating transaction
+  prefs: []
+  type: TYPE_NORMAL
+- en: data or it could accept invalid transaction data on purpose. Both cases are
+  prefs: []
+  type: TYPE_NORMAL
+- en: threats to the integrity of the whole system. For that reason, the processing
+  prefs: []
+  type: TYPE_NORMAL
+- en: of transactions involves a sophisticated mechanic containing the validation
+    of
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'new blocks or its headers, respectively: peer-to-peer architecture and peer'
+  prefs: []
+  type: TYPE_NORMAL
+- en: control and competition, which in turn rely on the forces of reward and pun-
+  prefs: []
+  type: TYPE_NORMAL
+- en: ishment. Figure [21-3](index_split_002.html#196) depicts the relation of these
+    concepts by presenting them in boxes that are built on top of one another to point
+    out their dependence.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](index-196_1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '***Blockchain Basics***'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '197'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Figure 21-3\.** Transaction processing logic and its underlying concepts'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Storage Logic
+  prefs: []
+  type: TYPE_NORMAL
+- en: The processing of valid transactions results in them being added to the whole
+  prefs: []
+  type: TYPE_NORMAL
+- en: history of transaction data, which means adding them to a data store that
+  prefs: []
+  type: TYPE_NORMAL
+- en: maintains the whole history of transaction data. The integrity of the whole
+  prefs: []
+  type: TYPE_NORMAL
+- en: system and its ability to fulfill its purpose of clarifying and transferring
+    ownership relies on the integrity of this data store. Hence, the storage logic
+    is concerned with maintaining the whole history of transaction data and protecting
+  prefs: []
+  type: TYPE_NORMAL
+- en: them from being manipulated, forged, or counterfeited by pursuing the idea
+  prefs: []
+  type: TYPE_NORMAL
+- en: of making changes to data prohibitive expensive. As illustrated by Figure [21-4,](index_split_002.html#197)
+  prefs: []
+  type: TYPE_NORMAL
+- en: the storage logic achieves this by maintaining an immutable append-only data
+  prefs: []
+  type: TYPE_NORMAL
+- en: store that is based on the proof of work and the blockchain-data-structure.
+    Its
+  prefs: []
+  type: TYPE_NORMAL
+- en: functioning can be traced back to hash puzzles, hash references, and change-
+  prefs: []
+  type: TYPE_NORMAL
+- en: sensitive data structures, which in turn can be traced back to the basic con-
+  prefs: []
+  type: TYPE_NORMAL
+- en: cept of cryptographic hash values. Figure [21-4 depicts the dependence of the](index_split_002.html#197)
+  prefs: []
+  type: TYPE_NORMAL
+- en: storage logic by layering derived concepts on top of boxes that represent
+  prefs: []
+  type: TYPE_NORMAL
+- en: more basic concepts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](index-197_1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '![](index-197_2.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '198'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Step 21 | Bringing the Pieces Together***'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Figure 21-4\.** Storage logic and its underlying concepts'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Peer-to-Peer Architecture
+  prefs: []
+  type: TYPE_NORMAL
+- en: The architecture determines how the components or nodes of the system
+  prefs: []
+  type: TYPE_NORMAL
+- en: are related and connected with one another. As illustrated in Figure [21-5,](index_split_002.html#197)
+  prefs: []
+  type: TYPE_NORMAL
+- en: the blockchain utilizes a purely distributed peer-to-peer system that consists
+  prefs: []
+  type: TYPE_NORMAL
+- en: of independent peers called nodes. These nodes are connected with one
+  prefs: []
+  type: TYPE_NORMAL
+- en: another via a network that serves as a medium for communication. Each of
+  prefs: []
+  type: TYPE_NORMAL
+- en: the peers maintains its own copy of the blockchain-data-structure contain-
+  prefs: []
+  type: TYPE_NORMAL
+- en: ing the whole history of transaction data. The peers communicate with one
+  prefs: []
+  type: TYPE_NORMAL
+- en: another by utilizing a gossip-style message-passing protocol that ensures that
+  prefs: []
+  type: TYPE_NORMAL
+- en: eventually each peer will receive all of the information.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Figure 21-5\.** Architecture and its underlying concepts'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](index-198_1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '***Blockchain Basics***'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '199'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Consensus Logic
+  prefs: []
+  type: TYPE_NORMAL
+- en: Since all the nodes of the distributed system maintain their history of transaction
+    data independently, their content can differ due to delays or other adversities
+    of passing messages through a network. As a result, the data store that was meant
+  prefs: []
+  type: TYPE_NORMAL
+- en: to form a straight line of linked data blocks actually forms a three-shaped
+    data structure where each branch represents a conflicting version of the transaction
+  prefs: []
+  type: TYPE_NORMAL
+- en: history. The consensus logic as depicted in Figure [21-6 mak](index_split_002.html#198)es
+    all nodes of the system eventually consistent by making them choose the identical
+    version of
+  prefs: []
+  type: TYPE_NORMAL
+- en: the transaction history that unites the most collective effort.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Figure 21-6\.** Consensus logic and its underlying concepts'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Gaining Abstraction
+  prefs: []
+  type: TYPE_NORMAL
+- en: Abstraction is gained by identifying and distinguishing the components of the
+  prefs: []
+  type: TYPE_NORMAL
+- en: blockchain that are specific to the goal of managing ownership from those that
+  prefs: []
+  type: TYPE_NORMAL
+- en: are agnostic to the specific application goal. This is consistent with our understanding
+    of the blockchain-technology-suite, as discussed in Step [5](http://dx.doi.org/10.1007/978-1-4842-2604-9_5).
+    Evidently, the ownership logic and transaction data are components that are specific
+    to
+  prefs: []
+  type: TYPE_NORMAL
+- en: the application, since they determine how ownership is described with trans-
+  prefs: []
+  type: TYPE_NORMAL
+- en: action data and how ownership is clarified and transferred. On the other hand,
+  prefs: []
+  type: TYPE_NORMAL
+- en: transaction security and the transaction procession logic are less specific
+    to
+  prefs: []
+  type: TYPE_NORMAL
+- en: the application goal. The former utilizes the generic concepts of identifica-
+  prefs: []
+  type: TYPE_NORMAL
+- en: tion, authentication, authorization, and digital signatures that can be used
+    in
+  prefs: []
+  type: TYPE_NORMAL
+- en: any other application as well. As shown in Figure [21-3](index_split_002.html#196),
+    the latter is a huge data processing apparatus whose majority of components are
+    agnostic to the
+  prefs: []
+  type: TYPE_NORMAL
+- en: application goal. The only component of the transaction processing logic that
+  prefs: []
+  type: TYPE_NORMAL
+- en: is tightly coupled with the application goal is the validation of transaction
+    data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: All other components such as competition, peer control, reward, punishment,
+  prefs: []
+  type: TYPE_NORMAL
+- en: and the validation of block headers are agnostic to the specific data being
+    pro-
+  prefs: []
+  type: TYPE_NORMAL
+- en: cessed. Figure [21-7 illustrates the r](index_split_002.html#199)esult of distinguishing
+    application-specific components of a blockchain from those that are agnostic to
+    the specific application goal, which in turn form the blockchain-technology-suite.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](index-199_1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '200'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Step 21 | Bringing the Pieces Together***'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Figure 21-7\.** The blockchain-technology-suite within the blockchain'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Outlook
+  prefs: []
+  type: TYPE_NORMAL
+- en: This step focused on bringing all of the pieces of the preceding steps together
+  prefs: []
+  type: TYPE_NORMAL
+- en: in order to gain an overview of the blockchain. The openness and the absence
+  prefs: []
+  type: TYPE_NORMAL
+- en: of any form of central control or coordination are the foundation of the
+  prefs: []
+  type: TYPE_NORMAL
+- en: system as they allow its nodes to act as independent witnesses for clarify-
+  prefs: []
+  type: TYPE_NORMAL
+- en: ing ownership-related matters. However, these characteristics may also cause
+  prefs: []
+  type: TYPE_NORMAL
+- en: unwanted consequences. What these unwanted consequences are and how
+  prefs: []
+  type: TYPE_NORMAL
+- en: they may limit the use of the blockchain will be discussed in the next step.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Summary
+  prefs: []
+  type: TYPE_NORMAL
+- en: • The blockchain is a purely distributed peer-to-peer
+  prefs: []
+  type: TYPE_NORMAL
+- en: system that addresses the following aspects of managing
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'ownership:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '• Describing ownership: History of Transaction Data'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '• Protecting ownership: Digital Signature'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '• Storing transaction data: Blockchain-Data-Structure'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '• Preparing ledgers for being distributed: Immutability'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '• Distributing ledgers: Gossip-Style Information'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Forwarding Through a Network
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Blockchain Basics***'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '201'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '• Processing new transactions: Blockchain-Algorithm'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '• Deciding which ledger represents the truth:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Distributed Consensus
+  prefs: []
+  type: TYPE_NORMAL
+- en: '• Analyzing the blockchain involves the following aspects:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: • The application goal
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Its properties
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Its internal functioning
+  prefs: []
+  type: TYPE_NORMAL
+- en: '• The blockchain has two application goals:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Clarifying ownership
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Transferring ownership
+  prefs: []
+  type: TYPE_NORMAL
+- en: • The blockchain fulfills its application goals while exhibiting
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'the following qualities:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Highly available
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Censorship proof
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Reliable
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Open
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Pseudoanonymous
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Secure
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Resilient
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Eventually consistent
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Keeping integrity
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Internally the blockchain consists of components that
+  prefs: []
+  type: TYPE_NORMAL
+- en: are either specific or agnostic to the application goal of
+  prefs: []
+  type: TYPE_NORMAL
+- en: managing ownership.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • The application-specific components of the blockchain
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'are:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Ownership logic
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Transaction data
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Transaction processing logic
+  prefs: []
+  type: TYPE_NORMAL
