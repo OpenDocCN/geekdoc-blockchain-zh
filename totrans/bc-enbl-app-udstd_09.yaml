@@ -1,0 +1,556 @@
+- en: ©  Vikram Dhillon, David Metcalf, and Max Hooper 2017Vikram Dhillon, David Metcalf
+    and Max HooperBlockchain Enabled Applications[https://doi.org/10.1007/978-1-4842-3081-7_9](A430562_1_En_9_Chapter.xhtml)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 9. Blockchain in Health Care
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Vikram Dhillon^(1 ), David Metcalf¹ and Max Hooper¹(1)Orlando, Florida, USAThe
+    health care sector is a $3 trillion industry, and about $1 trillion of it goes
+    to waste annually. Care coordination is becoming more complex as chronic conditions
+    in the aging population continue to rise. In many instances, the technology available
+    to health care providers is not adequate enough to capture all aspects of the
+    care being provided. The result is a rugged transfer of information between parties
+    that ultimately reduces the quality of care being provided to patients. This is
+    largely due to providers having legacy systems, lack of integration with non-vendor-specific
+    technologies, paper-based medical records, and a lack of horizontal transfer between
+    allied health care professions. Hospitals are investing a considerable amount
+    of resources into processing medical claims and administrative records when most
+    of this overhead can be eliminated by using a sophisticated technology infrastructure.
+    In this chapter, we discuss the payer–provider–patient model in the context of
+    the incentives and services each provides and how this model is likely to change
+    in the near future. The core of this chapter is constructing a conceptual workflow
+    showing how blockchain can integrate into tracking a patient from the first visit
+    to a primary care physician to the final diagnosis and a treatment plan. Then,
+    we will introduce the topic of hot-switching, and briefly describe two new implementations
+    of hot-switching enabled on blockchain: Lightning network and pluggable consensus.
+    Finally, we will end with talking about waste management in healthcare and the
+    efforts by Capital One + Ark Invest to reduce the economic inefficiencies applying
+    blockchain to business processes.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Payer–Providers–Patient Model
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The payer–provider–patient model is a standard model of interaction among the
+    three major players in health care. Figure [9-1](#Fig1) shows these interactions
+    visually, and in this section, we elaborate on the incentives and benefits for
+    these three players. For the sake of simplicity, let’s assume that the payers
+    are largely insurance companies, the providers are hospital systems or private
+    clinics, and patients are a randomized sample served by a given insurance company.![A430562_1_En_9_Fig1_HTML.jpg](Images/A430562_1_En_9_Fig1_HTML.jpg)Figure
+    9-1.A simplified overview of the payers–providers–patients modelNow we can start
+    to consider the different scenarios involving the model shown in Figure [9-1](#Fig1).
+  prefs: []
+  type: TYPE_NORMAL
+- en: The first scenario is the simplest one, including the patient directly paying
+    for procedures and visits to the hospital. This straightforward system involving
+    just two players is still the norm for numerous health care systems in different
+    countries. In the United States, the cost of providing health care has increased
+    significantly, so a new player has emerged within the system.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The second scenario is the current implementation across the United States.
+    The patients are provided health coverage after buying a premium from an insurance
+    company. This company then gets more negotiating power to set viable prices for
+    procedures and then pay for them on behalf of the patients. The providers now
+    send the claims for payment to the insurance companies, instead of the patients
+    directly. In this manner, the insurance companies have evolved to become a centralized
+    portal for patients to remove friction out of the system and receive personalized
+    health care.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The third scenario is more about the future of health care with the integration
+    of new providers that are specialized entities for administering care through
+    telehealth, off-site monitoring, and remote physicians.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'The simplest case is the patient directly paying for services to the hospital.
+    More complicated medical procedures and lab tests, however, require some coverage
+    that the patient purchases from an insurance company. Now the insurance company
+    pays on behalf of the patient for any medical bills. The provider also sends claims
+    for payments directly to the insurance company, instead of the patient. This model
+    is foundational to understanding the immense complexity present in the health
+    care system today, which involves hundreds of other players. For instance, the
+    domain in which insurance companies and hospitals can operate with respect to
+    patients is largely regulated by governmental agencies. These agencies are in
+    turn influenced by economic forces and consumer demand.TipChris Kay, CIO of Humana,
+    delivered the keynote address at Distributed:Health in 2016 discussing Humana’s
+    efforts toward adopting blockchain to reduce processing costs in health care and
+    providing personalized care more efficiently to their members. He spoke about
+    a potential path of evolution for the second scenario mentioned earlier wherein
+    the blockchain can power the flow of payments between providers and payers seamlessly
+    and drive accountability toward outcomes, not just procedures. Shifting the locus
+    of control to the patient allows them to receive better care and satisfaction,
+    without any increase in friction or overhead costs using the blockchain.The idea
+    behind claims processing on the blockchain is to use features such as decentralized
+    consensus, trustless transactions, and network verification to design workflows
+    that reduce overhead costs and time. We wanted to address the following question:
+    Can we design the concept of a patient workflow based on the blockchain that documents
+    the transition of a patient from her primary care physician, to lab-work, and
+    finally to a specialist? Let’s take a look at a patient visit workflow involving
+    the use of blockchain.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Workflow
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'In this section, we want to design a rudimentary Electronic Health Record (EHR)
+    system based on access permissions being passed from one party to another using
+    public/private keypairs. Our workflow begins with Jane visiting her primary care
+    physician (PCP) for a checkup following gastric discomfort after eating certain
+    foods. Her physician suspects a viral infection and orders further lab work to
+    be performed. She is further referred to a specialist, who gives the final diagnosis,
+    and works with her to develop a treatment plan. Every step of this workflow is
+    recorded on the blockchain as Jane’s medical record, with appropriate permissions
+    regarding access rights and ownership. Additionally, Jane’s records would also
+    contain a history of every check-out and check-in, including edits and additions
+    that were made to the medical record. Closely tracking how the ownership changes
+    helps us transition between the different points of care provided to Jane, and
+    she has instant access to her medical records as a clearer picture of her health
+    begins to emerge.The main objective of this workflow is to demonstrate the concept
+    of how blockchain handles permissions and transfer of ownership between multiple
+    unrelated parties. The use of user signatures using cryptographic keys is leveraged
+    in creating this rudimentary medical record system. We can understand the attributes
+    and permissions within our workflow better using the terminology of version control
+    systems. Just as Git or SVN have commit messages and code commits, every check-in
+    of new data to the medical record will contain a commit message about what changes
+    were made. The blockchain becomes a remote repository of sorts (like GitHub) to
+    which Git can push new changes. There are also locking mechanisms to protect the
+    data: Once a document from the medical record is checked out to a user (a doctor
+    or a nurse), it will be locked and no other user can check in new changes to the
+    same document until the original user checks in his or her edits, unlocking the
+    document. Figures [9-2](#Fig2) through [9-4](#Fig4) guide us through this workflow.![A430562_1_En_9_Fig2_HTML.jpg](Images/A430562_1_En_9_Fig2_HTML.jpg)Figure
+    9-2.Initial patient visitThe workflow begins with Jane visiting her general physician
+    for a regular checkup. The physician takes a history and records any symptoms
+    that stand out from a review of her body systems. He adds this information to
+    a very standard method of documenting patient history called a SOAP note . The
+    note will be added to the blockchain with a unique ID called the hash . Along
+    with the hash, the physician will add permission and user group roles for accessing
+    the medical record. Initially, only the physician and the patient would have access,
+    but this can be expanded easily. Finally, the note is signed using the physician’s
+    key to denote the initial commit of Jane’s medical record to the blockchain. Once
+    Jane’s records are pushed to the blockchain, she also has instant access to them.![A430562_1_En_9_Fig3_HTML.jpg](Images/A430562_1_En_9_Fig3_HTML.jpg)Figure
+    9-3.Jane’s physician ordered some lab tests to be performed so two days later,
+    she visits a labThe tests have been entered into her medical record along with
+    the permissions to let a nurse at the lab access the details. The physician can
+    easily set the access permissions and add new upload privileges for the nurse
+    on the medical record. This workflow begins before Jane’s arrival, when the nurse
+    retrieves Jane’s record and begins preparing for the tests. When Jane arrives,
+    they have a consult and the nurse informs her of the tests she will be going through.
+    After the tests , a report is generated and appended to Jane’s records on the
+    blockchain. We can see this on the right side where Jane’s general record now
+    has a new add-on for the lab tests recently performed. All these results are instantly
+    available to Jane as they are uploaded.![A430562_1_En_9_Fig4_HTML.jpg](Images/A430562_1_En_9_Fig4_HTML.jpg)Figure
+    9-4.Specialist integrationIn this step of the workflow, Jane decides to visit
+    a specialist to better understand the lab results. Two days later, she shares
+    her medical records with a specialist. At this point, the specialist has two choices:
+    The specialist can examine her records and provide a diagnosis along with a treatment
+    plan for her without even needing a visit. Alternatively, Jane can go in for a
+    consult and work with the specialist to adopt the treatment plan. The first option
+    might help reduce the cost of visits and services received for Jane, as ultimately
+    the treatment plan and diagnosis will both be made available to her on the blockchain.
+    This completes the workflow from her initial visit to the point that she received
+    a diagnosis. Every step of this workflow from the original notes to the final
+    treatment plan were recorded on the blockchain. However, in the case of a patient
+    with a chronic disease, the records from this point would be transferred to a
+    chronic care facility that can check up on Jane regularly and help her maintain
+    good health.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Hot Switching
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Hot switching is a design principle enabled by the blockchain to create systems
+    where components can be swapped out while the system is still running with minimal
+    latency in operations. The purpose of hotswitching is to re-route the flow of
+    information, and this concept is only made possible due to the decentralized nature
+    of the blockchain, that is to say, there is no single point of failure. Why do
+    we need a new concept such as hotswitching at all? Traditional schedulers perform
+    this job fairly well. An operational blockchain-based medical records system will
+    require both live and off-chain components that are synced to the blockchain.
+    IT infrastructure in hospitals should be very stable with minimal downtime, but
+    hotswitching can enable isolated system upgrades without disruptions, and gradually
+    transition the legacy systems that are still active to be compatible with the
+    blockchain.There are two early implementations of hotswitching available: The
+    Lightining network ( [https://lightning.network/](https://lightning.network/)
+    ), and pluggable consensus. So, what is this Lightning network? The alpha-version
+    of Lightining offers a mechanism to send transactions over new micropayment channels
+    (sub-channels). This transfer of value occurs off-blockchain thereby making transactions
+    instantenous. These channels ultimately sync upstream with the blockchain and
+    preserve data-integrity of the overall network. In a similar fashion, off-chain
+    channels can replicate and temporarily store the intermittent requests for access
+    and release medical records based on pre-approved access controls. After some
+    defined period, the lightning channel can sync the intermediate changes with blockchain
+    and become inactive. The second application of hotswitching is pluggable consensus,
+    which refers to the idea that you can swap out your consensus algorithm based
+    on the types of transactions being handled on the blockchain. For instance, private
+    transactions carried out on a public/private partitioned blockchain may reuqire
+    a different consensus mechanism than general purpose transactions. Therefore,
+    multiple consensus algorithms are allowed on a blockchain. We will discuss the
+    implementation of pluggable consensus in more detail in a later chapter.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Waste Management: Capital One, Ark Invest, and Gem'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'A webinar hosted by Gem, Capital One and Ark Invest outlined the issues of
+    economic costs and overheads plaguing the healthcare system. This economic waste
+    was highlighted in the context of claims processing from the perspective of payers
+    (insurance companies). However, the lessons learned here can be broadly applied
+    to other industries processing claims such as auto-insurance. As an example, Gem
+    announced a partnership with Toyota to port applications it has been developing
+    for the healthcare insurance industry into car insurance. The aspiration is to
+    automate most of the insurance claim process using a blockchain. Here, we will
+    summarize the key findings outlined by the panelists. In the following discussion,
+    each problem raised by the panelists is represented by a [P] and a proposed solution
+    is represented with a [S]:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[P] For every dollar collected by healthcare providers, 15 cents go towards
+    claims processing, facilitating payments between parties and manual labor costs.
+    Imagine the 15 cents adding up to a $3 trillion industry..'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[P] Providers respond by increasing reimbursement rates and payers (insurance
+    companies) respond by increasing premiums.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[P] Hospitals are acting as banks by giving loans to patients for out-of-pocket
+    payments and lacking the infrastructure to support and absorb inefficent payment
+    frequencies.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[P] Hospitals only have a collection rate of 5% on patient out-of-pocket payments
+    that were provided as loans.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[P] These gross inefficiencies are leading to hospitals charging up to 45%
+    more premiums on top of the base rate for services .'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[S] On the bright side, reducing the time it takes to process claims from providers
+    can offer $23 billion in savings .'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[S] Decreasing the volatility of collections in the billing cycle from out-of-pocket
+    charges can offer $7 billion in savings.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[S] Using the blockchain to track transactions with history can significantly
+    decrease rate of fraud, saving insurance companies approximately $300 billion.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[P]Claims clearing houses have to spend days, and sometimes weeks to process
+    claims, adding significant overheads.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[P] Providers are using multiple third party software tools to manage claims.
+    Instead of the technology being assistive, clinics are experiencing more fragmentation
+    and using manual labor to integrate different software.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[S] The blockchain can track the entire continuum of care and the billing cycle
+    to reduce friction between the involved parties.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[S] On a decentralized ledger, transactions and claims can be tracked very
+    efficiently leading to claims resolution almost instantenously, if not in a few
+    minutes.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[S] Public ledgers such as the Bitcoin blockchain can’t be used, HIPPA laws
+    limit how patient information can be transferred across digital channels. The
+    eventual solution would be to use a permissioned ledger with verified nodes. This
+    will lead to restricted access by permissioned users to medical records being
+    tracked by public and private keys usage.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[S] Smart contracts responsible for coordinating permissions and access roles
+    on the blockchain between various parties requesting medical records. Not every
+    party can see the entire record, permissioned access allows for only relevant
+    exposure.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[P] Providers are not IT professionals, not enough time to provide training
+    for new systems therefore interoperatiblity remains a major issue.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[P] Lack of interoperability spans to:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Patient registration in a medical system
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Authorization of procedures
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Medical records
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Co-pay collection
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Claims submission
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Patient billing
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Accounting of claims and bills
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[P] Functionality and partitioning - Should claims and medical records be on
+    the same blockchain? The panelists talked about a scenario at Aetna, receiving
+    about a million faxes a year from providers regarding claims information. This
+    adds a massive administrative overhead to manage the paperwork. Ideally, both
+    claims and records go hand in hand. A procedure done on a patient uploaded to
+    the blockchain should trigger a claim to be processed. Ultimately, with proper
+    partitioning, having both on the blockchian would be more efficient.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[S] The concept of pegged-sidechains may become more relevant for coordinated
+    care involving multiple parties, as shown below in Figure [9-5](#Fig6). A domain-specific
+    sidechain could facilitate the transfer of access better, and then sync with the
+    main blockchain. A very basic schematic of a sidechain is presented in Figure
+    [9-6](#Fig5).![A430562_1_En_9_Fig5_HTML.jpg](Images/A430562_1_En_9_Fig5_HTML.jpg)Figure
+    9-5.Continuum of Care. This image shows the comprehensive array of health services
+    spanning all levels of care providers and community services. This picture was
+    taken from a presentation done by Eccovia on accountable care organizations, with
+    permission. Done by Eccovia on accountable care organizations, with permission.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '![A430562_1_En_9_Fig6_HTML.jpg](Images/A430562_1_En_9_Fig6_HTML.jpg)Figure
+    9-6.A simple sidechain performing off-chain transactions. This process can be
+    useful for rapidly granting permissioned access and privileges, eventually these
+    transactions sync with the upstream.Blockchain can streamline the flow of information
+    for medical records as it switches hands across multiple parties, and in this
+    section, we summarized some of the key findings of economic waste discovered by
+    Ark Invest and Capital One. Even though sidechains are still very early in development,
+    a simple graphic is presented below (in Figure [9-6](#Fig5)):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Verifiable Data Audit
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Google’s DeepMind is working on an interesting blockchain-like service to function
+    as an audit log for hosptials using DeepMind’s health services to assist clinical
+    diagnosis. The hospitals are transferring sensitive patient data over to DeepMind’s
+    machine learning and AI services to make clinical predictions, and this project
+    is an effort to ensure use of data is compliant with patient consent. We reached
+    out to DeepMind, inquiring about their efforts, and with permission, we’re reproducing
+    an overview of Verifiable Data Audit from Deep Mind’s blog post:Data can be a
+    powerful force for social progress, helping our most important institutions to
+    improve how they serve their communities. As cities, hospitals, and transport
+    systems find new ways to understand what people need from them, they’re unearthing
+    opportunities to change how they work today and identifying exciting ideas for
+    the future.Data can only benefit society if it has society’s trust and confidence,
+    and here we all face a challenge. Now that you can use data for so many more purposes,
+    people aren’t just asking about who’s holding information and whether it’s being
+    kept securely – they also want greater assurances about precisely what is being
+    done with it.In that context, auditability becomes an increasingly important virtue.
+    Any well-built digital tool will already log how it uses data, and be able to
+    show and justify those logs if challenged. But the more powerful and secure we
+    can make that audit process, the easier it becomes to establish real confidence
+    about how data is being used in practice.Imagine a service that could give mathematical
+    assurance about what is happening with each individual piece of personal data,
+    without possibility of falsification or omission. Imagine the ability for the
+    inner workings of that system to be checked in real-time, to ensure that data
+    is only being used as it should be. Imagine that the infrastructure powering this
+    was freely available as open source, so any organisation in the world could implement
+    their own version if they wanted to.The working title for this project is “Verifiable
+    Data Audit”, and we’re really excited to share more details about what we’re planning
+    to build!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Verifiable Data Audit for DeepMind Health
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: 'Over the course of this year we’ll be starting to build out Verifiable Data
+    Audit for DeepMind Health, our effort to provide the health service with technology
+    that can help clinicians predict, diagnose and prevent serious illnesses – a key
+    part of DeepMind’s mission to deploy technology for social benefit.Given the sensitivity
+    of health data, we’ve always believed that we should aim to be as innovative with
+    governance as we are with the technology itself. We’ve already invited additional
+    oversight of DeepMind Health by appointing a panel of unpaid Independent Reviewers
+    who are charged with scrutinising our healthcare work, commissioning audits, and
+    publishing an annual report with their findings.We see Verifiable Data Audit as
+    a powerful complement to this scrutiny, giving our partner hospitals an additional
+    real-time and fully proven mechanism to check how we’re processing data. We think
+    this approach will be particularly useful in health, given the sensitivity of
+    personal medical data and the need for each interaction with data to be appropriately
+    authorised and consistent with rules around patient consent. For example, an organisation
+    holding health data can’t simply decide to start carrying out research on patient
+    records being used to provide care, or repurpose a research dataset for some other
+    unapproved use. In other words: it’s not just where the data is stored, it’s what’s
+    being done with it that counts. We want to make that verifiable and auditable,
+    in real-time, for the first time.So, how will it work? We serve our hospital partners
+    as a data processor, meaning that our role is to provide secure data services
+    under their instructions, with the hospital remaining in full control throughout.
+    Right now, any time our systems receive or touch that data, we create a log of
+    that interaction that can be audited later if needed.With Verifiable Data Audit,
+    we’ll build on this further. Each time there’s any interaction with data, we’ll
+    begin to add an entry to a special digital ledger. That entry will record the
+    fact that a particular piece of data has been used, and also the reason why -
+    for example, that blood test data was checked against the NHS national algorithm
+    to detect possible acute kidney injury.The ledger and the entries within it will
+    share some of the properties of blockchain, which is the idea behind Bitcoin and
+    other projects. Like blockchain, the ledger will be append-only, so once a record
+    of data use is added, it can’t later be erased. And like blockchain, the ledger
+    will make it possible for third parties to verify that nobody has tampered with
+    any of the entries.But it’ll also differ from blockchain in a few important ways.
+    Blockchain is decentralised, and so the verification of any ledger is decided
+    by consensus amongst a wide set of participants. To prevent abuse, most blockchains
+    require participants to repeatedly carry out complex calculations, with huge associated
+    costs (according to some estimates, the total energy usage of blockchain participants
+    could be as much as the power consumption of Cyprus). This isn’t necessary when
+    it comes to the health service, because we already have trusted institutions like
+    hospitals or national bodies who can be relied on to verify the integrity of ledgers,
+    avoiding some of the wastefulness of blockchain.We can also make this more efficient
+    by replacing the chain part of blockchain, and using a tree-like structure instead
+    (if you’d like to understand more about Merkle trees, a good place to start would
+    be this blog from the UK’s Government Digital Service). The overall effect is
+    much the same. Every time we add an entry to the ledger, we’ll generate a value
+    known as a “cryptographic hash”. This hash process is special because it summarises
+    not only the latest entry, but all of the previous values in the ledger too. This
+    makes it effectively impossible for someone to go back and quietly alter one of
+    the entries, since that will not only change the hash value of that entry but
+    also that of the whole tree.In simple terms, you can think of it as a bit like
+    the last move of a game of Jenga. You might try to gently take or move one of
+    the pieces - but due to the overall structure, that’s going to end up making a
+    big noise! So, now we have an improved version of the humble audit log: a fully
+    trustworthy, efficient ledger that we know captures all interactions with data,
+    and which can be validated by a reputable third party in the healthcare community.
+    What do we do with that?The short answer is: massively improve the way in which
+    these records can be audited. We’ll build a dedicated online interface that authorised
+    staff at our partner hospitals can use to examine the audit trail of DeepMind
+    Health’s data use in real-time. It will allow continuous verification that our
+    systems are working as they should, and enable our partners to easily query the
+    ledger to check for particular types of data use. We’d also like to enable our
+    partners to run automated queries, effectively setting alarms that would be triggered
+    if anything unusual took place. And, in time, we could even give our partners
+    the option of allowing others to check our data processing, such as individual
+    patients or patient groups.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Technical Challenges Ahead
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Building this is going to be a major undertaking, but given the importance of
+    the issue we think it’s worth it. Right now, three big technical challenges stand
+    out.No blind spots. For this to be provably trustworthy, it can’t be possible
+    for data use to take place without being logged in the ledger - otherwise, the
+    concept falls apart. As well as designing the logs to record the time, nature
+    and purpose of any interaction with data, we’d also like to be able to prove that
+    there’s no other software secretly interacting with data in the background. As
+    well as logging every single data interaction in our ledger, we will also need
+    to use formal methods as well as code and data centre audits by experts, to prove
+    that every data access by every piece of software in the data centre is captured
+    by these logs. We’re also interested in efforts to guarantee the trustworthiness
+    of the hardware on which these systems run - an active topic of computer science
+    research!Different uses for different groups. The core implementation will be
+    an interface to allow our partner hospitals to provably check in real-time that
+    we’re only using patient data for approved purposes. If these partners wanted
+    to extend that ability to others, like patients or patient groups, there would
+    be complex design questions to resolve.A long list of log entries may not be useful
+    to many patients, and some may prefer to read a consolidated view or rely on a
+    trusted intermediary instead. Equally, a patient group may not have the authority
+    to see identified data, which would mean allowing our partners to provide some
+    form of system-wide information - for example, whether machine learning algorithms
+    have been run on particular datasets - without unintentionally revealing patient
+    data. For technical details on how we could provide verified access to subsets
+    or summaries of the data, see the open source Trillian project, which we will
+    be using, and this paper explaining how it works.Decentralised data and logs,
+    without gaps. There’s no single patient identified information database in the
+    UK, and so the process of care involves data travelling back and forth between
+    healthcare providers, IT systems, and even patient-controlled services like wearable
+    devices. There’s a lot of work going into making these systems interoperable (our
+    mobile product, Streams, is built to interoperable standards) so they can work
+    safely together. It would be helpful for these standards to include auditability
+    as well, to avoid gaps where data becomes unauditable as it passes from one system
+    to another.This doesn’t mean that a data processor like DeepMind should see data
+    or audit logs from other systems. Logs should remain decentralised, just like
+    the data itself. Audit interoperability would simply provide additional reassurance
+    that this data can’t be tampered with as it travels between systems.This is a
+    significant technical challenge, but we think it should be possible. Specifically,
+    there’s an emerging open standard for interoperability in healthcare called FHIR,
+    which could be extended to include auditability in useful ways.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Building in the Open
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: We’re hoping to be able to implement the first pieces of this later this year,
+    and are planning to blog about our progress and the challenges we encounter as
+    we go. We recognise this is really hard, and the toughest challenges are by no
+    means the technical ones. We hope that by sharing our process and documenting
+    our pitfalls openly, we’ll be able to partner with and get feedback from as many
+    people as possible, and increase the chances of this kind of infrastructure being
+    used more widely one day, within healthcare and maybe even beyond.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: This chapter focused on the emerging role of blockchain in payments processing
+    and how that can be applied to health care. We began the discussion with a description
+    of the centralized payer–provider–patient model and how that model will change
+    in the near future. Then, we discussed how to build a simplistic electronic health
+    record system using the blockchain. After that, we presented how a patient workflow
+    can be recorded on the blockchain. Finally, we talked about the economic wastes
+    in health care discussed by Ark Invest and Gem and how the blockchain can alleviate
+    some of those strains in the near future.
+  prefs: []
+  type: TYPE_NORMAL
+- en: References
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The main references used to prepare this chapter were Gem’s blog posts on blockchain-based
+    EHRs.
+  prefs: []
+  type: TYPE_NORMAL

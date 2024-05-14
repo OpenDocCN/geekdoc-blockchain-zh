@@ -1,0 +1,1257 @@
+- en: ©  Vikram Dhillon, David Metcalf, and Max Hooper 2017Vikram Dhillon, David Metcalf
+    and Max HooperBlockchain Enabled Applications[https://doi.org/10.1007/978-1-4842-3081-7_7](A430562_1_En_7_Chapter.xhtml)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '7. Ethereum Tokens: High-Performance Computing'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Vikram Dhillon^(1 ), David Metcalf¹ and Max Hooper¹(1)Orlando, Florida, USAIn
+    the Ethereum ecosystem, transfer of value between users is often realized by the
+    use of tokens that represent digital assets. Ether is the default token and the
+    de facto currency used for transactions and initializing smart contracts on the
+    network. Ethereum also supports the creation of new kinds of tokens that can represent
+    any commonly traded commodities as digital assets. All tokens are implemented
+    using the standard protocol, so the tokens are compatible with any Ethereum wallet
+    on the network. The tokens are distributed to users interested in the given specific
+    use case through an ICO. In this chapter, we focus our attention on tokens created
+    for a very specific use case: high-performance computing (HPC) . More precisely,
+    we discuss a model of distributed HPC where miners offer computational resources
+    for a task and get rewarded in some form of Ethereum tokens.We begin our discussion
+    with an overview and life cycle of a token in the network. Then, we dive into
+    the first token, Ethereum Computational Market (ECM), which is the most generalized
+    and comprehensive distributed processing system. ECM will be our standard model
+    for HPC using tokens, and we will introduce concepts such as dispute resolution
+    (firm and soft) and verifiability of off-chain processing with on-chain rewards.
+    The second token we cover is Golem , which posits itself as the Airbnb for unused
+    CPU cycles. The first release, called Brass Golem , will allow distributed rendering
+    of 3D objects using Blender. Future releases will enable more advanced functionality
+    such as processing big-data analytics. The third token we present is Supercomputing
+    Organized by Network Mining (SONM) , which extends the idea of fog computing to
+    create an Ethereum-powered machine economy and marketplace. SONM has published
+    a more technically oriented roadmap focused on neural networks and artificial
+    intelligence. The initial use case would be to provide decentralized hosting to
+    run a Quake server. The last token we talk about in this chapter is iEx.ec, which
+    leverages well-developed desktop grid computing software along with a proof-of-computation
+    protocol that will allow for off-chain consensus and monetization of resources
+    offered.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Tokens and Value Creation
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'To understand the concept of tokens, we first need to understand the context
+    in which they operate, “fat” protocols. At Consensus 2017, Naval Ravikant talked
+    about the idea of “fat” protocols and the fundamental differences between Internet
+    companies and the next generation of startups building on the blockchain. Currently,
+    the Internet stack is composed of two slices, a “thin” slice of protocols that
+    power the World Wide Web and a “fat” slice of applications that are built on top
+    of the protocols. Some of the largest Internet companies such as Google and Facebook
+    captured value in the application layer, but then had to invent new protocols
+    and an infrastructure layer to actually scale. When Internet companies reached
+    that size, they had validated their core business model and had enough resources
+    to allocate toward creation of new protocols.Blockchain-based companies operate
+    on a different stack with a “thin” slice of application layer and a “fat” slice
+    of protocol layer. The value concentrates in the protocol layer, and only a fraction
+    spills over to the application layer. Joel Monégro and Balaji S. Srinivasan proposed
+    two probable reasons for the large interest and investment in the protocol layer:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Shared data layer : In a blockchain stack, the nature of underlying architecture
+    is such that key data are publicly accessible through a blockchain explorer. Furthermore,
+    every member of the network has a complete copy of the blockchain to reach consensus
+    on the network. A pertinent example of this shared data layer in practical usage
+    is the ease with which a user can switch between exchanges such as Poloniex and
+    Kraken. or vice-versa. The exchanges all have equal and free access to the underlying
+    data or the blockchain transactions.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Access tokens: Tokens can be thought of as analogous to paid API keys that
+    provide access to a service. In the blockchain stack, the protocol token is used
+    to access the service provided by the network, such as file storage in the case
+    of Storj. Historically, the only method of monetizing a protocol was to build
+    software that implemented the new protocol and was superior to the competition.
+    This was possible for research divisions in well-funded companies, but in academia,
+    the pace of research was slower in the early days because the researchers creating
+    those protocols had little opportunity for financial gain. With tokens, the creators
+    of a protocol can monetize it directly through an ICO and benefit more as the
+    token is widely adopted and others build services on top of the new protocol.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Due to proper incentives, a readily available data sharing layer, and application
+    of tokens beyond the utility of a currency, developers are spending considerable
+    time on the underlying protocols to crack difficult technical problems. As a result,
+    startups building on the blockchain stack will inevitably spend more time on the
+    “fat” protocol layer and solve technical challenges to capture value and differentiate
+    themselves from a sea of Ethereum tokens.Recently, with more tokens up and coming
+    in the Ethereum ecosystem, cross-compatibility has become a concern. To address
+    this issue, a new specification called ERC20 has been developed by Fabian Vogelsteller.
+    ERC20 is a standard interface for tokens in the Ethereum network. It describes
+    six standard functions that every access token should implement to be compatible
+    with DApps across the network. ERC20 allows for seamless interaction with other
+    smart contracts and decentralized applications on the Ethereum blockchain. Tokens
+    that only implement a few of the standard functions are considered partially ERC20-compliant.
+    Even partially compliant tokens can easily interface with third parties, depending
+    on which functions are missing.NoteSetting up a new token on the Ethereum blockchain
+    requires a smart contract. The initial parameters and functions for the token
+    are supplied to the smart contract that governs the execution of a token on the
+    blockchain.To be fully ERC20-compliant, a developer needs to incorporate a specific
+    set of functions into their smart contract that will allow the following actions
+    to be performed on the token:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Get the total token supply: totalSupply()'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Get an account balance: balanceOf()'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Transfer the token: transfer(), transferFrom()'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Approve spending of the token: approve(), allowance()'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'When a new token is created, it is often premined and then sold in a crowdsale
+    also known as an ICO. Here a premine refers to allocating a portion of the tokens
+    for the token creators and any parties that will offer services for the network
+    (e.g., running full nodes). Tokens have a fixed sale price. They can be issued
+    and sold publicly during an ICO at the inception of a new protocol to fund its
+    development, similar to the way startups have used Kickstarter to fund product
+    development.The next question we should ask regarding tokens is this: Given that
+    tokens are digital, what do token buyers actually buy? Essentially, what a user
+    buys is a private key. This is the analogy we made to paid API keys: Your private
+    key is just a string of a characters that grants you access. A private key can
+    be understood to be similar to a password. Just as your password grants you access
+    to the e-mail stored on a centralized database like Gmail, a private key grants
+    you access to the digital tokens stored on a decentralized blockchain stack like
+    Ethereum.TipThe key difference between a private key and a password stored on
+    a centralized database is that if you lose your private key , you will not be
+    able to recover it. Recently, there have been some attempts to restore access
+    to an account through a recovery service using a cosigner who can verify the identity
+    of the user requesting recovery.Ultimately, tokens are a better funding and monetization
+    model for technology, not just startups. Currently, even though base cryptocurrencies
+    such as Ethereum have a larger market share, tokens will eventually amount to
+    100 times the market share. Figure [7-1](#Fig1) provides a summary of the differences
+    between value creation for traditional Internet companies and companies building
+    on the blockchain stack using Ethereum tokens. Let’s begin with our first token,
+    which will serve as a model for all the tokens that follow. Michael Oved at Consensys
+    suggested that tokens will be the killer app that everyone has been waiting for:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: If killer apps prove the core value of larger technologies, Ethereum tokens
+    surely prove the core value of blockchain, made evident by the runaway success
+    that tokens have brought to these new business models.We are now seeing a wave
+    of launches that break tokens through as the first killer app of blockchain technology.
+    Bitcoin, in many ways, is a “proof of concept” for a blockchain-based asset. The
+    Ethereum platform is proving that concept at scale.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '![A430562_1_En_7_Fig1_HTML.jpg](Images/A430562_1_En_7_Fig1_HTML.jpg)Figure
+    7-1.An overviwew of a blockchain stack used by tokensThis model is based on Joyce
+    J. Shen’s description of distributed ledger technology. The traditional Internet
+    companies such as Google and Facebook created and captured value in the application
+    layer by harvesting data that users generated. Blockchain companies have a different
+    dynamic in terms of ownership and the technology available. The blockchain itself
+    provides a mechanism for consensus and a shared data layer that is publicly accessible.
+    Ethereum further provides a Turing-complete programming language and node-to-node
+    compatibility through an EVM that can run the instructions contained in a smart
+    contract. Using smart contracts, a full application can be constructed to run
+    on the blockchain and a collection of applications becomes a full decentralized
+    service such as Storj.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Ethereum Computational Market
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'ECM is a very simplistic and functional token for off-chain computations and
+    the first token we consider in this chapter. It serves as a general model covering
+    all the necessary features that an HPC token would need. ECM is designed to facilitate
+    execution of computations off-chain that would be too costly to perform within
+    the EVM. In essence, ECM is a decentralized version of Amazon’s EC2\. The key
+    technical advance in ECM is the computation marketplace, which allows one user
+    (the customer) to pay another (the host) for executing an algorithm off-chain
+    and report the results back to the customer. Additionally, to preserve the integrity
+    of the computation being done off-chain, each algorithm also has an on-chain implementation.
+    This on-chain component can be used to verify whether the submitted end result
+    is indeed correct. This on-chain implementation also plays a role in resolving
+    disputes. Let’s take a look at the life cycle of a request through ECM in Figure
+    [7-2](#Fig2). ECM uses some terminology specific to the project for describing
+    the life cycle of a request when it’s initially received to the final resolution.
+    We employ some of this terminology in Figure [7-2](#Fig2), along with a few additional
+    terms:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Pending: Indicates when a request is received. Every request begins in the
+    pending status .'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Waiting for resolution: A request for computation is submitted to the network
+    , and a host computed the algorithm and is now reporting the result. This is a
+    decision point for the customer: Either the answer will be accepted and the request
+    moves to soft resolution status, or the answer is challenged, in which case the
+    request moves to needing resolution state.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Needs resolution: When an answer is challenged, this path is taken from the
+    decision tree. The request is changed to needs resolution status and on-chain
+    verification component of the algorithm is required.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Resolving: This is the interim period as on-chain computation is being performed
+    for a request. The request will remain in this status until the computation has
+    been completed.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Firm vs. soft resolution: Once the on-chain computation has been completed,
+    the request is set to the firm resolution status. If no challenges are made within
+    a certain window of time after the answer has been submitted to the customer,
+    the request is set to soft resolution.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Finalized: Once an answer is obtained either through soft or hard resolution,
+    the original request can be set to finalized status . This unlocks the payment
+    from the customer’s end and allows the host to receive payment for off-chain computation.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '![A430562_1_En_7_Fig2_HTML.jpg](Images/A430562_1_En_7_Fig2_HTML.jpg)Figure
+    7-2.Life cycle of a request as it goes through ECMNoteThe reader should understand
+    that Ethereum Computational Markets is presented here as a generic model to highlight
+    all the components of a HPC token. That’s why we go through the technical details
+    of computing requests, on and off-chain processing, market dynamics and other
+    concepts. In the later sections, all the generic components are replaced by well-thought-out
+    mechanisms and features.Each request state just described is broken down further
+    into the workflow here. Once a task request is processed off-chain, there is a
+    decision point concerning the final answer. If the customer challenges the answer
+    provided by the host, the on-chain component of the algorithm will execute and
+    the request will go through a few states of needing resolution. On the other hand,
+    if no challenges are made, the request moves to soft resolution and is considered
+    finalized. The host receives payment after the request has reached the finalized
+    state.Now that we have an understanding of how a request gets processed in ECM,
+    let’s talk about the marketplace and individual markets within that marketplace.
+    The concept that we have referred to as an algorithm being computed off-chain
+    is made from three separate contracts: a broker contract , a factory contract
+    , and an execution contract.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Broker: A contract that facilitates the transfer of a request from the customer
+    to the host who will carry out the computation.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Execution: A contract used for on-chain verification of a computation. This
+    contract can carry out one cycle of on-chain execution in the event that the submitted
+    answer is challenged.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Factory: A contract that handles the deployment of the execution contract on-chain
+    in the case of dispute resolution. This contract supplies relevant metadata such
+    as the compiler version required to recompile the bytecode and verify it.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'The marketplace itself has verticals (markets within a marketplace) that execute
+    specialized types of contracts and algorithms, creating use-case-specific HPC
+    economics on the Ethereum blockchain using tokens. Figure [7-3](#Fig3) provides
+    a visual summary of the three contracts that are a component of each market. What
+    is required to make a computation request on ECM? There are primarily two functions
+    that create a request and provide all the necessary details. Here, the requestExecution
+    function is used to create a request for computation and this function takes two
+    arguments. First is a set of inputs to the function itself and second is the time
+    window during which a submitted answer can be challenged before the request turns
+    to soft resolved status. This time window is given in number of blocks, because
+    blocks are created at a definitive time interval in Ethereum. Finally, this function
+    also specifies the payment being offered for this computation. The getRequest
+    function returns all the metadata regarding the request. The following are some
+    of the relevant parameters returned from the metadata:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'address requester : The address of the customer that requested the computation.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'bytes32 resultHash : The SHA3-hash of the result from a given computation.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'address executable : The address of the executable contract that was deployed
+    on-chain to settle a challenged answer.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'uint status : The status of a request, at a given time through the life cycle.
+    It is an unsigned integer corresponding to the status of a request given by numbers
+    0 through 7.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'uint payment : The amount in wei that this request will pay (to the host) in
+    exchange for completion of a computation. Wei is the smallest unit of Ether that
+    can be transferred between users, similar to Satoshis in Bitcoin.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'uint softResolutionBlocks : A time window given by number of blocks within
+    which a challenge to an answer must be submitted. If no challenges are submitted
+    to an answer in that interval, the request changes to soft resolution.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'uint requiredDeposit : Amount in wei that must be provided when submitting
+    an answer to a request, or by a challenger objecting a submitted answer. This
+    deposit is locked until the request moves to finalized state and then is released
+    back to the host.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'It is important to note that in our discussion, a few tasks such as answer
+    verification, conflict resolution, and challenges have required deposits. The
+    deposits are used as a countermeasure to reduce the potential for Sybil attacks
+    on the network. A Sybil attack is an attack where a single adversary is controlling
+    multiple nodes on a network, and now, the adversary can manipulate PoW on the
+    network.![A430562_1_En_7_Fig3_HTML.jpg](Images/A430562_1_En_7_Fig3_HTML.jpg)Figure
+    7-3.Overview of a market in the marketplaceThe three components in a market necessary
+    for responding to a request by a user (customer) are the broker contract, an execution
+    contract, and a factory contract. The broker contract facilitates a customer–host
+    interaction and the other two contracts play a role in dispute resolution. In
+    the case of challenges to a submitted answer, the broker will initiate the deployment
+    of the execution contract through its factory contract (also called FactorBase,
+    shown with the red workflow), which consolidates the information and prepares
+    for one-cycle execution of the algorithm. The gas necessary for execution will
+    be taken from a deposit that the challenger is required to submit. We discuss
+    the submission and challenge process next.Next, we talk about the submitting an
+    answer back to the customer and the challenge process. Submitting an answer for
+    a computation done off-chain is performed with the answerRequest function . This
+    function takes a unique ID of the request being answered as an input. The actual
+    submission of a potential answer requires a deposit in Ether. This deposit is
+    locked until the request has reached either a soft or hard resolution state. We
+    discuss the importance of holding deposits from involved parties shortly. Once
+    a request has been finalized, the deposit made by the host who submitted an answer
+    is reclaimed, along with the reward for performing the computation. If a submitted
+    answer does not fall within the expectations of the request submitted by a customer,
+    a participant can challenge the answer. This initiates an on-chain verification
+    process that will execute one cycle of the computation within the EVM to verify
+    whether the submitted answer is correct. If the submitted answer was found to
+    be incorrect during on-chain computation, the host’s deposit will have had the
+    gas costs of that computation deducted from it. The challenger will get a large
+    portion of the reward from the customer’s deposit, and the dispute will be resolved.For
+    a request where a submitted answer has been challenged, the request moves to the
+    needs resolution state. This is accomplished by calling the initializeDispute
+    function , which serves as a transition between the point at which a challenge
+    is made and the beginning of on-chain verification. Now the broker contract will
+    use a factory to deploy an executable contract initialized with the inputs for
+    this request. The gas costs for calling this function and performing one-cycle
+    execution are reimbursed from the challenger’s deposit. Throughout the resolving
+    state on a request, the executeExecutable function is called until the on-chain
+    verification has been completed. At this point, the request is moved to a hard
+    resolution state and eventually finalized. The gas charges and reward system might
+    seem complicated, but it follows a simple principle: The correct answer receives
+    payment for the computation, and incorrect submitters must pay for gas during
+    on-chain verification. Let’s recap:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the case of soft resolution, a host reclaims the initial deposit and a reward
+    given by the customer for executing the computation.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If there were no correct submitted answers, the gas costs for verification are
+    split evenly among the users who submitted answers. The reward payment returns
+    to the customer who originally requested the computation.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In the case of hard resolution, the incorrect host reclaims the remaining deposit
+    after gas costs have been deducted (for on-chain verification). This host does
+    not receive a reward for the computation.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If a challenger wins hard resolution, they reclaim their deposit along with
+    the reward payment. The gas costs are debited from the incorrect host’s deposit.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'On-chain verification of a computation is by nature an expensive task due to
+    gas costs. ECM is designed such that off-chain computation would be cheaper than
+    running a task in EVM. From a technical standpoint, there are two types of on-chain
+    execution implementations: stateless and stateful computations. Figure [7-4](#Fig4)
+    shows a contrast between the two implementations.![A430562_1_En_7_Fig4_HTML.jpg](Images/A430562_1_En_7_Fig4_HTML.jpg)Figure
+    7-4.Two models for factory execution contracts in ECMAn executable contract is
+    stateless if the computation is self-sufficient in that it does not require external
+    sources of data. Essentially, the return value from a previous step is used as
+    the input for the next step. Piper Merriam (the creator of ECM) proposed that
+    stateless executable contracts are superior to stateful implementations for two
+    main reasons: lower overhead while writing the algorithm and reduced complexity
+    because the computation cycles are self-sustaining. An example highlighted by
+    Piper is the Fibonacci sequence written as a stateless implementation with the
+    algorithm returning the latest Fibonacci numbers as the input for the next cycle
+    of execution. The overhead of writing this in a stateless form is very minor and
+    there is no additional complexity of introducing local storage.TipFor stateless
+    contracts, the execution contract is identical to algorithm sent as a request
+    to the marketplace for computation. Here, on-chain verification would run the
+    execution contract for one cycle and hosts would run it for as many cycles as
+    necessary to obtain the final answer.An executable contract is stateful if the
+    computation is not self-sufficient in that it requires an additional data source
+    and the return values from the previous step. This additional data source is often
+    in the form of a data structure holding local storage. Let’s go back to our example
+    of the Fibonacci sequence and make it stateful. To do this, the algorithm would
+    store each computed number in the contract storage and only return the latest
+    number to the algorithm for the next cycle of execution. Every step of execution
+    would require the algorithm to search the last number stored to compute the next
+    number. By including storage, now the algorithm will search through saved results
+    and print out any desired Fibonacci sequence that has been computed. This reliance
+    on local state is what makes this instance of the contract stateful. Stateful
+    contracts also enable new and complex features such as using lookup tables and
+    search, but also cause an increase in the complexity of the written algorithm.During
+    on-chain verification, a single cycle of the execution contract will be executed.
+    However, a self-contained contract in stateless form will be executed efficiently
+    and without any additional complexity. In stateless contracts, each step executed
+    inside an EVM is elementary so it falls within the gas limits of that virtual
+    machine. On the other hand, some contracts require additional storage due to the
+    complexity of execution. In such cases, a stateful contract is executed where
+    local storage is bound to the EVM during the on-chain verification. This storage
+    is temporary and only exists through the duration of the on-chain processing.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Golem Network
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Golem ( [https://golem.network/](https://golem.network/) ) is a decentralized
+    general-purpose supercomputing network. In addition to being a marketplace for
+    renting computational resources, Golem aims to power microservices and allow asynchronous
+    task execution. As a technology stack, Golem offers both Infrastructure-as-a-Service
+    (IaaS) and Platform-as-a-Service (PaaS) through a decentralized blockchain stack
+    for developers. In Golem, there are three components that function as the backbone
+    of a decentralized market:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Decentralized farm : A mechanism to send, organize, and execute computation
+    tasks from individual users known as requesters and hosts known as providers (of
+    computational resources). This provides the users competitive prices for tasks
+    such as computer-generated imagery (CGI) rendering and machine learning on network
+    access.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Transaction framework : Golem has a custom payment framework for developers
+    to monetize services and software developed to run on the decentralized network.
+    This framework can be customized to capture value in new and innovative methods
+    such as escrows, insurance, and audit proofs on the Ethereum blockchain.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Application registry : Developers can create applications (for particular tasks)
+    that take advantage of Golem as a distribution channel and a marketplace with
+    new and unique monetization schemes. These applications can be published to the
+    application registry, which essentially functions as an app store for the network.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Golem’s premise in building the marketplace is that not all members will request
+    additional resources for extensive computation at all times. As such, the requesters
+    can become providers and rent their own hardware to earn extra fees. Figure [7-5](#Fig5)
+    provides an overview of how the three components in Golem work in sync. Currently,
+    Golem inherits the integrity (Byzantine fault tolerance) and consensus mechanisms
+    from Ethereum for the deployment, execution, and validation of tasks. However,
+    eventually Golem will use fully functional micropayment channels for running microservices.
+    This will allow users to run services like a note-taking app, website hosting,
+    and even large-scale streaming applications in a completely decentralized manner.
+    Several more optimizations are needed before Golem reaches a level of maturity,
+    and currently the most pressing developments are concerning execution of tasks.
+    Before Golem can execute general-purpose tasks, we need to ensure that the computation
+    takes place in an isolated environment without privileges, similar to an EVM but
+    expanded with more features. We also need whitelist and blacklist mechanisms along
+    with digital signatures recognized in the application registry that allow providers
+    to build a trust network and for users to run applications cryptographically signed
+    by trusted developers. Additionally, a network-wide reputation system is necessary
+    to reward the providers that have participated the most during computation tasks
+    and also to detect a malicious node and mitigate tasks efficiently.NoteThe first
+    release dubbed Brass Golem will only allow one type of task to be executed on
+    the network, CGI rendering. The main goals of this release are to validate the
+    task registry, and basic task definition scheme. The developers want to integrate
+    IPFS for decentralized storage, a basic reputation system for the providers involved,
+    and docker integration in the network.![A430562_1_En_7_Fig5_HTML.jpg](Images/A430562_1_En_7_Fig5_HTML.jpg)Figure
+    7-5.The Golem technology stackThree main components of the Golem stack are shown
+    in Figure [7-5](#Fig5). Software developers create applications that automate
+    routine tasks and publish them on the application registry. For instance, a time-limited
+    rendering application can eliminate the need for any complicated transactions
+    or task tracking. The buyer will simply make a single-use deposit and use the
+    application until the time is up. When buyers use applications from the registry,
+    the revenue generated is used to compensate the developers for their app. The
+    registry contains two types of applications : verified apps from trusted developers
+    and new apps from unconfirmed developers. Eventually verifiers pool in the newly
+    uploaded applications and track them closely for any suspicious activity. After
+    a few uses, the new applications also achieve verified status. The developers
+    also receive minor compensation from the execution of these applications on the
+    provider nodes. Providers requisition the hardware for apps and the lion’s share
+    of revenue generated from running a task is given back to the providers (miners).
+    The transaction mechanism assures the proper delivery of funds to the appropriate
+    party and the buyer is charged for task execution by the same mechanism.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Application Registry
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'The application registry provides requesters with a massive repository to search
+    for specific tools or applications fitting their needs. The registry is an Ethereum
+    smart contract among three entities: the authors, validators, and providers. What’s
+    the design rationale behind adding these three entities? For general-purpose computing,
+    the code is isolated in a sandbox and then executed with the bare minimum privileges.
+    Potential software bugs could wreak havoc in a provider’s sandbox, however, executing
+    malicious code in a virtual machine with the intention of escalation of privileges,
+    or even take over the machine. That’s why sandboxing alone is not enough for Golem.
+    One could ask whether the code can be evaluated automatically for safety and security.
+    Theoretically, this is not plausible. We cannot determine the outcome of a complex
+    algorithm before executing it due to the halting problem.NoteThe halting problem
+    is the problem of determining whether a program will finish running or continue
+    to run forever given an arbitrary computer program and an input.To enable secure
+    and trusted code execution on host machines, the application registry is split
+    among three parties that are responsible for maintaining integrity of the network.
+    Authors publish decentralized applications to the registry, validators review
+    and certify DApps as safe by creating a whitelist , and providers maintain blacklists
+    of problematic DApps . Validators also maintain blacklists by marking applications
+    as malicious or spam, and providers often end up using a blacklist from validators.
+    Similarly, providers can preapprove certain Golem-specific applications (certified
+    by validators) to execute on their nodes.Providers can also elect to curate their
+    own whitelists or blacklists . The default option for Golem is to run using a
+    whitelist of trusted applications. The first set of apps will be verified by the
+    developers to kickstart Golem, however, after the initial distribution, the network
+    will rely on validators. On the other hand, providers can also take the approach
+    of relying only on blacklists. This approach has the advantage of maximizing the
+    reach of a provider (to the marketplace) and offering a wide range of applications
+    that can be executed on a node. Eventually, providers will become specialized
+    and fine-tune their nodes to be incredibly efficient at running one kind of task.
+    This allows the providers more control over what runs on their nodes and custom
+    hardware options for a computing farm. Ultimately, this option is available to
+    developers who want to maximize their profits and are willing to run dedicated
+    machines with bleeding-edge software.In a decentralized network like Golem, we
+    will see a divide between traditional and vanguard validators. Traditional validators
+    will maintain a set of stable applications that perform very routine tasks. For
+    instance, a request for a complex 3D rendering can launch a preemptible rendering
+    instance on a provider’s nodes. Once the job is completed, the instance will terminate
+    to free up memory and send the output to the requester. On the other hand, vanguard
+    validators will include and approve software that pushes the boundaries of what
+    is possible with Golem. Running new and experimental software on a provider’s
+    node will require better sandboxing and hardening of the virtual machine. But
+    these features can be a premium add-on running on special nodes offered by a provider.
+    Monetizing the premium add-ons will also disincentivize scammers and malicious
+    entities. Overall, this design approach makes the network more inclusive, costly
+    for scammers, and innovative for developers.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Transaction Framework
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'The transaction framework can be considered analogous to Stripe, an API for
+    monetizing applications running on Golem. After the crowdsale, the network will
+    use Golem Network Token (GNT) for all transactions between users, to compensate
+    software developers and computation resource providers. The transaction framework
+    is built on top of Ethereum, so it inherits the underlying payment architecture
+    and extends it to implement advanced payment schemes such as nanopayment mechanisms
+    and transaction batching. Both innovations mentioned here are unique to Golem,
+    so let’s talk about why they are necessary to the network. To power microservices,
+    Golem will have to process a very high volume of small transactions. The value
+    of a single payment is very low and these payments are also known as nanopayments
+    . However, there is one caveat when using nanopayments: The transaction fees cannot
+    be larger than the nanopayment itself. To solve this problem, Golem uses transaction
+    batching. This solution aggregates nanopayments and sends them at once as a single
+    Ethereum transaction to reduce the applied transaction fees. For instance, Golem
+    developers note that the cost of ten payments processed in a single transaction
+    is approximately half the cost of ten payments processed in ten transactions.
+    By batching multiple transactions, a significantly lower transaction fee will
+    be passed on to a user paying for per-unit usage (per-node or per-hour) of a microservice.NoteFor
+    providers, another model to power microservices is credit-based payment for per-unit
+    hosting. Here, the requester makes a deposit of timelocked GNT and at the end
+    of the day, the provider automatically deducts the charges for usage. The remaining
+    credits are released back to the requester.In Golem, nanopayments work in the
+    context of one-to-many micropayments from a requester to many providers that assist
+    in completing the computational tasks. The payments carried out for microservices
+    are on the scale of $0.01 and for such small sums, the transaction fees are relatively
+    large even on Ethereum. The idea here is that instead of making individual transactions
+    of $0.01, the requester (payer) issues a lottery ticket for a lottery for a $1
+    prize with 1/100 chance of winning. The value of such a ticket is $0.01 for the
+    requester and the advantage is that on average only one ticket in 100 will lead
+    to an actual transaction. This is a probabilistic mechanism to allow nanotransactions,
+    but it does not guarantee that one given Golem node will be compensated adequately
+    if the number of tasks computed is small. Bylica et al. provided the mathematical
+    background to assuring fair distribution of income from this lottery system as
+    the network expands, adding more requesters and providers. Essentially, as the
+    number of tasks by requesters increases, the income a node generates from probabilistic
+    lottery rewards will approach the amount it would receive if being paid with individual
+    transactions.The lottery system to be implemented in Golem is much more predictable
+    for the providers than a completely probabilistic scheme. The provider is assured
+    that among the tickets issued to reward the providers of a single task, there
+    are no hash collisions and only one ticket is winning. Moreover, if there are
+    100 providers participating in the lottery payment, then the nanopayment protocol
+    guarantees that the task would only have to be paid out once. Bylica and collaborators
+    discussed a few counterclaim mechanisms in place to prevent malicious entities
+    from claiming to be lottery winners and cashing out. A brief sketch of the lottery
+    process is provided as follows. After a task has been completed, the payer initiates
+    a new lottery to pay out the participating providers. The payer creates a lottery
+    description L that contains a unique lottery identifier and calculates its hash
+    h(L). The hash is written to the Ethereum contract storage. The payer also announces
+    the lottery description L to the Golem network, so that every participating node
+    can verify that the payment has the correct value and check that h(L) is indeed
+    written to the Ethereum storage. The winner of a lottery payout can be uniquely
+    determined by cross-referencing a given description L and a random value R that
+    is unknown to all parties except the lottery smart contract. After a certain amount
+    of time, if the reward has not been claimed, the smart contract computes the winning
+    provider’s address (given the L and R) and transfers the reward from the contract’s
+    associated storage to the winner. The hash of the lottery h(L) is also removed
+    from the contract storage and a new lottery payout cycle can now begin. The nanopayment-based
+    lottery payment system is illustrated in Figure [7-6](#Fig6).![A430562_1_En_7_Fig6_HTML.jpg](Images/A430562_1_En_7_Fig6_HTML.jpg)Figure
+    7-6.Nanopayment-based lottery payment systemOn a macroscale, Andrzej Regulski
+    wrote a post describing some of the economic principles behind GNT and long-term
+    appreciation in value of the token enabled by this transaction framework. The
+    most pertinent items from his post are quoted here:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: GNT will be necessary to interact with the Golem network. At first, its sole
+    role is to enable the transfer of value from requestors to providers, and to software
+    developers. Later on, the Transaction Framework will make it possible to assign
+    additional attributes to the token, so that, for example, it is required to store
+    deposits in GNT.The number of GNT (i.e., the supply) is going to be indefinitely
+    fixed at the level created during the Golem crowdfunding. No GNT is going to be
+    created afterwards.A depreciation or appreciation of the token is neutral to the
+    operations of the network, because users are free to set any ask/bid prices for
+    compute resources in Golem, thus accommodating any fluctuations in GNT value.The
+    constant amount of tokens will have to accommodate a growing number of transactions,
+    hence increasing the demand for GNT. With a reasonable assumption that the velocity
+    of the token (i.e., the number of transactions per unit of the token in a specific
+    period) is constant over time, this conclusion can be drawn from the quantity
+    theory of money. This, in turn, means that the overall success and growth of the
+    Golem network implies a long-run appreciation of the GNT.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'This payment framework can also be used as a fallback mechanism for conflict
+    resolution. If a task challenge remains open after going through the traditional
+    Golem mechanics , we need a method for hard resolution (as we saw in the ECM section).
+    Here, we can use a TrueBit-style “trial” for final resolution. TrueBit is a smart-contract-based
+    dispute resolution layer built for Ethereum. It integrates as an add-on on top
+    of the existing architecture for Ethereum projects such as Golem. The design principle
+    for TrueBit is to rely on the only trusted resource in the network to resolve
+    a dispute: the miners. A hard resolution using TrueBit relies on a verification
+    subroutine involving limited-resource verifiers known as judges.In TrueBit’s verification
+    game , there are three main players: a solver, a challenger, and judges. The solver
+    presents a solution for a task, a challenger contests the presented answer, and
+    the judge decides on whether the challenger or solver is correct. The purpose
+    of using the verification subroutine is to reduce the complexity of on-chain computation.
+    This is done as the game proceeds in rounds, where each round narrows down the
+    scope of computation until only a trivial step remains. This last step is executed
+    on-chain by a smart contract (judge) who issues the final verdict on which party
+    is correct. Note that the judges in this scheme are constrained in terms of computational
+    power. Therefore, only very simplistic computations are ultimately carried out
+    on-chain for the judge to make a ruling. At the end of this game, if the Solver
+    was in fact cheating, it will be discovered and punished. If not, then the Challenger
+    will pay for the resources consumed by the false alarm. We provide an outline
+    sketch of the verification game as follows. A visual guide to the verification
+    game is provided in Figure [7-7](#Fig7).NoteThe verification game works iteratively,
+    with a reward structure benefiting the verifiers (challengers) who diligently
+    search for errors. Accurate detection and eventual verification of errors results
+    in challengers being rewarded with a substantial jackpot.![A430562_1_En_7_Fig7_HTML.jpg](Images/A430562_1_En_7_Fig7_HTML.jpg)Figure
+    7-7.Verification gameTo begin the trial, a challenger requests verification of
+    a solution. The solvers get to work and provide their solutions. Verifiers get
+    paid to check whether the solvers are providing accurate solutions for off-chain
+    processing. If there is still a dispute, judges will perform on-chain processing
+    looking for the first disagreement with the proposed solution. In the end, either
+    the cheating solver is penalized, or the challenger will pay for the resources
+    consumed by the false alarm.TrueBit is an advanced on-chain execution mechanism
+    compared to the on-chain verification implemented in ECM . It allows the ability
+    to verify computations at a lower cost than running the full instruction because
+    only one step is executed on-chain. Using TrueBit as a dispute resolution layer
+    for off-chain computations, smart contracts can enable third-party programs to
+    execute well-documented routines in a trustless manner. Even for advanced machine
+    learning applications such as deep learning that require terabytes of data, as
+    long as the root hash of training data is encoded in the smart contract, it can
+    be used to verify the integrity of off-chain computations. The reason TrueBit
+    works for large data sets is simply due to the Merkle roots mapping the state
+    of the network at a given time t, and a challenger’s ability to perform binary
+    search. For a project like Golem aiming to achieve HPC toward a variety of use
+    cases, TrueBit can enable large data sets to be used off-chain with an on-chain
+    guarantee of accurate outputs.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Supercomputing Organized by Network Mining
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'SONM is a decentralized implementation of the fog computing concept using a
+    blockchain. To understand how SONM works within the framework of fog computing,
+    we first need to define two networking concepts: IoT and IoE. The European Commission
+    defines the IoT architecture as a pervasive network of objects that have IP addresses
+    and can transfer data over the network. IoT lends itself to the broader concept
+    of Internet of Everything (IoE) , which provides a seamless communication bus
+    and contextual services between objects in the real world and the virtual world.
+    IoE is defined by Cisco as:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The networked connection of people, process, data, and things. The benefit of
+    IoE is derived from the compound impact of connecting people, process, data, and
+    things, and the value this increased connectedness creates as “everything” comes
+    online.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Whereas IoT traditionally refers to devices connected to each other or cloud
+    services, IoE is an umbrella term for a heavier focus on people as an essential
+    component attached to the business logic for generating revenue. From an engineering
+    standpoint, IoT is the messaging layer focusing on device-to-device communication
+    and IoE is the monetization layer allowing startups to capitalize on the interaction
+    between people and their devices. A staggering amount of data is generated from
+    devices connected in an IoT network. Transferring these data to the cloud for
+    processing requires enormous network bandwidth, and there are delays between when
+    the data are generated and processing these data and receiving the results (from
+    hours to days). A major limitation of IoT technology is that transfer delay period.
+    Recently, a growing concern has been the loss of value on actionable data due
+    to the transfer and processing stages: By the time we receive those processed
+    results, it becomes too late to act on those data.One solution presented by Ginny
+    Nichols from Cisco is called fog computing. Fog computing reduces the transfer
+    delay by shifting the processing stage to lower levels of the network. Instead
+    of processing a task by offloading it to a centralized cloud, fog computing pushes
+    high-priority tasks to be processed by a node closest to the device actually generating
+    the data. For a device to participate in the fog, it must be capable of processing
+    tasks, local storage, and have some network connectivity. The concept of fog computing
+    is a metaphor for the fact that fog forms close to the ground. Therefore, fog
+    computing extends the cloud closer to the devices (ground) that produce IoT data
+    to enable faster action. In fog computing, data processing is said to be concentrated
+    at the edge (closer to the devices generating data) rather than existing centrally
+    in the cloud. This allows us to minimize latency and enable faster response to
+    time-sensitive tasks or reduce the time within which an action can be taken on
+    data. SONM makes this layer of fog computing available to a decentralized network
+    of participants for processing computationally intensive tasks.NoteThe need for
+    faster response time to data (or business analytics) collected by large enterprises
+    stimulated the development of real-time computational processing tools such as
+    Apache Spark, Storm, and Hadoop. These tools allow for preprocessing of data as
+    they are being collected and transferred. In a similar manner, fog computing seems
+    to be an extension of IoT developed in response to the need for rapid response.SONM
+    is built on top of Yandex.Cocaine (Configurable Omnipotent Custom Applications
+    Integrated Network Engine). Cocaine is an open-source PaaS stack for creating
+    custom cloud hosting engines for applications similar to Heroku. SONM has a complex
+    architecture designed to resemble the world computer model of Ethereum. The SONM
+    team designed this world computer with components that are parallel to a traditional
+    personal computer, with one major difference: The components are connected to
+    a decentralized network.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'CPU/processor (load balancer): In SONM’s architecture , the processor (hub)
+    serves as a load balancer and task scheduler. The entire network can be represented
+    as a chain of hub nodes (or hubs) that distribute tasks, gather results from a
+    computing fog, pay miners for services, and provide status updates on the overall
+    health of the network. Each hub node is analogous to a processor’s core, and the
+    number of cores (or hub nodes) can be extended or reduced on the network as necessary.
+    In a personal computer, the cores are locally accessible to the processor, however,
+    in SONM, the cores are decentralized by nature. The hubs provide support to the
+    whole network for coordinating the execution of tasks. More specifically, hubs
+    provide the ability to process and parallelize high-load computations on the fog
+    computing cloud.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'BIOS (blockchain): For SONM, the BIOS is the Ethereum blockchain. Ethereum
+    offers a reliable backbone for network consensus and payment mechanisms that SONM
+    can inherit. However, the base Ethereum implementation lacks a load balancer and
+    high gas costs have inspired alternatives on top of the blockchain such as SONM.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Graphics processing unit (GPU) : The GPU for SONM is the fog computing cloud.
+    More specifically, this fog is comprised of the miners in the SONM network that
+    are making computational resources available to buyers.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Connected peripherals: The buyers in SONM are equivalent to peripheral devices.
+    They connect to the network and pay for any resources they use. The requests are
+    broadcast on the blockchain and miners select what they want to execute on their
+    machines. Then, the load balancer dictates the execution of tasks.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Hard disk: Storage in SONM will be implemented using well-established decentralized
+    storage solutions such as IPFS or Storj .'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Serial bus: This communication module is used for message passing and data
+    transfer within the network between the sender (a node) and working machines.
+    This serial bus is based on Ethereum Whisper, and enables broadcast and listening
+    functions for messages on the network.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Plug-ins circuit board : A plug-ins board can be thought of as an expansion
+    pack for the network. It allows SONM to expand its processing capabilities by
+    seamlessly integrating compatible networks and computation farms.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Figure [7-8](#Fig8) provides a visual representation of the world computer’s
+    components that just discussed.![A430562_1_En_7_Fig8_HTML.jpg](Images/A430562_1_En_7_Fig8_HTML.jpg)Figure
+    7-8.World computer implemented in SONMThe communication bus forms the backbone
+    of this architecture, connecting at every level to the components of the world
+    computer. The workflow of a request through SONM begins with a buyer requesting
+    computational resources. This request is broadcast on the blockchain and the serial
+    bus so that other components can verify if a particular request is legitimate.
+    The miners accept the task, and the load balancer distributes the task to be executed
+    in the fog computing cloud . If necessary, the load balancer can also assign a
+    task to run on an application-specific grid network compatible with SONM through
+    the plug-ins board . The fog cloud also has local storage in the form of a decentralized
+    service such as Storj or IPFS that is used as necessary. Finally, the load balancer
+    also has two more important roles, to follow up with the task results and overall
+    network health. The load balancer (hub) collects the results of a task after it
+    has been completed and sends it back to the buyer. A health indicator reports
+    on the status of every component in the world computer to the load balancer and
+    the network to make better decisions regarding task assignment and execution.The
+    smart contract system in SONM is a set of protocols (smart contracts) for blockchain
+    governance and management of decentralized applications implemented on the network.
+    This system of smart contracts maintains the integrity of the network and provides
+    several countermeasures against malicious entities that we discuss later. Furthermore,
+    SONM uses formal definitions and rigorous proofs to demonstrate the security of
+    communication (cryptographically secure message passing) between buyers and providers.
+    The interactions between various parties on the network are modeled using a high-level
+    mathematical framework called pi-calculus . This framework is a formal language
+    for describing secure and concurrent interactions within a multiparty system over
+    well-defined channels. The governance prototype in SONM includes a DAO, a court
+    contract, a network-wide registry of hubs, and a factory contract to deploy new
+    applications to the SONM network (e.g., the whitelist, hub factory, and hub wallet).
+    This model is extended to include some new elements (deployed by the factory)
+    necessary for management of DApps that run on the network. Currently, the process
+    of buying computational resources appears very fragmented on the network. However,
+    in future releases, buyers will complete a prepurchase computing form to indicate
+    their hardware selection, the DApps they want to use, and any special execution
+    parameters. Let’s look at the complete set of smart contracts used in the current
+    SONM blockchain government in more depth.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'SONM token: This is the default currency of the network. The token is used
+    to reward miners for providing computational resources and for user transactions
+    within the network.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'DAO: This is the regulatory body of SONM that grants users voting rights and
+    administrative actions to manage decentralized applications. DApps on the network
+    are required to pay taxes to be included in the DAO and gain access to the court.
+    The DAO also has executive privileges to perform actions such as blacklisting
+    a hub, releasing and locking funds to ensure proper payout for miners, and suspending
+    or banning a hub.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: NoteThe court will be implemented as a dispute resolution smart contract accessible
+    through the DAO. It will offer protection against unfair buyers or providers in
+    the market, along with result verification in case of challenges toward a solution.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Hub factory: A hub has two extensions in the smart contract system , a factory
+    and a wallet. The wallet can only be created by a hub wallet factory. The factory
+    creates a new wallet contract and then registers this contract in the whitelist
+    .'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Hub wallet: The hub wallet is a contract that receives payments from buyers
+    and facilitates the payout of tokens to miners for services. The wallet is created
+    by a factory and it can exist in one of four possible states: Created, Registered,
+    Idle, or Suspected/Punished. Initially, all wallets exist in the Created state
+    and have a fixed amount of frozen funds. In the Created state, a contract can
+    be registered on the whitelist. This contract now switches to the Registered state,
+    and has access to advanced functions such as transfer and payday. Now this wallet
+    can begin to pay out miners (but not itself) within a specified amount of time,
+    called the payout period. After the end of the payout period, the wallet can transfer
+    the remaining money to the owner’s wallet using the payday function. If a connected
+    hub is caught performing malicious behavior, the DAO can blacklist the hub and
+    seize the frozen funds. The DAO can further decide to change the state of the
+    wallet to Suspected or Punished depending on the case.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Whitelist: The whitelist is a registry-type contract that contains detailed
+    information about hubs across the network along with their status. All wallets
+    created by the factory are registered in this whitelist contract. Initially, this
+    whitelist serves as a registry for trusted hubs verified by SONM developers to
+    be safe and secure. Eventually, this functionality will be expanded to open ratings
+    for new and emerging hubs.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'RegApp: This is a simple web app made with React.js used for hub-node registration
+    . This application adds a node to the whitelist contract. It should be noted that
+    the RegApp is language agnostic and only needs a web interface to register the
+    node. In this instance, React.js was used, but other web programming languages
+    can work just as well.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'PayOut app: A payment application that runs on the SONM network to pay and
+    process the tokens given to miners for their services. This application is an
+    example of the types of DApps that a factory contract would deploy.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Figure [7-9](#Fig9) provides a visual companion to the smart contract system
+    just discussed. Anthony Akentiev from Chain Cloud reviewed the SONM whitepaper
+    and provided some comments regarding the crowdfunding efforts using SOMN token
+    to fund the development of this smart contracts architecture in future releases:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The crowdfunding is divided into 2 stages—the presale and the ICO. 19% and
+    20% of all funds are sent to the team as a reward. Development and marketing will
+    require equal amounts of money: 34% for the development and 32% for marketing
+    after the presale; 30% for the development and 33% for marketing after the ICO.
+    It looks good and fair.Conclusion — 45/60One of the best Whitepapers that I have
+    read. Big project. Big goals. The presale and ICO are gonna be big.'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '![A430562_1_En_7_Fig9_HTML.jpg](Images/A430562_1_En_7_Fig9_HTML.jpg)Figure
+    7-9.Overview of the smart contract system in SONMRecall that the smart contract
+    system in SONM is further made from several contracts working together. The first
+    of these contracts is a migration function that allows users who purchased the
+    SONM presale token (SPT, during the presale that Akentiev mentioned) to exchange
+    their token for the SONM token (SNM) and participate in the network. Next is the
+    hub factory contract used in SONM for deployment of applications. In the current
+    implementation, the hub factory creates the hub wallet used to compensate miners
+    for their computational resources. The factory also deploys a network-wide whitelist
+    contract that serves as a registry of hubs active on the network and wallets created
+    in each hub. Finally, the factory deploys a payout application that releases SNM
+    tokens to miners for the provided services. The last smart contract we consider
+    here is the DAO, which provisions several administrative functions to stop malicious
+    entities. These functions include delisting a hub (from the whitelist contract)
+    if caught in fraud, freezing funds by suspending a hub wallet, or conflict resolution
+    in case of challenges using the court.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Buyer–Hub–Miner Interactions
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Posting a task on the SONM network requesting computational resources requires
+    a fair amount of communication between the buyer and the miner who will execute
+    the task. For instance, before processing can begin, there are several verification
+    interactions that occur between a miner, the assigning hub, and the buyer. Once
+    the buyer is verified, a hub will assign the task to a miner’s fog computing cloud
+    and ensure the miner is paid for their services. This collective set of interactions
+    is defined here as client–hub–miner communication. This interchange can be best
+    demonstrated visually in Figures [7-10](#Fig10) and [7-11](#Fig11). Figure [7-10](#Fig10)
+    explains the miner–hub interactions when a computation begins and Figure [7-11](#Fig11)
+    provides the full picture by introducing the client and miner payout.![A430562_1_En_7_Fig10_HTML.jpg](Images/A430562_1_En_7_Fig10_HTML.jpg)Figure
+    7-10.Miner–hub verificationA hub broadcasts information about an active hub wallet,
+    and the hub owner’s IP address to the blockchain. This information is gathered
+    by a listening agent and then dispatched to a miner. Before executing any tasks,
+    a miner will go through a series of steps to validate the assigning hub. This
+    process ensures that the hub can be trusted and that there are sufficient funds
+    to pay for the computation in the hub wallet. A miner requests more information
+    on the assigning hub through a global list called the hubs pool list. This network-wide
+    list contains all the verified and unconfirmed hubs. To verify itself, a hub wallet
+    sends its address on the blockchain and a history of past transactions as proof
+    of authentication. The miner accepts the proof and can now begin the computation.
+    It must be noted that all components of this validation process including hub
+    broadcasts, verification requests, wallet information, and hubs pool list use
+    the same infrastructure: the blockchain. The requests and broadcasts are shared
+    to the rest of the network using the messaging bus built with Whisper on top of
+    the blockchain. The dashed blue line in Figure [7-10](#Fig10) indicates a continuation
+    of processes happening on the blockchain with notifications moving to the messaging
+    bus. In addition to the pool list, the miner can also request other miners to
+    independently verify the assigning hub’s credentials. Over time, the miner builds
+    a personal rating list for hubs across the network that have assigned tasks. This
+    list can be used to automate task acceptance and skip the verification steps for
+    a highly trusted hub.![A430562_1_En_7_Fig11_HTML.jpg](Images/A430562_1_En_7_Fig11_HTML.jpg)Figure
+    7-11.Buyer–hub–miner interactionsAfter the initial verification of the assigning
+    hub has been completed, the buyer puts forth an initial deposit. This deposit
+    is a rough estimate of the computation costs, and it is stored in the hub wallet.
+    The miner verifies this deposit and the buyer signs an agreement on the blockchain
+    with the estimated costs along with a hash of the raw file. This agreement is
+    sent to the miner as the computational task is assigned by a hub. The raw file
+    is made available to the miner for download through a torrent. After the file
+    has been downloaded, the task description along with any special parameters are
+    applied and the processing begins. Once the task is completed, the results are
+    made available from the fog computing cloud, and the hub collects these results.
+    This hub now makes the results available for the buyer to download through a separate
+    torrent. At this point, the agreement has been completed and funds from the hub
+    wallet are released to the miner for offering their computational resources. In
+    future releases, there will be proper locking mechanisms to account for over-
+    or underestimation of the costs. Until the buyer adjusts for any errors in the
+    estimates, the results will not be released by the hub .'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Superglobal Operation System for Network Architecture
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'So how does a buyer know whether a miner satisfies the required dependencies
+    to compile and run an application that the buyer requested? How does a buyer know
+    what applications are compatible with a miner’s setup? These questions are handled
+    by the operating system for SONM. A world computer is not complete without an
+    operating system (OS) to power it, and the OS for SONM is called the Superglobal
+    Operation System for Network Architecture (SOSNA) .NoteIn this chapter, we have
+    discussed SONM only in the context of buyers and providers for HPC services, however,
+    the first use cases for early versions of SONM focuses on running a Quake server
+    in a completely decentralized manner. The roadmap includes the message passing
+    protocols and the payout app next.The problem of dependency management and compatibility
+    for compilers will be handled by using containers on host machines. A container
+    is simply a minimal virtual machine that can load any specified configuration,
+    from installing new libraries to standard tools such as the GNU compiler toolchain.
+    The container runs in a minimal isolated environment on the host system. This
+    is done to prevent any escalation of privilege attacks by malicious programs running
+    within the container. SOSNA can be divided into three main components : the blockchain
+    layer comprised of the smart contract system, a grid core, and a layer of consumer-facing
+    applications. We already discussed the blockchain layer and API (enabled by the
+    smart contracts) in detail. Let’s shift our focus to the grid core. In SONM, any
+    grid-compatible PaaS stack can be plugged in to work with the network such as
+    BOINC (Berkeley Open Infrastructure for Network Computing) or Yandex.Cocaine.A
+    simplified implementation of grid architecture involves two units: multiple worker/slave
+    modules and a master module. These two units form a computing cloud, and a fog
+    computing cloud extends this idea to hundreds of instances deployed across all
+    types of machines. What defines a grid network as such is that a master machine
+    manages workers distributed across distance to different geographic locations.
+    The master essentially behaves like a hub, as it manages execution of applications
+    on miners’ machines, balances load, schedules tasks, and collects the results.
+    More generally, we can suggest that a master module works like a traditional miner
+    pool.Any application executing inside a container is referred to as a service
+    . Technically, all services in SONM are RPC-based and accept a specific set of
+    messages to execute directives. Each service has a list of functions that can
+    be referenced by sending messages to that service after a connection has been
+    established. This set of functions is called a service protocol . A protocol can
+    be dynamically obtained from a service once it becomes active by resolving the
+    service name using a locator. The use of a locator can be thought of in analogy
+    to hostname resolution using DNS. We return to the locator service shortly. On
+    startup, a node loads the settings specified in a configuration file, including
+    all the services to start on this particular node. The services lack the ability
+    to communicate code over the network, so they can only receive messages in this
+    state. To allow access to the network and RPC-compatible communication , the node
+    will start a special service called the locator. Every other service running in
+    the container becomes attached to the locator for receiving and sending messages.
+    Once the locator service is activated, it binds to a public endpoint in the network
+    and broadcasts the connection to the blockchain. What steps does a buyer need
+    to perform to access a particular service for their task? Using the locator service,
+    a buyer needs to go through the following five steps:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 1.Connect to locator endpoint on a public port.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 2.Send a resolve request with the name of a service to the locator.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 3.Receive a message back from the locator with information about the endpoint
+    container, the protocol description, and function calls.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 4.Receive a confirmation message indicating that the request for information
+    was completed.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 5.Request for a specific miner with the endpoint information that matches the
+    locator message and call the required service for task execution and processing.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: A visual companion to the components of SOSNA is provided in Figure [7-12](#Fig12).![A430562_1_En_7_Fig12_HTML.jpg](Images/A430562_1_En_7_Fig12_HTML.jpg)Figure
+    7-12.Overview of SOSNA architectureWe start at the blockchain layer , which provides
+    the consensus framework to the network, along with the smart contract system for
+    governance. Next is the messaging bus layer that serves as a two-way communication
+    channel between the various components of the world computer and users in the
+    network. This layer also exists on both sides, allowing the blockchain to communicate
+    to the consumer-facing applications and the grid core to coordinate task execution.
+    On the very top, we have a consumer application layer where buyers can access
+    the network and post requests for services. The RegApp is an early example of
+    consumer applications that buyers would interact with in the future. Eventually,
+    the consumer layer would split into more verticals with features such as trusted
+    runtime skipping the verification stages from users with a high reputation in
+    the network. On the opposite end, at the very bottom we have the grid core. This
+    is the heart of SONM where the fog cloud computing takes place. The grid is essentially
+    a parallel implementation of several hundred master and slave modules. The slave
+    modules run containers where services execute, and these services are connected
+    to a locator. The locator runs on a public port accessible to the buyer through
+    the consumer-apps layer .
+  prefs: []
+  type: TYPE_NORMAL
+- en: iEx.ec
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'We conclude this chapter with a short discussion of the iEx.ec platform, which
+    is also a distributed HPC token using a domain-specific blockchain. iEx.ec is
+    built on a mature set of research technologies called XtremWeb developed for desktop
+    grid computing by INRIA. So what is a desktop grid ? The idea behind desktop grid
+    computing is to collect the computation resources of idle machines connected to
+    the network to execute intensive parallel applications, at a very small cost (or
+    free, in the case of volunteer desktop grid) compared to a traditional supercomputer.
+    XtremWeb-HEP is a decentralized version of its predecessor, designed to execute
+    tasks that require intensive computing resources in a marketplace of miners. This
+    open-source desktop grid stack belongs to the Cycle Stealing family that uses
+    idle resources on machines connected to the network for executing data-intensive
+    applications. XtremWeb-HEP implements most of the features necessary in an HPC
+    token that we have previously seen: fault tolerance, hybrid public–private infrastructure,
+    deployment of virtual images (containers), load balancing, and a payment mechanism
+    for the miners. The DApps running on the network will rely on iEx.ec architecture
+    to automatically search for all the computing resources needed to run the app,
+    provision resources, and release funds to the appropriate parties. Using a well-established
+    and well-tested software stack offers three main advantages:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Resilience: If one computation node fails , the task can be reassigned to other
+    working nodes and continue with minimal downtime.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Efficiency: The base performance of applications across the network is high,
+    despite hardware configuration changes that occur for workers from one node to
+    another.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Pluggable nodes: New nodes can be added to the network without any special
+    configuration, and nodes become integrated after a quick setup.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In iEx.ec, any actions that happen externally or off-chain are referred to as
+    a contribution. For instance, providing a data set, transferring files, and performing
+    a computation are all actions that would require token transactions between the
+    relevant parties. How do we know whether the action actually took place correctly?
+    How can a particular transaction or set of transactions be associated with a particular
+    action that was performed off-chain ? A new protocol is needed to verify that
+    a contribution took place and which transactions correspond to it. iEx.ec has
+    proposed a proof-of-contribution as a new consensus mechanism for off-chain contributions.
+    This new mechanism also plays a role in enabling an enterprise feature in iEx.ec
+    called a service-level agreement (SLA) . Using an SLA allows for resource utilization
+    tracking and trusted computing resource orders from the customer to a provider.
+    The iEx.ec team predicts that content distribution to parties on the network will
+    be a tremendously important function of DApps using the iEx.ec blockchain. The
+    buyers will have access to complex data sets on the blockchain through a smart
+    contract, and a simple payment structure for running their application along with
+    access to the data set. Using proof-of-contribution, iEx.ec can guarantee that
+    the content providers are actually giving access to data sets, and that the file
+    was accessible during the processing. For payment purposes, the duration of access
+    can also be recorded to protect the buyer against overcharging. In addition, iEx.ec
+    will have several countermeasures against malicious entities that claim file transfers
+    failed to reduce data charges.The first few releases of iEx.ec will focus on consolidating
+    the core features and a financial trading use case that requires HPC. This service,
+    called eFast , will employ sophisticated computational prediction methods to allow
+    small investors to make better trading decisions. The objective is to create diverse
+    portfolios using cluster analysis of different stocks, but the computational complexity
+    of such an analysis is so immense that only large financial institutions can afford
+    it. A decentralized service like iEx.ec can reduce the processing cost to one
+    tenth of what it would traditionally cost on a computation farm.NoteGolem and
+    iEx.ec share similar goals for product development, but they differ in business
+    approach. Golem aims to build the core infrastructure of the network and attract
+    HPC and cloud customers. On the other hand, iEx.ec first focuses on building DApps
+    that will run on the network to attract regular cloud customers that have a need
+    for those applications at a cheaper rate.How do tasks get assigned and executed
+    on iEx.ec? There are two algorithms that manage this process, a matchmaking algorithm
+    for execution and a scheduler for assignment. Let’s briefly talk about both of
+    them. A matchmaking algorithm is used in distributed systems to match pairs of
+    resource providers and potential buyers according to the description of resources
+    provided by the buyer. Recall that in SONM, this task was taken over by a load
+    balancer; however, in iEx.ec, an algorithm performs resource provisioning. Eventually,
+    the developers propose to store smart contracts on the blockchain that describe
+    the availability of computational resources and the resources required to run
+    a task. This can include information such as available RAM, processor or CPU,
+    disk space, and the type of GPU. For a host machine, the tasks would be deployed
+    to a virtual machine instance or a hypervisor, and the buyer would specify the
+    runtime instructions. The matchmaking algorithm can implement more intricate policies
+    beyond a simple one-to-one match and iEx.ec can monetize the more complex matches.
+    There are several design choices for the matchmaking algorithm , but iEx.ec will
+    be using a language called ClassAd, which has been well tested in the scientific
+    literature. The second algorithm is the scheduler , which is critical to any distributed
+    computing system. The performance and scalability of a network depends on the
+    effectiveness of its scheduler. The design challenge for iEx.ec is to create a
+    scheduler enabled with multiple-criteria decision analysis that can select optimal
+    computing resources for each task and schedule it appropriately to fit the buyer’s
+    criteria. A multicriteria might fit a customer’s needs based on the cost vs. performance
+    benchmarks. One customer might want to minimize the price of computation if it
+    takes longer, whereas another might want to minimize the time required. These
+    are the types of scenarios that will be handled by a scheduler in iEx.ec.A versatile
+    schedule and efficient matchmaking algorithm allow for very interesting upgrades
+    to the core blockchain technology in the context of HPC. One remarkable example
+    is the ability to use domain-specific blockchains (or sidechains). A sidechain
+    is an adaptable blockchain designed to meet specific infrastructure requirements
+    for running applications that would underperform in a generalized environment.
+    The goal of such a blockchain is to maximize performance and minimize any time
+    delays between execution. Normally, an application would go through the standard
+    blockchain; however, in the case that a large amount of tasks are submitted, some
+    of the tasks can be offloaded to a sidechain for tracking. The sidechain will
+    track the amount of time spent on host machines and report the information back
+    to the network. This offloading can reduce the traffic on the generalized blockchain.
+    An advanced system of smart contracts would be developed to enable this switch.
+    Figure [7-13](#Fig13) provides a visual companion to the iEx.ec architecture.![A430562_1_En_7_Fig13_HTML.jpg](Images/A430562_1_En_7_Fig13_HTML.jpg)Figure
+    7-13.Overview of iEx.ec architectureThe top layer is a consumer-facing application,
+    E-Fast . It is the first use case of iEx.ec that provides the infrastructure to
+    run sophisticated financial prediction algorithms in a massively distributed setting
+    for a fraction of the cost. Underneath is the Ethereum blockchain layer that provides
+    consensus for the network and task-tracking for reimbursement of miners. The blockchain
+    also acts as a platform for the smart contract system that will eventually run
+    in the network. It is important to note that the blockchain layer does not interact
+    with every level of iEx.ec; the distributed cloud level is managed more directly
+    through a middleware XtremWeb-HEP. This is the resource management layer comprised
+    of a task scheduler and a verified data repository. The scheduler coordinates
+    between the blockchain and assigning tasks to workers on host machines. The repository
+    contains large data sets from various fields such as finance and genomics that
+    are made accessible to applications that buyers want to execute. The buyer connects
+    to the resource management layer and provides a description of the task along
+    with the source of data. This information is also recorded on the blockchain.
+    Both components of the middleware connect to the deployed workers and use the
+    description and execute the task. The final results are collected by the middleware
+    and made available to the buyer after a payment is recorded on the blockchain.
+    The last layer is a distributed cloud of miners. Notice here that we don’t need
+    a master module because the middleware performs that function. The tasks are executed
+    in containers or virtual machines and the results are reported back to the resource
+    layer. This reduces the overall complexity of the network , as the only code running
+    on host machines are the containers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In this chapter, we looked at Ethereum tokens from the perspective of HPC applications.
+    We first introduced the market utility and rationale behind introducing tokens
+    as apps on Ethereum. Then, we discussed the prototype HPC token called ECM. This
+    token performs all the basic functions that would be needed in a computational
+    market where customers can purchase computational power from clusters run by dedicated
+    buyers. The token allows for dispute resolution and on-chain verification in a
+    transparent computational power market. We then delved into the more complex computational
+    tokens, such as Golem and SONM. We described both in heavy detail, covering the
+    major technical advancements and how those two tokens differ from each other.
+    Finally, we concluded by covering iEx.ec, which is built on distributed cloud
+    computing software that has been tested for years. The iEx.ec team implemented
+    a decentralized version of Xtreme-Web HPC to perform the same task as Golem and
+    SOMN and enable a computational market.
+  prefs: []
+  type: TYPE_NORMAL
+- en: References
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The main references used to prepare this chapter were the ECM GitHub documentation,
+    Golem whitepaper, SONM whitepaper, iEx.ex whitepaper and Fred Wilson's blog post
+    on tokens.
+  prefs: []
+  type: TYPE_NORMAL

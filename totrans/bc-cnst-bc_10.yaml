@@ -1,0 +1,902 @@
+- en: © The Author(s), under exclusive license to Springer Nature Singapore Pte Ltd. 2022T.
+    Dounas, D. Lombardi (eds.)Blockchain for ConstructionBlockchain Technologies[https://doi.org/10.1007/978-981-19-3759-0_10](https://doi.org/10.1007/978-981-19-3759-0_10)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Private Distributed Ledger for Indoor Scene Annotation
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Vladeta Stojanovic^([1](#Aff6) [ ](#ContactOfAuthor1)), Matthias Trapp^([2](#Aff7) [ ](#ContactOfAuthor2)),
+    Jan Klimke^([2](#Aff7) [ ](#ContactOfAuthor3)), Rico Richter^([2](#Aff7) [ ](#ContactOfAuthor4))
+    and Jürgen Döllner^([2](#Aff7) [ ](#ContactOfAuthor5))(1)HafenCity Universität
+    Hamburg, Henning-Voscherau-Platz 1, 20457 Hamburg, Germany(2)Hasso Plattner Institute,
+    Prof.-Dr.-Helmert-Straße 2-3, 14482 Potsdam, GermanyVladeta Stojanovic (Corresponding
+    author)Email: [vladeta.stojanovic.main@hcu-hamburg.de](mailto:vladeta.stojanovic.main@hcu-hamburg.de)Matthias TrappEmail:
+    [Matthias.Trapp@hpi.de](mailto:Matthias.Trapp@hpi.de)Jan KlimkeEmail: [Jan.Klimke@hpi.de](mailto:Jan.Klimke@hpi.de)Rico RichterEmail:
+    [Rico.Richter@hpi.de](mailto:Rico.Richter@hpi.de)Jürgen DöllnerEmail: [juergen.doellner@hpi.de](mailto:juergen.doellner@hpi.de)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Abstract
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Visualization of annotation recording using a digital indoor model (e.g., point
+    clouds, 3D models, 2D floorplans) allows stakeholders to see exactly how, e.g.,
+    furniture items or machinery have been moved from one location in a building to
+    another. The recording of such actions is vital for record keeping and future
+    decision-making within the realm of facility management (FM), and especially concerning
+    operations and maintenance (O &M) procedures. The use of a digital ledger enables
+    immutable recording of attributes associated with a given indoor representation,
+    e.g., recording of stakeholder annotations onto a point cloud representation.
+    We present a conceptual approach based on blockchain technology (BT) for annotation
+    of indoor scenes, with a focus on point cloud representations of such scenes.
+    We present a case study describing the design and implementation of a private
+    distributed ledger (PDL) as a service-oriented software (SOS) component—where
+    any user annotations are recorded and verified, for proof of immutability for
+    enhancing decision-making among FM stakeholders. We implement the visualization
+    component using a Web3D-based client-side viewer and interface. Our approach sets
+    the foundation for a development of a PDL-based system for indoor scene annotation,
+    with potential to be further integrated into digital twin (DT) platforms.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 1 Introduction
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Digital representation of indoor environments plays a critical role in modern
+    facility management (FM), especially with adaptation of building information modeling
+    (BIM) practices [[1](#CR1)]. Digital representations of indoor environment can
+    make use of existing 2D or 3D floorplans, BIM and CAD data, as well point clouds.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Point clouds allow the capture and representation of the current physical state
+    of the built environment, with enormous potential for further analysis and decision-making
+    [[2](#CR2)]. Point clouds are also very useful for visualization and analysis
+    applications within built environment and geospatial domains [[3](#CR3)], being
+    able to capture the current physical state of an environment as a “digital snapshot”.
+    Methods for indoor capture rely on using either photogrammetry or light detection
+    and ranging (LiDAR) systems (e.g., terrestrial laser scanning (TLS)) as well modern
+    commodity mobile devices that include integrated LiDAR sensors. The captured point
+    clouds include the spatial representation in 3D space, along with color and/or
+    intensity attributes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using such a representation of indoor environments, FM personnel is able to
+    assess the indoor environments current state, and make decisions concerning operation
+    and maintenance (O &M) procedures, e.g., the generation of inventory for items
+    such as a furniture or machinery, which can be detected in the point cloud using
+    deep learning [[4](#CR4)]. Being able to record any changes and user annotations,
+    using a physically accurate representation of indoor environments provided by
+    point clouds, allows users to make decisions with enhanced spatial context for
+    an for a particular point in time. The use of annotation is an important tool
+    for establishing an ontology for FM decision-making concerning indoor environments,
+    as it adds semantics to otherwise possibly ambiguous point cloud representations
+    of real-world environments [[5](#CR5)]. Any such annotation recording can then
+    be stored as textual and/or numeric data that is associated with a particular
+    digital representation (in this case being point clouds).
+  prefs: []
+  type: TYPE_NORMAL
+- en: This has additional important implications in various architecture, engineering,
+    construction, owner, and occupant (AECOO) domains for generation of immutable
+    digital documentation (e.g., tracking of construction site progress, recording
+    of annotations during renovations/retrofitting of buildings, etc.). This digital
+    documentation can then be used for further analysis, review of decisions or even
+    as proof of contractual obligations with third parties.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 1.1 Motivation and Contributions
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Annotation recording based on a digital representation and in an non-modifiable
+    manner requires the use of a specific data structure that ensure immutability
+    between current and previously recorded data segments. The use of a private distributed
+    ledger (PDL), based on *blockchain technology* (BT) principals, allows for immutable
+    recording of such *transaction* data. The immutably recorded data can be based
+    on, e.g., user annotations of common office furniture and areas using a point
+    cloud (Fig. [1](#Fig1)).![](../images/504856_1_En_10_Chapter/504856_1_En_10_Fig1_HTML.png)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Fig. 1
+  prefs: []
+  type: TYPE_NORMAL
+- en: Example of annotations of an indoor point cloud using the prototypical implementation
+    of a PDL. In this case, a new proposed location for a sofa object is recorded,
+    along with an annotation of an arbitrary distance measurement. All of the blocks
+    within the private ledger are immutably recorded, based on the users interactions
+    with the point cloud scene, and presented using a Web3D-based software component
+  prefs: []
+  type: TYPE_NORMAL
+- en: While such data could be stored and queried using a database management system
+    (DBMS), there is a need for a lightweight software component implementation, especially
+    for use within a service-oriented system (SOS). The use of SOSs allows for decoupling
+    of hardware requirements between the client and the server and enables flexible
+    computation and streaming of result to various client configurations [[6](#CR6)].
+  prefs: []
+  type: TYPE_NORMAL
+- en: While a common shortcoming with public blockchains is that they are expected
+    to be ever increasing in size, for private distributed ledgers, it may be the
+    case that for each new scenario, a new blockchain is generated and used—after
+    which, e.g., it can be securely archived and kept on the server for future reference.
+    Another possibility would be to use a “master PDL” for each stakeholder group,
+    which would be updated for every new O &M scenario that is shared, annotated,
+    and reviewed by stakeholders.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Such a SOS software component should not require the overhead of implementing
+    and maintaining a traditional database and should be suitable for securely recording
+    transactions between involved stakeholders, with validation of each new transaction
+    being accepted by a consensus of trusted stakeholders. This is also important
+    for integration with digital twin (DT) platforms, as such platforms attempt to
+    combine multiple data sources of the built environment in order to create a cyberphysical
+    counterpart and often require inputs and decision-making from multiple stakeholders
+    as well [[7](#CR7)].
+  prefs: []
+  type: TYPE_NORMAL
+- en: We present a conceptual approach, system design, and prototypical implementation
+    of a PDL. We present and discuss a case study where we implement and test a prototypical
+    PDL as a SOS component for recording of user annotations using indoor point clouds.
+    A Web3D-based client-side software component is used for visualization of the
+    point clouds and user-driven interaction, specifically for annotation recording
+    within an 3D scene via the client Web-browser (Fig. [2](#Fig2)).![](../images/504856_1_En_10_Chapter/504856_1_En_10_Fig2_HTML.png)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Fig. 2
+  prefs: []
+  type: TYPE_NORMAL
+- en: Example of user-based annotations of an indoor point cloud. These annotation
+    operations are recorded as blockchain data in the presented case study, using
+    the prototypical PDL software component
+  prefs: []
+  type: TYPE_NORMAL
+- en: 2 Related Work
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 2.1 Blockchain Technology for AECOO Applications
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: BT is based on a decentralized and distributed collection of ever-growing records,
+    where the validity of each new added record is computed using a specified consensus
+    algorithm, thus ensuring immutable digital record keeping. BT first appeared with
+    the introduction of Bitcoin [[8](#CR8)], as has since been adapted in various
+    domains, with more recent adaptations focusing on use cases for smart cities [[9](#CR9)],
+    and the digital built environment representations [[10](#CR10)]. A blockchain
+    data structure is an example of a Merkle tree [[11](#CR11)], allowing for immutable
+    record keeping by using a hash verification mechanism. The decoupling of BT from
+    cryptocurrency, and its subsequent use for various real-world applications, has
+    led the development of Blockchain 2.0, and related distributed ladger technologies
+    (DLT) based on the key concepts of BT [[12](#CR12)].
+  prefs: []
+  type: TYPE_NORMAL
+- en: A distributed ledger is a system where each record in a digital ledger is kept
+    distributed and synchronized across all involved stakeholders, and any additions
+    to it require the computation of the validity of all previous records in order
+    to ensure immutability (e.g., that no previous records have been tampered with).
+    This has significant applications for AECOO and related domains, e.g., BIM-based
+    and smart building domains [[10](#CR10), [13](#CR13), [14](#CR14)], digital twins
+    (DTs) [[15](#CR15), [16](#CR16)], and smart cities [[9](#CR9), [17](#CR17), [18](#CR18)]—since
+    any changes made to, e.g., BIM or a point cloud representation, can be recorded
+    immutably and used as potential legal and contractual documentation. Another comprehensive
+    review of applications of DLTs for AECOO is provided by [[19](#CR19)].
+  prefs: []
+  type: TYPE_NORMAL
+- en: As noted by Turk and Klinc, the most notable difference between document-based
+    and current BIM-based practices is that any legally binding documentation was
+    previously kept in physical form where it would pass through different level of
+    bureaucracy [[20](#CR20)]. Research by Gunasekara et al. advocates the use of
+    BT, DLT, and smart contracts for replacing current procurement practices in FM,
+    by providing a conceptual framework that aims to digitize each of the main bottleneck
+    processes in the pre-tendering, tendering, and post-award phases [[21](#CR21)].
+  prefs: []
+  type: TYPE_NORMAL
+- en: With the use of BIM practices, particularly with the use of the common data
+    environments (CDEs) concept, sharing of digital data used for all representational
+    aspects of a building poses particular challenges concerning its ownership [[1](#CR1)].
+    Research by Suliyanti and Sari presents a prototypical implementation of a BT-based
+    multi-party BIM-management platform, where the aim is to allow multiple parties
+    to record important transactions concerning the whole building lifecycle using
+    a permissioned blockchain [[22](#CR22)]. The authors take note that a single “network
+    admin” is still required to oversee the maintenance and integrity of the blockchain
+    through fully granted access permissions using creating, reading, updating, and
+    deleting (CRUD) operations on assets that represent the key phases of a buildings
+    lifecycle.
+  prefs: []
+  type: TYPE_NORMAL
+- en: While the use of DLTs based on BT are still new to the AECOO industry, their
+    use has already been researched for various BIM-related applications. Dounas and
+    Lombardi investigate the use and multi-level integration of BT with CAD and BIM
+    applications, particularly for tracking any changes and annotations to the BIMs,
+    as well as CAD models [[23](#CR23)]. Lemeš and Lemeš discuss the potential use
+    of BT for use distributed CAD and BIM software environments [[24](#CR24)]. Hargaden
+    et al. discuss the benefits and challenges of using BT for construction progress
+    monitoring, and the feasibility of integrating such systems with existing BIM
+    practices [[25](#CR25)].
+  prefs: []
+  type: TYPE_NORMAL
+- en: DLTs based on BT can either be public consortium-based or private [[26](#CR26)].
+    For example, a private DLTs, referred to as a PDL in this research, are commonly
+    found in organizations where there is a high level of trust between all users.
+    Thus, the PDL can be used without needing to compute any proof-of-work results
+    when adding new records—but the validity of the records in the ledger is still
+    ensured using the same method as in public and consortium-based blockchains (e.g.,
+    the ledger is distributed to trusted clients who form a consensus for any new
+    data that is added). The use of PDLs are therefore suitable for integration into
+    BIM and DT platforms [[12](#CR12), [27](#CR27)].
+  prefs: []
+  type: TYPE_NORMAL
+- en: 2.2 Point Cloud-Based Annotation Recording
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Point clouds can provide 3D and textured up-to-date physical representations
+    of the built environment up to high resolutions (millions of points per square
+    meter), and featuring intricate details [[28](#CR28)]. According to Richter, point
+    clouds can *“represent almost any type of physical object, site, landscape, geographic
+    region, or infrastructure ... at all scales and with any precision”* [[29](#CR29)].
+    The processes of capture, post-processing, and semantic enrichment are all required
+    before the point cloud be analyzed and/or visualized [[5](#CR5)]. The final output
+    of a semantically-enriched or processed point cloud can provide great benefit
+    to AECOO practitioners and stakeholders such as FM operators who want a deeper
+    insight into the current state of the built environment [[30](#CR30)].
+  prefs: []
+  type: TYPE_NORMAL
+- en: The use of point clouds representations of the built environment for annotation
+    recording is thus a natural extension of their use, as frequently captured point
+    clouds of of the same area can be compared for spatial deviations and changes
+    over time [[31](#CR31)]. For indoor environments, point clouds provide a good
+    source for generation of semantically-enriched representations, especially those
+    used to represent complex indoor spaces such a university campuses and offices
+    [[32](#CR32)]. Semantic enrichment of point clouds using annotations added by
+    users, or as results of various semantic enrichment processes (e.g., semantic
+    segmentation using deep learning approaches [[33](#CR33)]), can further engage
+    stakeholders, especially using Web-based visualization where multiple users are
+    able to inspect the same point cloud scene [[34](#CR34)].
+  prefs: []
+  type: TYPE_NORMAL
+- en: While domain expertise is usually required for reviewing and decision-making
+    based on BIM [[35](#CR35)], the use of point clouds provides a more intuitive
+    way for inspecting the physical representation of the *as-is* built environment.
+    By capturing the physical state of objects such as furniture and equipment, including
+    their spatial attributes at the time of the scan, point clouds can capture physical
+    features that are otherwise often omitted or difficult to model using high-level
+    geometric representations typically found in as-designed/as-built BIMs [[36](#CR36)].
+    Any changes made by users reviewing a point cloud can thus be based on the real-world
+    representation rather than an *as-designed* or *as-built* BIM.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3 Approach
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The presented PDL software component is based on BT principals, except that
+    it does not use any proof-of-work mechanism. Rather, any changes such as spatial
+    and/or user annotations are recorded within an block with a unique hash code,
+    and this block is added by a trusted user upon theoretical agreement between all
+    stakeholders (e.g., a PDL “administrator” or multiple stakeholders with specific
+    permissions). As such, all of the stakeholders are able to inspect and view the
+    current scene with the annotations via the Web3D-based client-side user interface.
+    This way, any changes can be communicated by stakeholders and referenced as immutable
+    documentation.![](../images/504856_1_En_10_Chapter/504856_1_En_10_Fig3_HTML.png)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Fig. 3
+  prefs: []
+  type: TYPE_NORMAL
+- en: A high-level system design of the prototypical PDL implementation, along with
+    the proposed data flow between the client and server components
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.1 System Design and Implementation
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The prototypical PDL is implemented within a service-oriented paradigm, with
+    decoupling between client and server processing tasks (Fig. [3](#Fig3)). The blockchain
+    component of the PDL is implemented as a server-side software component using
+    Node.js, and it is responsible for creating and maintaining the blockchain. The
+    blockchain is updated with specific attributes after the user records any changes
+    or annotations made to the point cloud (Sect. [3.3](#Sec9)). Three different servers
+    are also implemented, one for sending data updates to the blockchain, one for
+    updating the blockchain, and one for updating the blockchain across all connected
+    stakeholders.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.2 Servers Design and Implementation
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The primary server dealing with updating the blockchain is implemented as an
+    express server,^([1](#Fn1)) using the Sockets.io framework to enable bi-directional
+    communication between the client and the server. The server is REST-based and
+    utilizes HTTP POST and GET commands in order to add new blocks to the blockchain,
+    as well as to send back the current contents of the blockchain. The secondary
+    server is a re-direction server, which is also an express server that runs simultaneously
+    alongside the main server, and passes the recorded annotations and scene changes
+    from the client-side as HTML 5 hidden attribute form data. This server redirects
+    the HTML 5 hidden form-data attributes to the HTTP server port running on the
+    main express server, where a POST operation is triggered—thus creating a new block
+    with the parsed form attributes and broadcasting a message to all connected peers
+    that a new block has been added to the blockchain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In order to allow more than one trusted stakeholder access to the blockchain,
+    and to implement a basic conflict resolution mechanism, a third peer-to-peer (P2P)
+    server architecture is implemented using WebSockets. The P2P server listens simultaneously
+    at the same time as the HTPP server, except that instead of updating the blockchain
+    from input by the client-side interface, it checks which peers have connected
+    to the server and sends them a copy of the blockchain. The P2P server also constantly
+    checks that each of the connected peers has the most recent version of the blockchain,
+    and synchronizes it with the most recent version by updating the blockchain with
+    the latest transactions, or replaces the current blockchain of a peer that is
+    not up-to-date with the longest (and most recent) blockchain. The updating frequency
+    of the blockchain implemented by the P2P server can be set to check, e.g., every
+    couple of seconds, or can be triggered by a certain action, e.g., a specific stakeholder
+    adds an annotation to the active scene. Finally, the P2P server can also add new
+    blocks to the current blockchain by validating the hash of the last block in the
+    current chain with the hash of the latest block received from any of the connected
+    peers (Sect. [3.4](#Sec10)). This way for every new block that is added by the
+    user, the block chain can be synchronized across all connected peers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.3 Block Structure
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'The blockchain records specific attributes of an indoor environment, using
+    its point cloud representation, at a particular point in time. These attributes
+    provide an example of attributes that could be important for forming O &M decisions
+    (a comprehensive list of attributes relative to FM is discussed by [[37](#CR37)]).
+    The block structure used to store the transactions for the ledger is composed
+    of the following data members:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Index*: The index of the current block in the chain.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Previous Hash*: The unique hash of the previous block.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Timestamp*: The timestamp of the current block.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*User ID*: The ID or name of the current user making annotations to the scene.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Scene Comments*: User annotations of the current point cloud scene.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Scene Objects*: The current point cloud clusters in the scene.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Selected Objects*: The selected point cloud clusters.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Selected Objects Position*: The position of the selected point cloud clusters.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Current Hash*: The computed hash of the current block.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The blockchain is first formed using an initial block, called the *genesis block*,
+    which is set with default values. This genesis block is then used as the foundation
+    block for computing the subsequent hash values of the next blocks that are added
+    to the blockchain. The most notable data member of the block is the current hash,
+    which is computed using all of the current data members. This unique hash value
+    is computed as a 32 byte random character string using the SHA-256 pseudo-random
+    number generator (PRNG) [[38](#CR38)], which is provided using the CryptoJS library.^([2](#Fn2))
+  prefs: []
+  type: TYPE_NORMAL
+- en: Once the new block has been added with all of the data members set, and with
+    a unique hash code based on the hash of the previous block, it is added to a global
+    block array that is initiated and used during the run-time of the application.
+    For the prototypical implementation, we used an in-memory approach for accessing
+    and updating the blockchain. This blockchain array is shared and synchronized
+    with all connected peers as well.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Since we are using a “trusted ledger” approach, we do not compute any proof
+    of work when accepting a new block to be added to the blockchain. A trusted ledger
+    is intended to be used internally by trusted stakeholders, where there is no need
+    to for any of the stakeholders to “mine” any of the blocks, as everyone who is
+    generating and adding new blocks is known to all other stakeholders using the
+    blockchain. Mining of the blocks usually requires spending vast amounts of computational
+    power in order to generate a valid signature based on the computed hash value
+    that meets certain requirements (e.g., having a certain number of zeros as the
+    first characters of the signature) and is common in public and decentralized ledgers
+    and blockchain implementations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.4 Blockchain Validation
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: A blockchain has the ability to immutably record transactions. The meaning of
+    immutability in this sense means that the validity of the entire blockchain structure
+    is based on the computed hash values of the sequential blocks containing previously
+    recorded attributes and unique hash values (Fig. [4](#Fig4)). As such, assurance
+    against tempering with previously inserted blocks can be obtained by validating
+    the hash values of the current and the previous block in the blockchain and comparing
+    them. If the hash value of current block, which was computed based on the hash
+    value of the previous block along with any of its current attributes, is the same
+    as the previous block hash value, then we can be certain that the these blocks
+    contain attributes that were not tempered in any way.![](../images/504856_1_En_10_Chapter/504856_1_En_10_Fig4_HTML.png)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Fig. 4
+  prefs: []
+  type: TYPE_NORMAL
+- en: Example generation of blockchain data, where each new block contains a hash
+    code generated from the current block attributes and the hash of the previous
+    block
+  prefs: []
+  type: TYPE_NORMAL
+- en: If transaction values within any of the inserted blocks in the blockchain were
+    tempered with, the generated hash of the new block will be different than that
+    of the same block in the copies of the blockchain used by other stakeholders.
+    As all of the blocks are known to the stakeholders, it will be visible which blocks
+    contain attributes that were tampered with. In essence, this process assumes that
+    the blockchain is shared between trusted stakeholders, and as such each stakeholder
+    has a copy of the blockchain that is updated and synchronized with other stakeholders.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the prototypical PDL implementation, we have implemented three different
+    blockchain validation methods, namely (1) index validation of the current and
+    the previous block, (2) validation of the hash of the previous block, and (3)
+    validation of the hash of the current block. Additionally, these three validation
+    methods are used to validate the consensus blockchain once it has been synchronized
+    across all connected peers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 4 Client Design and Implementation
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 4.1 Web3D-Based Visualization and Scene Interaction
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The client-side implementation makes use of HTML 5 and Three.js for the main
+    visualization and user input tasks.^([3](#Fn3)) Via the web-based user interface,
+    users are able to load in a point cloud and add in any annotations, which are
+    recorded in the PDL.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The visualization component is able to display the complete point cloud of a
+    indoor scene (typically of about 100,000 points per 20 m![$$^2$$](../images/504856_1_En_10_Chapter/504856_1_En_10_Chapter_TeX_IEq1.png)).
+    The current limit for visualizing a number of points per scene is approximately
+    four million points (due to the use of non-optimized point cloud rendering). The
+    use of Three.js enables the rendering of other useful visualization idioms [[39](#CR39)],
+    e.g., billboard sprite rendering (used for displaying text), and various shading
+    operations that can be performed on the point cloud via the programmable graphics
+    pipeline (e.g., changing of color of a point cluster or its opacity).
+  prefs: []
+  type: TYPE_NORMAL
+- en: A user is able to add annotations to the 3D point cloud scene, either for the
+    entire scene or for specifically selected point clusters. Currently, this includes
+    textual annotation and distance and area measurements (Fig. [2](#Fig2)). For annotation
+    generation purposes, a portion of the original point cloud, used for generating
+    annotations, can be copied without modifying the original data (Sect. [6.1](#Sec18)).
+    Apart from textual annotations, the user can also select given cluster and transform
+    its position and rotation in the 3D scene. Both the annotation and transformation
+    actions can be captured as updated scene attributes that are sent to the server
+    as a new block update. Each stakeholder can add blocks without explicit permission,
+    due to the trusted nature of the PDL.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 4.2 Stakeholder Block Update Consensus
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'If some of the stakeholders are required to add annotations that need to be
+    approved by other stakeholders, an consensus-based approach is required. We propose
+    an approach for such a situation: Once the annotations have been made, the user
+    who made the changes can send a preview of the scene and changes as an image and
+    textual description to all involved stakeholders. The connected stakeholders can
+    then approve or reject the changes. If the majority of stakeholders approve the
+    changes, the user who made the suggested changes is then able to upload the proposed
+    changes as a new block to the blockchain.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 5 Case Study
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: We present an experimental case study where we made use of point cloud representations
+    of typical office environment. The office environment was captured using a commodity
+    mobile device and presents an open office area of approximately 15 m![$$^2$$](../images/504856_1_En_10_Chapter/504856_1_En_10_Chapter_TeX_IEq2.png),
+    along with common office furniture (e.g., chairs, sofas, tables). The point cloud
+    contains 318,589 points, featuring spatial, and RGB color attributes. We performed
+    both annotation and transformation tasks, where we annotated common office furniture
+    and transformed the segmented point clusters to new locations in the scene. These
+    changes were then recorded in the blockchain and updated to all connected peers.
+    We assessed the integrity of the blockchain after it has been updated, using three
+    different validation techniques (index, previous, and current hash validation).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 5.1 Annotation and Transformation Task
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The annotation and transformation task present a typical scenario in FM, where
+    furniture has to be moved from one location to another by the O &M personnel,
+    with instructions and result inspections carried out the O &M manager (Fig. [5](#Fig5)).
+    This scenario is broken down into six different tasks, with tasks 1–3 illustrated
+    in result Fig. [6](#Fig6), and showing the transaction results of recorded annotations
+    between the three involved stakeholders. Once the task has been completed by the
+    O &M employee in this scenario, the physical result of the task can be compared
+    by the O &M Manager with the version of the point cloud scene that contains the
+    annotated and agreed instructions of where to move the chairs. If the task is
+    carried out to the satisfaction of the O &M manager, both the O &M employee and
+    building manager would receive notification of a successfully completed task and
+    this would be recorded as well in the PDL.![](../images/504856_1_En_10_Chapter/504856_1_En_10_Fig5_HTML.png)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Fig. 5
+  prefs: []
+  type: TYPE_NORMAL
+- en: Illustration of the proposed annotation and transformation task, broken down
+    into six different steps, and involving three different stakeholders
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../images/504856_1_En_10_Chapter/504856_1_En_10_Fig6_HTML.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Fig. 6
+  prefs: []
+  type: TYPE_NORMAL
+- en: Result of the case study where the first three steps of the task generation
+    and communication process are recorded in the PDL, visualized using the point
+    cloud representation of the office area, and communicated to all involved stakeholders
+  prefs: []
+  type: TYPE_NORMAL
+- en: 5.2 Blockchain Computation Performance
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: We further provide preliminary results in terms of computational performance
+    of key block creation and validation methods (Table [1](#Tab1)), which are implemented
+    and executed server-side using Node.js. The server used for testing is a commodity
+    desktop PC, with an Intel Core i5-6500 CPU at 3.2 GHz with 8 GB RAM, using Node.js
+    version 14.0.0.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Each performance attribute measures the average time taken to complete a specific
+    blockchain operation. The average time taken was measured using 15 consecutively
+    recorded samples for each operation. The selected performance attributes are split
+    up into three different types of operations: (1) block creation, (2) validation,
+    and (3) retrieval. We used a blockchain with 15 different block elements.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The block creation attributes include time taken to generate a new block, and
+    the time taken to compute a unique hash for the new block. The validation attributes
+    include validation of the current block index, and the validation of the previous
+    and current hashes of two consecutive blocks. The validation of the complete block
+    chain is performed using all three validation methods (index, current, and previous
+    hash validation). The retrieval performance attributes were used to evaluate the
+    time taken to retrieve the first block in the blockchain (the *genesis block*),
+    and well as the time taken select and retrieve a random block from the complete
+    blockchain.Table 1
+  prefs: []
+  type: TYPE_NORMAL
+- en: Preliminary evaluation of the PDL in terms of performance of key block creation
+    and validation methods
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| Performance attribute | Time (ms) |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Block creation | 5.608 |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Block hash computation | 0.306 |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Block index validation | 1.072 |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Previous block hash validation | 1.031 |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Current block hash validation | 1.278 |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Complete chain validation | 62.431 |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Genesis block retrieval | 7.810 |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Random block retrieval | 7.744 |'
+  prefs: []
+  type: TYPE_TB
+- en: 6 Discussion
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The presented case study demonstrates the feasibility of our approach of tracking
+    of spatial and user-annotated changed within a point cloud scene using a PDL.
+    The use of a PDL based on BT principals offers promising alternative for storing
+    of immutable data related to decision-making within the realm of FM, and integration
+    with DT platforms. However, there are additional important points to take into
+    account when considering the use of a PDL for FM-related-decision making tasks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 6.1 Data Transfer and Storage Considerations
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: In the presented case study, we focus on simple annotations (e.g., measuring
+    distances between two points or adding simple work order instructions), though
+    the number of attributes recorded by each block for each transaction could increase
+    to include many more details e.g., complete scene editing or selected object transformation
+    history. This would also inevitably increase the processing overhead of the block
+    hashing, synchronization, and validation operations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The presented approach does not explicitly store any point cloud data within
+    the blockchain, but rather attributes associated with a given point cloud. As
+    such, it is assumed that all stakeholders have access to the same and most recent
+    version of the point cloud. Since point clouds tend to be very large (potentially
+    millions or billions of points with gigabytes in size), their transmission, and
+    storage remains impractical, especially using SOS implementations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Due to this presumably large size of point clouds, it is more practical to identify
+    and make use of *metadata* of point clouds when using them for versioning and
+    decision-making within a PDL. This can include timestamps of when the point cloud
+    was created, number of points, size on hard disk, etc., and more importantly,
+    the point cloud that is used can be stored on a secure server that provides read-only
+    access to it for PDL-based versioning. This way all of the of the stakeholders
+    can use the same and unmodified version of the point cloud for recording of user
+    annotations, with the annotations becoming *proposed* changes that can be implemented
+    in the updated version of the point cloud once a consensus has been reached.
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, in order to prove that the stakeholders are using the original version
+    of the point cloud, an initial verification step can be implemented using the
+    actual point cloud data. A hash of the complete point cloud can be computed using
+    SHA-256 as the main PRNG component. This hash value can then be compared and verified
+    prior to any further stakeholder use and annotation of the point cloud, thus ensuring
+    that the original and non-modified version of the point cloud is being used.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It should also be noted that while the validity of the blockchain is ensured,
+    the actual point cloud data should be treated as read-only data, so that it cannot
+    be modified by any of the stakeholders. A portion of the original point cloud
+    used for annotation purposes can be copied and stored temporarily (e.g., either
+    in system memory or a DBMS), and this copied portion can be used for making any
+    changes that enable the illustration of important scene changes for communication
+    with stakeholders (e.g., showing where to move machinery or furniture items within
+    a room).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Furthermore, the annotations and illustrations made using the temporary point
+    cloud portion can be transmitted to other stakeholders as e.g., image-based annotations.
+    This way, a single and valid version of the point cloud is used between all stakeholders,
+    on to which the various annotations are projected, and images are captured and
+    shared for decision-making—without the original point cloud being modified.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 6.2 Potential Stakeholder Use Cases
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: A notable use case of the blockchain-based scene annotation would be integration
+    into DT platforms for FM. As mentioned, it is impractical to include actual point
+    cloud data in the blockchain, therefore criteria for inclusion of useful metadata
+    would need to be investigated. The selection of appropriate metadata becomes particularly
+    important for DT systems that integrate various data sources (e.g., BIM, CAD,
+    floorplan, digital documents, sensor data—all in addition to point cloud data).
+    For example, in a hypothetical DT platform, a BIM model would form only one of
+    the key “base-data” sources. The combined use of multiple historic, current, and
+    real-time digital data related to the operational lifecycle of a building can
+    be merged together to form an “asset information model” (AIM), which is essentially
+    what the DT platform uses and maintains [[40](#CR40)]. Additionally, a DT would
+    be implemented within a digital twin environment (DTE), where the use of service-oriented
+    architecture and system implementation could be benefit the integration of various
+    processing components [[41](#CR41)].
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is in contrast with current AECOO practices, where a BIM model and associated
+    digital documentation are generated, shared and maintained using a common data
+    environment (CDE)—usually with proprietary BIM software. Stakeholders can view
+    the BIM model within a static state (e.g., not usually dynamically updated), where
+    time, cost, and spatial clash detection properties can be computed using a given
+    level-of-detail (LOD) BIM representation [[1](#CR1), [42](#CR42)].
+  prefs: []
+  type: TYPE_NORMAL
+- en: An AIM can be made up of a number of different file formats that facilitate
+    capture, semantic enrichment, and exchange of information between stakeholders.
+    Common file formats for such data exchange include IFC,^([4](#Fn4)) CoBIE,^([5](#Fn5))
+    and the BIM collaborative format.^([6](#Fn6)) BCF is of notable interest due to
+    the design of its API that enables sharing of important of BIM data, based on
+    the IFC model, through a REST-based API that enables integration into a SOS. BCF
+    is also a good potential candidate for use in a PDL since it is designed to share
+    the metadata of an IFC model, instead of the IFC model itself. A possible use
+    case scenario for a PDL could be to keep track of any changes to the IFC model
+    via the specification of the BCF format, where each of the defined block datatypes
+    and attributes correspond to their counterparts in the BCF specification.
+  prefs: []
+  type: TYPE_NORMAL
+- en: An alternative would be to use the model view definition (MVD)^([7](#Fn7)) for
+    selecting specific attributes, using a subset of the IFC specification to define
+    the block structure of the blockchain based on the pre-defined usage requirements
+    (e.g., usage for mechanical, electrical, and plumbing (MEP) components tracking
+    versus spatial change tracking that can be captured at a LOD-300 IFC specification).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Scenarios where the use of BT would benefit stakeholders could include, e.g.,
+    managing payments to third parties for maintenance of a building. This could further
+    be extended with the use of *smart contracts*, where a transaction can trigger
+    a scripted mechanism within the blockchain once a certain transaction is recorded
+    [[43](#CR43)]. Stakeholders could also use a point cloud representation of an
+    indoor environment to agree with responsible parties what changes need to be made
+    by spatially selecting an area of interest and annotating it. As this is recorded
+    immutably once all parties agree, it could be used for tracking of various building
+    inventory tasks, e.g., movement of furniture or machinery from one specific location
+    to another.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using the presented approach, the level of stakeholder interaction and annotation
+    using the point cloud representation at minimum requires that the user selects
+    a point cluster and annotates it by adding a textual note associated with it.
+    This enables fast and easy overview and annotation, and potentially enhanced decision-making
+    using the *as-is* point cloud representation of the built environment. While the
+    the use of point clouds is advocated as the preferred means to convey key geometrical
+    representation of the built environment, the presented approach of using PDL-based
+    annotation can be applied to other geometric representations (e.g., triangulated
+    meshes, boundary representations, 2D floorplans, etc.).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Furthermore, building managers and sub-contractors could use the blockchain
+    to track changes such as on-going renovation and retrofitting work, e.g., multiple
+    point clouds of an area that is being renovated could be captured, along with
+    relevant documentation, and stored as metadata where a unique hash is associated
+    with a given point cloud captured at a particular time. This way the involved
+    stakeholders could use BT to track changes and monitor progress for such renovation
+    or retrofitting work.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 6.3 Comparison with DBMSs
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: A PDL can be thought of as a database in the sense that it is able to record,
+    retrieve, and verify information in block-based data structures using BT APIs
+    or protocols. However, a traditional database is designed to store data that cannot
+    only be retrieved, but also modified (i.e., CRUD operations). A DBMS is usually
+    installed on a single server, and copies of it are not intended to be distributed
+    among users—unless they have special database administrator privileges. Since
+    the blockchain is distributed, it has better fault tolerance than a traditional
+    DBMS as all connected stakeholders have a copy of it, where as a DBMS usually
+    has limited copies with privileged access rights.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Additionally, DBMSs are designed to hold any kind of data, including very large
+    spatial datasets such as point clouds, images, CAD models, and associated digital
+    data. The speed of retrieval of such data in specialized DBMSs is also critical,
+    and thus, they are designed around advanced data retrieval algorithms, e.g., spatial
+    hash indexing for use in GIS [[44](#CR44)]. In comparison, a blockchain is designed
+    to hold “lightweight” data—mostly textual and numerical data associated with transactions
+    or metadata related to larger datasets that may be kept on a database or remote
+    server. In terms of storage requirements, the average size of our PDL for a single
+    scenario with 10 elements is 5.69 kb—using the specified block attributes stored
+    and parsed in the JSON data format (Sect. [3.3](#Sec9)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: DBMS are also designed to deal with data types that can change based on use
+    cases and data storage requirements. A blockchain block has hard-coded data types
+    and attributes, and these cannot be changed unless a new blockchain is implemented
+    from scratch. A PDL also does not have the same kind of flexibility as a non-relational
+    DBMS for dealing with unstructured data, nor data whose attributes change once
+    it is in use. Therefore, it is a requirement to decide among stakeholders which
+    data attributes need to be included in the initial block design prior to deploying
+    and using a PDL.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In terms of security, a PDL can be thought as always being secure—as all involved
+    stakeholders have a copy of it, and in a trusted setting only blocks that have
+    been approved by a majority of stakeholders or an appointed admin can be added
+    to the blockchain. A DBMS usually requires one or more administrators to control
+    who has access to and to grant required credentials to users to have specified
+    access to complete or select parts of it when creating or modifying data. Therefore,
+    the security and maintenance overhead of using a DBMS also tend to be higher in
+    comparison with using a PDL.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 6.4 Attack Possibilities on the Blockchain
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: A notable hypothetical weakness of public blockchains that they are susceptible
+    to the “51%” or “double spending” attack [[45](#CR45)]. In the classic decentralized
+    blockchain architecture, if the attacker manages to mine more blocks (51% more
+    than the rest of the users), all of the connected users of the blockchain would
+    use the attackers version of the blockchain since it would be the “consensus”
+    or most up-to-date version. The attacker could then invalidate or modify any previously
+    recorded transactions with their copy of the blockchain, which all other peers
+    would be using.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is mainly a problem in decentralized and public blockchains, where there
+    are many anonymous users and proof of work is required prior to adding each new
+    block. For PDLs, each of the blocks would usually be validated and added by a
+    trusted person or party—and be dependant on social control rather than technical
+    protection. The trusted stakeholders responsible for validation could, e.g., form
+    a consensus when attempting or rejecting to add each new block with recorded transactions
+    (Sect. [4.2](#Sec13)). This prevents the copying of the blockchain and adding
+    blocks to it unless this was performed by a trusted client or group.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Another possibility for preventing modification of the PDL would be to create
+    snapshots of it and back these up on a secure server with strong encryption. The
+    snaphsots could be generated after each, e.g., important meeting between stakeholders,
+    where the PDL and point cloud scene are used to annotate agreed items of discussion
+    that may, e.g., form a part of a contractual obligation. Such a mechanism would
+    reduce the possibility for any of the parties to claim that a tampered PDL is
+    a valid one (if the valid one is stored safely as a snapshot and can be produced
+    as evidence when required).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 7 Conclusions and Outlook
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In this paper, we have described a conceptual approach for tracking of user
+    annotations of indoor point clouds for FM applications using a prototypical PDL
+    software component. The provided experimental results demonstrate the feasibility
+    of our approach, and we demonstrated its use in a typical O &M scenario. We have
+    also discussed potential use of the blockchain for FM-related use by taking into
+    account the kind of data types and attributes such a system would need to record
+    immutably for O &M related tasks, and how stakeholders would be able to interact
+    with it by viewing or adding new data using a Web3D-based user interface and visualization.
+    The case study results also show that the prototypical PDL is able to record stakeholder
+    annotations immutably, and that the validity of the blockchain cannot be compromised
+    undetected. Furthermore, the preliminary performance results demonstrate the feasibility
+    of the PDL as a lightweight SOS component that is able to perform key blockchain
+    computations efficiently. Furthermore, the presented approach is not explicitly
+    tied to using point clouds for representation and can be used for all scenarios
+    using digital representations of various environments requiring immutable user
+    annotations (e.g., city planning using CityGML-based representations).
+  prefs: []
+  type: TYPE_NORMAL
+- en: For the prototypical PDL implementation, the point cloud is kept on the server
+    and loaded by the client user interface (copied into the clients system memory).
+    A more efficient streaming-based method that provides read-only access to the
+    point cloud that is stored securely on the server will be investigated. We have
+    also proposed an approach for stakeholder consensus for adding new data to the
+    blockchain, which we aim to implement and test for future work. Finally, we plan
+    to expand the attributes of the blockchain to match those of the BCF specification,
+    and test this approach using multiple stakeholders.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Acknowledgements
+  prefs: []
+  type: TYPE_NORMAL
+- en: The presented work and publication text were completed while the first author
+    Vladeta Stojanovic was still financed by a doctoral research stipend from the
+    Research School on Service-Oriented Systems Engineering of the Hasso Plattner
+    Institute, Faculty of Digital Engineering, University of Potsdam, Germany. The
+    initial version of this text was completed and submitted to the editors on 13.12.2020\.
+    The work done by authors from the Hasso Plattner Institute has been partially
+    funded by the German Federal Ministry of Economic Affairs and Energy (BMWi) as
+    part of the ZIM program, and the Research School on Service-Oriented Systems Engineering
+    of the Hasso Plattner Institute, Faculty of Digital Engineering, University of
+    Potsdam, Germany. There was no involvement from HafenCity Universität Hamburg
+    in the development of this publication.
+  prefs: []
+  type: TYPE_NORMAL

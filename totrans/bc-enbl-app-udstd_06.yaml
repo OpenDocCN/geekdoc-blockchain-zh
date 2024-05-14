@@ -1,0 +1,477 @@
+- en: ©  Vikram Dhillon, David Metcalf, and Max Hooper 2017Vikram Dhillon, David Metcalf
+    and Max HooperBlockchain Enabled Applications[https://doi.org/10.1007/978-1-4842-3081-7_6](A430562_1_En_6_Chapter.xhtml)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 6. The DAO Hacked
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Vikram Dhillon^(1 ), David Metcalf¹ and Max Hooper¹(1)Orlando, Florida, USAAuthors:
+    Colin Forward, Vikram Dhillon'
+  prefs: []
+  type: TYPE_NORMAL
+- en: It is safe to say that “DAOism” is well on its way to becoming a quasi-cyber-religion.—Vitalik
+    Buterin[¹](#Fn1)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'In Chapter [5](A430562_1_En_5_Chapter.xhtml), we discussed the concept of decentralized
+    organizations and the modus operandi of a DAO. Here, we want to highlight a historic
+    moment leading to the creation of the first DAO, and how it eventually got hacked.
+    Our discussion begins with a fresh perspective on decentralized organizations
+    from Buterin, and leads into the story of Slock.it, the company at the heart of
+    the DAO revolution. Then, we present some code that made The DAO dysfunctional:
+    pieces of the smart contract relevant to the vulnerability, the conditions that
+    allowed repetitive withdrawals from The DAO, and the exploit itself. We conclude
+    the chapter by talking about the consequences of this hack: The debate about hard
+    vs. soft forks, and the creation of Ethereum Classic.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Introduction
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Discourse in the global blockchain community has been characterized by idealism
+    going back to Satoshi Nakamoto’s early writings on Bitcoin as a response to central
+    banking. The line of reasoning is that systems that are vulnerable to corruption,
+    or in any case cater to the wishes of a select few, could be made more accountable
+    if they were governed by code. If that code lives on the blockchain, then it is
+    impervious to biased intervention by minority parties.Following that tradition,
+    in a September 2013 blog post for Bitcoin Magazine, Vitalik Buterin explored the
+    notion of the DAO. The article began as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Corporations, US presidential candidate Mitt Romney reminds us, are people.
+    Whether or not you agree with the conclusions that his partisans draw from that
+    claim, the statement certainly carries a large amount of truth. What is a corporation,
+    after all, but a certain group of people working together under a set of specific
+    rules? When a corporation owns property, what that really means is that there
+    is a legal contract stating that the property can only be used for certain purposes
+    under the control of those people who are currently its board of directors—a designation
+    itself modifiable by a particular set of shareholders. If a corporation does something,
+    it’s because its board of directors has agreed that it should be done. If a corporation
+    hires employees, it means that the employees are agreeing to provide services
+    to the corporation’s customers under a particular set of rules, particularly involving
+    payment. When a corporation has limited liability, it means that specific people
+    have been granted extra privileges to act with reduced fear of legal prosecution
+    by the government—a group of people with more rights than ordinary people acting
+    alone, but ultimately people nonetheless. In any case, it’s nothing more than
+    people and contracts all the way down.However, here a very interesting question
+    arises: do we really need the people? [²](#Fn2)'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Three years after Buterin’s article was first published, The DAO came into
+    existence as a smart contract written in Solidity, perhaps the purest manifestation
+    of this idealism. Despite its canonical label, The DAO was not the first—or the
+    last—decentralized autonomous organization. In fact, by May 2016 when the leadership
+    at Slock.it kicked off The DAO’s record-breaking initial coin offering (ICO) ,
+    DAOs were well established as the third wave of the increasingly mainstream blockchain
+    phenomenon.[³](#Fn3)Although many people consider Bitcoin to be the very first
+    DAO, there were drastic differences in the nature of the two services. Although
+    it is true that Bitcoin was governed by code shared by every miner in the network,
+    Bitcoin doesn’t have an internal balance sheet, only functions by which its users
+    can exchange value. Although other DAOs at the time did have a concept of asset
+    ownership, what made The DAO unique was that central to its code were the radically
+    democratic processes that defined how The DAO would deploy its resources. It was
+    a realization of Buterin’s concept of a corporation that could conduct business
+    without having a single employee, let alone a CEO.From the DAO white paper:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This paper illustrates a method that for the first time allows the creation
+    of organizations in which (1) participants maintain direct real-time control of
+    contributed funds and (2) governance rules are formalized, automated and enforced
+    using software. Specifically, standard smart contract code has been written that
+    can be used to form a Decentralized Autonomous Organization (DAO) on the Ethereum
+    blockchain.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Buterin talked about the balance between automation and capital in the context
+    of what sets decentralized organizations apart from traditional companies. Paul
+    Kohlhaas from ConsenSys presented Figure [6-1](#Fig1) to illustrate where DAOs
+    fall on the spectrum of autonomous organizations.![A430562_1_En_6_Fig1_HTML.gif](Images/A430562_1_En_6_Fig1_HTML.gif)Figure
+    6-1.DAOs as automation-powered decision-making entities with human participantsIn
+    essence, DAOs are a paradigm shift from automated entities that previously contained
+    no capital. Using a blockchain allows us to infuse capital and build hybrid business
+    models where we can fine-tune the degree of automation for specific use cases.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Team
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: As often is the case in the blockchain world, much confusion surrounds the nature
+    of the relationship between the employeeless DAO and the humans who wrote and
+    maintained The DAO’s code. Those humans, in the case of The DAO, were led by the
+    top brass at Slock.it, a German company set on disrupting the sharing economy
+    by way of a technology they called the Universal Sharing Network (USN) .Christopher
+    Jentzsch, Slock.it’s CEO, and Stephan Tual, the company’s COO, held senior positions
+    at the Ethereum Foundation (Lead Tester and CCO, respectively) prior to starting
+    Slock.it. Jentzsch was the primary developer of The DAO code, and Tual became
+    the face of The DAO via blog posts, conference presentations, and forum contributions.
+    So how would their current company benefit from the creation of a leaderless venture
+    fund built on Ethereum? To understand their motivations we have to examine Slock.it’s
+    vision to connect the blockchain to the physical world.In building the USN, Slock.it
+    set out to play a central role in mainstream adoption of IoT technology. By providing
+    a way to interact with devices on the network from anywhere in the world, the
+    USN would, hopefully, become the backbone of a hyperconnected world, where your
+    property can be rented out to other people without the need for centralized companies
+    like Uber and Airbnb. Instead, the USN would provide an interface to the Ethereum
+    blockchain, where decentralized applications can govern the transactions that
+    make up the sharing economy.The company intended to build a specialized modem,
+    called the Ethereum Computer , for connecting IoT devices to the USN. Slock.it’s
+    vision for The DAO was to create a decentralized venture fund that would invest
+    in promising proposals to build blockchain-supported products and services.At
+    the time of writing (18 months after The DAO’s ICO), Slock.it has raised $2 million
+    in seed funding to continue developing the USN and the Ethereum Computer. According
+    to Tual’s blog posts on the company web site, Slock.it will now make the Ethereum
+    Computer available as a free and open source image for popular system-on-a-chip
+    (SoC) systems such as Raspberry Pi. The company also built and supports Share&Charge,
+    a service that lets owners of electric vehicle charging stations sell their power
+    to electric vehicle owners via a blockchain-powered mobile app.Jeremiah Owyang
+    from Crowd Companies summarized one of the main use cases of Slock.it in a slide
+    shown in Figure [6-2](#Fig2).![A430562_1_En_6_Fig2_HTML.gif](Images/A430562_1_En_6_Fig2_HTML.gif)Figure
+    6-2.Slock.it can act as a decentalized Airbnb by linking the purchase of a physical
+    device (a smart lock) to a smart contractUltimately, this idea was expanded to
+    become a decentralized IoT platform, where any device could be connected to the
+    blockchain .
+  prefs: []
+  type: TYPE_NORMAL
+- en: The DAO
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The original conception of The DAO was not the radical experiment in democratic
+    business processes that was eventually released at its ICO. Jentzsch described
+    the process on the Slock.it blog :'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the beginning, we created a slock.it specific smart contract and gave token
+    holders voting power about what we— slock.it— should do with the funds received.After
+    further consideration, we gave token holders even more power, by giving them full
+    control over the funds, which would be released only after a successful vote on
+    detailed proposals backed by smart contracts. This was already a few steps beyond
+    the Kickstarter model, but we would have been the only recipient of funds in this
+    narrow slock.it-specific DAO.We wanted to go even further and create a “true”
+    DAO, one that would be the only and direct recipient of the funds, and would represent
+    the creation of an organization similar to a company, with potentially thousands
+    of Founders. [⁴](#Fn4)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: To achieve this decoupling of Slock.it and The DAO, Jentzsch designed a Solidity
+    contract that would allow any DAO token holder to make proposals for how The DAO’s
+    resources should be handled. All token holders could vote on active proposals,
+    which had a minimum voting period of 14 days.That meant that once The DAO’s ICO
+    was complete, Slock.it would have to submit a proposal to The DAO just like anyone
+    else. Other users could use the Mist browser to evaluate the proposal. This is
+    how proposals were structured:struct Proposal {    address recipient;    uint
+    amount;    string description;    uint votingDeadline;    bool open;    bool proposalPassed;    bytes32
+    proposalHash;    uint proposalDeposit;    bool newCurator;    SplitData[] splitData;    uint
+    yea;    uint nay;    mapping (address => bool) votedYes;    mapping (address =>
+    bool) votedNo;    address creator;}As you can see, proposals—the core of this
+    automaton code base that would quickly raise $150 million—were relatively simple
+    requests for The DAO’s resources (uint amount).Any DAO token holder could vote
+    on proposals by calling the vote function:function vote(    uint _proposalID,    bool
+    _supportsProposal) onlyTokenholders returns (uint _voteID);The votes from any
+    one address would be weighted proportional to the amount of DAO tokens held at
+    that address. If token holders wanted to vote for two separate positions, they
+    could transfer the amount of tokens they wanted to vote with to another address,
+    and vote again from there.[⁵](#Fn5) Any tokens voting on an open proposal were
+    locked (could not be transferred) until the end of the voting period .The uint
+    proposalDeposit was the deposit (in wei) that creators of a proposal had to stake
+    on the proposal until the voting period closed. If the proposal never reached
+    quorum, the deposit would remain with The DAO.There were two special types of
+    proposals that did not require deposits that would play a key role in the fate
+    of The DAO. The first type was a proposal to split The DAO, effectively withdrawing
+    the funds of the recipient of the proposal into a new “child” DAO, which was a
+    clone of the original, but at a new contract address. Split proposals had a voting
+    period of 7 days, instead of 14, and anyone who voted yes on a split proposal
+    would follow the recipient, withdrawing their tokens from the original DAO and
+    moving them into the resultant child DAO .The second special type of proposal
+    was to replace the curator of The DAO. DAO curators were addresses set at the
+    creation of The DAO and the creation of any child DAO that could whitelist recipient
+    addresses, effectively serving as gatekeepers.[⁶](#Fn6) If the majority vote no
+    on a proposal to replace a curator, the yes votes can elect to stand by their
+    decision, creating a new DAO with their chosen curator.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The ICO Highlights
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The ICO for the initial DAO concept was an overnight success:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: It raised 12 million ETH (∼$150 million).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Both Jentzsch and Tual admitted that they never expected their idea to be so
+    successful.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The Hack
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The idea that The DAO was vulnerable to attack had been floating around in
+    the developer community. Vlad Zamfir and Emin Gün Sirer first raised the issue
+    in a blog post calling for a moratorium on The DAO until the vulnerabilities could
+    be addressed.[⁷](#Fn7) Just days before the attack, MakerDAO cautioned the community
+    that their code was vulnerable to an attack, and Peter Vessenes demonstrated that
+    this vulnerability was shared by The DAO .[⁸](#Fn8)These warnings prompted a now
+    infamous blog post published on June 12, 2016 by Tual on the Slock.it web site
+    titled “No DAO funds at risk following the Ethereum smart contract ‘recursive
+    call’ bug discovery.” Within a couple of days, fixes had been proposed to correct
+    many of the known vulnerabilities of The DAO, but it was already too late. On
+    June 17, an attacker began draining funds from The DAO.The DAO attacker exploited
+    a well-intentioned although poorly implemented feature of The DAO that was intended
+    to prevent tyranny of the majority over dissenting DAO token holders. From The
+    DAO white paper:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A problem every DAO has to mitigate is the ability for the majority to rob the
+    minority by changing governance and ownership rules after DAO formation. For example,
+    an attacker with 51% of the tokens, acquired either during the fueling period
+    or created afterwards, could make a proposal to send all the funds to themselves.
+    Since they would hold the majority of the tokens, they would always be able to
+    pass their proposals. To prevent this, the minority must always have the ability
+    to retrieve their portion of the funds. Our solution is to allow a DAO to split
+    into two. If an individual, or a group of token holders, disagrees with a proposal
+    and wants to retrieve their portion of the Ether before the proposal is executed,
+    they can submit and approve a special type of proposal to form a new DAO. The
+    token holders who voted for this proposal can then split the DAO, moving their
+    portion of the Ether to this new DAO, leaving the rest alone only able to spend
+    their own Ether.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Unfortunately, the way that this “split” feature was implemented made the DAO
+    vulnerable due a catastrophic reentrancy bug .[⁹](#Fn9) In other words, someone
+    could recursively split from the DAO, withdrawing amounts equal to their original
+    ETH investment indefinitely, before the record of their withdrawal was ever recorded
+    in the original DAO contract.Here is the vulnerability , as found in the Solidity
+    contract file DAO.sol:function splitDAO(  uint _proposalID,  address _newCurator)
+    noEther onlyTokenholders returns (bool _success) {  ...  // [Added for explanation]
+    The first step moves Ether and assigns new tokens  uint fundsToBeMoved =      (balances[msg.sender]
+    * p.splitData[0].splitBalance) /      p.splitData[0].totalSupply;  if (p.splitData[0].newDAO.createTokenProxy.value(fundsToBeMoved)(msg.sender)
+    == false) // [Added for explanation] This is the line that splits the DAO before
+    updating the funds in the account calling for the split  ...  // Burn DAO Tokens  Transfer(msg.sender,
+    0, balances[msg.sender]);  withdrawRewardFor(msg.sender); // be nice, and get
+    his rewards  // [Added for explanation] The previous line is key in that it is
+    called before totalSupply and balances[msg.sender] are updated to reflect the
+    new balances after the split has been performed  totalSupply -= balances[msg.sender];
+    // [Added for explanation] This happens after the split  balances[msg.sender]
+    = 0; // [Added for explanation] This also happens after the split  paidOut[msg.sender]
+    = 0;  return true;}As shown here, The DAO referenced the balances array to determine
+    how many DAO tokens were available to be moved. The value of p.splitData[0] is
+    a property of the proposal being submitted to the DAO, not any property of the
+    DAO. That, in combination with the fact that withdrawRewardFor is called before
+    balances[] is updated, made it possible for the attacker to call fundsToBeMoved
+    indefinitely, because their balance will still return its original value .Looking
+    more closely at withdrawRewardFor() shows us the conditions that made this possible:function
+    withdrawRewardFor(address _account) noEther internal returns (bool _success) {  if
+    ((balanceOf(_account) * rewardAccount.accumulatedInput()) / totalSupply < paidOut[_account])    throw;  uint
+    reward =    (balanceOf(_account) * rewardAccount.accumulatedInput()) / totalSupply
+    - paidOut[_account];  if (!rewardAccount.payOut(_account, reward)) // [Added for
+    explanation] this is the statement that is vulnerable to the recursion attack.
+    We must go deeper.    throw;  paidOut[_account] += reward;  return true;}Assuming
+    the first statement evaluates as false, the statement marked as vulnerable will
+    run. There’s one more step to examine to understand how the attacker was able
+    to make that the case. The first time the withdrawRewardFor is called (when the
+    attacker had legitimate funds to withdraw), the first statement would correctly
+    evaluate as false, causing the following code to run:function payOut(address _recipient,
+    uint _amount) returns (bool) {  if (msg.sender != owner || msg.value > 0 || (payOwnerOnly
+    && _recipient != owner))      throw;  if (_recipient.call.value(_amount)()) {
+    // [Added for explanation] this is the coup de grace      PayOut(_recipient, _amount);      return
+    true;  } else {      return false;}PayOut() as written in the second if statement
+    references “_recipient”—the person proposing the split. That address contains
+    a function that calls splitDAO again from within withdrawRewardFor(), before the
+    token balance at that address is updated. That created a call stack that looked
+    like this:splitDao      withdrawRewardFor         payOut            recipient.call.value()()               splitDao                 withdrawRewardFor                    payOut                       recipient.call.value()()The
+    attacker was therefore able to withdraw funds from The DAO into a child DAO indefinitely.To
+    recap, the attacker accomplished the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 1.Split the DAO.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 2.Withdraw their funds into the new DAO.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 3.Recursively called the split DAO function before the code checked to determine
+    if the funds were available.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: This process is visually represented in Figure [6-3](#Fig3).![A430562_1_En_6_Fig3_HTML.jpg](Images/A430562_1_En_6_Fig3_HTML.jpg)Figure
+    6-3.The process of iterative withdrawalIn Figure [6-3](#Fig3), we can see the
+    iterative process visually. The original DAO is represented by A, and a sub-DAO
+    is created in B. Then, a transfer function requests some funds be withdrawn from
+    the original DAO in C. Finally, the funds are transferred to the new DAO created.
+    This process is repeated again as new DAOs are created with each loop.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Debate
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The result was that the attacker was able to steal about 3.6 million ETH, worth
+    about $50 million at the time of the attack. The DAO investors were left in an
+    especially precarious position. Not only had The DAO been compromised, but if
+    they tried to withdraw the funds into their own child DAO, the resulting contract
+    would have the same vulnerabilities as the original.However, The DAO investors
+    weren’t the only ones with an interest in the outcome of this turn of events.
+    The hype surrounding the DAO had reached the religious proportions predicted by
+    Buterin back in 2014\. Almost 5 percent of ETH in circulation at the time was
+    invested in The DAO. That had a number of implications for the entire Ethereum
+    ecosystem, and led to one of the most contentious debates in the short history
+    of blockchains.On one side of the debate were those looking to protect the fledgling
+    Ethereum ecosystem from a malicious actor in possession of a nontrivial portion
+    of the total ETH in circulation. They were not necessarily concerned with whether
+    or not The DAO would survive, but ultimately wanted to ensure that Ethereum would
+    survive as a reputable blockchain platform on which other DAOs could be built
+    in the future. This was the disposition of Buterin and many of the core members
+    of the Ethereum development team.On the other side were those committed to the
+    ideals of decentralization and immutability. In the eyes of many in this camp
+    (we’ll call them the justice camp), the blockchain is an inherently just system
+    in that it is deterministic, and anyone choosing to use it is implicitly agreeing
+    to that fact. In this sense, the DAO attacker had not broken any laws. To the
+    contrary, the reentrancy attack used the software code that made up The DAO’s
+    bylaws and turned it against itself.The decentralization camp believed that rewriting
+    the blockchain to roll back the attacker’s sequestration of ETH in child DAOs
+    would compromise the integrity of the blockchain. The blockchain, according to
+    this line of thought, was supposed to be immutable and without any central authority,
+    including the Ethereum Foundation. They were concerned the moral hazard of a small
+    group of people rewriting the blockchain could open the door to other interventions,
+    such as selective censorship .The two sides debated their positions passionately
+    over social media and in news outlets. The process made famous the concepts of
+    soft forks and hard forks. Forking blockchains—or any software code for that matter—was
+    not new to Ethereum or The DAO, but it became the focus of the debate between
+    the justice camp and the immutability camp.Meanwhile, a group of white hat hackers
+    were working around the clock to try and hack the hacker. The white hat group
+    consisted of people both for and against the hard fork, but they worked together,
+    nonetheless, to perform some of the same attacks that had been identified before
+    June 17 to move the stolen ETH into new contracts in hopes of returning it to
+    its rightful owners.[^(10)](#Fn10)The white hat team reached out to people who
+    had made significant investments in The DAO to raise money for stalking attacks,
+    in which they could follow the attacker into new DAOs with greater funds than
+    the attacker was able to withdraw, giving them majority voting rights in the resulting
+    DAO .
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The Split: ETH and ETC'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'On July 30, over 90 percent of the hashrate signaled its support for the fork.
+    The DAO funds were returned to investors as though the organization had never
+    existed. Sort of.Opposition to the hard fork led to the emergence of Ethereum
+    Classic (ETC), as a small portion of the community continued to mine the original
+    Ethereum blockchain. These immutability fundamentalists were committed to the
+    idea that blockchains represented a new, disruptive governance model.The most
+    visible member of the movement was Arvicco, a Russian developer using a pseudonym.
+    In a July 2016 interview with Bitcoin Magazine, he characterized the disagreement
+    in this way:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: By bailing out the DAO, the Ethereum Foundation is attempting to reach a shortsighted
+    goal of “making investors whole” and “boosting confidence in Ethereum platform.”
+    But they’re doing quite the opposite. Bailing out the DAO undermines two of the
+    three key long-term value propositions of the Ethereum platform. [^(11)](#Fn11)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Despite the tenacity of this vocal minority in the Ethereum community, many
+    people did not expect both versions of the blockchain to survive long term. Major
+    exchanges and cryptoservices added support for ETC but many were skeptical of
+    the long-term prospects of a platform that essentially duplicated Ethereum’s capabilities.Erik
+    Vorhees, founder and CEO of Shapeshift.io, expressed skepticism about ETC’s ability
+    to remain relevant, but explained that, ultimately, he believed that the split
+    was good for the blockchain ecosystem. In November 2016 he told Decentralize Today:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: While this caused quite a bit of turmoil (still ongoing), it’s hard for me to
+    say it was a failure. A division within the community has now been resolved, and
+    since both camps were significant enough in size, we now have two Ethereums, for
+    a while at least. It has actually made the community more peaceful, because instead
+    of the two camps arguing over who is right, both of them can be “right” in their
+    own way, and the market will decide whose product is actually better. I expect
+    ETH to win out over ETC, but I have to admit ETC has survived longer than I thought.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: At the time of this writing, ETC continues to grow as a platform and as a community.
+    Despite ETC appreciating less rapidly than ETH, BTCC and Huobi recently announced
+    that they would be adding the token to their exchanges. ETC developers have also
+    accelerated their departure from Ethereum as a platform, with the release of Mantis,
+    the first client built from scratch for ETC (as opposed to Ethereum’s Mist, Parity,
+    and other clients).
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Future
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'When a technology fails after being hyped in a massive spotlight, it is incredibly
+    difficult to recover the credibility of the ideas powering that technology. What
+    does the future of DAOs look like? Any user investing in a DAO token should be
+    cautious, but there have been massive security advances to a DAOs’ structure and
+    governance. Interestingly, Paul also presented a new outlook of DAOs as the next-generation
+    of automated VCs called Decentralized Fund Managers. According to Paul, DAOs represent
+    a new class of financial asset management tools where a software can manage a
+    fund that would normally be entrusted to traditional venture capitalists. By implementing
+    software based management at its core, any profits made by a DAO are distributed
+    directly to the token holders. The members of this new DAO are essentially investors,
+    and they would be issued a new class of tokens that represent their holdings (or
+    stake) and earnings. Ultimately, in a DAO, the members can guide how the funds
+    are being allocated and what benefits are offered in return for investment. It
+    would stand to reason that a DAO managing funds would operate in traditional VC
+    cycles:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The transition first cycle involves investing using the ETH funds
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The second cycle involves the management of a DAO into a next-generation automated
+    VC. The governance model can provide for new decision-making abilities for early
+    investors such as angel-syndicates.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: We discuss the idea of artificial intelligence (AI) leading financial investments
+    in the final chapter of the book.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The future of Ethereum is bright despite the DAO hack. With the emergence of
+    Ethereum Classic and the incredible rate of new developments, the platform is
+    pushing closer to maturity. It must be noted that Ethereum as a platform was not
+    the cause of the vulnerability. In its nascent state, smart-contract code is bound
+    to cause bugs such as this hack, which will result in better code-checking mechanisms
+    and secure code-writing practices that can avoid such pitfalls. In the future,
+    as a result of forks, we might end up with a consolidated single-currency platform
+    just like before.Footnotes[1](#Fn1_source)See [https://blog.ethereum.org/2014/05/06/daos-dacs-das-and-more-an-incomplete-terminology-guide/](https://blog.ethereum.org/2014/05/06/daos-dacs-das-and-more-an-incomplete-terminology-guide/)[2](#Fn2_source)See
+    [https://bitcoinmagazine.com/articles/bootstrapping-a-decentralized-autonomous-corporation-part-i-1379644274/](https://bitcoinmagazine.com/articles/bootstrapping-a-decentralized-autonomous-corporation-part-i-1379644274/)[3](#Fn3_source)To
+    put this in perspective, 15 days into the DAO’s crowdsale, members of the MakerDAO
+    subreddit were discussing proposals that would trigger an investment in MakerDao
+    by the DAO.[4](#Fn4_source)[https://blog.slock.it/the-history-of-the-dao-and-lessons-learned-d06740f8cfa5](https://blog.slock.it/the-history-of-the-dao-and-lessons-learned-d06740f8cfa5)[5](#Fn5_source)This
+    could be the case because proposals required a quorum of 20 percent of votes to
+    have weighed in on a proposal for the vote to be valid.[6](#Fn6_source)Curators
+    weren’t necessarily human gatekeepers. Gavin Wood “resigned” as a curator of The
+    DAO to make a point that curation was merely a technical role and that the curator
+    had no proactive control over The DAO.[7](#Fn7_source)[http://hackingdistributed.com/2016/05/27/dao-call-for-moratorium/](http://hackingdistributed.com/2016/05/27/dao-call-for-moratorium/)[8](#Fn8_source)[http://vessenes.com/more-ethereum-attacks-race-to-empty-is-the-real-deal/](http://vessenes.com/more-ethereum-attacks-race-to-empty-is-the-real-deal/)[9](#Fn9_source)Rentrancy
+    is a characteristic of software in which a routine can be interrupted in the middle
+    of its execution, and then be intiated (reentered) from its beginning, while the
+    remaining portion of the original instance of the routine remains queued for execution.[10](#Fn10_source)[https://www.reddit.com/r/ethereum/comments/4p7mhc/update_on_the_white_hat_attack/](https://www.reddit.com/r/ethereum/comments/4p7mhc/update_on_the_white_hat_attack/)[11](#Fn11_source)[https://bitcoinmagazine.com/articles/rejecting-today-s-hard-fork-the-ethereum-classic-project-continues-on-the-original-chain-here-s-why-1469038808/](https://bitcoinmagazine.com/articles/rejecting-today-s-hard-fork-the-ethereum-classic-project-continues-on-the-original-chain-here-s-why-1469038808/)
+  prefs: []
+  type: TYPE_NORMAL

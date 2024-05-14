@@ -1,0 +1,572 @@
+- en: ©  Vikram Dhillon, David Metcalf, and Max Hooper 2017Vikram Dhillon, David Metcalf
+    and Max HooperBlockchain Enabled Applications[https://doi.org/10.1007/978-1-4842-3081-7_5](A430562_1_En_5_Chapter.xhtml)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 5. Decentralized Organizations
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Vikram Dhillon^(1 ), David Metcalf¹ and Max Hooper¹(1)Orlando, Florida, USABitcoin
+    can be thought of as the first prototypical decentralized autonomous organization
+    (DAO) . It created a network-based ecosystem of participants who contributed computational
+    power toward a singular goal. In Bitcoin, the distributed protocol providing a
+    financial service and rewarding miners became a rudimentary decentralized organization.
+    In this chapter, we talk about more complex and full DAOs made in Aragon. Aragon
+    ( [https://aragon.one/](https://aragon.one/) ) is a decentralized application
+    (DApp) that lets anyone create and manage different kinds of organizations (nongovernmental
+    organizations [NGOs]  , nonprofits, foundations) on the Ethereum blockchain. Creating
+    a DAO requires numerous steps and originally it was more difficult to implement
+    in Ethereum. However, Aragon implements all the basic features of an organization
+    in a base template that is deployed whenever a user instantiates a company. Most
+    of the traditional features such as a cap table, voting, fundraising, and accounting
+    are offered in Aragon as a decentralized counterpart to run on the blockchain.
+    In addition, an Aragon company can be customized to a very granular extent and
+    extended using new modules that can be added to a company’s existing smart contracts.
+    Aragon enables different organizations to be built on the blockchain, and one
+    interesting use case integrates identity using a two-way verification scheme with
+    Keybase. We talk about how the Keybase to Aragon peg functions to provide identity
+    services in the context of a decentralized system. We also briefly go over the
+    Aragon kernel, which is essentially a task manager with subroutines that ensure
+    smooth communication within an organization, among its members, and in the underlying
+    blockchain.We begin our discussion with the Aragon kernel and it’s main functions.
+    Then, we take two approaches in defining a DAO: A definition in terms of consensus
+    between members, and a definition focusing on features given by Ralph Merkel.
+    Aragon-core has adopted the latter definition, and extended it to “organs”, so
+    we go through all the organs available to Aragon-core. The heart of this chapter
+    is a set of visual tutorials split into three topics. The first topic introduces
+    users to the basics of an Aragon company and how to set up a MetaMask wallet.
+    This topic ends with users having set up a default company and a functional wallet.
+    The second topic dives into understanding the daily operations of your newly created
+    company. This covers stocks and stock classes available in Aragon, user permissions,
+    and tokens. A variety of operations are demonstrated here, such as adding new
+    stock classes, issuing shares, assigning stocks to a new hire, assigning a role
+    to a new employee, and transferring existing tokens within the company. The third
+    topic focuses on more advanced topics in Aragon. Here, we discuss fundraising
+    on the Ethereum blockchain using Aragon and the different types of rounds implemented
+    in Aragon. Finally, we conclude the tutorial and this chapter with a discussion
+    of bylaws and how to edit the default company template deployed by Aragon.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Aragon Kernel
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The kernel in Aragon serves as a switchboard directing requests and message
+    passing to the various subroutines (also called organs). In production mode, the
+    kernel will be concurrently interfacing with hundreds of Aragon organizations
+    or users on the blockchain. Here, our focus is limited to the kernel interacting
+    with just one company: a DAO. What is a DAO? A DAO is a blockhcain entity built
+    on a consensus of decisions by its members. A DAO brings the concept of consensus
+    inherent to the blockchain to include decisions and choices made by members of
+    a DAO that have a stake in it (usually in the form of DAO tokens). As such, a
+    DAO is built with automation at its core and members at the periphery that rely
+    on a majority-based consensus to make decisions for the organization. Although
+    this definition of a DAO is a general descriptor, it is incomplete. Perhaps a
+    better approach to defining a DAO would be through the functions it performs.
+    The concept for a DAO was originally derived from Bitcoin, which might be viewed
+    as the first prototype for a DAO.NoteThe simplest functional unit on an Aragon
+    network is a DAO and therefore the majority of our discussion is focused around
+    a minimal use case. Aragon provides a base template that can be used to set up
+    a DAO and you can modify this template to set up a custom set of rules. Other
+    types of organizations (e.g., NGOs or nonprofits) are built on the base template
+    with significant modifications that allow a new modus operandi. Additionally,
+    throughout the remainder of this chapter, the terms DAO, company, and organization
+    are used interchangeably to represent the same concept.Ralph Merkle talks about
+    a DAO as an entity that owns internal property that has value, can update its
+    internal state, is responsive to the members, and runs smart contracts. These
+    are some of the most basic functions that any DAO should be able to perform, but
+    currently there are no compliance standards (like the ERC20 for tokens) for DAOs.
+    The kernel uses a set of organs to carry out most of its daily activities. Let’s
+    go through the organs provided by default in Aragon:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Meta organ: A self-aware (in terms of internal state) and self-actionable organ
+    that is responsible for updating the DAO internally in response to actions by
+    the members or externally. This organ also maintains a global registry of organs
+    operating within the kernel.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Dispatch organ: A validator organ that determines whether a requested action
+    or a transaction can be carried out on behalf of the requestor. This can be done
+    through an oracle, or programmed logic that filters requests based on specific
+    criteria. The outcome of the dispatch organ is a simple pass or fail. If an action
+    fails, it will not be carried out. However, if an action or transaction passes,
+    it will be dispatched to a more appropriate organ for processing or execution.
+    The dispatch organ also maintains a list of priorities for each request to be
+    triaged and directed appropriately.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Vault organ: The vault organ serves as a collective wallet for the DAO. It
+    stores the funds owned by the DAO as tokens and approves any spending requests.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Token organ: The token organ specifically deals with governance tokens allocated
+    to the members of DAO. This organ also contains the operational logic for adding
+    new types of tokens or replacing and removing older tokens.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Applications organ: This is the smart contract collective that operates at
+    the core of a DAO . The applications running in this organ are sandboxed from
+    the remainder of the organization, but most of the business logic resides in this
+    organ. Aragon provides a basic set of Ethereum contracts responsible for default
+    actions, but this organ is extensible. New applications or modules can be added
+    to the organization to increase functionality to satisfy specific use cases.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Identity Management
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The concept of identity is a conundrum for cryptotechnologies because it requires
+    a certain level of trust to be inherent in the network architecture. Most generalized
+    approaches toward integrating identity in a consensus-based system involve some
+    variation of cryptographic proofs and signatures. In Aragon, an external service
+    called Keybase along with a registry contract are used to establish a “trustless”
+    two-way verification scheme. The logic behind this scheme is very straightforward:
+    Establish that a particular address belongs to you, and then verify that your
+    username owns the address. How do these two statements reconcile in a functional
+    setting? Let’s introduce the two components that make a two-way bridge possible.
+    In simple terms, Keybase is a public–private key pair management service with
+    OAuth integrations that allow a user to authenticate and verify accounts. Keybase
+    can serve as a centralized hub for a user to link and verify external accounts.
+    For instance, after creating an account on Keybase, the public profile of a user
+    can display all the linked social media accounts establishing their legitimacy
+    and connection. The second component is a registry contract that provides an account-to-address
+    association mechanism from within the Aragon network. The two-way bridge forms
+    from using the address (linked to an account on the network) to cryptographically
+    sign a file that can then be hosted on Keybase (linked to user identity through
+    various social media integrations ).NoteIt is crucial to keep in mind that in
+    Aragon, identity is an opt-in feature. The use cases developed for Aragon range
+    from providing complete anonymity, as in the case of a DAO, to full usernames
+    integrating Keybase for a next-generation blockchain company.So how would users
+    make their identity available to the two-way verification scheme? The workflow
+    in Keybase Registry 2.0 has been simplified to one simple step: Upload the signed
+    proof to the Keybase Filesytem (KBFS) . This introduces a few new components.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Keybase Filesystem: KBFS is a cryptographically secure local and cloud storage
+    directory. KBFS only allows the owner of the directory to add new files, and these
+    files are made available publicly. In KBFS, every file added to the directory
+    is automatically signed by the owner’s private key and the signature can be verified
+    by anyone through Keybase.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Signed proof: Aragon uses a standard proof of identity signed by the user uploaded
+    to the KBFS public directory. There are four components of this proof: the username
+    on Keybase, the Ethereum account address owned by the user, a string or comment
+    by the user, and finally the public key of the signature. Anyone who wishes to
+    verify an identity can obtain this proof file and use a function such as getUsername(args)
+    to perform a username reverse lookup given the account address in the proof.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Oraclize: The reverse lookup is an on-chain verification process performed
+    through the registry contract within the Aragon network. For Keybase lookup, a
+    data carrier service called oraclize is used. Oraclize requests the signature
+    for a given Keybase username and creates a mapping of the username to an Ethereum
+    account address. The signature on this proof file should validate with the user’s
+    public key on the network. Oraclize performs an on-chain check to verify the proof
+    signature and ensure that the mapping is legitimate. The party initiating this
+    verification on behalf of another user also has to pay for the steps, including
+    oraclize reference calls.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Keybase Resolver: The Ethereum Name Service (ENS) allows us to resolve human-readable
+    links into Ethereum addresses. Recently, Aragon has begun testing a Keybase resolver
+    that will map callbacks to usernames into addresses such that john.keybase.eth
+    -> 0x99...cx88. This simplifies the reverse lookups and username references throughout
+    the network.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: DAO/Company Walkthrough
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'In this section, we go through the process of creating a DAO and becoming familiar
+    with the major DAO operations in Aragon. For the sake of simplicity, we will only
+    have two entities participating in this DAO, an executive and an employee. This
+    walkthrough is split into three topics:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Setting up a DAO: We introduce the participants of this DAO, show how to create
+    a wallet, and get familiar with the interface.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Creating stocks and assigning shares: After our DAO has been set up, we create
+    new stock classes, issue new stock, and assign shares to the other entity.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Fundraising and editing bylaws: After shares have been assigned, we look at
+    how fundraising works in Aragon. A DAO can raise funds from a specific investor
+    in return for stocks, or publicly offer stock to raise a round of funding. We
+    review the fundraising process, and more important, the bylaws that govern the
+    DAO.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Setting Up a DAO
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Download the Aragon client from [https://aragon.one/](https://aragon.one/)
+    . This client has two main components: Aragon Core and MetaMask. In each client,
+    Aragon Core functions as an administrative dashboard for the DAO. The main purpose
+    of this component is directing access control of all entities participating in
+    a DAO. Depending on your role and if you hold any stock, you might have access
+    to the advanced features. We see later how this access to features can change
+    by editing the bylaws. The second component is MetaMask, a digital wallet designed
+    as a plug-in for Google Chrome to make Ethereum accessible to pragmatic daily
+    users. MetaMask was chosen for Aragon to drive adoption by bringing an already
+    familiar interface to the user. The opening screen, shown in Figure [5-1](#Fig1),
+    provides a brief introduction to Aragon, along with the wallet setup.![A430562_1_En_5_Fig1_HTML.jpg](Images/A430562_1_En_5_Fig1_HTML.jpg)Figure
+    5-1.The Aragon setup screen. A brief introduction to Aragon is provided here,
+    along with a button to create a MetaMask wallet. On the top right of the screen
+    there is an icon to access the wallet .MetaMask first asks you to create a password
+    for your wallet, as shown in Figure [5-2](#Fig2). This will be your access key.
+    After entering the password, you will be provided with a passphrase to recover
+    your wallet in case you lose your password.NoteAragon is still connected to a
+    testnet to illustrate the concept. As a result, for some steps, you might need
+    to verify and confirm transactions multiple times to ensure the initial company
+    creation steps. Some of the bugs are known and under active development in the
+    beta code.![A430562_1_En_5_Fig2_HTML.jpg](Images/A430562_1_En_5_Fig2_HTML.jpg)Figure
+    5-2.Creating a password for your MetaMask wallet. Every major step in Aragon is
+    followed by a series of confirmations that broadcast new changes to the network
+    in the form of transactions.After creating a wallet password and confirming the
+    transactions , you should see a confirmation screen and the state of your current
+    wallet (see Figure [5-3](#Fig3)). Here is a quick note about Aragon’s alpha releases:
+    Currently the Aragon client does not operate on the Aragon network. It is connected
+    to an Ethereum testnet (Kovan Test Net in this case, as shown in Figure [5-3](#Fig3)),
+    which serves as a testing ground for Aragon. On a testnet, currency holds no value,
+    so users can test the product and report any serious bugs, assisting in product
+    development. A user can request test ETH to be sent to their wallet and experiment
+    with Aragon without any consequences. That’s why when the wallet is created, it
+    already comes loaded with a balance.![A430562_1_En_5_Fig3_HTML.jpg](Images/A430562_1_En_5_Fig3_HTML.jpg)Figure
+    5-3.Wallet created using MetaMask. Notice the wallet address shown below along
+    with the balance it has on the testnet.The screen after wallet creation brings
+    you to Aragon Core, and there are two options available: Create a New Organization
+    and Join an Existing Organization, shown in Figure [5-4](#Fig4). From here on,
+    the walkthrough focuses on the first option , and Aragon is presented from the
+    point of view of an executive. However, we briefly touch on how users can join
+    a DAO and the level of access available to a regular employee.![A430562_1_En_5_Fig4_HTML.jpg](Images/A430562_1_En_5_Fig4_HTML.jpg)Figure
+    5-4.Aragon Core Welcome screenThe two options provided to a user are not limited
+    to just DAOs; rather, any type of organization can be built on Aragon, including
+    NGOs and nonprofits. Traditional companies would take a new decentralized outlook
+    on the Aragon blockchain , but ultimately it is up to the companies to decide
+    which components can be decentralized. We will select Create a New Organization
+    here. Creating a new company costs Ether, paid with the wallet we created in the
+    previous step. Then, the transactions are broadcast to the blockchain by confirming
+    them. Aragon uses a general template to deploy a company on the blockchain, but
+    the founders can edit this template by changing bylaws. A circular progress indicator
+    in the top right corner shows the transactions being verified for company deployment.After
+    the company has been deployed, the next screen is the Aragon Core dashboard. This
+    is where a user (executive or employee) handles the daily operations of a DAO,
+    with functionss to participate in voting, assign shares, and more. The dashboard
+    displays the welcome screen by default to the user. To navigate this dashboard,
+    let’s begin by looking at your profile under Settings (Figure [5-5](#Fig5)).![A430562_1_En_5_Fig5_HTML.jpg](Images/A430562_1_En_5_Fig5_HTML.jpg)Figure
+    5-5.Settings in Aragon Core dashboardEach account is assigned an address and a
+    username on the network. This address is also associated with the funds available
+    to the account through the wallet. Under the address is the role of this user.
+    Next, the Settings screen shows some information about the company we created
+    in earlier steps. The address for the company is given shown, and a founder would
+    share this address with an employee so that he or she can join the organization.
+    Recall the two choices from Figure [5-4](#Fig4). To join an organization, a user
+    would enter the address given in the Company Address field. Below that, under
+    Ethereum Account, is information on the user connected to this Aragon client.
+    This address matches the one shown at the top right of that page, but here, we
+    also see the remaining balance in that account. You can also rename this account
+    or log out of this company. The more interesting tidbit is shown below the Ethereum
+    Account information, an option to link your account and verify your identity.
+    As we mentioned earlier, not all companies built on Aragon will take the form
+    of a DAO and some might require verification of the participants. Aragon provides
+    access to an Ethereum-Keybase resolver for identity management in specific use
+    cases. Finally, the rest of the features in Aragon Core are accessible through
+    the side menu .The Settings in Aragon only provide an overview of the user connected
+    to the client, but what’s the default state of the company we just created? To
+    get an overview of our DAO, we need to navigate to the Ownership tab shown in
+    Figure [5-6](#Fig6).![A430562_1_En_5_Fig6_HTML.jpg](Images/A430562_1_En_5_Fig6_HTML.jpg)Figure
+    5-6.Overview of our DAOEssentially, each participant of the DAO will have a stake
+    in decision making, and this page provides the amount of stock each party owns.
+    By default, the creator of a DAO initially owns all the stock. We can see the
+    ownership distribution on the right side of the page, where Me is the current
+    user, and on the pie chart, Me owns 100 percent of the stock. Currently, there
+    is only one type of stock in the template, Class of Voting Stock (CVS), which
+    allows the holder to participate in voting. Generally speaking, the more stock
+    you own, the more influence you can exert on the voting process, but these effects
+    diminish in a DAO with a large number of users. More precisely, the Voting Distribution
+    section shows how the voting power is distributed among the entities in our DAO.
+    We only have one user for now, but this chart will update as new users are added.
+    Next, in this DAO the Shareholder list enumerates the shareholders and currently
+    there are two, the company itself and the creator (executive, “Me”). The only
+    stock class available is the voting stock, to which we will add more soon. Finally,
+    the Ownership tab also allows us to perform advanced functions (e.g., issuing
+    stock) that can be reached through the menu icon in the top right, which is the
+    focus of the second topic in our walkthrough .'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Issuing Shares
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Now that we have our generic company operational, it’s time to start editing
+    the template and customizing the DAO. We explore here how to issue stock, add
+    new types of shares, and assign them to an employee. In Aragon, every action that
+    deals with changing the company''s operation relies on members reaching a consensus
+    through majority voting. The default settings give every shareholder voting power,
+    but this can be refined by editing the bylaws. Let’s begin by issuing shares to
+    the DAO.NoteOne interesting use case for a company (or a DAO) in Aragon is to
+    be used as a decentralized decision-making body for an open source project or
+    an associated technology. The stocks become a mechanism for decision making for
+    future directions of the project with greater community involvement through voting.
+    The use of tokens and the ability to raise funds also provides a mechanism for
+    providing monetary support to sustain development. We revisit this scenario later
+    in this chapter.Referring to Figure [5-6](#Fig6), use the menu available in the
+    top right to select Issue Shares to open a screen on the side. Issuing new shares
+    will require us to pick a class of shares to offer and the number of shares to
+    issue. The process is shown in Figure [5-7](#Fig7).![A430562_1_En_5_Fig7_HTML.jpg](Images/A430562_1_En_5_Fig7_HTML.jpg)Figure
+    5-7.Issuing more sharesFirst, we have to decide the class of shares to issue.
+    Currently, there is only one class of shares available, so we will use the default.
+    Next, we choose to issue 100 new shares of the CVS type. To finalize this action,
+    we first have to go through a voting process. Recall that all major changes to
+    the company need to be reviewed by other shareholders and approved before an action
+    can be carried out. Here, additional shares will only be issued if the notion
+    receives at least 50 percent approval from shareholders. Only after that, the
+    company gains more shares that can be reassigned to other users.Currently there
+    is only one voting user in the DAO, so this will be the deciding vote. The voting
+    interface looks like the general schematic for the voting process shown in Figure
+    [5-8](#Fig8).![A430562_1_En_5_Fig8_HTML.jpg](Images/A430562_1_En_5_Fig8_HTML.jpg)Figure
+    5-8.The voting interfaceIt follows a very straightforward outline , beginning
+    with the name of the notion bring brought to voters’ attention. This is followed
+    by the action being taken in response and a tentative schedule of the voting.
+    The default setting for Aragon is to pass a notion with more than 50 percent approval.
+    The interface next displays who put forth this notion for voting; here Me refers
+    to the user connected to this Aragon client, along with the user’s address. The
+    details of voting are shown next. Here only one vote is needed to approve the
+    notion. Finally, the user is presented with two choices: Approve and Reject. After
+    the vote has been cast, it will be gathered in a transaction. When the poll closes,
+    all the votes will automatically be counted and the outcome displayed.So what
+    does the voting outcome look like? Here, we assume the choice was to approve the
+    notion for our DAO. Figure [5-9](#Fig9) shows the outcome of the vote.![A430562_1_En_5_Fig9_HTML.jpg](Images/A430562_1_En_5_Fig9_HTML.jpg)Figure
+    5-9.Outcome of voting. The proposition has been accepted and voting is closed.
+    The overall statistics on voting are reported so any user can see how the vote
+    was splitIssuing more shares just changed the ownership distribution in our DAO.
+    By default, newly issued shares belong to the company and then executives can
+    vote to transfer those shares to other users as they see fit. Figure [5-10](#Fig10)
+    shows the new distribution after shares have been issued. Compare this to Figure
+    [5-6](#Fig6) when the company was just instantiated. Recall that until now, we
+    have only had one stock class, so the global distribution of shares changes but
+    there are no changes in the stock types. Let’s add new classes of stocks and explore
+    the options associated with them.![A430562_1_En_5_Fig10_HTML.jpg](Images/A430562_1_En_5_Fig10_HTML.jpg)Figure
+    5-10.A composite of the changes in ownership distribution with new shares issuedNotice
+    that the new shares are issued directly to the company, not any particular user.
+    Notice also the changes in the global distribution pie chart. Previously, the
+    Me stake was the only visible portion of the chart. Now, with the new updates,
+    the company holds a majority of the shares .Before we add new stock types to our
+    DAO, let’s briefly talk about the different types of stock typically issued by
+    a public company. There are three major types that we consider here:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Common stock (Class A): This is what people normally refer to when they mention
+    stocks. Common stock is issued by a company and usually available through stock
+    exchanges such as the New York Stock Exchange (NYSE) or Nasdaq. The main advantages
+    of common stock are payment in dividends and trade in an exchange. A dividend
+    is typically a sum of money paid to the shareholders of a company at the end of
+    a quarter out of the profits generated in that quarter. Common stock can be also
+    be traded or sold at any time on an accredited exchange.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Preferred stock (Class B): Preferred stock is a special kind of stock issued
+    to investors who have a significant stake in the company. This stock has a few
+    financial advantages over common stock, making it a safer investment. In terms
+    of dividends, preferred stock is cashed before common stock and as a result receives
+    a larger share of a company’s profits as compared to common stock. Moreover, common
+    stock can vary in terms of dividends paid out, whereas preferred stock provides
+    fixed returns to the shareholders .'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Founder stock (Class F): Class F shares are an exclusive kind of preferred
+    stock issued to founders of a company. These shares come with greater voting rights;
+    for instance, one share of founder stock might counts for ten votes. In comparison,
+    one share of common stock would only account for one vote. Founder stock grants
+    super voting rights and is normally used to retain control of a company’s decision-making
+    process when a large number of entities are involved.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Let’s look at the stock classes offered in Aragon. This can be done through
+    the Ownership tab we saw in Figure [5-6](#Fig6). Click Add Stock Class to open
+    the dialog box shown in Figure [5-11](#Fig11).![A430562_1_En_5_Fig11_HTML.jpg](Images/A430562_1_En_5_Fig11_HTML.jpg)Figure
+    5-11.Interface for adding new stockThere are four stock classes available in Aragon,
+    listed under Stock Templates. Voting stock is the default, non-voting stock may
+    be issued to attract employees to a company where holding stock becomes an economic
+    multiplier, founders stock offers super voting rights and often remains concentrated
+    among the founders , and finally unicorn stock is given to special investors who
+    have a significant stake in the company because it offers a high multiplier and
+    voting power. Next we assign the parameters of our new stock class. We will add
+    a class of founder stock that will be indicated in the ownership with the symbol
+    ARN-c. By default, founder stock has higher voting power than common stock, but
+    that can be updated as necessary. The Economic Rights setting is a multiplier
+    for the stockholder; essentially, the dividends paid back to this stockholder
+    are multiplied by their economic right. Next is the number of shares issued. In
+    this case, we want to add a founder class, and issue 30 new founder shares to
+    the company. As usual, adding a new stock class would require a vote to be cast
+    (16) and then the new shares would be made available.What does the new stock distribution
+    look like? Figure [5-12](#Fig12) shows the addition of a new stock, and the changes
+    are visible in the Stock Types pie chart .![A430562_1_En_5_Fig12_HTML.jpg](Images/A430562_1_En_5_Fig12_HTML.jpg)Figure
+    5-12.Founder stock added. ARN-c is used as the symbol, and all current shares
+    are owned by the company. To assign shares to members, a vote would have to be
+    takenNext, we add another user to our DAO. The second user will be added as an
+    employee and then assigned some shares. We can also show how an existing shareholder
+    can reward another user with exclusive shares for their excellent work or a promotion.
+    To add a new member to your organization, you would have to provide a user with
+    the company address shown in Figure [5-5](#Fig5). They need to download Aragon
+    and join your organization in the first steps after creating a wallet. After a
+    new member joins, he or she can see the current state of the company through the
+    Ownership settings. Figure [5-13](#Fig13) shows the process of assigning a role
+    to a new user after that user has joined your organization.NoteThe terms organization,
+    company, and DAO are being used interchangeably throughout this walkthrough.![A430562_1_En_5_Fig13_HTML.jpg](Images/A430562_1_En_5_Fig13_HTML.jpg)Figure
+    5-13.Assigning role to a new employee in the organizationThe Roles tab shown in
+    Figure [5-13](#Fig13) provides an overview of all the entities in the company.
+    Currently, only one user is present: Me is the user connected to this Aragon client.
+    To assign a new role, click Assign a Role to open the Assign Role dialog box.
+    The recipient can be added by their username or an account address in the Recipient
+    field. Depending on your company’s policies, if you require some level of identification
+    to be associated with your members, you can add those users by referring to their
+    username . If you don’t use the Keybase identity registry, you would have to add
+    new users by referring to an address. After inputting the address, you can decide
+    on the role for a user. Here, we are adding a new employee; however, there are
+    other options available, such as adding a new executive, another employee, or
+    a superuser. The superuser role is normally reserved for nonhuman entities that
+    are a part of your organization, such as oracles or a factory entity that can
+    deploy other components of your company. As always, assigning a new role to a
+    user would require a vote to be cast before the role can be confirmed.So far,
+    we have discussed how to issue new shares, assign stock, add new stock classes,
+    and assign roles to new members of your company. Here is an exercise for you:
+    Building on the current state of our DAO, add a nonvoting stock class with an
+    economic multiplier of 5, and issue 1,000 shares to the company. Then, assign
+    five of those shares to the new employee, Summer Snow. The result should look
+    like Figure [5-14](#Fig14).![A430562_1_En_5_Fig14_HTML.jpg](Images/A430562_1_En_5_Fig14_HTML.jpg)Figure
+    5-14.Assigning shares to a new userThe reader exercise should result in a new
+    stock class called, ARN-b which is a non-voting stock. There should be 1,000 shares
+    issued and by default, all the shares belong to the company. Next, we want to
+    assign shares, which can be done on the Ownership tab. We have to refer to Summer
+    Snow by an address, then pick the stock class and the number of shares to be assigned.
+    To approve this change, we normally need a vote. In this case, however, the non-voting
+    stock has an exception: An executive can grant non-voting stock instantly to another
+    employee without any need for approval. This is limited only to assigning non-voting
+    stock within a company , but this exception can be removed by editing the bylaws.Here
+    are two more tasks: Assign half of the founders stock to yourself, and transfer
+    1 founders share to Summer Snow. Both tasks can be performed on the Ownership
+    tab and the final ownership distribution should look like Figure [5-15](#Fig15).
+    The transfer process can also be completely instantly without any voting, but
+    this action is irreversible.![A430562_1_En_5_Fig15_HTML.jpg](Images/A430562_1_En_5_Fig15_HTML.jpg)Figure
+    5-15.Final ownership distribution at the end of all the steps performedThe Ownership
+    tab organizes the shareholders by the stock classes they own. To review, we have
+    three classes of stock available now: a non-voting stock (ARN-c), a CVS, and founders
+    stock (ARN-b). The majority of shares with voting power are still owned by the
+    executive, but transferring stock to the employee makes them eligible to participate
+    in voting. On the right side are the newly updated pie charts for voting and global
+    distribution of stock within the company. These common operations allow your company
+    to serve as a governing body and collaboratively determine the future direction
+    of an attached project.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Fundraising and Bylaws
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'In the last topic of our walkthrough , we handle the more advanced features
+    present in Aragon, namely fundraising on the blockchain and bylaws, which offer
+    another level of fine-tuning for governance of your company. Raising a round of
+    funding on the Aragon blockchain is very different from traditional fundraising.
+    The core idea is simple: Once your DAO is operational, you can issue shares and
+    then you can offer a class of those shares to an investor in return for Ether.
+    These shares can either be offered to an individual investor, or more broadly
+    to the any participant in the network. A round has a specific closing window and
+    starts when it has been approved by the company after voting. The second feature
+    we discuss here is the bylaws, which are the computational equivalent of a configuration
+    file that allows variables to be reassigned and updated as necessary. Bylaws provide
+    a very granular level of access to the governing architecture of your company,
+    and if changes are approved, the new rules are implemented immediately. All the
+    default settings that we have referenced in previous topics arise from a template
+    of bylaws adopted by Aragon to set up a company. Although new bylaws cannot be
+    added to Aragon yet, the existing rules can be changed to create different levels
+    of user permissions for members of the company. Let’s look at fundraising in Aragon
+    in Figure [5-16](#Fig16).![A430562_1_En_5_Fig16_HTML.jpg](Images/A430562_1_En_5_Fig16_HTML.jpg)Figure
+    5-16.Fundraising from a specific investor in AragonIn the Aragon Core, there’s
+    a Fundraising tab, where you can click New Raise to open the corresponding dialog
+    box. Currently there are two types of options for fundraising implemented in Aragon.
+    The first one involves raising a round from a specific investor in return for
+    a stake in your company. The second option is a crowdsale, where any participant
+    of the network can buy stock in your company. In this case, we choose the first
+    option and start an individual raise. The series needs a title and the class of
+    shares being offered in return for the funds raised. Normally, an investor would
+    want voting rights, so we picked CVS. After that, you have to enter the investor’s
+    address manually and then specify how many shares you want to offer. Once the
+    Aragon network has a true market, the shares can be priced in Ether and have tangible
+    value on the blockchain. The outcome of a project associated with the Aragon-powered
+    DAO will determine the value of the shares in market. The fundraiser has a time-window,
+    at the end of which the round will close. This has the potential to evolve into
+    the all-or-nothing model that Kickstarter uses. Finally, the fundraiser needs
+    to be approved by a majority before it can become active and come online to the
+    network .Let’s look at the bylaws next. Figure [5-17](#Fig17) shows a list of
+    currently implemented bylaws that every entity participating in your company has
+    agreed to honor. Eventually, executive-implemented rules will be allowed in Aragon
+    to offer even more customization over governance.![A430562_1_En_5_Fig17_HTML.jpg](Images/A430562_1_En_5_Fig17_HTML.jpg)Figure
+    5-17.Bylaws for the companyThe Bylaws tab lists all the available laws implemented
+    for the company. We take a look here at the first law, which dictates how voting
+    can be initiated. In Aragon, every major action requires a vote from the participants,
+    so changing who can initiate a vote also implies that more actions can be performed
+    that require a vote. The action requirements in the Begin Voting dialog box provide
+    a few options, such as being a shareholder, having a role assigned in the company,
+    or limiting voting to specific addresses (users). By default, voting requires
+    a shareholder, but that can be changed here as needed. As with every other major
+    action, a change in bylaws requires majority approval to be implemented company-wide.Let’s
+    look at another example, this time granting the power to assign roles to new users
+    and how identities can be integrated automatically using an oracle. Figure [5-18](#Fig18)
+    provides a depiction of this example .![A430562_1_En_5_Fig18_HTML.jpg](Images/A430562_1_En_5_Fig18_HTML.jpg)Figure
+    5-18.Changing the status of a member in your companyThis process is similar to
+    the previous step, but instead, we will edit the second bylaw, Set entity status,
+    here. In the Set Entity Status dialog box, select the last option: An oracle will
+    be called for confirmation. This changes the parameters, as now you just need
+    to provide the address of the oracle on the network. How does identity management
+    function using an oracle? If your company requires some level of identification,
+    Aragon can be integrated with Keybase and an oracle can confirm the status of
+    identification from Keybase. In this way, new roles can be assigned without the
+    need for a vote and only promotions or entity status updates would require network-wide
+    voting .'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In this chapter, we discussed the concept of decentralized organizations. We
+    started with a presentation of Aragon in the context of decentralized organizations
+    built on the blockchain. We talked about the definition of a DAO and the organs
+    that Aragon implements. We had an in-depth discussion on the identity management
+    features enabled by Aragon and Keybase. Finally, the heart of this chapter was
+    the walkthrough of how to set up, manage, and operate a DAO, including all its
+    basic functions. This chapter has provided the foundation for creating your own
+    DAO.
+  prefs: []
+  type: TYPE_NORMAL
+- en: References
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The main reference used to compile this chapter was the Aragon whitepaper and
+    the aragon-core GitHub docs.
+  prefs: []
+  type: TYPE_NORMAL

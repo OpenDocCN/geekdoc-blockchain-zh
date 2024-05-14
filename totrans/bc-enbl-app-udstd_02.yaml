@@ -1,0 +1,411 @@
+- en: ©  Vikram Dhillon, David Metcalf, and Max Hooper 2017Vikram Dhillon, David Metcalf
+    and Max HooperBlockchain Enabled Applications[https://doi.org/10.1007/978-1-4842-3081-7_2](A430562_1_En_2_Chapter.xhtml)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '2. The Gold Rush: Mining Bitcoin'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Vikram Dhillon^(1 ), David Metcalf¹ and Max Hooper¹(1)Orlando, Florida, USA
+  prefs: []
+  type: TYPE_NORMAL
+- en: During the Gold Rush, most would-be miners lost money, but people who sold them
+    picks, shovels, tents and blue-jeans (Levi Strauss) made a nice profit.—Peter
+    Lynch
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Mining is a foundational concept in understanding how the Bitcoin protocol operates.
+    It refers to a decentralized review process performed on each block of the blockchain
+    to reach consensus without the need for a central authority to provide trust.
+    In other words, mining is the computational equivalent of peer review in a decentralized
+    environment where neither party involved trusts the other. We continue our discussion
+    of a hash-function explained in Chapter [1](A430562_1_En_1_Chapter.xhtml) as it
+    refers to mining and solving PoW functions. Then, we integrate the concepts of
+    block target values and network difficulty with mining and how mining has evolved
+    to keep up with the increasing difficulty. This will lead us further into talking
+    about the types of hardware mining that have recently been developed. We end the
+    chapter with an analysis of startups that began selling dedicated hardware for
+    mining, leading to the Bitcoin mining arms race and their eventual failure.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Reaching Consensus
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Mining is central to the Bitcoin protocol and has two primary roles : adding
+    new bitcoins to the money supply and verifying transactions. In this chapter,
+    we look at the mechanisms behind these two processes. Essentially, mining is the
+    appropriate solution to the double spending problem we discussed previously. To
+    remove the need for a central authority, individuals running the Bitcoin client
+    on their own machines (called miners) participate in the network and verify that
+    transactions taking place between two parties are not fraudulent. Mining is actually
+    a computationally intensive activity, but what incentives does anyone have to
+    help mine for new Bitcoins? The key incentive for miners is getting a reward in
+    the form of Bitcoins for their participation. Let’s look at a simplified view
+    of the mining process in Figure [2-1](#Fig1).![A430562_1_En_2_Fig1_HTML.jpg](Images/A430562_1_En_2_Fig1_HTML.jpg)Figure
+    2-1.A simplified overview of the mining processUnpackaged transactions that have
+    recently occurred in the Bitcoin network remain in the transaction pool until
+    they are picked up by a miner to be packaged into a block. A miner selects transactions
+    from the transaction pool to package them in a block. After the block has been
+    created, it needs a header before it can be accepted by the blockchain. Think
+    of this as shipping a package: Once the package has been created, it needs to
+    be stamped so that it can be shipped. A miner uses the header of the most recent
+    block in the blockchain to construct a new header for this current block. The
+    block header also contains other elements such as a timestamp, version of the
+    Bitcoin client, and an ID corresponding to the previous block in the chain. The
+    resulting block is called a candidate block, and it can now be added to the blockchain
+    if a few other conditions are satisfied.The process of mining is very involved
+    and Figure [2-1](#Fig1) only serves to paint a broad picture regarding the participation
+    of miners in the protocol. Next, we explore the technical aspects of the stamp
+    (analogy referenced earlier) and the mechanism of stamping a package. Keep in
+    mind that mining is a competitive process: Figure [2-1](#Fig1) describes this
+    process for only one miner, but in reality, a very large number of miners participate
+    in the network. The miners compete with each other to find a stamp for the package
+    (block) they created, and the first miner to discover the stamp wins. The race
+    between miners to find a stamp is concluded within ten minutes, and a new race
+    begins in the next ten minutes. Once the stamp is discovered, the miner can complete
+    the block and announce it to the network, and then it can be added to the blockchain.
+    Let’s take a look at the process behind searching for the stamp, better known
+    as a block-header , in Figure [2-2](#Fig2).![A430562_1_En_2_Fig2_HTML.jpg](Images/A430562_1_En_2_Fig2_HTML.jpg)Figure
+    2-2.Generating a block header by solving proof of work (PoW)The package created
+    by a miner is almost a block, but it is missing a header. It’s called a candidate
+    block and it can only be added to the blockchain after the stamp, or the header,
+    is added. The header from the most recent block in the blockchain is retrieved
+    and combined with a 32-bit value called nonce. This combination is directed to
+    the hash function (SHA-256) as an input. The hash function computes a new resulting
+    hash as an output. This generated hash is then compared to the target value of
+    the network (at the given time). If the hash value is larger than the target value,
+    then the nonce is readjusted and a new input is sent to the hash function to obtain
+    a new potential output. The problem of finding the appropriate hash value that
+    is smaller than the target value is at the heart of PoW, and it can only be solved
+    using brute force. Once a hash value smaller than the target value is discovered
+    by a miner, this hash can then be used in the block header for the candidate block.
+    The first miner to discover the hash is considered to be the winner. The winning
+    miner has shown PoW that she did to discover the hash, so the transactions contained
+    within the block are now considered valid. This block can now be added to the
+    blockchain. Additionally, the winning miner also earns the reward for solving
+    the PoW problem , which is a certain number of Bitcoins. This whole process from
+    packaging transactions into a block, to finding the hash and announcing the block
+    to the Bitcoin network repeats itself approximately every ten minutes.We introduced
+    some new terminology in Figure [2-2](#Fig2), so let’s describe the terms here
+    properly for the sake of completion.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Candidate block: An incomplete block, created as a temporary construct by a
+    miner to store transactions from the transaction pool. It becomes a complete block
+    after the header is completed by solving the PoW problem.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'PoW : The problem of discovering a new hash that can be used in the block header
+    of the candidate block. This is a computationally intensive process that involves
+    evaluating a hash taken from the most recent block and appending a nonce to it
+    against the target value of the network. This problem can only be solved using
+    brute force; that is, multiple trials of using the hash (from the most recent
+    block header) and nonce being adjusted each time are necessary to solve the PoW
+    problem.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Nonce: A 32-bit value that is concatenated to the hash from the most recent
+    block header. This value is continuously updated and adjusted for each trial,
+    until a new hash below the target value is discovered.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Hash function: A function used to compute a hash. In the Bitcoin protocol,
+    this function is the SHA-256.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Hash value: The resulting hash output from a hash function.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Target value: A 265-bit number that all Bitcoin clients share. It is determined
+    by the difficulty, which is discussed shortly.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Coinbase transaction: The first transaction that is packaged into a block.
+    This is a reward for the miner to mine the PoW solution for the candidate block.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Block header: The header of a block, which contains many features such as a
+    timestamp, PoW, and more. We describe the block header in more detail in Chapter
+    [3](A430562_1_En_3_Chapter.xhtml).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'NoteAfter going over the terms defined above, revisit Figures [2-1](#Fig1)
+    and [2-2](#Fig2). Some concepts that were abstract will become clear now and the
+    information will integrate better.Now that we have a better idea of how mining
+    works, let’s take a look at mining difficulty and target values. Those two concepts
+    are analogous to dials or knobs that can be adjusted over the course of time for
+    the network and all Bitcoin clients update to follow the latest values. So what
+    is mining difficulty? Essentially, it can be defined as the difficulty of finding
+    a hash below the target value as a miner is solving the PoW problem. An increase
+    in difficulty corresponds to longer time needed to discover the hash and solve
+    PoW , also known as mining time. The ideal mining time is set by the network to
+    be approximately ten minutes, which implies that a new block is announced on the
+    network every ten minutes. The mining time is dependent on three factors: the
+    target value, the number of miners in the network, and mining difficulty. Let’s
+    look at how these factors are interconnected.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 1.An increase in mining difficulty causes a decrease in the target value to
+    compensate for the mining time.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 2.An increase in the number of miners joining the network causes an increase
+    in the rate at which PoW is solved, decreasing the mining time. To adjust for
+    this, mining difficulty increases and the block creation rate returns to normal.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 3.The target value is recalculated and adjusted every 2,016 blocks created,
+    which happens in approximately two weeks.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'As we can see, there is a common theme of self-correction in the Bitcoin network
+    that allows it to be very resilient. Miners are the heartbeat of the Bitcoin network
+    and they have two main incentives for participation:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The first transaction to be packaged in a block is called the coinbase transaction.
+    This transaction is the reward that the winning miner receives after mining the
+    block and announcing it on the network.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The second reward comes in the form a fee charged to the users of the network
+    for sending transactions. The fee is given to the miners for including the transactions
+    in a block. This fee can also be considered a miner’s income because as more and
+    more Bitcoins are mined, this fee will become a significant portion of the income.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Now we can put these concepts together in the form of another flowchart, as
+    shown in Figure [2-3](#Fig3). This will help solidify the process of mining in
+    the context of difficulty and target values.![A430562_1_En_2_Fig3_HTML.jpg](Images/A430562_1_En_2_Fig3_HTML.jpg)Figure
+    2-3.Solving the PoW problemMiners across the network compete to solve the problem
+    and the winning miner announces the block to the network, which then gets incorporated
+    in the blockchain. To solve the PoW, a miner has to keep generating new hash values
+    (through the hash function) using the incremented nonce until a hash that is below
+    the target value is discovered. In this case, notice that the nonce is the only
+    adjustable value. This is a simplified PoW scheme and there are small differences
+    in its implementation.NoteThe term mining is used because the process is similar
+    to the mining of rare metals. It is very resource intensive and it makes new currency
+    avaliable at a slow rate, just like the miners in the Bitcoin protocol getting
+    rewarded.We talked about the self-correction properties in Bitcoin network and
+    how they allow the network to adapt. Next, we take a look at an unexpected case
+    of having a very large number of miners in the network as Bitcoin gained popularity.
+    This led to an arms race of sorts and it had far-reaching consequences. First,
+    though, we need to talk about the new types of mining hardware that emerged.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Mining Hardware
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: As Bitcoin started to gain more popularity and acceptance with merchants, more
+    miners joined the network in hopes of earning rewards. Miners began to get more
+    creative with how they approached mining, such as using specialized hardware that
+    can generate more hashes. In this section, we discuss the evolution of mining
+    hardware as Bitcoin started to spread globally.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'CPU mining: This was the earliest form of mining available through the Bitcoin
+    clients. It became the norm for mining in the early versions of the Bitcoin client,
+    but was removed in the later updates because better options became accessible.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'GPU mining: This represented the next wave of mining advancements. It turns
+    out that mining with a graphics processing unit (GPU) is far more powerful because
+    it can generate hundreds of times more hashes than a central processing unit (CPU).
+    This is now the standard for mining in most cryptocurrencies.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'FPGAs and ASICs: Field-programmable gated arrays (FPGAs) are integrated circuits
+    designed for a specific use case. In this case, the FPGAs were designed for mining
+    Bitcoins. The FPGAs are written with very specific hardware language that allows
+    them to perform one task very efficiently in terms of power usage and output efficiency.
+    Shortly after the introduction of FPGAs, a more optimized, mass-produceable, and
+    commercial design came out in the form of application-specific integrated circuits
+    (ASICs). The ASICs have a lower per-unit cost, so the units can be mass produced.
+    The ASICs-based devices are also compact, so more of them can be integrated in
+    a single device. The ability of ASICs to be combined in arrays at a low price
+    point made a very convincing case for accelerating the rate of mining .'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Mining pools: As the mining difficulty increased due to the rise of ASICs,
+    miners realized that individually, it was not financially wise to continue mining.
+    It was taking too long, and the reward did not justify the resources that went
+    into mining. The miners then organized themselves into groups called pools to
+    combine the computational resources of all the members and mine as one unit. Today,
+    joining a pool is very common to get started with mining in almost every cryptocurrency.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Mining cloud services: These are simply contractors who have specialized mining
+    rigs. They rent their services to a miner according to a contract for a given
+    price to mine for a specific time.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: It is easy to see how ASICs completely changed the mining game after developers
+    and hardware hobbiysts realized that custom arrays of ASICs can be assembled at
+    a fairly cheap price point. It was the beginning of a kind of arms race in Bitcoin
+    hardware, as developers were designing new chips and buying new equpiment for
+    mining rigs that allow them to mine the most Bitcoin. This initial push, driven
+    by profit, accelerated Bitcoin’s reach and created a golden era for the alternative
+    currency. More developers and enthusiasts joined in, buying custom hardware to
+    maximize their profits. The network responded by increasing the difficulty as
+    the number of miners increased. Within a short time span, the bubble could not
+    sustain itself for the miners due to the self-correcting features present in the
+    protocol and the difficulty kept rising. In some cases, the hardware that miners
+    purchased could no longer mine profitably by the time it arrived from the factory.
+    A significant capital investment was required up front to achieve any appreciable
+    returns. Most of the ASICs hardware is now historic, and even Bitcoin mining pools
+    are not profitable for the average miner. The startups and companies that commercialized
+    ASICs and custom hardware made a decent short-term profit and then flopped. We
+    examine a few of those massive failures in the next section.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Startup Stories
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'In this section, we highlight a few stories from the gold rush era of Bitcoin
+    between mid-2013 and late 2014\. The startups covered here followed the strategy
+    of selling pickaxes to make profits, but some took it a step further. The first
+    startup we discuss is Butterfly Labs. This company out of Missouri came about
+    in late 2011 with the promise of selling technology that was capable of mining
+    Bitcoin leaps and bounds ahead of the competition. Their ASICs were supposedly
+    able to mine Bitcoin 1,000 times faster, and they opened up for preorders soon
+    after the initial announcement in 2012\. Miners flocked to purchase the hardware,
+    which was promised for delivery by December of the same year. Butterfly Labs collected
+    somewhere between $20 million and $30 million in preorders as reported by the
+    Federal Trade Commission (FTC). Shipments started to roll out to only a few customers
+    around April 2013, but most customers did not receive their mining equipment for
+    another year. When the customers did recieve their machines, they were obsolete,
+    and some accused Butterfly Labs of using the hardware to mine for themselves before
+    delivering them. Despite being unable to follow through with their initial orders,
+    Butterfly Labs began offering a new and much more powerful miner and opened preorders
+    for that new miner. Ultimately, the company became one of the most hated in the
+    Bitcoin community, and the FTC had to step in to shut it down.The second company
+    we discuss, CoinTerra, is a more complicated case because the startup was founded
+    by a team that had deep expertise in the field. The CEO, Ravi, was a CPU architect
+    at Samsung previously, and the company’s board included many other leaders in
+    the field. Initially, they were venture backed and well funded, and in 2013, they
+    announced their first product, TerraMiner IV, which was supposed to be shipped
+    in December of the same year. The company could not ship the product in time and
+    eventually pushed the date back. The miner still did not arrive in 2014 and eventually
+    CoinTerra apologized to customers, offering them some compensation, which was
+    also largely delayed, frustrating customers even further. It seems that the company
+    is trying to pivot to cloud mining services, but most of its customer base has
+    already lost their trust.The final case focuses on a startup called HashFast.
+    Similar to previous two examples, HashFast was offering miners called Baby Jet
+    that would be delivered in December 2013\. The team at HashFast overpromised the
+    features and underdelivered at a time when difficulty skyrocketed. It is likely
+    that the company took the cash from early adopters to fund its own development,
+    and when they encountered difficulties, the customers demanded refunds for their
+    orders. The problem at the time was that the price of Bitcoin increased steadily,
+    so the company did not have enough funds to pay back the customers. They were
+    facing multiple lawsuits and running out of cash reserves very fast. Eventually,
+    a judge allowed the auctioning of all assets that the company owned to pay back
+    the creditors and investors. A common theme these companies share is that they
+    were frequently unable to deliver mining hardware on the promised timeline and
+    significantly delayed or refused to issue any refunds to their customers.We can
+    construct a general scheme of operations from the cases presented here and other
+    ASICs startups that failed similarly to Butterfly Labs:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Open for preorders at very high prices and falsely advertise a ridiculously
+    high hashing rate with a huge return on investment.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Invest all the funding from preorders to begin research and development for
+    ASICs and custom hardware.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Once the mining hardware has been obtained from overseas manufacturers, use
+    it to mine nonstop for months internally.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Broadcast to customers through social media that the manufacturing process is
+    taking longer than expected.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Deliver the hardware only to the customers that threaten to sue as early proof
+    that shipments have begun rolling out.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Deliver the ASICs hardware to other customers when it is already severely out
+    of date.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Customers complain and file lawsuits, and the company eventually falls apart
+    and faces huge fines.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: New Consensus
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'We conclude this chapter by talking about the same theme that we started it
+    with: consensus. This chapter’s central idea was that in Bitcoin, mining is used
+    to reach consensus to prevent users from double spending and validate all the
+    transactions. However, since the advent of Bitcoin, other consensus algorithms
+    have been developed. We refer to the PoW algorithm referenced in the original
+    Bitcoin protocol for reaching consensus as the Nakamoto Consensus. A new consensus
+    algorithm that has recently become popular is known as proof of stake (PoS), where
+    the participants essentially play the role of validators. In Bitcoin, bad actors
+    with fraudulent transactions have to face a rigorous approval process and validation
+    from the network of miners. In PoS, the participants have a stake in the network
+    (hence the name) in the form of currency. As such, they want to see the network
+    succeed and trust emerges in blocks that have the largest stake of currency invested
+    by the validators. Additionally, the malicious validators will get their stake
+    slashed for acting in bad faith. We dive into the technical aspects of PoS, and
+    how it compares to the mechanism of PoW, later in the book. Our journey ends in
+    this chapter with consensus and we pick up our discussion on the Bitcoin network
+    and the blockchain in the next chapter.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In this chapter, we talked about the concept of mining and presented the technical
+    background necessary to understand how miners verify blocks. We discussed in depth
+    the backbone of mining in Bitcoin called PoW, and throughout the remainder of
+    the book, we present other consensus mechanisms. Then, we described the arms race
+    in Bitcoin mining over producing the best hardware, which led to the huge rise
+    in difficulty, and the startup failures that resulted from that time period. Finally,
+    we ended the chapter with a mention of PoS, which we return to in a later chapter.
+  prefs: []
+  type: TYPE_NORMAL
+- en: References
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The key references used in preparing this chapter were Michael Nielsen’s post
+    ( [http://www.michaelnielsen.org/ddi/how-the-bitcoin-protocol-actually-works/](http://www.michaelnielsen.org/ddi/how-the-bitcoin-protocol-actually-works/)
+    ) on Bitcoin mining, and Aleksandr Bulkin’s post ( [https://keepingstock.net/explaining-blockchain-how-proof-of-work-enables-trustless-consensus-2abed27f0845](https://keepingstock.net/explaining-blockchain-how-proof-of-work-enables-trustless-consensus-2abed27f0845)
+    ). The remaining references can be found at the end of the book.
+  prefs: []
+  type: TYPE_NORMAL

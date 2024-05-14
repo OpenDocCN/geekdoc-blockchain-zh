@@ -1,0 +1,5458 @@
+- en: is not sufficient, and we need to use some mechanism that can send messages
+    to
+  prefs: []
+  type: TYPE_NORMAL
+- en: multiple nodes or a group of nodes simultaneously. In such situations, we use
+    broadcast
+  prefs: []
+  type: TYPE_NORMAL
+- en: protocols.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '113'
+  prefs: []
+  type: TYPE_NORMAL
+- en: © Imran Bashir 2022
+  prefs: []
+  type: TYPE_NORMAL
+- en: I. Bashir, *Blockchain Consensus*, [https://doi.org/10.1007/978-1-4842-8179-6_3](https://doi.org/10.1007/978-1-4842-8179-6_3#DOI)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](index-133_1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Chapter 3 DistributeD Consensus
+  prefs: []
+  type: TYPE_NORMAL
+- en: Broadcast protocols allow a process to send a message simultaneously to all
+  prefs: []
+  type: TYPE_NORMAL
+- en: processes in a distributed system, including itself.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this section, we will look at broadcast abstractions. There can be multiple
+    senders
+  prefs: []
+  type: TYPE_NORMAL
+- en: and receivers involved. Broadcast abstractions ensure that the processes agree
+    on the
+  prefs: []
+  type: TYPE_NORMAL
+- en: messages that they deliver.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Broadcast abstractions can be explained with a visualization in Figur[e 3-1\.](#p133)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Figure 3-1\.** A node broadcasting a message m and all three nodes delivering
+    it*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note that there is a difference between sending and receiving and broadcasting
+    and
+  prefs: []
+  type: TYPE_NORMAL
+- en: delivering. Sending and receiving are used in the context of point-to-point
+    links, and
+  prefs: []
+  type: TYPE_NORMAL
+- en: broadcast and delivery are used in broadcast abstractions where a message is
+    broadcast
+  prefs: []
+  type: TYPE_NORMAL
+- en: to multiple/all nodes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Point-to-point links discussed in Chapt[er 1](https://doi.org/10.1007/978-1-4842-8179-6_1)
+    are associated with send and receive primitives where a node sends a message,
+    and the recipient node receives them.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Broadcast abstractions with broadcast and deliver primitives depict a situation
+  prefs: []
+  type: TYPE_NORMAL
+- en: where a node sends a message to multiple/all nodes in the network and nodes
+    receive
+  prefs: []
+  type: TYPE_NORMAL
+- en: them, but, here, the broadcast algorithm can store and buffer the message after
+    receiving it and deliver it to the process later. It depends on the broadcast
+    algorithm (also called middleware). For example, in total order broadcast, the
+    message may be received by
+  prefs: []
+  type: TYPE_NORMAL
+- en: broadcast algorithms running on each process but can be buffered until the conditions
+  prefs: []
+  type: TYPE_NORMAL
+- en: meet to deliver the message to the application.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The diagram in Figur[e 3-2 sho](#p134)ws this concept visually.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '114'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](index-134_1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Chapter 3 DistributeD Consensus
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Figure 3-2\.** Send and receive and broadcast and delivery*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The communication occurs within a group of nodes where the number of nodes
+  prefs: []
+  type: TYPE_NORMAL
+- en: might be static or dynamic. One process sends it, and all nodes in the group
+    agree on
+  prefs: []
+  type: TYPE_NORMAL
+- en: it and deliver it. If a single processor or some processors become faulty, the
+    remaining
+  prefs: []
+  type: TYPE_NORMAL
+- en: nodes carry on working. Broadcast messages are targeted to all processes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Broadcast abstractions allow for the development of fault-tolerant applications.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are several types which I describe as follows.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Best-Effort Broadcast**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this abstraction, reliability is guaranteed only if the sender process does
+    not fail. This is the weakest form of reliable broadcast. There are three properties
+    that best-effort
+  prefs: []
+  type: TYPE_NORMAL
+- en: broadcast has.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Validity**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: If a message m is broadcast by a correct process p, then message m is eventually
+  prefs: []
+  type: TYPE_NORMAL
+- en: delivered by every correct process. This is a liveness property.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**No Duplication**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Every message is delivered only once.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '115'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](index-135_1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Chapter 3 DistributeD Consensus
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**No Creation**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: If a process delivers a message m with a sender process p, then m was previously
+  prefs: []
+  type: TYPE_NORMAL
+- en: broadcast by sender process p. In other words, messages are not created out
+    of thin air.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figur[e 3-3 depicts an ex](#p135)ecution of best-effort broadcast.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Figure 3-3\.** Best-effort broadcast – an example scenario*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In Figur[e 3-3, notice th](#p135)at process p has broadcast the message but
+    then crashed, and as per system properties, message delivery is not guaranteed
+    in this case. Notice
+  prefs: []
+  type: TYPE_NORMAL
+- en: that process q did not deliver the message because our process p is no longer
+    correct.
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, process R delivered it. There is no delivery guarantee in this abstraction
+    if the sender fails, as shown in Figure [3-3](#p135). In case some processes may
+    deliver the messages, and some don’t, it results in disagreement. As you can imagine,
+    this abstraction may not
+  prefs: []
+  type: TYPE_NORMAL
+- en: be quite useful in some stricter scenarios. We need some more robust protocol
+    than this.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To address such limitations, a reliable broadcast abstraction is used.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Reliable Broadcast**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A reliable broadcast abstraction introduces an additional liveness property
+    called
+  prefs: []
+  type: TYPE_NORMAL
+- en: agreement. **No duplication** and **no creation** properties remain the same
+    as the best-effort broadcast abstraction. The **validity** property is slightly
+    weakened. Formally, validity and agreement properties can be stated as follows.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Validity**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: If a message m is broadcast by a correct process p, then p itself eventually
+    delivers m.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '116'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 3 DistributeD Consensus
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Agreement**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: If a message m is delivered by a correct process, then every correct process
+    delivers m.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Remarks**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In case the sender process crashes while broadcasting and has not been able
+    to send to
+  prefs: []
+  type: TYPE_NORMAL
+- en: all processes, the agreement property ensures that no process delivers it. It
+    is possible that some processes may have received the message, but reliable broadcast
+    ensures that
+  prefs: []
+  type: TYPE_NORMAL
+- en: no process will deliver it unless there’s an agreement on the delivery. In other
+    words, if the sender process crashes, the reliable broadcast ensures that either
+    all correct nodes
+  prefs: []
+  type: TYPE_NORMAL
+- en: eventually deliver the message or no nodes deliver the message at all.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If the sender process fails, this property ensures that all correct nodes get
+    the
+  prefs: []
+  type: TYPE_NORMAL
+- en: message or none of the correct nodes receives the message. This property is
+    achieved
+  prefs: []
+  type: TYPE_NORMAL
+- en: by correct processes retransmitting any dropped messages, which result in the
+    eventual
+  prefs: []
+  type: TYPE_NORMAL
+- en: delivery of the message.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This solution seems reasonable enough, but there might be situations in which
+  prefs: []
+  type: TYPE_NORMAL
+- en: the broadcaster process may have been able to deliver to itself but then crashed
+    before
+  prefs: []
+  type: TYPE_NORMAL
+- en: it could send to other processes. This means that all correct processes will
+    agree not
+  prefs: []
+  type: TYPE_NORMAL
+- en: to deliver the message because they have not received it, but the original broadcaster
+  prefs: []
+  type: TYPE_NORMAL
+- en: delivers it. Such situations can cause safety issues.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To address this limitation, uniform reliable broadcast, which provides a stronger
+  prefs: []
+  type: TYPE_NORMAL
+- en: guarantee, is used.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Uniform Reliable Broadcast**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In uniform reliable broadcast, while all other properties such as validity,
+    no duplication, and no creation remain the same as best-effort broadcast, there’s
+    a stronger notion of the agreement property that we saw in the reliable broadcast
+    abstraction. It is introduced to ensure that agreement is achieved even in the
+    scenarios where the sender process might
+  prefs: []
+  type: TYPE_NORMAL
+- en: fail. This property is called the uniform agreement property.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Uniform Agreement**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: If a message m is delivered by a process p, every correct process eventually
+    delivers m. p can be either a correct or a failed process.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '117'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 3 DistributeD Consensus
+  prefs: []
+  type: TYPE_NORMAL
+- en: In all the preceding discussed abstractions, there’s a crucial element missing
+    which
+  prefs: []
+  type: TYPE_NORMAL
+- en: is required in many distributed services. For example, imagine a scenario of
+    an online
+  prefs: []
+  type: TYPE_NORMAL
+- en: chat app. If a user sends a message saying “England has won the cricket match,”
+    and
+  prefs: []
+  type: TYPE_NORMAL
+- en: another user replies “congratulations,” and a third user says “But I wanted
+    Ireland to
+  prefs: []
+  type: TYPE_NORMAL
+- en: win,” the expected sequence in which the messages are supposed to appear in
+    the
+  prefs: []
+  type: TYPE_NORMAL
+- en: chat app is
+  prefs: []
+  type: TYPE_NORMAL
+- en: '• **User 1**: England has won the cricket match'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '• **User 2**: congratulations'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '• **User 3**: But I wanted Ireland to win'
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, if there is no order imposed on the message delivery, it might appear
+    that
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'even if User 1’s message was sent first, it may turn out that in the app (to
+    the end user) the messages might appear like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '• **User 2**: congratulations'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '• **User 3**: But I wanted Ireland to win'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '• **User 1**: England has won the cricket match'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now this is not the expected order; the “congratulations” message without the
+  prefs: []
+  type: TYPE_NORMAL
+- en: context of winning the match would appear confusing. This is the problem that
+    is solved
+  prefs: []
+  type: TYPE_NORMAL
+- en: by imposing an order guarantee on the broadcast abstractions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Note** We discussed causality and happens-before relationships in Cha[pter
+    1; if](https://doi.org/10.1007/978-1-4842-8179-6_1)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: you need a refresher, refer to that chapter.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now we will discuss four abstractions that deliver messages with an order guarantee
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'with varying degrees of strictness: FIFO reliable broadcast, causal reliable
+    broadcast,'
+  prefs: []
+  type: TYPE_NORMAL
+- en: total order reliable broadcast, and FIFO total order broadcast.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**FIFO Reliable Broadcast**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This abstraction imposes a first-in, first-out (FIFO) delivery order on reliable
+    broadcast.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This means that messages broadcast are delivered in the same that they were
+    sent by the
+  prefs: []
+  type: TYPE_NORMAL
+- en: sender process.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '118'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 3 DistributeD Consensus
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this abstraction, all properties remain the same as reliable broadcast; however,
+    a
+  prefs: []
+  type: TYPE_NORMAL
+- en: new property for FIFO delivery is introduced.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**FIFO Delivery**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: If a process has broadcast two messages m1 and m2, respectively, then any correct
+  prefs: []
+  type: TYPE_NORMAL
+- en: process does not deliver m2 before m1\. In other words, if m1 is broadcast before
+    m2 by
+  prefs: []
+  type: TYPE_NORMAL
+- en: the same process, then no correct process delivers m2 unless it has delivered
+    m1 first.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This guarantee is however only in the case when m1 and m2 are broadcast by the
+    same
+  prefs: []
+  type: TYPE_NORMAL
+- en: process; if two different processes have broadcast messages, then there is no
+    guarantee
+  prefs: []
+  type: TYPE_NORMAL
+- en: in which order they will be delivered.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In practice, TCP is an example of FIFO delivery. If you need FIFO delivery in
+    your use
+  prefs: []
+  type: TYPE_NORMAL
+- en: case, you can simply use TCP.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Causal Reliable Broadcast**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This abstraction imposes a causal delivery order on reliable broadcast. This
+    means that if a message broadcast happens before broadcast of another message,
+    then every process
+  prefs: []
+  type: TYPE_NORMAL
+- en: delivers these two messages in the same order. In scenarios where two messages
+    might
+  prefs: []
+  type: TYPE_NORMAL
+- en: have been broadcast concurrently, then a process can deliver them in any order.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Total Order Reliable Broadcast or Atomic**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Reliable Broadcast**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This abstraction is usually just called **total order broadcast** or **atomic
+    broadcast**. There are four properties that total order broadcast has, which are
+    described as follows.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Validity**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: If a correct process p broadcasts a message m, then some correct process eventually
+  prefs: []
+  type: TYPE_NORMAL
+- en: delivers m.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Agreement**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: If a message m is delivered by a correct process p, then all correct processes
+    eventually deliver m.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '119'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 3 DistributeD Consensus
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Integrity**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: For any message m, each process delivers m at most once and only if m was previously
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'broadcast. In literature, this property is sometimes divided into two separate
+    properties: **no duplication** where no message is delivered more than once and
+    **no creation** which states that a delivered message must be broadcast by the
+    sender process. In other words,'
+  prefs: []
+  type: TYPE_NORMAL
+- en: no messages are created out of thin air.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Total Order**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this property, if a message m1 is delivered before m2 in a process, then
+    m1 is delivered before m2 in all processes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**FIFO Total Order Broadcast**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This abstraction combines both FIFO broadcast and total order broadcast.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The total order can be achieved using a single leader known as the sequencer
+  prefs: []
+  type: TYPE_NORMAL
+- en: approach and using Lamport clocks, but none of these are fault-tolerant approaches.
+  prefs: []
+  type: TYPE_NORMAL
+- en: What if the leader goes down then there is no sequencing and in case of Lamport
+    clocks
+  prefs: []
+  type: TYPE_NORMAL
+- en: if any of the nodes fail then the total order cannot be guaranteed? Introducing
+    fault
+  prefs: []
+  type: TYPE_NORMAL
+- en: tolerance in total order broadcast to automatically choose a new leader is the
+    problem
+  prefs: []
+  type: TYPE_NORMAL
+- en: that is studied and addressed using consensus protocols. A consensus protocol,
+    at a
+  prefs: []
+  type: TYPE_NORMAL
+- en: fundamental level, addresses the problem of choosing a new leader in case of
+    failure.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is the key motivation behind consensus protocols. We will see more about
+    this and
+  prefs: []
+  type: TYPE_NORMAL
+- en: details on total order broadcast and its relationship with state machine replication,
+    fault tolerance, and consensus protocols later in this chapter.
+  prefs: []
+  type: TYPE_NORMAL
+- en: So far, the abstractions that we have discussed can work with a smaller set
+    of
+  prefs: []
+  type: TYPE_NORMAL
+- en: processes. Imagine a distributed system is spread across multiple continents
+    and
+  prefs: []
+  type: TYPE_NORMAL
+- en: there are 1000s of nodes participating in it. Can the abstractions presented
+    so far be
+  prefs: []
+  type: TYPE_NORMAL
+- en: efficient enough to withstand the communication complexity that arises with
+    1000s of
+  prefs: []
+  type: TYPE_NORMAL
+- en: heterogenous and dispersed nodes in a distributed system? The answer is no,
+    and in
+  prefs: []
+  type: TYPE_NORMAL
+- en: order to address such requirements, probabilistic protocols are developed. Also,
+    imagine
+  prefs: []
+  type: TYPE_NORMAL
+- en: a scenario where a single node is responsible for sending messages to 1000 nodes.
+    Even
+  prefs: []
+  type: TYPE_NORMAL
+- en: if we manage to send a message to 1000 nodes with some hardware support or some
+  prefs: []
+  type: TYPE_NORMAL
+- en: other method, the problem becomes complex to handle when that single sender
+    node
+  prefs: []
+  type: TYPE_NORMAL
+- en: receives the acknowledgements from 1000 nodes. This problem is called **ack
+    implosion**.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The question is how we can avoid such issues.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '120'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](index-140_1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Chapter 3 DistributeD Consensus
+  prefs: []
+  type: TYPE_NORMAL
+- en: Imagine another situation where using reliable links a node has sent a message
+    to all
+  prefs: []
+  type: TYPE_NORMAL
+- en: nodes individually, but while in transit to some nodes, some messages were dropped.
+  prefs: []
+  type: TYPE_NORMAL
+- en: At this point, the sender process fails and consequently no retransmission occurred.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As a result, those nodes that did not receive messages will now never receive
+    messages
+  prefs: []
+  type: TYPE_NORMAL
+- en: because the sender process has crashed. How can we improve reliability in this
+    scenario?
+  prefs: []
+  type: TYPE_NORMAL
+- en: We can devise a scheme where if one node receives a message for the first time,
+    it
+  prefs: []
+  type: TYPE_NORMAL
+- en: broadcasts it again to other nodes through reliable channels. This way, all
+    correct nodes will receive all the messages, even if some nodes crash. This is
+    called **eager reliable** **broadcast**. Eager reliable broadcast is reliable;
+    however, it can incur *O*( *n*) steps and *O*( *n*)2 messages for n number of
+    nodes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figur[e 3-4 vis](#p140)ualizes the eager reliable protocol.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Figure 3-4\.** Eager reliable broadcast*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are also other algorithms which we can call *nature-inspired* algorithms.
+    For example, consider how an infectious disease might spread or a rumor might
+    spread. One
+  prefs: []
+  type: TYPE_NORMAL
+- en: person infects a few others, and then those others infect others, and quickly
+    the infection rate increases. Now imagine if a broadcast protocol is designed
+    on such principle, then
+  prefs: []
+  type: TYPE_NORMAL
+- en: it can be very effective at disseminating information (messages) throughout
+    the network
+  prefs: []
+  type: TYPE_NORMAL
+- en: quickly. As these protocols are basically randomized protocols, they do not
+    guarantee
+  prefs: []
+  type: TYPE_NORMAL
+- en: that all nodes will receive a message, but there is usually a very high probability
+    that
+  prefs: []
+  type: TYPE_NORMAL
+- en: all nodes eventually get all messages. Probabilistic protocols or gossip protocols
+    are
+  prefs: []
+  type: TYPE_NORMAL
+- en: commonly used in peer-to-peer networks. There are many protocols that have been
+  prefs: []
+  type: TYPE_NORMAL
+- en: designed based on this type of dissemination.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figur[e 3-5 illus](#p141)trates how a gossip protocol works. The idea here is
+    that when a node receives a message for the first time, it forwards it to some
+    randomly chosen other nodes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This technique is useful for broadcasting messages to many nodes, and the message
+  prefs: []
+  type: TYPE_NORMAL
+- en: eventually reaches all nodes with high probability.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '121'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](index-141_1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Chapter 3 DistributeD Consensus
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Figure 3-5\.** Gossip protocol*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A probabilistic broadcast abstraction can be defined as an abstraction which
+    has two
+  prefs: []
+  type: TYPE_NORMAL
+- en: properties.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Probabilistic Validity**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: If a correct process p broadcasts a message m, then every correct process eventually
+  prefs: []
+  type: TYPE_NORMAL
+- en: delivers it with probability 1\.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Integrity**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Any message is delivered at most once, and the message delivered has been previously
+  prefs: []
+  type: TYPE_NORMAL
+- en: broadcast by a process – in other words, no duplicate message and no message
+    creation
+  prefs: []
+  type: TYPE_NORMAL
+- en: out of thin air.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Relationship Between Broadcasts and Consensus**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Best-effort broadcast is the weakest broadcast model. By adding additional properties
+  prefs: []
+  type: TYPE_NORMAL
+- en: and requirements, we can achieve stronger broadcast models, as shown in Figure
+    [3-6](#p142).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '122'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](index-142_1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Chapter 3 DistributeD Consensus
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Figure 3-6\.** Broadcast relationship – from weakest to strongest – and
+    consensus* *equivalency*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: With this, we complete our discussion on broadcast protocols. Let’s now move
+  prefs: []
+  type: TYPE_NORMAL
+- en: on to the agreement abstraction, which is one of the most fundamental problems
+    in
+  prefs: []
+  type: TYPE_NORMAL
+- en: distributed computing.
+  prefs: []
+  type: TYPE_NORMAL
+- en: First, I’ll explain what an agreement is, and then we’ll build upon this fundamental
+  prefs: []
+  type: TYPE_NORMAL
+- en: idea and present the consensus problem.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Agreement**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In a distributed system, the agreement between the processes is a fundamental
+  prefs: []
+  type: TYPE_NORMAL
+- en: requirement. There are many scenarios where processes need to agree for the
+  prefs: []
+  type: TYPE_NORMAL
+- en: distributed system to achieve its goals. For example, in broadcast abstractions,
+    an
+  prefs: []
+  type: TYPE_NORMAL
+- en: agreement is needed between processes for the delivery of messages.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are various agreement problems, and we will cover the most prominent of
+  prefs: []
+  type: TYPE_NORMAL
+- en: them in the following and then focus more on consensus.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We have already covered reliable broadcast and total order broadcast. In this
+    section,
+  prefs: []
+  type: TYPE_NORMAL
+- en: I will explain some additional points briefly on reliable broadcast and total
+    order
+  prefs: []
+  type: TYPE_NORMAL
+- en: broadcast; then, we’ll explore the Byzantine agreement and consensus.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Reliable Broadcast**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The reliable broadcast assures reliability even if the sender process fails.
+    In other words, reliability is guaranteed whether the sender is correct or not.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '123'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 3 DistributeD Consensus
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Total Order Broadcast**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The total order broadcast guarantees reliability and the same order of delivery
+    at all
+  prefs: []
+  type: TYPE_NORMAL
+- en: nodes. Total order broadcast can be achieved using a single leader approach
+    where one
+  prefs: []
+  type: TYPE_NORMAL
+- en: node is designated as a leader. All messages go through this leader which establishes
+    a
+  prefs: []
+  type: TYPE_NORMAL
+- en: common order for the messages. The messages are sent to the leader first, which
+    then
+  prefs: []
+  type: TYPE_NORMAL
+- en: broadcasts them using the FIFO broadcast mechanism. However, in this case, the
+    issue
+  prefs: []
+  type: TYPE_NORMAL
+- en: is that if the leader crashes, then no messages can be delivered. The question
+    then
+  prefs: []
+  type: TYPE_NORMAL
+- en: becomes how we can change the failed leader while ensuring the safety of the
+    algorithm.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If the elected leader that establishes the common delivery order fails, the
+    nodes
+  prefs: []
+  type: TYPE_NORMAL
+- en: must elect a new leader. The problem now becomes to choose a new honest leader
+    and
+  prefs: []
+  type: TYPE_NORMAL
+- en: agree on the new leader’s choice. Again, now nodes must achieve an agreement,
+    and the
+  prefs: []
+  type: TYPE_NORMAL
+- en: problem now becomes an agreement on a new leader instead of an agreement on
+    the
+  prefs: []
+  type: TYPE_NORMAL
+- en: delivery order. In either case, nodes must run some agreement protocol.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Also, earlier, we discovered that Lamport clocks, using the software event counter
+  prefs: []
+  type: TYPE_NORMAL
+- en: and the process identifier, can achieve a total order. Combined with FIFO links
+    and
+  prefs: []
+  type: TYPE_NORMAL
+- en: timestamps in a total order, Lamport clocks to achieve a total order make intuitive
+    sense, but this can be challenging in practical terms. For example, if a node
+    goes down, then the entire protocol halts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Both single leader (sequencer/orderer approach and Lamport clocks) are not
+  prefs: []
+  type: TYPE_NORMAL
+- en: fault tolerant. We will shortly see what we can do about this. Total order broadcast
+    and
+  prefs: []
+  type: TYPE_NORMAL
+- en: consensus are different problems but are related to each other. If you solve
+    consensus,
+  prefs: []
+  type: TYPE_NORMAL
+- en: then you can solve the total order and vice versa.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Total order broadcast is also called atomic broadcast because it ensures that
+    either
+  prefs: []
+  type: TYPE_NORMAL
+- en: the messages are delivered to all processes or not at all. This atomicity (all
+    or nothing) of total order broadcast is what makes it an atomic broadcast protocol,
+    hence the name
+  prefs: []
+  type: TYPE_NORMAL
+- en: atomic broadcast.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**The Byzantine Agreement Problem**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The Byzantine agreement problem can be defined in three different ways: the
+    Byzantine'
+  prefs: []
+  type: TYPE_NORMAL
+- en: generals problem, the interactive consistency problem, and the consensus problem.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '124'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 3 DistributeD Consensus
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**The Basic Byzantine Generals Problem or BGP**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: There is a designated process called the source process with an initial value.
+    The goal of the problem is to reach an agreement with other processes about the
+    initial value of the
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'source process. There are three conditions that need to be met:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '• **Agreement**: All honest processes agree on the same value.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '• **Validity**: If the source process is honest, the decided (agreed-upon)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: value by all honest processes is the same value as the initial value of
+  prefs: []
+  type: TYPE_NORMAL
+- en: the source process.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '• **Termination**: Each honest process must eventually decide on'
+  prefs: []
+  type: TYPE_NORMAL
+- en: a value.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This problem is fundamentally a broadcast primitive in which the designated
+  prefs: []
+  type: TYPE_NORMAL
+- en: process starts with an initial value (input), and other processes do not have
+    an input
+  prefs: []
+  type: TYPE_NORMAL
+- en: (initial value). When the algorithm terminates, all processes agree on (output)
+    the
+  prefs: []
+  type: TYPE_NORMAL
+- en: same value. The crux of the solution for the Byzantine generals problem (BGP)
+    is that
+  prefs: []
+  type: TYPE_NORMAL
+- en: the sender process reliably sends its input to all processes so that all processes
+    output (decide) the same value.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**The Interactive Consistency Problem**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this interactive consistency problem, each process has an initial value,
+    and all correct processes must agree on a set of values (vector) where each process
+    has a corresponding
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'value. The requirements are listed as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '• **Agreement**: All honest processes agree on the same array of values'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (vector).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '• **Validity**: If a correct process decides on a vector V and a process'
+  prefs: []
+  type: TYPE_NORMAL
+- en: P1 is correct and takes as input a value V1 from the vector, then V1
+  prefs: []
+  type: TYPE_NORMAL
+- en: corresponds to P1 in the vector V.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '• **Termination**: Every correct process eventually decides.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**The Consensus Problem**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the consensus problem, each process has an initial value, and all correct
+    processes
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'agree on a single value:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '125'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](index-145_1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Chapter 3 DistributeD Consensus
+  prefs: []
+  type: TYPE_NORMAL
+- en: '• **Agreement**: All processes agree on the same value; no two processes'
+  prefs: []
+  type: TYPE_NORMAL
+- en: decide on different values.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '• **Validity**: A decided value must be a proposed value of a process.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: • **Integrity:** A process decides at most only once.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '• **Termination**: Every honest process eventually decides on a value.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Validity and agreement are safety properties, whereas termination is a liveness
+  prefs: []
+  type: TYPE_NORMAL
+- en: property.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figur[e 3-7 sho](#p145)ws how consensus looks like visually. There is not much
+    in the diagram, but it depicts visually and helps to build a mental model of how
+    consensus
+  prefs: []
+  type: TYPE_NORMAL
+- en: looks like.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Figure 3-7\.** Consensus – how it looks visually*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are many variations of the consensus problem depending upon the system
+  prefs: []
+  type: TYPE_NORMAL
+- en: model and failure models.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The abovementioned consensus problem is called uniform consensus where the
+  prefs: []
+  type: TYPE_NORMAL
+- en: agreement property is strict and does not allow a crashed process to decide
+    differently.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '126'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 3 DistributeD Consensus
+  prefs: []
+  type: TYPE_NORMAL
+- en: Another variant of consensus is **non-uniform consensus**. In non-uniform
+  prefs: []
+  type: TYPE_NORMAL
+- en: consensus, the agreement property is *weakened* to allow a crashed process to
+    decide on a different value.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We can write the *agreement* property of **uniform consensus** as
+  prefs: []
+  type: TYPE_NORMAL
+- en: '• **Agreement**: No two honest processes decide on different values.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now if we make the validity property *stronger* in addition to weakening the
+  prefs: []
+  type: TYPE_NORMAL
+- en: agreement property, we achieve **Byzantine-tolerant consensus**. In this case,
+    the validity property becomes
+  prefs: []
+  type: TYPE_NORMAL
+- en: '• **Validity**: A decided value of an honest process must be a proposed'
+  prefs: []
+  type: TYPE_NORMAL
+- en: value of an honest process.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The first variation where the validity property is weak and the agreement is
+    also weak
+  prefs: []
+  type: TYPE_NORMAL
+- en: can be categorized as **crash fault–tolerant consensus**.
+  prefs: []
+  type: TYPE_NORMAL
+- en: An algorithm that satisfies all these safety and liveness properties is called
+    a correct
+  prefs: []
+  type: TYPE_NORMAL
+- en: algorithm. Solving a consensus problem is not difficult in failure-free synchronous
+  prefs: []
+  type: TYPE_NORMAL
+- en: systems; however, the problem becomes difficult in systems that are failure-prone.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Failures and asynchrony make solving consensus a complex problem.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Binary consensus** is a simple type of consensus where the input is restricted,
+    and'
+  prefs: []
+  type: TYPE_NORMAL
+- en: as a result, the decision value is restricted to a single bit, either zero or
+    one. **Multivalued** **consensus** is a type of consensus where the objective
+    is to agree on multiple values, that is, a series of values over time.
+  prefs: []
+  type: TYPE_NORMAL
+- en: While binary consensus may not seem like a very useful construct in the first
+  prefs: []
+  type: TYPE_NORMAL
+- en: instance, a solution to a binary consensus problem leads to a solution for multivalued
+  prefs: []
+  type: TYPE_NORMAL
+- en: consensus; hence, it is an important area for research.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The definitions of properties of consensus may change slightly depending on
+  prefs: []
+  type: TYPE_NORMAL
+- en: the application. For example, usually in blockchain consensus protocols the
+    validity
+  prefs: []
+  type: TYPE_NORMAL
+- en: property is defined differently from established definitions and may settle
+    for a weaker
+  prefs: []
+  type: TYPE_NORMAL
+- en: variant. For example, in Tendermint consensus the validity property simply states,
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*“a decided value is valid i.e. it satisfies the predefined predicate denoted
+    valid( )”* . This can be an application-specific condition. For example, in blockchain
+    context it could'
+  prefs: []
+  type: TYPE_NORMAL
+- en: be required that a new block added to the Bitcoin blockchain must have a valid
+    block
+  prefs: []
+  type: TYPE_NORMAL
+- en: header that passes node validation checks. In other variations, the valid( )
+    predicate
+  prefs: []
+  type: TYPE_NORMAL
+- en: requirement and the condition “if all honest processes propose the same value,
+    then all
+  prefs: []
+  type: TYPE_NORMAL
+- en: decide on that same value” can be combined. This is a combination of validity
+    predicate
+  prefs: []
+  type: TYPE_NORMAL
+- en: and traditional validity condition. There are variations and different definitions.
+    Some
+  prefs: []
+  type: TYPE_NORMAL
+- en: '127'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 3 DistributeD Consensus
+  prefs: []
+  type: TYPE_NORMAL
+- en: are strict, and some are not so strict, depending on the application. We will
+    cover
+  prefs: []
+  type: TYPE_NORMAL
+- en: blockchain consensus and relevant consensus protocols throughout this book and
+    will
+  prefs: []
+  type: TYPE_NORMAL
+- en: define and redefine these requirements in the context of the consensus algorithm
+    and
+  prefs: []
+  type: TYPE_NORMAL
+- en: fault models being discussed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A consensus protocol is **crash fault tolerant (CFT)** if it can tolerate benign
+    faults up to a certain threshold. A consensus protocol is **Byzantine fault tolerant
+    (BFT)** if it can tolerate arbitrary faults. In order to achieve crash fault tolerance,
+    the underlying
+  prefs: []
+  type: TYPE_NORMAL
+- en: distributed network must satisfy the condition N >= 2F+1, where N is the number
+    of
+  prefs: []
+  type: TYPE_NORMAL
+- en: nodes in the network, and F is the number of faulty nodes. If the network satisfies
+    this
+  prefs: []
+  type: TYPE_NORMAL
+- en: condition, only then it will be able to continue to work correctly and achieve
+    consensus.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If Byzantine faults are required to be tolerated, then the condition becomes
+    N>=3F+1\.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We will cover this more formally when we discuss impossibility results later
+    in this
+  prefs: []
+  type: TYPE_NORMAL
+- en: chapter. But remember these conditions as lower tight bounds.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A consensus problem applies to other problems in distributed computing too.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Problems like total order broadcast, leader election problem, and terminating
+    reliable
+  prefs: []
+  type: TYPE_NORMAL
+- en: broadcast require an agreement on a common value. These problems can be considered
+  prefs: []
+  type: TYPE_NORMAL
+- en: consensus variants.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**System Models**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: To study consensus and agreement problems and develop solutions, there are some
+  prefs: []
+  type: TYPE_NORMAL
+- en: underlying assumptions that we make about the behavior of the distributed system.
+    We
+  prefs: []
+  type: TYPE_NORMAL
+- en: learned many of these abstractions regarding node and network behavior in Chapter
+    [1](https://doi.org/10.1007/978-1-4842-8179-6_1).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here, we summarize those assumptions and move on to discuss the consensus
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'problem in more detail. The reason for describing system models here is twofold:
+    first,'
+  prefs: []
+  type: TYPE_NORMAL
+- en: to summarize what we learned in the chapter regarding the behavior of the nodes
+    and
+  prefs: []
+  type: TYPE_NORMAL
+- en: networks and, second, to put this knowledge in the context of studying consensus
+    and
+  prefs: []
+  type: TYPE_NORMAL
+- en: agreement problems. For a detailed study, you can refer to Chapter [1\.](https://doi.org/10.1007/978-1-4842-8179-6_1)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Distributed System**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A distributed system is a set of processes that communicate using message passing.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Consensus algorithms are designed based on assumptions made about timing and
+  prefs: []
+  type: TYPE_NORMAL
+- en: synchrony behavior of the distributed system. These assumptions are captured
+    under
+  prefs: []
+  type: TYPE_NORMAL
+- en: the timing model or synchrony assumptions, which we describe next.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '128'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 3 DistributeD Consensus
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Timing Model/Synchrony**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Synchrony assumptions capture the timing assumption about a distributed system.
+    The
+  prefs: []
+  type: TYPE_NORMAL
+- en: relative speed of processors and communication is also taken into consideration.
+    There
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'are several synchrony models. We briefly describe those as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Synchronous systems where there is a known upper bound on the
+  prefs: []
+  type: TYPE_NORMAL
+- en: processor and communication delay which always holds.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Asynchronous systems where there are assumptions made about
+  prefs: []
+  type: TYPE_NORMAL
+- en: timing. There is no bound on the processor or communication
+  prefs: []
+  type: TYPE_NORMAL
+- en: delay. This is a useful notion because protocols designed with this
+  prefs: []
+  type: TYPE_NORMAL
+- en: assumption are also automatically resilient in synchronous and
+  prefs: []
+  type: TYPE_NORMAL
+- en: other models, which are more favorable. In other words, a program
+  prefs: []
+  type: TYPE_NORMAL
+- en: proven correct in an asynchronous model is automatically correct in
+  prefs: []
+  type: TYPE_NORMAL
+- en: a synchronous model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '• Partial synchrony which can be defined in several ways:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: • There is an unknown upper bound which always holds.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • There is a known upper bound that eventually holds after
+  prefs: []
+  type: TYPE_NORMAL
+- en: some GST.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • There are guaranteed periods of synchrony, which are long
+  prefs: []
+  type: TYPE_NORMAL
+- en: enough that a decision can be made, and an algorithm can
+  prefs: []
+  type: TYPE_NORMAL
+- en: terminate.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • There is an unknown upper bound which eventually holds after
+  prefs: []
+  type: TYPE_NORMAL
+- en: some GST.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Weak synchrony introduced with practical Byzantine fault
+  prefs: []
+  type: TYPE_NORMAL
+- en: tolerance (PBFT) assumes that the network latency doesn’t grow
+  prefs: []
+  type: TYPE_NORMAL
+- en: infinitely more than the timeout.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • A system can be asynchronous initially but is synchronous
+  prefs: []
+  type: TYPE_NORMAL
+- en: after GST.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Usually, in practice a partially synchronous assumption is made regarding the
+    timing
+  prefs: []
+  type: TYPE_NORMAL
+- en: behavior of the distributed system. This choice is especially true in blockchain
+    protocols, where most consensus protocols are designed for eventually synchronous/partially
+  prefs: []
+  type: TYPE_NORMAL
+- en: synchronous models, for example, PBFT for blockchain. Of course, some are designed
+  prefs: []
+  type: TYPE_NORMAL
+- en: '129'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 3 DistributeD Consensus
+  prefs: []
+  type: TYPE_NORMAL
+- en: for the asynchronous model, such as HoneyBadger. We will cover blockchain consensus
+  prefs: []
+  type: TYPE_NORMAL
+- en: in Chapter [5](https://doi.org/10.1007/978-1-4842-8179-6_5) and then throughout
+    this book. For now, I will focus on the distributed consensus problem in general
+    and from a traditional point of view.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Also, note that an asynchronous message-passing model with Byzantine faults
+  prefs: []
+  type: TYPE_NORMAL
+- en: expresses conditions of a typical distributed system based on the Internet today.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Especially, this is quite true in public blockchain platforms such as Bitcoin
+    or Ethereum.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Process Failures**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Failure models allow us to make assumptions about which failures can occur and
+    how
+  prefs: []
+  type: TYPE_NORMAL
+- en: we can address them. Failure models describe the conditions under which the
+    failure
+  prefs: []
+  type: TYPE_NORMAL
+- en: may or may not occur. There are various classes, such as crash failures, where
+    processes
+  prefs: []
+  type: TYPE_NORMAL
+- en: can crash-stop or crash-fail, or omission failures where a processor can omit
+    sending or
+  prefs: []
+  type: TYPE_NORMAL
+- en: receiving a message.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Another type of omission fault is called the dynamic omission fault. In this
+    model, a
+  prefs: []
+  type: TYPE_NORMAL
+- en: system can lose a maximum number of messages in each round. However, the channels
+  prefs: []
+  type: TYPE_NORMAL
+- en: on which the message losses occur may change from round to round.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Timing failures are those where processes do not comply with the synchrony
+  prefs: []
+  type: TYPE_NORMAL
+- en: assumptions. The processes may exhibit Byzantine behavior where the processes
+    can
+  prefs: []
+  type: TYPE_NORMAL
+- en: behave arbitrarily or maliciously. In the Byzantine model, the corrupted processor
+    can
+  prefs: []
+  type: TYPE_NORMAL
+- en: duplicate, drop a message, and actively try to sabotage the entire system. We
+    also define an adversary model here where we make some assumptions about an adversary
+    who can
+  prefs: []
+  type: TYPE_NORMAL
+- en: adversely affect the distributed system and corrupt the processors.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In authenticated Byzantine failures, it is possible to identify the source of
+    the
+  prefs: []
+  type: TYPE_NORMAL
+- en: message via identification and detect the forged messages, usually via digital
+    signatures.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Failures that occur under this assumption are called authenticated Byzantine
+    failures.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Messages can be authenticated or non-authenticated. Authenticated messages
+  prefs: []
+  type: TYPE_NORMAL
+- en: usually use digital signatures to allow forgery detection and message tampering.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The agreement problem becomes comparatively easier to solve with authenticated
+  prefs: []
+  type: TYPE_NORMAL
+- en: messages because recipients can detect the message forgery and reject the unsigned
+    or
+  prefs: []
+  type: TYPE_NORMAL
+- en: incorrectly signed messages or messages coming from unauthenticated processes.
+    On
+  prefs: []
+  type: TYPE_NORMAL
+- en: the other hand, distributed systems with non-authenticated messages are difficult
+    to
+  prefs: []
+  type: TYPE_NORMAL
+- en: deal with as there is no way to verify the authenticity of the messages. Non-authenticated
+    messages are also called oral messages or unsigned messages. Even though it is
+    difficult, 130
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 3 DistributeD Consensus
+  prefs: []
+  type: TYPE_NORMAL
+- en: it is indeed a common assumption about solving consensus or agreement problems.
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, digital signatures are ubiquitous in blockchain systems, and the model
+    under
+  prefs: []
+  type: TYPE_NORMAL
+- en: which blockchain consensus works is almost always authenticated Byzantine.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Channel Reliability**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: It is often assumed that the channel is reliable. Reliable channels guarantee
+    that if a
+  prefs: []
+  type: TYPE_NORMAL
+- en: correct process p has sent a message m to a correct process q, then q will eventually
+  prefs: []
+  type: TYPE_NORMAL
+- en: receive m. In practice, this is usually the TCP/IP protocol that provides reliability.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Lossy channels are another assumption that captures the notion of channels where
+  prefs: []
+  type: TYPE_NORMAL
+- en: messages can be lost. This can happen due to poor network conditions, delays,
+    denial-of-
+  prefs: []
+  type: TYPE_NORMAL
+- en: service attacks, hacking attacks in general, slow network, a misconfiguration
+    in the network configuration, noise, buffer overflows, network congestion, and
+    physical disconnections.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There might be many other reasons, but I just described the most common ones.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are two variations of fair-loss channels. There is an upper bound k on
+    the
+  prefs: []
+  type: TYPE_NORMAL
+- en: number of lost messages in one variation, and in another, known as fair-loss
+    channels,
+  prefs: []
+  type: TYPE_NORMAL
+- en: there is no such upper bound. The first variation is easier to handle where
+    the algorithm can retransmit the message k+1 times, ensuring that at least one
+    copy is received. In
+  prefs: []
+  type: TYPE_NORMAL
+- en: the latter variation, the fair-loss channels, if the sender keeps resending
+    a message,
+  prefs: []
+  type: TYPE_NORMAL
+- en: eventually it is delivered, provided that both the sender and the receiver are
+    correct. We discussed this in greater detail in Chapt[er 1](https://doi.org/10.1007/978-1-4842-8179-6_1).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**History**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Consensus problems have been studied for decades in distributed computing. Achieving
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'consensus under faults was first proposed by Lamport et al. in their paper
+    “SIFT: Design'
+  prefs: []
+  type: TYPE_NORMAL
+- en: and analysis of a fault-tolerant computer for aircraft control.”
+  prefs: []
+  type: TYPE_NORMAL
+- en: Later, a Byzantine fault–tolerant protocol under a synchronous setting was first
+  prefs: []
+  type: TYPE_NORMAL
+- en: proposed by Lamport et al. in their seminal paper “Reaching Agreement in the
+    Presence
+  prefs: []
+  type: TYPE_NORMAL
+- en: of Faults.”
+  prefs: []
+  type: TYPE_NORMAL
+- en: The impossibility of reaching an agreement even if a single process crash-fails
+    was
+  prefs: []
+  type: TYPE_NORMAL
+- en: proven by Fischer, Lynch, and Paterson. This discovery is infamously known as
+    the FLP
+  prefs: []
+  type: TYPE_NORMAL
+- en: impossibility result.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Ben-Or proposed asynchronous Byzantine fault tolerance using randomization to
+  prefs: []
+  type: TYPE_NORMAL
+- en: circumvent FLP. In addition, partial synchrony was presented in DLS 88 for BFT.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '131'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 3 DistributeD Consensus
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Two Generals’ Problem**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Two Generals’ Paradox or Two Generals’ Problem was formulated by Gray et
+    al. in
+  prefs: []
+  type: TYPE_NORMAL
+- en: 1978\. In this thought experiment, two generals are sharing a common goal to
+    capture
+  prefs: []
+  type: TYPE_NORMAL
+- en: a hill. The condition is that if both of those generals act simultaneously and
+    attack the hill together at the same time, then success is guaranteed. If either
+    one of the generals attacks alone, they will lose the battle. It is also assumed
+    that both generals are camped some distance apart, and they can communicate only
+    via messengers (runners).
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, these messengers are not reliable and can get lost or captured. If
+    one general
+  prefs: []
+  type: TYPE_NORMAL
+- en: sends a message to another general to attack, for example, “Attack at 0400 hours,”
+    then
+  prefs: []
+  type: TYPE_NORMAL
+- en: it is possible that the message doesn’t reach the other general. Suppose the
+    message
+  prefs: []
+  type: TYPE_NORMAL
+- en: doesn’t reach the second general. In that case, it is impossible to differentiate
+    whether the first general sent a message or not or the messenger got captured
+    on its way to the
+  prefs: []
+  type: TYPE_NORMAL
+- en: second general. The general who has sent the message cannot assume that his
+    message
+  prefs: []
+  type: TYPE_NORMAL
+- en: got through because unless he receives an explicit acknowledgment from the second
+  prefs: []
+  type: TYPE_NORMAL
+- en: general, he cannot be sure. Now the question is what protocol we can come up
+    with
+  prefs: []
+  type: TYPE_NORMAL
+- en: to reach an agreement on a plan to attack. The situation is tricky because there
+    is no
+  prefs: []
+  type: TYPE_NORMAL
+- en: common knowledge between the generals, and the only way to know is via messengers,
+  prefs: []
+  type: TYPE_NORMAL
+- en: which are unreliable.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Both generals have two options. Either they can go ahead regardless of any
+  prefs: []
+  type: TYPE_NORMAL
+- en: acknowledgment received from the other general, or they don’t and wait until
+    a response
+  prefs: []
+  type: TYPE_NORMAL
+- en: is received (acknowledgment) from the other general. In the first case, the
+    risk is that the general goes ahead without a response from the other general
+    and might end up alone
+  prefs: []
+  type: TYPE_NORMAL
+- en: in the attack and gets defeated. In the latter case, the general will not act
+    until a response is received. In this case, the first general waiting for an acknowledgment
+    is safe because he will only attack if the response is received. So now it becomes
+    the second general’s
+  prefs: []
+  type: TYPE_NORMAL
+- en: responsibility to decide whether to attack and be alone or wait for an acknowledgment
+  prefs: []
+  type: TYPE_NORMAL
+- en: from the first general that he has received the acknowledgment. One solution
+    that comes
+  prefs: []
+  type: TYPE_NORMAL
+- en: to mind is that perhaps if generals send a lot of messengers, then there is
+    a probability that at least one might get through, but there is also a chance
+    that all messengers are
+  prefs: []
+  type: TYPE_NORMAL
+- en: captured, and no message goes through. For example, if general 1 sends many
+    messages
+  prefs: []
+  type: TYPE_NORMAL
+- en: to general 2 and all messengers are lost, then general 2 doesn’t know about
+    the attack,
+  prefs: []
+  type: TYPE_NORMAL
+- en: and if general 1 goes ahead and attacks, then the battle is lost.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Two Generals’ Problem is depicted in Figure [3-8\.](#p152)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '132'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](index-152_1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Chapter 3 DistributeD Consensus
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Figure 3-8\.** Two Generals’ Problem*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In Figur[e 3-8, t](#p152)wo generals must agree on the time to attack; otherwise,
+    no win.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The issue is that no general can ever be sure about the commitment from the
+  prefs: []
+  type: TYPE_NORMAL
+- en: other general. If general 1 always attacks even if no acknowledgment is received
+    from
+  prefs: []
+  type: TYPE_NORMAL
+- en: general 2, then general 1 risks being alone in the attack if all messengers
+    are lost. This is the case because general 2 knows nothing about the attack. If
+    general 1 attacks
+  prefs: []
+  type: TYPE_NORMAL
+- en: only if a positive acknowledgment is received from general 2, then general 1
+    is safe.
+  prefs: []
+  type: TYPE_NORMAL
+- en: General 2 is in the same situation as general 1 because now he is waiting for
+    general 1’s acknowledgment. General 2 might consider himself safe as he knows
+    that general 1 will
+  prefs: []
+  type: TYPE_NORMAL
+- en: only attack if general 2’s response is received by general 1\. General 2 is
+    now waiting for the acknowledgment from general 1\. They are both thinking about
+    whether the other
+  prefs: []
+  type: TYPE_NORMAL
+- en: general received their message or not, hence the paradox!
+  prefs: []
+  type: TYPE_NORMAL
+- en: From a distributed system perspective, this experiment depicts a situation where
+    two
+  prefs: []
+  type: TYPE_NORMAL
+- en: processes have no common knowledge, and the only way they can find out about
+    the
+  prefs: []
+  type: TYPE_NORMAL
+- en: state of each other is via messages.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Byzantine Generals Problem**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Byzantine generals problem was proposed by Lamport in 1982\. In this thought
+  prefs: []
+  type: TYPE_NORMAL
+- en: experiment, an imaginary scenario is presented in which three or more army units
+    are
+  prefs: []
+  type: TYPE_NORMAL
+- en: camped around a city, and the collective aim of the units is to capture the
+    city. Each
+  prefs: []
+  type: TYPE_NORMAL
+- en: army unit is led by a general, and they communicate via messengers. The city
+    can only
+  prefs: []
+  type: TYPE_NORMAL
+- en: be captured if all army units attack simultaneously.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The requirement here is to reach an agreement to attack so that all armies can
+    attack
+  prefs: []
+  type: TYPE_NORMAL
+- en: at the same time and as a result capture the city.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '133'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](index-153_1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Chapter 3 DistributeD Consensus
+  prefs: []
+  type: TYPE_NORMAL
+- en: The problems this setting can face are
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Messages can be lost, that is, messengers can be captured or lost.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Any general can be a traitor who can send misleading messages to
+  prefs: []
+  type: TYPE_NORMAL
+- en: other generals, can withhold the messages, may not send messages to
+  prefs: []
+  type: TYPE_NORMAL
+- en: all generals, may tamper with the messages before relaying them to
+  prefs: []
+  type: TYPE_NORMAL
+- en: other generals, or can send contradictory messages, all with an aim to
+  prefs: []
+  type: TYPE_NORMAL
+- en: subvert the agreement process between the generals.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • The honest generals also don’t know who the traitors are, but traitors
+  prefs: []
+  type: TYPE_NORMAL
+- en: can collude together.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The challenge here is whether in this situation an agreement can be reached
+    and
+  prefs: []
+  type: TYPE_NORMAL
+- en: what protocol can solve this problem, if any. Figure [3-9](#p153) shows this
+    problem.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Figure 3-9\.** Byzantine generals problem – showing each army unit receiving*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*misleading, correct, or no messages at all*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '134'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 3 DistributeD Consensus
+  prefs: []
+  type: TYPE_NORMAL
+- en: It turns out that this problem is impossible to solve. It has been proven that
+    this
+  prefs: []
+  type: TYPE_NORMAL
+- en: problem can be solved only if fewer than one-third of generals are traitors.
+    For example, if there are 3t + 1 generals, only up to t can be malicious. This
+    is a proven lower bound on the Byzantine fault tolerance. We will see this more
+    formally under the section
+  prefs: []
+  type: TYPE_NORMAL
+- en: “Impossibility Results” where we discuss FLP, CFT lower bounds, and BFT lower
+    bounds.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In distributed systems, we can have an analog where generals represent processes
+  prefs: []
+  type: TYPE_NORMAL
+- en: (nodes), traitors represent Byzantine processes, honest generals represent correct
+  prefs: []
+  type: TYPE_NORMAL
+- en: processes, messengers represent communication links, loss of a message is a
+    captured
+  prefs: []
+  type: TYPE_NORMAL
+- en: messenger, and no time limit on the messenger to reach generals represents asynchrony.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I think you get the picture now!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Replication**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this section, we will discuss replication. Replication is used to maintain
+    an exact copy of the data in multiple nodes. This technique has several advantages.
+    One key advantage
+  prefs: []
+  type: TYPE_NORMAL
+- en: is fault tolerance. One example of the simplest replication is RAID in storage
+    systems.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, in RAID-1, there are two disks, and they are exact replicas (mirror)
+    of each other. If one is unavailable, the copy is available, resulting in fault
+    tolerance and high availability. In distributed systems, replication is used for
+    various reasons and, unlike RAID, is between multiple nodes instead of just between
+    two disks within a server.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Also, if data remains unchanged, then replication is easy. You can just make
+    a one-off
+  prefs: []
+  type: TYPE_NORMAL
+- en: copy of the data and store it on another disk or node. The challenging part
+    is how to keep replication consistent when the data is subject to constant change.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'There are several advantages:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: • High availability due to fault tolerance, for example, if one replica
+  prefs: []
+  type: TYPE_NORMAL
+- en: goes down, another is available to serve clients.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Load distribution due to each replica node being an independent
+  prefs: []
+  type: TYPE_NORMAL
+- en: node, and clients can send requests to different nodes (or can be
+  prefs: []
+  type: TYPE_NORMAL
+- en: managed via load balancers to route requests to less busy replicas –
+  prefs: []
+  type: TYPE_NORMAL
+- en: load balancing). The load can be distributed among different replicas
+  prefs: []
+  type: TYPE_NORMAL
+- en: to achieve higher performance.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Data consistency means that the same copy of data is available across
+  prefs: []
+  type: TYPE_NORMAL
+- en: all nodes, which helps with the integrity of the overall system.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '135'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 3 DistributeD Consensus
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Better performance, which is achieved via load balancing, where
+  prefs: []
+  type: TYPE_NORMAL
+- en: nodes that are less busy can take up the requests in case other nodes
+  prefs: []
+  type: TYPE_NORMAL
+- en: are near or full capacity. There are several techniques for this, which
+  prefs: []
+  type: TYPE_NORMAL
+- en: are beyond the scope of this book; however, usually load balancers
+  prefs: []
+  type: TYPE_NORMAL
+- en: are used which route requests from clients usually in a round-robin
+  prefs: []
+  type: TYPE_NORMAL
+- en: fashion to replicas. This way, the load is distributed across multiple
+  prefs: []
+  type: TYPE_NORMAL
+- en: replicas instead of one node getting all the hits and as a result
+  prefs: []
+  type: TYPE_NORMAL
+- en: becoming less responsive due to CPU load.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Data locality, where, especially in a geographically distributed
+  prefs: []
+  type: TYPE_NORMAL
+- en: network, the nodes that are local to a client can serve the requests
+  prefs: []
+  type: TYPE_NORMAL
+- en: instead of scenarios where there might be only one node in some
+  prefs: []
+  type: TYPE_NORMAL
+- en: remote data center and all clients either geographically close or
+  prefs: []
+  type: TYPE_NORMAL
+- en: far make requests to only that single server. The clients that are
+  prefs: []
+  type: TYPE_NORMAL
+- en: physically nearer to the server will get their response quicker as
+  prefs: []
+  type: TYPE_NORMAL
+- en: compared to clients that are physically located cities or continents
+  prefs: []
+  type: TYPE_NORMAL
+- en: apart. For example, in file download services, a mirror that is, for
+  prefs: []
+  type: TYPE_NORMAL
+- en: example, available in Ireland will be able to serve the download
+  prefs: []
+  type: TYPE_NORMAL
+- en: requests much faster than a server that might be in Australia.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The network latency alone makes such setting vulnerable to
+  prefs: []
+  type: TYPE_NORMAL
+- en: performance hit.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'There are some shortcomings as well:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: • High cost, due to multiple replica nodes required, the setup might be
+  prefs: []
+  type: TYPE_NORMAL
+- en: expensive.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Maintaining data consistency among replicas is hard.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Replication can be achieved by using two methods. One is the state transfer,
+    where
+  prefs: []
+  type: TYPE_NORMAL
+- en: a state is sent from one node to another replica. The other approach is state
+    machine
+  prefs: []
+  type: TYPE_NORMAL
+- en: replication. Each replica is a state machine that runs commands deterministically
+    in the
+  prefs: []
+  type: TYPE_NORMAL
+- en: same sequence as other replicas, resulting in a consistent state across replicas.
+    Usually, in this case, a primary server receives the commands, which then broadcasts
+    them to
+  prefs: []
+  type: TYPE_NORMAL
+- en: other replicas that apply those commands.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are two common techniques for achieving replication. We define them as
+  prefs: []
+  type: TYPE_NORMAL
+- en: follows.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '136'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 3 DistributeD Consensus
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Active Replication**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this scheme, the client commands are ordered via an ordering protocol and
+    forwarded
+  prefs: []
+  type: TYPE_NORMAL
+- en: to replicas that execute those commands deterministically. The intuition here
+    is that if all commands are applied in the same order at all replicas, then each
+    replica will produce
+  prefs: []
+  type: TYPE_NORMAL
+- en: the same state update. This way, all replicas can be kept consistent with each
+    other. The key challenge here is to develop a scheme for ordering the commands
+    and that all nodes
+  prefs: []
+  type: TYPE_NORMAL
+- en: execute the same commands in the same order. Also, each replica starts in the
+    same
+  prefs: []
+  type: TYPE_NORMAL
+- en: state and is a copy of the original state machine. Active replication is also
+    known as **state** **machine replication**.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Passive Replication**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the passive replication approach, there is one replica that is designated
+    as primary.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This primary replica is responsible for executing the commands and sending (broadcast)
+  prefs: []
+  type: TYPE_NORMAL
+- en: the updates to each replica, including itself. All replicas then apply the state
+    update
+  prefs: []
+  type: TYPE_NORMAL
+- en: in the order received. Unlike active replication, the processing is not required
+    to be
+  prefs: []
+  type: TYPE_NORMAL
+- en: deterministic, and any anomalies are usually resolved by the designated primary
+    replica
+  prefs: []
+  type: TYPE_NORMAL
+- en: and produce deterministic state updates. This approach is also called **primary
+    backup**
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**replication**. In short, there is only a single copy of the state machine
+    in the system kept by the primary replica, and the rest of the replicas only maintain
+    the state.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Pros and Cons**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are pros and cons of both approaches. Active replication can result in
+    wastage of
+  prefs: []
+  type: TYPE_NORMAL
+- en: resources if the operations are intensive. In the case of passive replication,
+    large updates can consume a large amount of network bandwidth. Furthermore, in
+    passive replication,
+  prefs: []
+  type: TYPE_NORMAL
+- en: as there is one primary replica, if it fails, the performance and availability
+    of the system are impacted.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the passive approach, client write requests are preprocessed by the primary
+    and
+  prefs: []
+  type: TYPE_NORMAL
+- en: transformed into state update commands, which apply to all replicas in the same
+    order.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Each replica is a copy of the state machine in active replication, whereas,
+    in passive
+  prefs: []
+  type: TYPE_NORMAL
+- en: replication, only the primary is a single copy of the state machine.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '137'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 3 DistributeD Consensus
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note that even though there is a distinction between active and passive replication
+    at
+  prefs: []
+  type: TYPE_NORMAL
+- en: a fundamental level, they both are generic approaches to making a state machine
+  prefs: []
+  type: TYPE_NORMAL
+- en: fault-tolerant.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s now see how primary backup replication works. I am assuming a fail-stop
+  prefs: []
+  type: TYPE_NORMAL
+- en: model here.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Primary Backup Replication**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Primary backup replication is the most common type of replication scheme. There
+    is
+  prefs: []
+  type: TYPE_NORMAL
+- en: one replica that is designated primary, and the rest of the nodes are backups.
+    A correct
+  prefs: []
+  type: TYPE_NORMAL
+- en: process bearing the lowest identifier is designated as a primary replica. A
+    client sends
+  prefs: []
+  type: TYPE_NORMAL
+- en: requests to the designated primary, which forwards the request(s) to all backups.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The primary replies to the client only after it has received responses from
+    the backups.
+  prefs: []
+  type: TYPE_NORMAL
+- en: When the client makes a write request, the primary sends the request to all
+    replicas, and after receiving the response from the backups, it makes the update
+    to itself (deliver to
+  prefs: []
+  type: TYPE_NORMAL
+- en: itself).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The algorithm works as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 1\. The client sends a write request to the primary.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 2\. The primary broadcasts it to the backup replicas.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3\. Backup replicas send an acknowledgment (response) to the
+  prefs: []
+  type: TYPE_NORMAL
+- en: primary replica.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 4\. The primary waits until it has received all responses from backup
+  prefs: []
+  type: TYPE_NORMAL
+- en: replicas.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 5\. Once it has received all responses, it delivers the request to itself.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is called the commit point.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 6\. After this, the primary sends the response back to the client.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the case of read operation
+  prefs: []
+  type: TYPE_NORMAL
+- en: 1\. The client sends a request to the primary.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 2\. The primary responds.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figur[e 3-10 illus](#p158)trates this concept.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '138'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](index-158_1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Chapter 3 DistributeD Consensus
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Figure 3-10\.** Primary backup replication*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: How are failures handled? If the primary fails, one of the backups will take
+    over.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now, this looks like a suitable protocol for achieving fault tolerance, but
+    what if the
+  prefs: []
+  type: TYPE_NORMAL
+- en: primary fails? Primary failure can lead to downtime as recovery can take time.
+    Also,
+  prefs: []
+  type: TYPE_NORMAL
+- en: reading from the primary can produce incorrect results because, in scenarios
+    where
+  prefs: []
+  type: TYPE_NORMAL
+- en: the client makes a read request to the primary before the commit point, the
+    primary
+  prefs: []
+  type: TYPE_NORMAL
+- en: will not produce the result, even though all replicas have that update delivered
+    to them.
+  prefs: []
+  type: TYPE_NORMAL
+- en: One solution might be to deal with reads as updates, but this technique is relatively
+  prefs: []
+  type: TYPE_NORMAL
+- en: inefficient. Also, the primary is doing all the work, that is, sending to other
+    replicas, receiving responses, committing, and then replying to the client. Also,
+    the primary must
+  prefs: []
+  type: TYPE_NORMAL
+- en: wait until all responses are received from the replicas for it to be able to
+    respond to the client. A better solution, as compared to the primary backup replica
+    solution, is chain
+  prefs: []
+  type: TYPE_NORMAL
+- en: replication. Here, the core idea is that one of the backup servers will reply
+    to read the requests, and another will process the update commands.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Chain Replication**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chain replication organizes replicas in a chain with a head and a tail. The
+    head is the
+  prefs: []
+  type: TYPE_NORMAL
+- en: server with the maximum number, whereas the tail is the one with the lowest
+    number.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Write requests or update commands are sent to the head, which sends the request
+    using
+  prefs: []
+  type: TYPE_NORMAL
+- en: reliable FIFO links to the next replica on the chain, and the next replica then
+    forwards it to the next until the update reaches the last (tail) server. The tail
+    server then responds to the client. The head replica orders the requests coming
+    in from the clients.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '139'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](index-159_1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Chapter 3 DistributeD Consensus
+  prefs: []
+  type: TYPE_NORMAL
+- en: For a read request (query), the client sends it directly to the tail, and the
+    tail replies.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It is easy to recover when the tail fails by just reselecting the predecessor
+    as the new tail.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If the head fails, its successor becomes the new head and clients are notified.
+    Figure [3-11](#p159)
+  prefs: []
+  type: TYPE_NORMAL
+- en: shows how chain replication works.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Figure 3-11\.** Chain replication*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chain replication provides high availability, high throughput, and strong
+  prefs: []
+  type: TYPE_NORMAL
+- en: consistency. It can tolerate up to *n* – 1 failures.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**State Machine Replication**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The state machine methodology was introduced by Leslie Lamport in his seminal
+    paper
+  prefs: []
+  type: TYPE_NORMAL
+- en: “Time, Clocks, and the Ordering of Events in a Distributed System” in 1978\.
+    It is a de
+  prefs: []
+  type: TYPE_NORMAL
+- en: facto standard for achieving fault tolerance in distributed systems.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s first define what a state machine is. A state machine executes a sequence
+    of
+  prefs: []
+  type: TYPE_NORMAL
+- en: commands. It stores the state of the system. This stored state transitions to
+    the next
+  prefs: []
+  type: TYPE_NORMAL
+- en: state through a state transition function as a result of executing commands.
+    Commands
+  prefs: []
+  type: TYPE_NORMAL
+- en: are deterministic, and the resultant state and output are only determined by
+    the input
+  prefs: []
+  type: TYPE_NORMAL
+- en: commands which the machine has executed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The simple algorithm in Listing [3-1 des](#p160)cribes a state machine node.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '140'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](index-160_1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Chapter 3 DistributeD Consensus
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Listing 3-1\.*** State machine'
+  prefs: []
+  type: TYPE_NORMAL
+- en: state := initial
+  prefs: []
+  type: TYPE_NORMAL
+- en: log := lastcommand
+  prefs: []
+  type: TYPE_NORMAL
+- en: while (true) {
+  prefs: []
+  type: TYPE_NORMAL
+- en: on event receivecommand()
+  prefs: []
+  type: TYPE_NORMAL
+- en: '{'
+  prefs: []
+  type: TYPE_NORMAL
+- en: appendtolog(command)
+  prefs: []
+  type: TYPE_NORMAL
+- en: output := statetransition(command, state)
+  prefs: []
+  type: TYPE_NORMAL
+- en: sendtoclient(output)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '}'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '}'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this pseudocode, the state machine starts with an initial state. When a command
+  prefs: []
+  type: TYPE_NORMAL
+- en: is received from the client, it appends that to the log. After that, it executes
+    the command through the transition function and updates the state and produces
+    an output. This
+  prefs: []
+  type: TYPE_NORMAL
+- en: output is sent to the client as a response.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figur[e 3-12 illus](#p160)trates this concept.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Figure 3-12\.** State machine replica*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The key idea behind state machine replication is that if the system is modelled
+  prefs: []
+  type: TYPE_NORMAL
+- en: as a state machine, then replica consistency can be achieved by simply achieving
+    an
+  prefs: []
+  type: TYPE_NORMAL
+- en: agreement on the order of operations. If the same commands are applied to all
+    nodes in
+  prefs: []
+  type: TYPE_NORMAL
+- en: '141'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 3 DistributeD Consensus
+  prefs: []
+  type: TYPE_NORMAL
+- en: the same order, then a general approach to keep all replicas consistent with
+    each other is achieved. However, the challenge here is to figure out how to achieve
+    a common global
+  prefs: []
+  type: TYPE_NORMAL
+- en: order of the commands.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In order to achieve an agreement on the order of operations, we can use agreement
+  prefs: []
+  type: TYPE_NORMAL
+- en: protocols such as Byzantine agreement protocols or reliable broadcast protocols.
+    We
+  prefs: []
+  type: TYPE_NORMAL
+- en: discussed the total order broadcast abstraction earlier in this chapter. We
+    can also
+  prefs: []
+  type: TYPE_NORMAL
+- en: use consensus algorithms such as Paxos or PBFT to achieve this. Remember that
+    in
+  prefs: []
+  type: TYPE_NORMAL
+- en: total order broadcast, each process delivers the same message in the same order.
+    This
+  prefs: []
+  type: TYPE_NORMAL
+- en: property immediately solves our problem of achieving an agreement on the order
+    of
+  prefs: []
+  type: TYPE_NORMAL
+- en: operations, which is the core insight behind state machine replication. Total
+    order
+  prefs: []
+  type: TYPE_NORMAL
+- en: broadcast ensures that commands from different clients are delivered in the
+    same order.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If commands are delivered in the same order, they will be executed in the same
+    order
+  prefs: []
+  type: TYPE_NORMAL
+- en: and as state machine is deterministic, all replicas will end up in the same
+    state.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Each replica is a state machine which transitions its state to the next
+  prefs: []
+  type: TYPE_NORMAL
+- en: deterministically as a result of executing the input command. The state on each
+    replica
+  prefs: []
+  type: TYPE_NORMAL
+- en: is maintained as a set of (key, value) pairs. The output of commands is transitioned
+    from the current state to the next. Determinism is important because this ensures
+    that each
+  prefs: []
+  type: TYPE_NORMAL
+- en: command execution produces the same output. Each replica starts in the same
+    initial
+  prefs: []
+  type: TYPE_NORMAL
+- en: state. Total order broadcast delivers the same command to each replica in the
+    global
+  prefs: []
+  type: TYPE_NORMAL
+- en: order, which results in each replica executing the same sequence of commands
+    and
+  prefs: []
+  type: TYPE_NORMAL
+- en: transitioning to the same state. This achieves the same state at each replica.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This principle is also used in blockchains where a total order is achieved on
+    the
+  prefs: []
+  type: TYPE_NORMAL
+- en: sequence of transactions and blocks via some consensus mechanism, and each node
+  prefs: []
+  type: TYPE_NORMAL
+- en: executes and stores those transactions in the same sequence as other replicas
+    and as
+  prefs: []
+  type: TYPE_NORMAL
+- en: proposed by proof of work winner, leader. We will explore this in detail in
+    Chapt[er 5](https://doi.org/10.1007/978-1-4842-8179-6_5).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Traditional protocols such as Practical Byzantine Fault Tolerance (PBFT) and
+    RAFT are
+  prefs: []
+  type: TYPE_NORMAL
+- en: state machine replication protocols.
+  prefs: []
+  type: TYPE_NORMAL
+- en: SMR is usually used to achieve increased system performance and fault tolerance.
+  prefs: []
+  type: TYPE_NORMAL
+- en: System performance can increase because multiple replicas host copies of data,
+    and
+  prefs: []
+  type: TYPE_NORMAL
+- en: more resources are available due to multiple replicas. Fault tolerance increases
+    due to
+  prefs: []
+  type: TYPE_NORMAL
+- en: the simple fact that as data is replicated on each replica, even if some replicas
+    are not available, the system will continue to operate and respond to client queries
+    and updates.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now let’s look at SMR properties formally.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '142'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 3 DistributeD Consensus
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Same Initial State**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The replicas always start in the same initial state. It could just be an empty
+    database.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Deterministic Operations**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: All correct replicas deterministically produce the same output and state for
+    the same
+  prefs: []
+  type: TYPE_NORMAL
+- en: input and state.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Coordination**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: All correct replicas process the same commands in the same order.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The coordination property requires the use of agreement protocols such as total
+  prefs: []
+  type: TYPE_NORMAL
+- en: order broadcast or some consensus algorithms.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are also two *safety* and *liveness* properties which we describe as follows.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Safety**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: All correct replicas execute the same commands. This is the **agreement** property.
+    There are two general approaches to achieve an agreement. We can use either a
+    total order
+  prefs: []
+  type: TYPE_NORMAL
+- en: broadcast or a consensus protocol. A total order broadcast protocol needs to
+    run only
+  prefs: []
+  type: TYPE_NORMAL
+- en: once per state machine replication, whereas a consensus mechanism is instantiated
+    for
+  prefs: []
+  type: TYPE_NORMAL
+- en: each period of the sequence of commands.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Liveness**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: All correct commands are eventually executed by correct replicas. This is also
+    called the **completion** property.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Safety ensures consistency, whereas liveness ensures availability and progress.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figur[e 3-13 demons](#p163)trates how SMR generally works.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '143'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](index-163_1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Chapter 3 DistributeD Consensus
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Figure 3-13\.** State machine replication*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In Figur[e 3-13](#p163), we can see how the process works:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 1\. The client submits the command x = 5 to replica 1\.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 2\. Replica 1 sends this command to replica 2 and replica 3\.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3\. All replicas append the command to their logs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 4\. Each state machine on all replicas executes the command.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 5\. Replica 1 responds back to the client with the reply/result.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The replicated log on the replicas ensures that commands are executed by the
+    state
+  prefs: []
+  type: TYPE_NORMAL
+- en: machine in the same order on each replica. The consensus mechanism (in the top-left
+  prefs: []
+  type: TYPE_NORMAL
+- en: corner of the image) ensures that an agreement is achieved on the order of commands
+  prefs: []
+  type: TYPE_NORMAL
+- en: and as a result written into the log as such. This involves reaching an agreement
+    on the
+  prefs: []
+  type: TYPE_NORMAL
+- en: sequence of commands with other replicas. This replicated system will make progress
+    if
+  prefs: []
+  type: TYPE_NORMAL
+- en: majority of the replicas are up.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Consensus and state machine replication are related in the sense that distributed
+  prefs: []
+  type: TYPE_NORMAL
+- en: consensus establishes the global common order of state machine commands, whereas
+  prefs: []
+  type: TYPE_NORMAL
+- en: the state machine executes these commands according to the global order determined
+  prefs: []
+  type: TYPE_NORMAL
+- en: by the consensus (agreement) algorithm, and thus each node (state machine) reaches
+  prefs: []
+  type: TYPE_NORMAL
+- en: the same state.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '144'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 3 DistributeD Consensus
+  prefs: []
+  type: TYPE_NORMAL
+- en: A crash fault–tolerant SMR requires at least 2f+1 replicas, whereas a BFT SMR
+  prefs: []
+  type: TYPE_NORMAL
+- en: requires 3f+1 replicas, where f is the number of failed replicas.
+  prefs: []
+  type: TYPE_NORMAL
+- en: State machine replication achieves consistency among replicas. There are various
+  prefs: []
+  type: TYPE_NORMAL
+- en: replica consistency models. We’ll briefly explore them here.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Linearizability**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Another stronger property that a state machine replication protocol may implement
+    is
+  prefs: []
+  type: TYPE_NORMAL
+- en: called linearizability. Linearizability is also called atomic consistency, and
+    it means that command execution appears as if executed on a single copy of the
+    state machine, even
+  prefs: []
+  type: TYPE_NORMAL
+- en: if there are multiple replicas. The critical requirement of linearizability
+    is that the state read is always up to date, and no stale data is ever read.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Consistency models allow developers to understand the behavior of the replicated
+  prefs: []
+  type: TYPE_NORMAL
+- en: storage system. When interacting with a replicated system, the application developers
+  prefs: []
+  type: TYPE_NORMAL
+- en: experience the same behavior as interacting with a single system. Such transparency
+  prefs: []
+  type: TYPE_NORMAL
+- en: allows developers to use the same single server convention of writing application
+    logic. If a replicated system possesses such transparency, then it is said to
+    be linearizable.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In literature, linearizability is also called strong consistency, atomic consistency,
+    or
+  prefs: []
+  type: TYPE_NORMAL
+- en: immediate consistency.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Sequential Consistency**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this type of consistency, all nodes see the same order of commands as other
+    nodes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Linearizability and sequential consistency are two classes of **strong consistency**.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Eventual Consistency**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Under the eventual consistency model, there is an eventual guarantee that each
+    replica
+  prefs: []
+  type: TYPE_NORMAL
+- en: will be in the same state if there are no more updates. However, this implies
+    that there
+  prefs: []
+  type: TYPE_NORMAL
+- en: is no timing guarantee because updates may never stop. Therefore, this is not
+    quite a
+  prefs: []
+  type: TYPE_NORMAL
+- en: reliable model. Another stronger scheme is called strong eventual consistency
+    which
+  prefs: []
+  type: TYPE_NORMAL
+- en: has two properties. Firstly, updates applied to one honest replica are eventually
+    applied to every nonfaulty replica. Secondly, regardless of the order in which
+    the updates have
+  prefs: []
+  type: TYPE_NORMAL
+- en: been processed, if two replicas have processed the same set of updates, they
+    end up
+  prefs: []
+  type: TYPE_NORMAL
+- en: in the same state. The first property is called eventual delivery, whereas the
+    second
+  prefs: []
+  type: TYPE_NORMAL
+- en: property is named convergence.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '145'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 3 DistributeD Consensus
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are several advantages of this approach. It allows replicas to progress
+    without
+  prefs: []
+  type: TYPE_NORMAL
+- en: network connectivity until the connectivity is restored, and eventually replicas
+    converge to the same state. Eventual consistency can work with weaker models of
+    broadcast,
+  prefs: []
+  type: TYPE_NORMAL
+- en: instead of total order broadcast.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Eventual consistency has several categories such as last write wins. The technique
+  prefs: []
+  type: TYPE_NORMAL
+- en: here is to apply updates with the most recent timestamp and discard any other
+    updates
+  prefs: []
+  type: TYPE_NORMAL
+- en: writing to the same key (updating the same data) with lower timestamps. This
+    means
+  prefs: []
+  type: TYPE_NORMAL
+- en: that we accept some data loss in favor of eventually converging state at all
+    replicas.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**SMR Using Weaker Broadcast Abstractions**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: SMR makes use of total order broadcast for achieving a global order of commands
+    in
+  prefs: []
+  type: TYPE_NORMAL
+- en: the system. Here, the question arises whether we can use weaker types of broadcast
+  prefs: []
+  type: TYPE_NORMAL
+- en: abstractions to build state machine replication. The answer is yes; however,
+    a property
+  prefs: []
+  type: TYPE_NORMAL
+- en: called “commutativity” is required along with some other properties. Updates
+    are
+  prefs: []
+  type: TYPE_NORMAL
+- en: commutative if the order of two updates does not matter, for example, in arithmetic,
+  prefs: []
+  type: TYPE_NORMAL
+- en: A + B = B + A, the order of A and B doesn’t matter; it will achieve the same
+    result.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Similarly, we say that commands x and y commute, if in every state *s* of the
+    state machine executing x before y or y executing before x results in the same
+    state update and x and y returns the same response when executed. In this, we
+    say x and y commute.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The key insight here is that if replica state updates are commutative, then
+    replicas
+  prefs: []
+  type: TYPE_NORMAL
+- en: can process the commands in any order and still would end up in the same state.
+    Of
+  prefs: []
+  type: TYPE_NORMAL
+- en: course, you must build commutative mechanics into the protocol. Table [3-1](#p166)
+    shows different broadcasts and relevant properties along with assumptions regarding
+    a state
+  prefs: []
+  type: TYPE_NORMAL
+- en: update[.1](#p165)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 1 This table has been adapted from wonderful lectures on distributed computing
+    by Dr. Martin Kleppmann.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '146'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 3 DistributeD Consensus
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Table 3-1\.** Broadcasts and requirements to build replication*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Type of**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Key Property**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**State Update Requirement**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Broadcast**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: total order
+  prefs: []
+  type: TYPE_NORMAL
+- en: all messages delivered in the same order at Deterministic
+  prefs: []
+  type: TYPE_NORMAL
+- en: all replicas
+  prefs: []
+  type: TYPE_NORMAL
+- en: Causal
+  prefs: []
+  type: TYPE_NORMAL
+- en: Delivers messages in causal order, but
+  prefs: []
+  type: TYPE_NORMAL
+- en: Deterministic, concurrent updates
+  prefs: []
+  type: TYPE_NORMAL
+- en: broadcast
+  prefs: []
+  type: TYPE_NORMAL
+- en: concurrent messages could be delivered in commutativity
+  prefs: []
+  type: TYPE_NORMAL
+- en: any order
+  prefs: []
+  type: TYPE_NORMAL
+- en: reliable
+  prefs: []
+  type: TYPE_NORMAL
+- en: no ordering guarantee with no duplicate
+  prefs: []
+  type: TYPE_NORMAL
+- en: Deterministic, all updates
+  prefs: []
+  type: TYPE_NORMAL
+- en: broadcast
+  prefs: []
+  type: TYPE_NORMAL
+- en: messages
+  prefs: []
+  type: TYPE_NORMAL
+- en: commutativity
+  prefs: []
+  type: TYPE_NORMAL
+- en: best-effort
+  prefs: []
+  type: TYPE_NORMAL
+- en: best effort, no delivery guarantee
+  prefs: []
+  type: TYPE_NORMAL
+- en: Deterministic, commutative,
+  prefs: []
+  type: TYPE_NORMAL
+- en: broadcast
+  prefs: []
+  type: TYPE_NORMAL
+- en: idempotent, and tolerates message
+  prefs: []
+  type: TYPE_NORMAL
+- en: loss
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now let’s explore some fundamental results in distributed computing which
+  prefs: []
+  type: TYPE_NORMAL
+- en: underpins distributed protocols and algorithms.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Fundamental Results**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In distributed computing, there are many fundamental results that have been
+    reported
+  prefs: []
+  type: TYPE_NORMAL
+- en: by researchers. These fundamental results provide the foundation on which the
+  prefs: []
+  type: TYPE_NORMAL
+- en: distributed computing paradigm stands. Most interesting of these are impossibility
+  prefs: []
+  type: TYPE_NORMAL
+- en: results.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Impossibility Results**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Impossibility results provide us an understanding of whether a problem is solvable
+  prefs: []
+  type: TYPE_NORMAL
+- en: or not and the minimum resources required to do so. If a problem is unsolvable,
+    then
+  prefs: []
+  type: TYPE_NORMAL
+- en: these results provide a clear understanding why a specific problem is unsolvable.
+    If
+  prefs: []
+  type: TYPE_NORMAL
+- en: an impossibility result is proven, then no further research is necessary on
+    that, and
+  prefs: []
+  type: TYPE_NORMAL
+- en: researchers can focus their attention on other problems or to circumvent these
+    results
+  prefs: []
+  type: TYPE_NORMAL
+- en: somehow. These results show us that certain problems are unsolvable unless sufficient
+  prefs: []
+  type: TYPE_NORMAL
+- en: resources are provided. In other words, they show that certain problems cannot
+    be
+  prefs: []
+  type: TYPE_NORMAL
+- en: computed if resources are insufficient. There are problems that are outright
+    unsolvable,
+  prefs: []
+  type: TYPE_NORMAL
+- en: '147'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 3 DistributeD Consensus
+  prefs: []
+  type: TYPE_NORMAL
+- en: and some are solvable only if given enough resources. The requirement of minimum
+  prefs: []
+  type: TYPE_NORMAL
+- en: available resources to solve a problem is known as **lower bound results**.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In order to prove that some problems cannot be solved, it is essential to define
+    a
+  prefs: []
+  type: TYPE_NORMAL
+- en: system model and the class of allowable algorithms. Some problems are solvable
+    under
+  prefs: []
+  type: TYPE_NORMAL
+- en: one model but not in others. For example, consensus is unsolvable under asynchronous
+  prefs: []
+  type: TYPE_NORMAL
+- en: network assumptions but is solvable under synchronous and in partially synchronous
+  prefs: []
+  type: TYPE_NORMAL
+- en: networks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: One of the most fundamental results in distributed computing is how many nodes/
+  prefs: []
+  type: TYPE_NORMAL
+- en: processes are required to tolerate crash only and Byzantine faults.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Minimum Number of Processes**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: It has been proven that a certain minimum number of processes is required to
+    solve
+  prefs: []
+  type: TYPE_NORMAL
+- en: consensus. If there is no failure, then consensus (agreement) is achievable
+    in both
+  prefs: []
+  type: TYPE_NORMAL
+- en: synchronous and asynchronous models. Consensus is not possible in asynchronous
+  prefs: []
+  type: TYPE_NORMAL
+- en: systems, but in synchronous systems under a crash failure model and Byzantine
+    failure
+  prefs: []
+  type: TYPE_NORMAL
+- en: model, consensus can be achieved. However, there is a lower bound on the ratio
+    of fault
+  prefs: []
+  type: TYPE_NORMAL
+- en: processes. Consensus can only be achieved if less than one-third of the processors
+    are
+  prefs: []
+  type: TYPE_NORMAL
+- en: Byzantine.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Lamport showed that when faulty nodes do not exceed one-third, then honest nodes
+  prefs: []
+  type: TYPE_NORMAL
+- en: can always reach consensus.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Crash Failure**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: To achieve crash fault tolerance, the tight lower bound is N => 2F + 1, where
+    F is the number of failed nodes. This means that a minimum of three processes
+    are required, if
+  prefs: []
+  type: TYPE_NORMAL
+- en: one crash-fails to achieve crash fault tolerance. Consensus is impossible to
+    solve if n <=
+  prefs: []
+  type: TYPE_NORMAL
+- en: 2f in crash fault–tolerant settings.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Byzantine Failure**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: To achieve Byzantine fault tolerance, the tight lower bound is N >= 3F + 1,
+    where F is the number of failed nodes. This means that a minimum of four nodes
+    are required, if one
+  prefs: []
+  type: TYPE_NORMAL
+- en: fails arbitrarily to achieve Byzantine fault tolerance.
+  prefs: []
+  type: TYPE_NORMAL
+- en: No algorithm can solve a consensus problem if n<=3f, where n are nodes and f
+    are
+  prefs: []
+  type: TYPE_NORMAL
+- en: Byzantine nodes. There is a proven tight lower bound of 3F+1 on the number of
+    faulty
+  prefs: []
+  type: TYPE_NORMAL
+- en: processors.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '148'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 3 DistributeD Consensus
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Minimum Connectivity**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The minimum network connectivity to tolerate failures is at least 2f+1\.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Minimum Rounds**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The minimum number of rounds required is f+1, where f can fail. This is because
+    one
+  prefs: []
+  type: TYPE_NORMAL
+- en: round more than the number of failures ought to have one round failure-free,
+    thus
+  prefs: []
+  type: TYPE_NORMAL
+- en: allowing consensus.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**FLP Impossibility**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The FLP impossibility result states that it is impossible to solve consensus
+  prefs: []
+  type: TYPE_NORMAL
+- en: deterministically in a message-passing asynchronous system in which at most
+    one
+  prefs: []
+  type: TYPE_NORMAL
+- en: process may fail by crashing. In other words, in a system comprising n nodes
+    with
+  prefs: []
+  type: TYPE_NORMAL
+- en: unbounded delays there is no algorithm that can solve consensus. Either there
+    will be
+  prefs: []
+  type: TYPE_NORMAL
+- en: executions in which no agreement is achieved or there will be an execution which
+    does
+  prefs: []
+  type: TYPE_NORMAL
+- en: not terminate (infinite execution).
+  prefs: []
+  type: TYPE_NORMAL
+- en: The key issue on which the FLP impossibility result is based is that in an
+  prefs: []
+  type: TYPE_NORMAL
+- en: asynchronous system, it is impossible to differentiate between a crashed process
+    and a
+  prefs: []
+  type: TYPE_NORMAL
+- en: process that is simply slow or has sent a message on a slow link, and it’s just
+    taking time to reach the recipient.
+  prefs: []
+  type: TYPE_NORMAL
+- en: FLP is one of the most fundamental unsolvability results in distributed computing.
+  prefs: []
+  type: TYPE_NORMAL
+- en: FLP is named after the authors MICHAEL J. FISCHER, NANCY A. LYNCH AND
+  prefs: []
+  type: TYPE_NORMAL
+- en: MICHAEL S. PATERSON who reported this result in 1982 in their paper “Impossibility
+    of
+  prefs: []
+  type: TYPE_NORMAL
+- en: Distributed Consensus with One Faulty Process.”
+  prefs: []
+  type: TYPE_NORMAL
+- en: A configuration of global state C is univalent if all executions starting from
+    C output
+  prefs: []
+  type: TYPE_NORMAL
+- en: the same value, that is, there is only one possible output. The configuration
+    is 0-valent if it results in deciding 0 and 1-valent if it results in deciding
+    1\. A configuration of global state C is bivalent if there are two executions
+    starting from C that output different values.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We can visualize this in Figur[e 3-14\.](#p169)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '149'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](index-169_1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Chapter 3 DistributeD Consensus
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Figure 3-14\.** Univalent and bivalent configuration*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The key idea behind FLP is that a bivalent configuration can always transition
+    to
+  prefs: []
+  type: TYPE_NORMAL
+- en: some bivalent configuration. As there is an initial bivalent configuration,
+    it follows that there is a nonterminating execution, leading to only bivalent
+    configurations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We can understand this through a scenario. Suppose you have two different sets
+    of
+  prefs: []
+  type: TYPE_NORMAL
+- en: nodes, say set A and set B, each with five nodes. In a five-node network with
+    no failures, the majority (i.e., three out of five) in each set will lead to the
+    consensus. Suppose that in set A the five nodes have a proposed value of 1 {11111},
+    then we know that in an
+  prefs: []
+  type: TYPE_NORMAL
+- en: honest environment the decision will be value 1 by all nodes. Similarly in set
+    B, if the
+  prefs: []
+  type: TYPE_NORMAL
+- en: initial value is 0 at all nodes {00000}, then all nodes will agree to the value
+    0 in a fault-free environment. We can say the configuration, that is, global state,
+    is 1-valent and 0-valent in set A and set B, respectively. However, now imagine
+    a situation where not all nodes
+  prefs: []
+  type: TYPE_NORMAL
+- en: are 0 or 1, but some are 0 and some have a value of 1\. Imagine in set A, three
+    nodes
+  prefs: []
+  type: TYPE_NORMAL
+- en: are 1, and two have a value of 0, that is, {11100}. Similarly in set B, two
+    nodes are 1 and three nodes are holding value 0, that is, {11000}. Note that these
+    sets now only have one difference of a single node with value 1 in set A and value
+    0 in set B, that is, the middle node (third element) in the set. Consensus of
+    1 is reached in set A due to three out of five majority, whereas consensus 0 is
+    reached in set B due to three out of five majority. Let’s call these two sets,
+    configurations or global states. So now we have two configurations,
+  prefs: []
+  type: TYPE_NORMAL
+- en: one reaching consensus of 1 and the other 0\. So far so good, but imagine now
+    that one
+  prefs: []
+  type: TYPE_NORMAL
+- en: node fails, and it is that middle node which is the only difference between
+    these two sets.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If the middle node is failed from both sets A and B, they become {1100} each,
+    which
+  prefs: []
+  type: TYPE_NORMAL
+- en: means that both sets are now indistinguishable from each other implying that
+    they both
+  prefs: []
+  type: TYPE_NORMAL
+- en: can reach the same consensus of either 0 or 1 depending on the availability
+    of the third
+  prefs: []
+  type: TYPE_NORMAL
+- en: element (middle node). This also means that one of these sets can reach both
+    consensus
+  prefs: []
+  type: TYPE_NORMAL
+- en: decisions, 0 or 1, depending on the availability of node 3\.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '150'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 3 DistributeD Consensus
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now imagine that the default value of all nodes is 0, and now with a failed
+    (removed)
+  prefs: []
+  type: TYPE_NORMAL
+- en: node, set A {11100} will end up reaching consensus of 0 if the middle node is
+    failed,
+  prefs: []
+  type: TYPE_NORMAL
+- en: and it will have consensus of 1 if no node fails. This is an ambiguous situation,
+    called a bivalent configuration where consensus 0 is reached if the middle node
+    holding value 1
+  prefs: []
+  type: TYPE_NORMAL
+- en: is unavailable but will reach consensus of 1 if no node fails. The situation
+    is now that sets (nodes) can reach consensus of either 0 or 1 and the outcome
+    is unpredictable.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It is proven that this ambiguous situation of bivalent initial configuration
+    can
+  prefs: []
+  type: TYPE_NORMAL
+- en: always exist in case of even a single failure, and secondly it can always lead
+    to another ambiguous situation. In other words, an initial bivalent configuration
+    can always
+  prefs: []
+  type: TYPE_NORMAL
+- en: transition to another bivalent configuration, hence the impossibility of consensus
+    as no
+  prefs: []
+  type: TYPE_NORMAL
+- en: convergence on a univalent (either 0-valent or 1-valent) is possible.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are two observations which lead to FLP impossibility results. First, there
+  prefs: []
+  type: TYPE_NORMAL
+- en: always exists at least one bivalent initial configuration in any consensus algorithm
+  prefs: []
+  type: TYPE_NORMAL
+- en: working in the presence of faults. Second, a bivalent configuration can always
+    transition to another bivalent configuration.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The FLP result concludes that in asynchronous systems, first there is a global
+    state
+  prefs: []
+  type: TYPE_NORMAL
+- en: (configuration) where the algorithm cannot decide, and there always will be
+    a scenario
+  prefs: []
+  type: TYPE_NORMAL
+- en: where the system is inconclusive. In other words, there is always an admissible
+    run
+  prefs: []
+  type: TYPE_NORMAL
+- en: which always remains in an indecisive state under asynchrony.
+  prefs: []
+  type: TYPE_NORMAL
+- en: State machine replication under asynchrony is also prone to FLP impossibility
+  prefs: []
+  type: TYPE_NORMAL
+- en: limitation. Blockchain networks are also subject to FLP impossibility results.
+    Bitcoin,
+  prefs: []
+  type: TYPE_NORMAL
+- en: Ethereum, and other blockchain networks would have not been possible to build
+    if FLP
+  prefs: []
+  type: TYPE_NORMAL
+- en: impossibility wasn’t circumvented by introducing some level of synchrony.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Many efforts have been proposed to somehow circumvent the FLP impossibility.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This circumvention revolves around the use of oracles. The idea is to make an
+    oracle
+  prefs: []
+  type: TYPE_NORMAL
+- en: available to the distributed system to help solve a problem. An **oracle** can
+    be defined as a service or a black box that processes (nodes) can query to get
+    some information
+  prefs: []
+  type: TYPE_NORMAL
+- en: to help them decide a course of action. In the following, we introduce some
+    common
+  prefs: []
+  type: TYPE_NORMAL
+- en: oracles that provide enough information to distributed algorithms to solve a
+    problem,
+  prefs: []
+  type: TYPE_NORMAL
+- en: which might be unsolvable otherwise. We can use oracles to facilitate solving
+    consensus
+  prefs: []
+  type: TYPE_NORMAL
+- en: problems in distributed systems.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The key ideas behind the circumvention of FLP impossibility are based around
+  prefs: []
+  type: TYPE_NORMAL
+- en: sacrificing asynchrony and determinism. Of course, as we have learned, deterministic
+  prefs: []
+  type: TYPE_NORMAL
+- en: consensus is not possible under asynchrony even if one process crash-fails;
+    therefore,
+  prefs: []
+  type: TYPE_NORMAL
+- en: the trick is to slightly sacrifice either asynchrony or determinism, just enough
+    to get to a point to reach a decision and terminate.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '151'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 3 DistributeD Consensus
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Now we discuss some techniques:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Random oracles
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Failure detectors
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Synchrony assumptions
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Hybrid models
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Synchrony Assumptions**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Under the synchrony assumption, assumptions about timing are introduced in the
+    model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Remember, we discussed partial synchrony earlier in this chapter and the first
+    chapter.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Partial synchrony is a technique that allows solving consensus by circumventing
+    FLP
+  prefs: []
+  type: TYPE_NORMAL
+- en: impossibility. Under the partial synchrony model, asynchrony is somewhat forfeited
+    to
+  prefs: []
+  type: TYPE_NORMAL
+- en: introduce some timing assumptions that allow for solving the consensus problem.
+    Similarly, under the eventual synchrony model, assumptions are made that the system
+    is eventually
+  prefs: []
+  type: TYPE_NORMAL
+- en: synchronous after an unknown time called global stabilization time (GST). Another
+    timing
+  prefs: []
+  type: TYPE_NORMAL
+- en: assumption is the weak synchrony which assumes that the delays remain under
+    a certain
+  prefs: []
+  type: TYPE_NORMAL
+- en: threshold and do not grow forever. Such timing assumptions allow a consensus
+    algorithm to decide and terminate by assuming some notion of time (synchrony).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Random Oracles**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Random oracles allow for the development of randomized algorithms. This is where
+  prefs: []
+  type: TYPE_NORMAL
+- en: determinism is somewhat sacrificed in favor of reaching an agreement probabilistically.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The advantage of this approach is that there are no assumptions made about timing,
+  prefs: []
+  type: TYPE_NORMAL
+- en: but the downside is that randomized algorithms are not very efficient. In randomized
+  prefs: []
+  type: TYPE_NORMAL
+- en: consensus algorithms, one of the safety or liveness properties is changed to
+    a
+  prefs: []
+  type: TYPE_NORMAL
+- en: nondeterministic probabilistic version. For example, the liveness property becomes
+  prefs: []
+  type: TYPE_NORMAL
+- en: '• **Liveness**: Each correct process eventually decides with high'
+  prefs: []
+  type: TYPE_NORMAL
+- en: probability.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This addresses FLP impossibility in the sense that FLP impossibility means in
+  prefs: []
+  type: TYPE_NORMAL
+- en: practice that there are executions in the consensus that do not terminate. If
+    the
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'termination is made probabilistic, it can “circumvent” the impossibility of
+    consensus:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '• **Agreement**: All correct processes eventually agree on a value with'
+  prefs: []
+  type: TYPE_NORMAL
+- en: probability 1\.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '152'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 3 DistributeD Consensus
+  prefs: []
+  type: TYPE_NORMAL
+- en: Usually, however, the liveness property is made probabilistic instead of safety
+  prefs: []
+  type: TYPE_NORMAL
+- en: properties of agreement, validity, and integrity. Sacrificing a safety property
+    in favor of a liveness (termination) property is usually not advisable.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The core technique in randomized algorithms is something known as “coin flip.”
+  prefs: []
+  type: TYPE_NORMAL
+- en: Coin tossing or coin flips can be divided into two types.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A local coin is where the state of the processor advances from the current state
+    to the
+  prefs: []
+  type: TYPE_NORMAL
+- en: next, which is chosen as per the probability distribution of the algorithm.
+    This is usually implemented as a random bit generator, which returns zero or one
+    (head or tail) with
+  prefs: []
+  type: TYPE_NORMAL
+- en: equal probability.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Shared coin or global coin algorithms make use of these local coins to build
+    a global
+  prefs: []
+  type: TYPE_NORMAL
+- en: coin. The requirement here is to provide the same coin value to all honest processes
+    and
+  prefs: []
+  type: TYPE_NORMAL
+- en: achieve an agreement.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Local coin algorithms terminate in an exponential number of communication steps,
+  prefs: []
+  type: TYPE_NORMAL
+- en: whereas shared coin algorithms terminate in a constant number of steps.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are pros and cons of sacrificing determinism and employing randomization.
+  prefs: []
+  type: TYPE_NORMAL
+- en: One of the key advantages is that there are no timing assumptions required.
+    However,
+  prefs: []
+  type: TYPE_NORMAL
+- en: the downside is that the number of rounds is considerably higher, and cryptography
+  prefs: []
+  type: TYPE_NORMAL
+- en: required to introduce randomization could be computationally expensive.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Randomized algorithms for Byzantine consensus first appeared in Ben-Or and
+  prefs: []
+  type: TYPE_NORMAL
+- en: Rabin’s work in 1983, which we will discuss along with some others in Chapt[er
+    6](https://doi.org/10.1007/978-1-4842-8179-6_6).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Hybrid Models**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In a hybrid model approach to circumvent FLP impossibility, a combination of
+  prefs: []
+  type: TYPE_NORMAL
+- en: randomization and failure detectors is used.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Wormholes are extensions in a system model with stronger properties as compared
+  prefs: []
+  type: TYPE_NORMAL
+- en: to other parts of the system. Usually, it is a secure, tamper-proof, and fail-silent
+    trusted hardware which provides a way for processes to correctly execute some
+    crucial steps
+  prefs: []
+  type: TYPE_NORMAL
+- en: of the protocol. Various wormholes have been introduced in the literature such
+    as
+  prefs: []
+  type: TYPE_NORMAL
+- en: attested append-only memory, which forces replicas to commit to a verifiable
+    sequence
+  prefs: []
+  type: TYPE_NORMAL
+- en: of operations. The trusted timely computing base (TTCB) was the first wormhole
+  prefs: []
+  type: TYPE_NORMAL
+- en: introduced for consensus supported by wormholes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '153'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 3 DistributeD Consensus
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Failure Detectors**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This intuition behind failure detectors is that if somehow we can get a hint
+    about the
+  prefs: []
+  type: TYPE_NORMAL
+- en: failure of a process, then we can circumvent FLP impossibility. Remember the
+    FLP
+  prefs: []
+  type: TYPE_NORMAL
+- en: impossibility result suggests that it is impossible to distinguish between a
+    crashed
+  prefs: []
+  type: TYPE_NORMAL
+- en: process and simply a very slow one. There is no way to find out, so if somehow
+    we can
+  prefs: []
+  type: TYPE_NORMAL
+- en: get an indication that some process has failed, then it would be easier to handle
+    the
+  prefs: []
+  type: TYPE_NORMAL
+- en: situation. In this setting, asynchrony is somewhat sacrificed because failure
+    detectors
+  prefs: []
+  type: TYPE_NORMAL
+- en: work based on heartbeats and timeout assumptions. Failure detectors are added
+    as an
+  prefs: []
+  type: TYPE_NORMAL
+- en: extension to the asynchronous systems.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A failure detector can be defined as a distributed oracle at each process that
+    gives
+  prefs: []
+  type: TYPE_NORMAL
+- en: hints about (suspects) whether a process is alive or has crashed. In a way,
+    failure
+  prefs: []
+  type: TYPE_NORMAL
+- en: detectors encapsulate timeout and partial synchrony assumptions as a separate
+    module.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'There are two categories of properties that define failure detectors:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: • **Completeness** implies that a failure detector will eventually detect
+  prefs: []
+  type: TYPE_NORMAL
+- en: faulty processes. This is a liveness property.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • **Accuracy** implies that a failure detector will never suspect a correct
+  prefs: []
+  type: TYPE_NORMAL
+- en: process as failed. This is a safety property.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Based on the preceding two properties, eight classes of failure detectors have
+    been
+  prefs: []
+  type: TYPE_NORMAL
+- en: proposed by Chandra and Toueg in their seminal paper “Unreliable Failure Detectors
+  prefs: []
+  type: TYPE_NORMAL
+- en: for Reliable Distributed Systems.” It is also possible to solve consensus by
+    introducing a weak unreliable failure detector. This work was also proposed by
+    Chandra and Toueg.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The ability of a failure detector to accurately suspect failure or liveness
+    depends
+  prefs: []
+  type: TYPE_NORMAL
+- en: on the system model. A failure detector is usually implemented using a heartbeat
+  prefs: []
+  type: TYPE_NORMAL
+- en: mechanism where heartbeat messages are exchanged between processes, and if
+  prefs: []
+  type: TYPE_NORMAL
+- en: these messages are not received by some processes for some time, then failure
+    can be
+  prefs: []
+  type: TYPE_NORMAL
+- en: suspected. Another method is to implement a timeout mechanism which is based
+    on
+  prefs: []
+  type: TYPE_NORMAL
+- en: worst-case message round-trip time. If a message is not received by a process
+    in the
+  prefs: []
+  type: TYPE_NORMAL
+- en: expected timeframe, then timeout occurs, and the process is suspected failed.
+    After this, if a message is received from the suspected process, then the timeout
+    value is increased, and the process is no longer suspected failed. A failure detector
+    using a heartbeat
+  prefs: []
+  type: TYPE_NORMAL
+- en: mechanism is shown in Figure [3-15\.](#p174)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '154'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](index-174_1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Chapter 3 DistributeD Consensus
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Figure 3-15\.** Failure detector using heartbeats*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In Figur[e 3-15](#p174), process P1 sends a regular heartbeat message “Alive”
+    to process P2\.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'There are two parameters in the failure detector: a heartbeat interval H and
+    a timeout'
+  prefs: []
+  type: TYPE_NORMAL
+- en: value T. Process P1 is suspected if P2 does not receive any heartbeat messages
+    from
+  prefs: []
+  type: TYPE_NORMAL
+- en: P1 for a time period longer than T. In the diagram, message 4 did not arrive
+    within the
+  prefs: []
+  type: TYPE_NORMAL
+- en: timeout value T; therefore, P2 now suspects P1 of failure, due to timeout. If
+    P2 starts to receive any message (either heartbeat or any other protocol, application
+    message) from
+  prefs: []
+  type: TYPE_NORMAL
+- en: P1, then P2 no longer suspects process P1\. This is shown from message 5 onward
+    in the
+  prefs: []
+  type: TYPE_NORMAL
+- en: diagram. Timer T starts again (resets) as soon as P2 receives a message from
+    P1\.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Failure detectors are practical only under synchronous and partially synchronous
+  prefs: []
+  type: TYPE_NORMAL
+- en: system models. In asynchronous systems, failure detectors cannot achieve completeness
+  prefs: []
+  type: TYPE_NORMAL
+- en: and accuracy at the same time. However, we may achieve completeness independently
+  prefs: []
+  type: TYPE_NORMAL
+- en: by immediately (and naively) suspecting all processes have crashed. After that,
+    if some
+  prefs: []
+  type: TYPE_NORMAL
+- en: process fails, then the suspicion will be true, fulfilling the completeness
+    property.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Similarly, accuracy can be achieved by just not suspecting any processes, which
+    of
+  prefs: []
+  type: TYPE_NORMAL
+- en: course is quite useless, but presumably achieves accuracy. In other words, perfect
+    failure detectors are possible in synchronous systems, whereas no perfect failure
+    detector is
+  prefs: []
+  type: TYPE_NORMAL
+- en: possible in asynchronous systems. In a way, we encapsulate partial synchrony
+    and
+  prefs: []
+  type: TYPE_NORMAL
+- en: timeouts in failure detectors to achieve failure detection capability in our
+    system.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Another advantage of failure detectors is that all the timeout mechanics are
+    localized
+  prefs: []
+  type: TYPE_NORMAL
+- en: within the failure detector module, and the program is free to perform other
+    tasks. In the case where no failure detector module is present, the program ends
+    up waiting infinitely
+  prefs: []
+  type: TYPE_NORMAL
+- en: long for an expected incoming message from a crashed process. We can understand
+    this
+  prefs: []
+  type: TYPE_NORMAL
+- en: with a comparison. For example, a blocking receive operation “*Wait for message
+    m from*
+  prefs: []
+  type: TYPE_NORMAL
+- en: '155'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 3 DistributeD Consensus
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*process p”* becomes *(wait for message m from process p) or (suspect p of
+    failure)*. Now you can see the blocking program becomes nonblocking, and there
+    is now no infinite'
+  prefs: []
+  type: TYPE_NORMAL
+- en: waiting; if the p is suspected, then it’s added to the suspected list, and the
+    program
+  prefs: []
+  type: TYPE_NORMAL
+- en: continues its operation, whatever that might be.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now let’s look at the properties of strong and weak completeness and accuracy.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Strong Completeness**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This property requires that eventually every crashed process is permanently
+    suspected
+  prefs: []
+  type: TYPE_NORMAL
+- en: by every correct process.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Weak Completeness**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The property requires that eventually each crashed process is permanently suspected
+    by
+  prefs: []
+  type: TYPE_NORMAL
+- en: some correct process.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Strong Accuracy**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This property denotes that a process is never suspected until it crashes (before
+    it crashes) by any correct process.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Weak Accuracy**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This property describes that some correct process is never suspected by any
+    correct
+  prefs: []
+  type: TYPE_NORMAL
+- en: process.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Eventual Strong Accuracy**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This property suggests that after some time, correct processes do not suspect
+    any correct processes any longer.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Eventual Weak Accuracy**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This property implies that after some time, some correct process is not suspected
+  prefs: []
+  type: TYPE_NORMAL
+- en: anymore by any correct process.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '156'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](index-176_1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Chapter 3 DistributeD Consensus
+  prefs: []
+  type: TYPE_NORMAL
+- en: We can visualize strong and weak completeness in the diagram shown in Figur[e
+    3-16\.](#p176)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Figure 3-16\.** Strong completeness vs. weak completeness*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now we discuss eight classes of failure detectors. There are four classes of
+    failure
+  prefs: []
+  type: TYPE_NORMAL
+- en: detectors which provide strong completeness. The first two failure detectors
+    work under
+  prefs: []
+  type: TYPE_NORMAL
+- en: synchronous systems, namely, perfect detector P and strong detector S. The other
+    two work under partially synchronous models, namely, eventually perfect detector
+    (diamond P) and
+  prefs: []
+  type: TYPE_NORMAL
+- en: eventually strong detector (diamond S).
+  prefs: []
+  type: TYPE_NORMAL
+- en: We describe these classes now, first with strong completeness.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Perfect Failure Detector P**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This type of failure detector satisfies strong completeness and strong accuracy
+  prefs: []
+  type: TYPE_NORMAL
+- en: properties. P cannot be implemented in asynchronous systems. This is because
+    strong
+  prefs: []
+  type: TYPE_NORMAL
+- en: completeness and accuracy cannot be achieved for P in asynchronous systems.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Strong Failure Detector S**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This failure detector has weak accuracy and strong completeness.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Eventually Perfect Failure Detector – Diamond P**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This class of FDs satisfies strong completeness and eventual strong accuracy.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '157'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 3 DistributeD Consensus
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Eventually Strong Failure Detector – Diamond S**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This class of FDs satisfies strong completeness and eventual weak accuracy.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are also four classes of failure detectors which provide weak completeness.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Detector Q and weak detector W work under synchronous models. Two other detectors,
+  prefs: []
+  type: TYPE_NORMAL
+- en: eventually detector Q (diamond Q) and eventually weak detector (diamond W),
+    work
+  prefs: []
+  type: TYPE_NORMAL
+- en: under partial synchrony assumptions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We describe these as follows.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Weak Failure Detector W**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This type satisfies weak completeness and weak accuracy properties.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Eventually Weak Failure Detector (Diamond W)**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This type satisfies weak completeness and eventual weak accuracy properties.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Detector Q or V**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This type satisfies weak completeness and strong accuracy.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Eventually Detector Q (Diamond Q) or Diamond V**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This type satisfies weak completeness and eventual strong accuracy.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figur[e 3-17 sho](#p178)ws all this in summary.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '158'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](index-178_1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Chapter 3 DistributeD Consensus
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Figure 3-17\.** Failure detector classes*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The properties of failure detectors fundamentally revolve around the idea of
+    how
+  prefs: []
+  type: TYPE_NORMAL
+- en: fast and correctly a failure detector detects faults while avoiding false positives.
+    A perfect failure detector will always correctly detect failed processes, whereas
+    a weak failure
+  prefs: []
+  type: TYPE_NORMAL
+- en: detector may only be able to detect very few or almost no faults accurately.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Leader Elector Failure Detector**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Sometimes, we are not interested in finding out if processes have failed but
+    just that if a single process is correct. In this approach of failure detection,
+    instead of suspecting other processes a single process is considered a leader.
+    This failure detector can be seen as a leader election algorithm called the Omega
+    *Ω* failure detector. Initially, the leader elector can be unreliable and may
+    elect a faulty process or can cause different processes to trust different leaders.
+    We can define this FD as a failure detector where eventually every
+  prefs: []
+  type: TYPE_NORMAL
+- en: nonfaulty process elects the same nonfaulty leader process.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '159'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 3 DistributeD Consensus
+  prefs: []
+  type: TYPE_NORMAL
+- en: As we saw earlier, in other failure detectors there is a component called *suspect*
+  prefs: []
+  type: TYPE_NORMAL
+- en: which contains a set of process IDs that the failure detector has suspected
+    as faulty;
+  prefs: []
+  type: TYPE_NORMAL
+- en: however, in leader elector *Ω*, there is a component called *trust* which contains
+    a single process ID of the elected leader.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Solving Consensus Using Failure Detectors**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: If we have a perfect failure detector, we can easily solve consensus in both
+    synchronous
+  prefs: []
+  type: TYPE_NORMAL
+- en: and asynchronous models. However, in asynchronous systems, P cannot be
+  prefs: []
+  type: TYPE_NORMAL
+- en: implemented due to too strong accuracy and completeness requirements for this
+    model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If somehow we can implement a P in an asynchronous system to solve consensus,
+    that
+  prefs: []
+  type: TYPE_NORMAL
+- en: would violate the FLP impossibility. Therefore, we know that no such perfect
+    FD exists
+  prefs: []
+  type: TYPE_NORMAL
+- en: which can solve consensus in a purely asynchronous system. We must sacrifice
+    a little
+  prefs: []
+  type: TYPE_NORMAL
+- en: bit asynchrony and look for weaker failure detector classes which can solve
+    consensus
+  prefs: []
+  type: TYPE_NORMAL
+- en: under asynchrony.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Also, at this point a question arises: What is the weakest failure detector
+    to solve'
+  prefs: []
+  type: TYPE_NORMAL
+- en: consensus? The ⋄ *W* (eventually weak) is the weakest failure detector sufficient
+    to solve consensus under asynchrony with a majority of correct processes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Quorums**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A quorum can be defined as any set of majority of processes. The concept is
+    related
+  prefs: []
+  type: TYPE_NORMAL
+- en: to voting among a set of objects. Quorum systems are important to ensuring the
+  prefs: []
+  type: TYPE_NORMAL
+- en: consistency, availability, efficiency, and fault tolerance in replicated systems.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A quorum can also be thought of as a set of minimum number of processes (votes)
+  prefs: []
+  type: TYPE_NORMAL
+- en: required to decide about an operation in a distributed system. A quorum-based
+  prefs: []
+  type: TYPE_NORMAL
+- en: methodology ensures consistency in a distributed system. We just learned under
+  prefs: []
+  type: TYPE_NORMAL
+- en: the “Replication” section that replication allows to build a fault-tolerant
+    consistent
+  prefs: []
+  type: TYPE_NORMAL
+- en: distributed system. Here, the question arises about how many replicas are required
+    to
+  prefs: []
+  type: TYPE_NORMAL
+- en: decide to finally commit an update or abort.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Mathematically, a quorum is defined as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A quorum is a non-empty subset of *π* = {1, 2, 3, . . . *n* }.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '160'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 3 DistributeD Consensus
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A quorum system is defined as a set *Q* of non-empty subsets of *π* which satisfies
+    the following property:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Quorum intersection**: ∀ *A*, *B* ∈ *Q* : *A* ∩ *B* ≠ *ϕ*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This means that any two quorums must intersect at one or more processes. This
+  prefs: []
+  type: TYPE_NORMAL
+- en: is also known as the pigeonhole principle. Moreover, this is called the **consistency**
+  prefs: []
+  type: TYPE_NORMAL
+- en: property.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There must always be at least one quorum available that is not failed. This
+    is the
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**quorum availability** property.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Quorum systems are usually used in scenarios where a process, after broadcasting
+  prefs: []
+  type: TYPE_NORMAL
+- en: its request, awaits until it has received a response from all processes that
+    belong to a
+  prefs: []
+  type: TYPE_NORMAL
+- en: quorum. This way, we can address the consistency requirements of a problem.
+    Quorums
+  prefs: []
+  type: TYPE_NORMAL
+- en: are usually used to achieve crash and Byzantine fault tolerance. In consensus
+    algorithms, for example, a certain size of a quorum is needed to guarantee safety
+    and liveness. In
+  prefs: []
+  type: TYPE_NORMAL
+- en: other words, algorithms based on quorums satisfy safety and liveness only if
+    a quorum of
+  prefs: []
+  type: TYPE_NORMAL
+- en: correct processes can be established.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Crash Fault–Tolerant Quorums**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: To achieve crash fault tolerance in N number of crash-stop processes, Quorum
+    Q is set
+  prefs: []
+  type: TYPE_NORMAL
+- en:  *n* 
+  prefs: []
+  type: TYPE_NORMAL
+- en: with at least
+  prefs: []
+  type: TYPE_NORMAL
+- en: '1'
+  prefs: []
+  type: TYPE_NORMAL
+- en:  2  + processes.  
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, if n = 7, then 7
+  prefs: []
+  type: TYPE_NORMAL
+- en: '1'
+  prefs: []
+  type: TYPE_NORMAL
+- en:  2 + = ⌊3.5⌋ + 1 = 3 + 1 = 4
+  prefs: []
+  type: TYPE_NORMAL
+- en: This means that in a network of seven nodes, at least four nodes (a quorum of
+    four
+  prefs: []
+  type: TYPE_NORMAL
+- en: nodes) should be nonfaulty and available to achieve crash fault tolerance.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, if you have n replicas, out of which f may crash-stop, what Quorum
+    Q
+  prefs: []
+  type: TYPE_NORMAL
+- en: size is required to achieve liveness?
+  prefs: []
+  type: TYPE_NORMAL
+- en: For liveness, there must be a nonfaulty Quorum Q available where Q <= n – f.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For safety, there must be any two quorums that must intersect at one or more
+  prefs: []
+  type: TYPE_NORMAL
+- en: processes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Lamport used quorums under the name of amoeba in 1978\.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '161'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 3 DistributeD Consensus
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Byzantine Quorums**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Byzantine failures are difficult to handle. Imagine if there are N nodes, out
+    of which
+  prefs: []
+  type: TYPE_NORMAL
+- en: f number of nodes turn Byzantine. Now these f nodes can behave arbitrarily,
+    and there
+  prefs: []
+  type: TYPE_NORMAL
+- en: can be a case where they can vote in favor of a value and against it. They can
+    make
+  prefs: []
+  type: TYPE_NORMAL
+- en: different statements to different nodes on purpose. Such a situation can cause
+    even
+  prefs: []
+  type: TYPE_NORMAL
+- en: correct nodes to have divergent states and can also lead to dead locks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A Byzantine quorum that can tolerate f faults has more than ( *n* + *f*)/2 processes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There is always an intersection of at least one correct process between two
+    Byzantine
+  prefs: []
+  type: TYPE_NORMAL
+- en: fault–tolerating quorums. The progress is guaranteed in Byzantine settings if
+    *N* > 3 *f*. In other words, Byzantine fault tolerance requires that *f* < *n*/3\.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*n* = 7, *f* =1'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ( *n* + *f* )
+  prefs: []
+  type: TYPE_NORMAL
+- en: / 2
+  prefs: []
+  type: TYPE_NORMAL
+- en: ( + ) / =
+  prefs: []
+  type: TYPE_NORMAL
+- en: 7 1 2 4
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*ceiling* ( + + / ) ='
+  prefs: []
+  type: TYPE_NORMAL
+- en: 7 1 1 2
+  prefs: []
+  type: TYPE_NORMAL
+- en: '4'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Each Byzantine quorum contains more than *n* − *f*/2 honest processes. 7 − 1/2
+    = > 3, so there is at least one correct process in the intersection of two Byzantine
+    quorums.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Read and Write Quorums**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Quorum-based protocols fundamentally rely on voting to determine whether a read
+    or
+  prefs: []
+  type: TYPE_NORMAL
+- en: write operation can be performed or not. There are read quorums and write quorums.
+    A
+  prefs: []
+  type: TYPE_NORMAL
+- en: read quorum is the minimum number of replicas required to achieve an agreement
+    on a
+  prefs: []
+  type: TYPE_NORMAL
+- en: read operation. Similarly, a write quorum is the minimum number of replicas
+    required
+  prefs: []
+  type: TYPE_NORMAL
+- en: to achieve an agreement on a write operation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Where Are We Now**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Based on the last more than 40 years of research in classical distributed consensus
+    and
+  prefs: []
+  type: TYPE_NORMAL
+- en: modern blockchain era protocols, we can divide consensus into two broad families.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '162'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 3 DistributeD Consensus
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Classical Consensus**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Classical consensus or traditional distributed consensus has been a topic of
+    research
+  prefs: []
+  type: TYPE_NORMAL
+- en: for around 40 years now. Starting with the SIFT project and Lamport’s and many
+    other
+  prefs: []
+  type: TYPE_NORMAL
+- en: researchers’ contributions, we now have a large body of work that deals with
+    the classical distributed consensus. Protocols such as Paxos, PBFT, and RAFT are
+    now a norm for
+  prefs: []
+  type: TYPE_NORMAL
+- en: implementation in various practical systems.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Nakamoto and Post-Nakamoto Consensus**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: On the other hand, we have a family of protocols which we can call the Nakamoto
+  prefs: []
+  type: TYPE_NORMAL
+- en: consensus family as this family was introduced for the first time by Satoshi
+    Nakamoto,
+  prefs: []
+  type: TYPE_NORMAL
+- en: with Bitcoin.
+  prefs: []
+  type: TYPE_NORMAL
+- en: From a blockchain perspective, both traditional and Nakamoto-style protocols
+    are in
+  prefs: []
+  type: TYPE_NORMAL
+- en: use. Almost all the permissioned blockchains use variants of PBFT classical
+    algorithms.
+  prefs: []
+  type: TYPE_NORMAL
+- en: On the other hand, permissionless public blockchains like Ethereum and Bitcoin
+    make
+  prefs: []
+  type: TYPE_NORMAL
+- en: use of Nakamoto-style (PoW) consensus algorithms. There are other classes such
+    as
+  prefs: []
+  type: TYPE_NORMAL
+- en: proof of stake and other variants, but they all were introduced after the introduction
+    of Bitcoin’s proof of work in 2008\.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We will cover Nakamoto and post-Nakamoto-style algorithms in detail in Chapter
+    [4](https://doi.org/10.1007/978-1-4842-8179-6_4).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Summary**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this chapter, we covered the main concepts of agreement, broadcast, replication,
+    and
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'consensus:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Consensus is a fundamental problem in distributed computing.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Consensus and atomic broadcast are equivalent problems. If you
+  prefs: []
+  type: TYPE_NORMAL
+- en: solve one, the other is solved too.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • There are several broadcast primitives such as best-effort broadcast,
+  prefs: []
+  type: TYPE_NORMAL
+- en: reliable broadcast, eager reliable broadcast, and total order broadcast
+  prefs: []
+  type: TYPE_NORMAL
+- en: with varying degrees of strictness regarding the delivery guarantees.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • There are also probabilistic broadcast protocols that deliver messages
+  prefs: []
+  type: TYPE_NORMAL
+- en: with some high probability inspired by dissemination of gossip
+  prefs: []
+  type: TYPE_NORMAL
+- en: among the public.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '163'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 3 DistributeD Consensus
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Replication and state machine replication are techniques to provide
+  prefs: []
+  type: TYPE_NORMAL
+- en: fault tolerance in distributed systems.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Quorum systems are important for ensuring the consistency,
+  prefs: []
+  type: TYPE_NORMAL
+- en: availability, efficiency, and fault tolerance in replicated systems.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • The last half century of research has produced two main classes of
+  prefs: []
+  type: TYPE_NORMAL
+- en: consensus, that is, classical permissioned consensus and Nakamoto
+  prefs: []
+  type: TYPE_NORMAL
+- en: nonpermissioned consensus.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Various impossibility results have been proven in the last many
+  prefs: []
+  type: TYPE_NORMAL
+- en: decades of research by researchers. Results such as FLP impossibility,
+  prefs: []
+  type: TYPE_NORMAL
+- en: requirement of a minimum number of processes, and network links
+  prefs: []
+  type: TYPE_NORMAL
+- en: have been proposed and proven. These fundamental results allow
+  prefs: []
+  type: TYPE_NORMAL
+- en: researchers to focus on other problems because if something has
+  prefs: []
+  type: TYPE_NORMAL
+- en: been proven impossible, there is no value in spending time and effort
+  prefs: []
+  type: TYPE_NORMAL
+- en: on trying to solve it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Other research includes failure detectors which provide a means to
+  prefs: []
+  type: TYPE_NORMAL
+- en: detect failures in a distributed system and allow processes to respond
+  prefs: []
+  type: TYPE_NORMAL
+- en: accordingly to make progress. Augmenting a distributed system
+  prefs: []
+  type: TYPE_NORMAL
+- en: with oracles such as failure detectors, synchrony assumptions,
+  prefs: []
+  type: TYPE_NORMAL
+- en: randomized protocols, and hybrid protocols is a means to circumvent
+  prefs: []
+  type: TYPE_NORMAL
+- en: the FLP impossibility result.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the next chapter, we will cover blockchain and describe what it is and how
+    we can
+  prefs: []
+  type: TYPE_NORMAL
+- en: see it in the light of what we have learned so far in this book.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Bibliography**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 1\. Chandra, T.D. and Toueg, S., 1996\. Unreliable failure detectors for
+  prefs: []
+  type: TYPE_NORMAL
+- en: reliable distributed systems. Journal of the ACM (JACM), 43(2),
+  prefs: []
+  type: TYPE_NORMAL
+- en: pp. 225–267\.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 2\. Ordering of events first introduced in “The Implementation of
+  prefs: []
+  type: TYPE_NORMAL
+- en: Reliable Distributed Multiprocess Systems” – Lamport, L., 1978\.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The implementation of reliable distributed multiprocess systems.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Computer Networks (1976)*, *2*(2), pp. 95–114\.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '164'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 3 DistributeD Consensus
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3\. Pease, M., Shostak, R., and Lamport, L., 1980\. Reaching agreement
+  prefs: []
+  type: TYPE_NORMAL
+- en: in the presence of faults. Journal of the ACM (JACM), 27(2),
+  prefs: []
+  type: TYPE_NORMAL
+- en: pp. 228–234\.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '4\. Kshemkalyani, A.D. and Singhal, M., 2011\. Distributed computing:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: principles, algorithms, and systems. Cambridge University Press.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 5\. What is the weakest failure detector to solve consensus? This
+  prefs: []
+  type: TYPE_NORMAL
+- en: question was answered in Chandra, T.D., Hadzilacos, V.,
+  prefs: []
+  type: TYPE_NORMAL
+- en: and Toueg, S., 1996\. The weakest failure detector for solving
+  prefs: []
+  type: TYPE_NORMAL
+- en: consensus. Journal of the ACM (JACM), 43(4), pp. 685–722\.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 6\. Wormholes were introduced in Neves, N.F., Correia, M., and
+  prefs: []
+  type: TYPE_NORMAL
+- en: Verissimo, P., 2005\. Solving vector consensus with a wormhole.
+  prefs: []
+  type: TYPE_NORMAL
+- en: IEEE Transactions on Parallel and Distributed Systems, 16(12),
+  prefs: []
+  type: TYPE_NORMAL
+- en: pp. 1120–1131\.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 7\. An excellent survey is Correia, M., Veronese, G.S., Neves, N.F.,
+  prefs: []
+  type: TYPE_NORMAL
+- en: and Verissimo, P., 2011\. Byzantine consensus in asynchronous
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'message-passing systems: a survey. International Journal of'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Critical Computer-Based Systems, 2(2), pp. 141–161\.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '165'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**CHAPTER 4**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Blockchain**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this chapter, we’ll learn what a blockchain is and its various elements and
+    see the
+  prefs: []
+  type: TYPE_NORMAL
+- en: blockchain through the lens of distributed computing. Also, we will present
+    formal
+  prefs: []
+  type: TYPE_NORMAL
+- en: definitions and properties of the blockchain. In addition, we will also introduce
+    Bitcoin and Ethereum. Finally, I will introduce some blockchain use cases.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Blockchains are fascinating because they touch many disciplines, including
+  prefs: []
+  type: TYPE_NORMAL
+- en: distributed computing, networking, cryptography, economics, game theory,
+  prefs: []
+  type: TYPE_NORMAL
+- en: programming languages, and computer science.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Blockchains are appealing to people from so many different areas, including
+    but not
+  prefs: []
+  type: TYPE_NORMAL
+- en: limited to the subjects mentioned earlier. With use cases in almost every walk
+    of life,
+  prefs: []
+  type: TYPE_NORMAL
+- en: blockchains have captured the public’s imagination and, indeed, many academics
+    and
+  prefs: []
+  type: TYPE_NORMAL
+- en: industry professionals.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The blockchain emerged in 2008 with Bitcoin, a peer-to-peer, decentralized,
+  prefs: []
+  type: TYPE_NORMAL
+- en: electronic cash scheme that does not need any trusted third party to provide
+    trust
+  prefs: []
+  type: TYPE_NORMAL
+- en: guarantees associated with money.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**What Is Blockchain**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are many definitions of a blockchain on the Internet and many different
+    books.
+  prefs: []
+  type: TYPE_NORMAL
+- en: While all those definitions are correct, and some are excellent, I will try
+    to define the blockchain in my own words.
+  prefs: []
+  type: TYPE_NORMAL
+- en: First, we’ll define it from a layman’s perspective and then from a purely technical
+  prefs: []
+  type: TYPE_NORMAL
+- en: standpoint.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Layman’s Definition**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A blockchain is a shared record-keeping system where each participant keeps
+    a copy
+  prefs: []
+  type: TYPE_NORMAL
+- en: of the chronologically ordered records. Participants can add new records only
+    if they
+  prefs: []
+  type: TYPE_NORMAL
+- en: collectively agree to do so.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '167'
+  prefs: []
+  type: TYPE_NORMAL
+- en: © Imran Bashir 2022
+  prefs: []
+  type: TYPE_NORMAL
+- en: I. Bashir, *Blockchain Consensus*, [https://doi.org/10.1007/978-1-4842-8179-6_4](https://doi.org/10.1007/978-1-4842-8179-6_4#DOI)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 4 BloCkChain
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Technical Definition**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A blockchain is a peer-to-peer, cryptographically secure, append-only, immutable,
+    and
+  prefs: []
+  type: TYPE_NORMAL
+- en: tamper-resistant shared distributed ledger composed of temporally ordered and
+    publicly
+  prefs: []
+  type: TYPE_NORMAL
+- en: verifiable transactions. Users can only add new records (transactions and blocks)
+    in a
+  prefs: []
+  type: TYPE_NORMAL
+- en: blockchain through consensus among peers on the network.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Background**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The origins of the blockchain can be found in early systems developed for the
+    digital
+  prefs: []
+  type: TYPE_NORMAL
+- en: timestamping of documents. Also, the long-standing problem of creating secure
+  prefs: []
+  type: TYPE_NORMAL
+- en: electronic cash with desirable features such as anonymity and accountability
+    has
+  prefs: []
+  type: TYPE_NORMAL
+- en: inspired blockchain development.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Some of the key ideas that contributed to the development of the blockchain
+    are
+  prefs: []
+  type: TYPE_NORMAL
+- en: discussed as follows.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Two fundamental issues need to be dealt with to create practical digital cash:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Accountability to prevent double-spends
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Anonymity to provide privacy to the users
+  prefs: []
+  type: TYPE_NORMAL
+- en: The question is how to resolve accountability and double-spend issues. The schemes
+  prefs: []
+  type: TYPE_NORMAL
+- en: described in the following tried to address these issues and managed to achieve
+    these
+  prefs: []
+  type: TYPE_NORMAL
+- en: properties; however, the usability was difficult, and they relied on trusted
+    third parties.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Digital Cash Creation Attempts**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are several attempts to create digital cash in the past. For example,
+    David Chaum
+  prefs: []
+  type: TYPE_NORMAL
+- en: invented blind signatures and used secret sharing mechanisms to create digital
+    cash.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Blind signatures enabled signing without revealing what is being signed, which
+    provided
+  prefs: []
+  type: TYPE_NORMAL
+- en: anonymity, and secret sharing allowed detection of double-spending.
+  prefs: []
+  type: TYPE_NORMAL
+- en: B-money is another electronic cash scheme that was invented in 1998 by Wei Dai.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This original idea mentions many ideas that can be considered direct precursors
+    to
+  prefs: []
+  type: TYPE_NORMAL
+- en: Bitcoin. It was a novel idea; however, it required trusted servers. It also
+    introduced
+  prefs: []
+  type: TYPE_NORMAL
+- en: possible solutions to cooperate between untraceable pseudonymous entities with
+  prefs: []
+  type: TYPE_NORMAL
+- en: a medium of exchange and a method to enforce contracts. The idea of each server
+  prefs: []
+  type: TYPE_NORMAL
+- en: depositing a certain amount in a special account and using this for penalties
+    and
+  prefs: []
+  type: TYPE_NORMAL
+- en: '168'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](index-187_1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Chapter 4 BloCkChain
+  prefs: []
+  type: TYPE_NORMAL
+- en: rewards is very close to the concept that we know as proof of stake today. Similarly,
+    the idea of solving a previously unsolved computational problem is what we know
+    today as
+  prefs: []
+  type: TYPE_NORMAL
+- en: proof of work.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Another electronic cash proposal is **BitGold**, introduced by Nick Szabo. Bitgold
+  prefs: []
+  type: TYPE_NORMAL
+- en: can be seen as a direct precursor of Bitcoin. The Bitgold proposal emphasized
+    no
+  prefs: []
+  type: TYPE_NORMAL
+- en: dependence on trusted third parties and proof of work by solving a “challenge
+    string.”
+  prefs: []
+  type: TYPE_NORMAL
+- en: On the other hand, progress and development in cryptography and computer
+  prefs: []
+  type: TYPE_NORMAL
+- en: technology generally resulted in several advances and innovative applications.
+    Some of
+  prefs: []
+  type: TYPE_NORMAL
+- en: these advances related to the blockchain are digital timestamping of documents,
+    email
+  prefs: []
+  type: TYPE_NORMAL
+- en: spam protection, and reusable proof of work.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The work on timestamping of digital documents to create an ordered chain of
+  prefs: []
+  type: TYPE_NORMAL
+- en: documents (hashes) by using a timestamping service was first proposed by Haber
+    and
+  prefs: []
+  type: TYPE_NORMAL
+- en: Stornetta. This idea is closely related to the chain of blocks in a blockchain.
+    However, the timestamping service is centralized and needs to be trusted.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The origins of proof of work based on hash functions used in Bitcoin can be
+    found
+  prefs: []
+  type: TYPE_NORMAL
+- en: in previous work by Dwork and Naor to use proof of work to thwart email spam.
+    Adam
+  prefs: []
+  type: TYPE_NORMAL
+- en: Back invented the Hashcash proof of work scheme for email spam control. Moreover,
+  prefs: []
+  type: TYPE_NORMAL
+- en: Hal Finney introduced reusable proof of work for token money, which used Hashcash
+    to
+  prefs: []
+  type: TYPE_NORMAL
+- en: mint a new PoW token.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Another technology that contributed to the development of Bitcoin is cryptography.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Cryptographic primitives and tools like hash functions, Merkle trees, and public
+  prefs: []
+  type: TYPE_NORMAL
+- en: key cryptography all played a vital role in the development of Bitcoin. We covered
+  prefs: []
+  type: TYPE_NORMAL
+- en: cryptography in Chapt[er 2 in detail.](https://doi.org/10.1007/978-1-4842-8179-6_2)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figur[e 4-1 illus](#p187)trates this fusion of different techniques.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Figure 4-1\.** Technologies leading to Bitcoin*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '169'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 4 BloCkChain
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**The First Blockchain?**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: When Bitcoin was revealed, the blockchain was introduced as a base operating
+    layer
+  prefs: []
+  type: TYPE_NORMAL
+- en: for Bitcoin cryptocurrency. Still operational today, this is the first public
+    blockchain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Soon after, the innovation started, and many different blockchains emerged –
+    some for a
+  prefs: []
+  type: TYPE_NORMAL
+- en: specific purpose, some for cryptocurrencies, and quite a few for enterprise
+    use cases. In the next section, we will look at different types of blockchain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Benefits of Blockchain**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Multiple benefits of blockchain technology are envisaged, and a lot has been
+  prefs: []
+  type: TYPE_NORMAL
+- en: accomplished since the invention of Bitcoin. Especially with the advent of Ethereum,
+  prefs: []
+  type: TYPE_NORMAL
+- en: a programmable platform is available where smart contracts can implement any
+    logic,
+  prefs: []
+  type: TYPE_NORMAL
+- en: which resulted in increased utility and paved the path for further adoption.
+    Today, one
+  prefs: []
+  type: TYPE_NORMAL
+- en: of the most talked-about applications of the blockchain, decentralized finance,
+    or DeFi
+  prefs: []
+  type: TYPE_NORMAL
+- en: for short, is seen as a significant disruptor of the current financial system.
+    Non-fungible tokens (NFTs) are another application that has gained explosive popularity.
+    NFTs on the
+  prefs: []
+  type: TYPE_NORMAL
+- en: blockchain enable tokenization of assets. Currently, there is almost 60 billion
+    USD worth of value locked in the DeFi ecosystem. This huge investment is a testament
+    that the
+  prefs: []
+  type: TYPE_NORMAL
+- en: blockchain has now become part of our economy. You can track this metric at
+    [https://](https://defipulse.com/)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[defipulse.com/.](https://defipulse.com/)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Now I list some of the most prominent benefits of the blockchain:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Cost saving
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Due to streamlining of processes, transparency, and single data
+  prefs: []
+  type: TYPE_NORMAL
+- en: sharing platform which comes with security guarantees, the
+  prefs: []
+  type: TYPE_NORMAL
+- en: blockchain can result in cost saving. Also, there is no need to
+  prefs: []
+  type: TYPE_NORMAL
+- en: create separate secure infrastructure; users can use an already
+  prefs: []
+  type: TYPE_NORMAL
+- en: existing secure blockchain network with an entry-level computer
+  prefs: []
+  type: TYPE_NORMAL
+- en: running the blockchain software client.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Transparency
+  prefs: []
+  type: TYPE_NORMAL
+- en: • As all transactions are public and anyone can verify the
+  prefs: []
+  type: TYPE_NORMAL
+- en: transactions, the blockchain introduces transparency.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '170'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 4 BloCkChain
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Auditability
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Due to immutable history of records, blockchains provide a
+  prefs: []
+  type: TYPE_NORMAL
+- en: natural platform for auditing purposes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Speed and efficiency
+  prefs: []
+  type: TYPE_NORMAL
+- en: • As all parties involved in a transaction are part of the same
+  prefs: []
+  type: TYPE_NORMAL
+- en: network, the speed of transaction dealing between multiple
+  prefs: []
+  type: TYPE_NORMAL
+- en: parties is increased. However, note that the transactions per
+  prefs: []
+  type: TYPE_NORMAL
+- en: second in a public blockchain are quite low, for example, three to
+  prefs: []
+  type: TYPE_NORMAL
+- en: seven in Bitcoin; however, in consortium blockchains, it’s much
+  prefs: []
+  type: TYPE_NORMAL
+- en: better, and with parties directly interacting with each other, it
+  prefs: []
+  type: TYPE_NORMAL
+- en: increases the overall efficiency of the transaction.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Security
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Blockchains are based on cryptographic protocols which ensure
+  prefs: []
+  type: TYPE_NORMAL
+- en: integrity and authenticity of the blockchain, thus providing a
+  prefs: []
+  type: TYPE_NORMAL
+- en: secure platform for transactions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'There are many use cases in different industries:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Supply chain
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Government
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Medicine/health
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Finance
+  prefs: []
+  type: TYPE_NORMAL
+- en: • IoT – Internet of Things
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Trading
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Identity
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Insurance
+  prefs: []
+  type: TYPE_NORMAL
+- en: Next, we discuss the different types of blockchain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '171'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 4 BloCkChain
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Types of Blockchain**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are several types of blockchains. The original blockchain introduced with
+    Bitcoin
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'is a public blockchain:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Public blockchain or permissionless blockchain
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Permissioned blockchain
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Private blockchain
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Consortium or enterprise blockchain
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Application-specific blockchain
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Heterogeneous multichain
+  prefs: []
+  type: TYPE_NORMAL
+- en: A **public blockchain**, as the name suggests, is a **permissionless blockchain**.
+    There is no restriction on participating in the network. All that is required
+    is to download
+  prefs: []
+  type: TYPE_NORMAL
+- en: a software client and run it to become part of the network. Usually, these types
+    of
+  prefs: []
+  type: TYPE_NORMAL
+- en: blockchains are used for cryptocurrencies, such as Bitcoin and Ethereum.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are two types of **permissioned blockchains**. **Private blockchains**
+    are in control of only one organization and are usually run within an organization.
+    On the
+  prefs: []
+  type: TYPE_NORMAL
+- en: other hand, **consortium blockchains** or **enterprise blockchains** are permissioned
+    blockchains where multiple organizations participate in the blockchain’s governance.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Enterprises commonly use consortium chains for specific enterprise use cases.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We can also further classify chains that stakeholders may have only developed
+    for
+  prefs: []
+  type: TYPE_NORMAL
+- en: a single purpose. We can call them **application-specific blockchains**. For
+    example, a blockchain developed only for a single type of cryptocurrency. In a
+    way, Bitcoin is an
+  prefs: []
+  type: TYPE_NORMAL
+- en: application-specific blockchain, with only one application, Bitcoin cryptocurrency.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Similarly, suppose an organization runs a private blockchain for a specific
+    purpose,
+  prefs: []
+  type: TYPE_NORMAL
+- en: such as an audit function. In that case, it can also be classified as an application-specific
+    blockchain, as it has only been developed for a single specific purpose.
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, in practice, blockchains serve as a generic platform that guarantees
+    a
+  prefs: []
+  type: TYPE_NORMAL
+- en: consistent, secure, tamper-resistant, and ordered ledger of records, making
+    it suitable for a wide variety of applications. Also, depending on the design,
+    multiple applications can
+  prefs: []
+  type: TYPE_NORMAL
+- en: run on a single blockchain. For example, Ethereum can run different programs
+    called
+  prefs: []
+  type: TYPE_NORMAL
+- en: smart contracts on it, making it a general-purpose blockchain platform. A blockchain
+  prefs: []
+  type: TYPE_NORMAL
+- en: that has been developed for a specific single use case can be called application-specific
+    blockchain, or ASBC for short.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '172'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 4 BloCkChain
+  prefs: []
+  type: TYPE_NORMAL
+- en: Blockchains are also shared data platforms where multiple organizations can
+    share
+  prefs: []
+  type: TYPE_NORMAL
+- en: data in a tamper-resistant manner, ensuring data integrity. However, this sharing
+    can
+  prefs: []
+  type: TYPE_NORMAL
+- en: be achieved if there is only one standard blockchain, but many different blockchains
+  prefs: []
+  type: TYPE_NORMAL
+- en: have emerged since the advent of Ethereum. This variety has resulted in a problem
+  prefs: []
+  type: TYPE_NORMAL
+- en: where one blockchain runs a different protocol and cannot share its data with
+    another
+  prefs: []
+  type: TYPE_NORMAL
+- en: blockchain. This disconnect creates a situation where each blockchain is a silo.
+    To
+  prefs: []
+  type: TYPE_NORMAL
+- en: solve this issue, the organization that wants to join a consortium network must
+    either
+  prefs: []
+  type: TYPE_NORMAL
+- en: use the software client specific to that blockchain or somehow devise a complex
+  prefs: []
+  type: TYPE_NORMAL
+- en: interoperability mechanism. This problem is well understood, and a lot of work
+    is
+  prefs: []
+  type: TYPE_NORMAL
+- en: underway regarding novel interoperability protocols. Also, new types of blockchains,
+  prefs: []
+  type: TYPE_NORMAL
+- en: such as **heterogeneous multichains** and sharding-based approaches, are emerging.
+  prefs: []
+  type: TYPE_NORMAL
+- en: One prime example is Polkadot, a replicated sharded state machine where heterogenous
+  prefs: []
+  type: TYPE_NORMAL
+- en: chains can talk to each other through a so-called relay chain. Another effort
+    is Ethereum 2.0, where sharded chains serve as a mechanism to provide scalability
+    and cross-shard
+  prefs: []
+  type: TYPE_NORMAL
+- en: interoperability. Cardano is another blockchain that is on course to provide
+    scalability
+  prefs: []
+  type: TYPE_NORMAL
+- en: and interoperability between chains. With all these platforms and the pace of
+    the work
+  prefs: []
+  type: TYPE_NORMAL
+- en: in progress to realize these ideas, we can envisage that in the next eight to
+    ten years,
+  prefs: []
+  type: TYPE_NORMAL
+- en: these blockchains and others will be running just like we have the Internet
+    today with
+  prefs: []
+  type: TYPE_NORMAL
+- en: seamless data sharing between different chains. The chains that facilitate such
+    a level of natural interoperability, giving rise to an ecosystem of multiple interoperating,
+    general-purpose enterprise chains and ASBCs, are called **heterogeneous multichains**.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now let’s clarify an ambiguity. You might have heard the term “distributed ledger,”
+  prefs: []
+  type: TYPE_NORMAL
+- en: which is sometimes used to represent a blockchain. While both terms, blockchain
+    and
+  prefs: []
+  type: TYPE_NORMAL
+- en: distributed ledger, are used interchangeably, there’s a difference. The distributed
+    ledger is an overarching term describing a ledger with distributed properties.
+    Blockchains fall
+  prefs: []
+  type: TYPE_NORMAL
+- en: under this umbrella. A blockchain is a distributed ledger, but not all distributed
+    ledgers are a blockchain. For example, some distributed ledgers do not use blocks
+    composed
+  prefs: []
+  type: TYPE_NORMAL
+- en: of transactions in their blockchain construction. Instead, they treat transaction
+    records individually and store them as such. Usually, however, in most distributed
+    ledgers,
+  prefs: []
+  type: TYPE_NORMAL
+- en: blocks are used as containers for a batch of transactions and several other
+    elements such as block header, which also contains several components. Such use
+    of blocks to bundle
+  prefs: []
+  type: TYPE_NORMAL
+- en: transactions makes them a blockchain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '173'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 4 BloCkChain
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Blockchain Is a Distributed System**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A blockchain is a distributed system. As such, it should be defined and reasoned
+    about in the light of distributed computing. Furthermore, this formal description
+    allows for better reasoning.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We discussed the CAP theorem in Chapter [1](https://doi.org/10.1007/978-1-4842-8179-6_1).
+    Therefore, we can analyze the blockchain through the CAP theorem to ascertain
+    what type of system it is.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**CAP and Permissionless Blockchain**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Permissionless blockchains are AP (availability and partition tolerance) blockchains
+  prefs: []
+  type: TYPE_NORMAL
+- en: because consistency is somewhat sacrificed in favor of availability. We could
+    argue that
+  prefs: []
+  type: TYPE_NORMAL
+- en: eventual consistency is achieved, but as consistency (agreement) is sacrificed
+    in favor
+  prefs: []
+  type: TYPE_NORMAL
+- en: of availability, we can say that permissionless or public blockchains are AP
+    systems.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, Ethereum and Bitcoin are AP systems. This is the case due to the
+    proof of
+  prefs: []
+  type: TYPE_NORMAL
+- en: work (PoW) type of probabilistic consensus.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**CAP and Permissioned Blockchain**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Permissioned blockchains are CP (consistency and partition tolerance) systems
+    because
+  prefs: []
+  type: TYPE_NORMAL
+- en: availability is sacrificed in favor of consistency. This is the case because
+    almost all
+  prefs: []
+  type: TYPE_NORMAL
+- en: permissioned blockchains use traditional BFT protocols, where if a threshold
+    of nodes
+  prefs: []
+  type: TYPE_NORMAL
+- en: is faulty, then the whole system stalls until the faults are resolved, and then
+    the system continues to operate. For example, in a five-node network, if three
+    nodes go down, the
+  prefs: []
+  type: TYPE_NORMAL
+- en: system doesn’t progress unless the other nodes come back online. Similarly,
+    in the
+  prefs: []
+  type: TYPE_NORMAL
+- en: case of partitioning between subsets of two and three nodes, the system doesn’t
+    make
+  prefs: []
+  type: TYPE_NORMAL
+- en: progress unless the partition heals. This is the case due to the use of traditional
+    BFT
+  prefs: []
+  type: TYPE_NORMAL
+- en: algorithms, such as PBFT. The requests coming from the clients are processed
+    only if
+  prefs: []
+  type: TYPE_NORMAL
+- en: there’s a majority of honest nodes. In other words, if the system falls below
+    3f+1 in the case of Byzantine fault tolerance, the system immediately degrades
+    to nonfunctional.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We can visualize both these concepts in Figure [4-2](#p193).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '174'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](index-193_1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Chapter 4 BloCkChain
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Figure 4-2\.** CAP theorem and blockchain*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Next, we describe blockchain ledger abstraction which is an abstract view of
+    a
+  prefs: []
+  type: TYPE_NORMAL
+- en: blockchain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Blockchain Ledger Abstraction**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Blockchain abstraction or sometimes called ledger abstraction can be defined
+    with the
+  prefs: []
+  type: TYPE_NORMAL
+- en: help of operations it can perform and several properties.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are at a high level three operations that processes in a blockchain network
+    can
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'perform:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Get(), append(), verify()
+  prefs: []
+  type: TYPE_NORMAL
+- en: When get() is invoked, it returns a copy of the current canonical state of the
+  prefs: []
+  type: TYPE_NORMAL
+- en: blockchain (ledger).
+  prefs: []
+  type: TYPE_NORMAL
+- en: When append() is invoked, it creates and appends a new record *r* to the blockchain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: When verify() is invoked, it verifies and returns the validity status of the
+    record *r* or blockchain *b*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '175'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 4 BloCkChain
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Properties**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are several properties associated with a blockchain, which are described
+    as
+  prefs: []
+  type: TYPE_NORMAL
+- en: follows.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Consistency**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: • All replicas hold the same up-to-date copy of the data. In the case of
+  prefs: []
+  type: TYPE_NORMAL
+- en: public blockchains, it is usually eventual consistency, and in the case
+  prefs: []
+  type: TYPE_NORMAL
+- en: of permissioned blockchains, it is strong consistency.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Formally, if a record r is seen first by a process p before another
+  prefs: []
+  type: TYPE_NORMAL
+- en: record r2, then every honest process sees r before r2\.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Fault Tolerant**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Blockchains are fault-tolerant distributed systems. A blockchain
+  prefs: []
+  type: TYPE_NORMAL
+- en: network can withstand Byzantine or crash faults up to a threshold.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • In BFT-based blockchains (usually with a PBFT variant implemented
+  prefs: []
+  type: TYPE_NORMAL
+- en: in blockchains), the lower bound is 3F + 1, where F is the number
+  prefs: []
+  type: TYPE_NORMAL
+- en: of faults.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • In CFT-based blockchains (usually with RAFT implementation in
+  prefs: []
+  type: TYPE_NORMAL

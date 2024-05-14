@@ -1,0 +1,403 @@
+- en: ©  Vikram Dhillon, David Metcalf, and Max Hooper 2017Vikram Dhillon, David Metcalf
+    and Max HooperBlockchain Enabled Applications[https://doi.org/10.1007/978-1-4842-3081-7_3](A430562_1_En_3_Chapter.xhtml)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3. Foundations of Blockchain
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Vikram Dhillon^(1 ), David Metcalf¹ and Max Hooper¹(1)Orlando, Florida, USA
+  prefs: []
+  type: TYPE_NORMAL
+- en: You never change things by fighting the existing reality.To change something,
+    build a new model that makes the existing model obsolete.—R. Buckminster Fuller
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: The blockchain is a decentralized data structure with internal consistency maintained
+    through consensus reached by all the users on the current state of the network.
+    It’s an enabling technology that resolved the Byzantine generals’ problem (message
+    communication between untrusted parties) and opened up a new horizon of possibilities
+    for trustless transactions and exchange of information. If the Internet democratized
+    the peer-to-peer exchange of information, then the blockchain has democratized
+    the peer-to-peer exchange of value. We begin this chapter by exploring how transactions
+    work between users on the Bitcoin network. This entails a technical discussion
+    of structures of a block and a transaction. We then dive into the role of wallets
+    and user addresses. After talking about wallets, we shift our focus to Simple
+    Payment Verification (SPV) implemented in the Bitcoin network. SPV allows us to
+    understand why blocks have a peculiar structure and more important, how the Bitcoin
+    network can retain efficiency despite the network scaling at a high rate. Finally,
+    we conclude our discussion by talking about hard and soft forks in the blockchain.
+    We present the implications of forks in the context of forward compatibility for
+    merchants and users involved in running the Bitcoin-core code.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Transaction Workflow
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The central purpose of the Bitcoin protocol is to allow transactions to occur
+    over the network between users in a decentralized manner. We have been talking
+    about small fragments of the protocol to build up background. Now we can integrate
+    those concepts into a single framework and explore the blockchain. The ultimate
+    result of mining is increasing the number of blocks as the network evolves over
+    time. To understand how transactions occur between two users (Alice and Bob),
+    we first need to understand the structure of blocks that hold the transactions.
+    In the simplest terms, the blockchain is a collection of blocks bound by two main
+    principles:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Internal consistency : There are a few design principles inherent to the functioning
+    of each block that make the blocks internally consistent. For instance, each block
+    links to the previous one in the chain and has a creation timestamp. Such mechanisms
+    in the blockchain allow it to be an internally coherent data structure that can
+    keep a consistent record of transactions.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Consensus on transactions: The concept of mining described in Chapter [2](A430562_1_En_2_Chapter.xhtml)
+    is just one implementation for verifying transactions; there are different methods
+    where no brute-force hashing is involved. However, in every one of these implementations,
+    there is a scheme of reaching consensus on the transactions that have transpired
+    during some interval in the network. We can generalize this verification of transactions
+    for a decentralized system by either using some sort of PoW or a similar strategy
+    that pools transactions that are then checked by users on the network.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'A transaction is essentially a data structure carried on a block, but how exactly?
+    To discover the process, let’s look at the complete structure of a block in Figure
+    [3-1](#Fig1). Each block has at least two unique components: the block header,
+    which contains a unique hash (called the merkle root) that uniquely identifies
+    a block, and the transaction list, which contains new transactions. Note that
+    each block contains the same amount of transactions in the list, but the precise
+    transactions between users are different. This is because only one block wins
+    the mining race every ten minutes on the blockchain, other candidates are rejected,
+    and the race starts again. In this simplified model, there are only two other
+    components of a block: the block size, which is kept consistent for the entire
+    network, and a counter for the number of transactions in each block. Here, we
+    focus more on the block header and the transaction list.The block header contains
+    a few standard components, such the as difficulty target and the nonce discussed
+    previously. It also contains the version number of the Bitcoin core-code that
+    the winning miner is running. The timestamp is also a unique feature of every
+    block, as it unmistakably identifies one particular block in the network. The
+    header also contains a hash from the previous block in the chain, and a special
+    hash that identifies this block called the merkle root. We discuss how this special
+    hash comes to be later in this chapter.Proof of lifeRecently, there were rumors
+    that Julian Assange, the WikiLeaks founder, had died. Assange recently did an
+    Ask Me Anything session on Reddit and responded to the rumors by reading the most
+    recent block hash from the blockchain to prove that he was indeed alive. The block
+    was created only ten minutes earlier, so this could not have been a prerecording,
+    thus proving beyond any shadow of a doubt that Assange was alive. This was the
+    first time the block hash found a use in a sense of popular culture, and Assange
+    called it a proof of life.![A430562_1_En_3_Fig1_HTML.jpg](Images/A430562_1_En_3_Fig1_HTML.jpg)Figure
+    3-1.Simplified overview of the structure of a blockThe block header and transaction
+    list are the two components that stay unique to every block. The block header
+    is made up of several smaller parts, the most peculiar of which is the merkle
+    root, a hash that uniquely identifies a block. The header contains the hash of
+    the previous block, the nonce used to create that particular block, and the difficulty
+    of the network. These are standard mining components that we discussed previously.
+    Each block also contains a list of transactions. Aside from the actual transactions,
+    the transaction list also contains a few components that are crucial to how a
+    block will accept the transaction. For instance, the lock time delay dictates
+    when a transaction can be accepted into a block. Finally, the list contains all
+    the transactions accepted into this block as a series of signed inputs and outputs
+    that ensure the transfer of Bitcoins from the sender to the receiver.There are
+    several new terms and concepts introduced here and we will go through all of them
+    now. We already talked about the block header and the concepts of timestamp on
+    a block, the merkle root, and a hash from the previous block. Now we focus on
+    the components of the transaction list. Let’s begin with the delay. The proper
+    technical term is lock time delay, which refers to the time after which a transaction
+    can be accepted into a block. The precise mechanism involves the use of a parameter
+    called blockheight, which increases as more blocks are added to the blockchain.
+    A given transaction remains locked and unverified until the blockheight specified
+    for that transaction is exceeded.Next is the concept of transaction inputs and
+    outputs. The foundational unit of a transaction is called an unspent transaction
+    output (UTXO) , which can have a value given in Satoshis. Similar to how a dollar
+    can be split into 100 cents, Bitcoin can be divided into an eight-decimal unit
+    called Satoshis. A UTXO is a unit of currency controlled by users (the users are
+    also known as owners) and recorded on the blockchain. More precisely, UTXO is
+    really the currency balance, or the unspent currency present in the Bitcoin economy.
+    The entire network accepts UTXO as currency and whenever a user receives Bitcoin,
+    the amount is recorded on the blockchain as a UTXO. Essentially, the Bitcoin belonging
+    to a user can be spread across several transactions and many blocks as UTXO. As
+    a result, there is no defined concept of stored balance for a particular user,
+    but only UTXOs spread across the network possessed by the owners. The idea of
+    an account balance is actually created for a user by the wallet software, which
+    searches the blockchain and collects all the UTXO belonging to a particular address.
+    We discuss the concepts of wallets and addresses shortly.To understand UTXO properly,
+    we need to talk about the concept of change. The idea is very simple, actually.
+    Think about the last time you bought groceries and paid with cash. You probably
+    got some change back that was left over from your payment. UTXOs have a similar
+    concept, as shown in Figure [3-2](#Fig2). Every transaction is split into a portion
+    that is spent and locked (assigned) to another user, and a portion that gets returned
+    back to the original user, just like the change that you would get from shopping.
+    In a transaction, UTXOs that are consumed by the transaction are called the inputs,
+    and the UTXOs created by a transaction are called the outputs. The example in
+    Figure [3-2](#Fig2) illustrates a similar scenario, where Bob wants to send one
+    BTC to Alice, but in the process, the ten BTC owned by Bob are split into two
+    parts: the one BTC sent to Alice, which is now assigned to her, and the nine BTC
+    that are returned to Bob in the form of UTXO s. Both of these components are recorded
+    on the blockchain because they are a part of a transaction, as shown in Figure
+    [3-2](#Fig2).![A430562_1_En_3_Fig2_HTML.jpg](Images/A430562_1_En_3_Fig2_HTML.jpg)Figure
+    3-2.Format of a UTXO in the transaction listIn this example, Bob wants to send
+    one BTC to Alice, and Figure [3-2](#Fig2) shows how this transaction occurs. The
+    BTC owned by Bob is used as the input of the transaction and the output is two
+    parts, one sent to Alice for one BTC and the second one returned as change back
+    to Bob. It should be noted here that the initial transaction, the newly assigned
+    transaction, and the change are recorded on the blockchain as the input and output.Now
+    that we have a better grasp of UTXOs , let’s talk about how transactions are assigned
+    from one user to another. This involves the use of private–public key pairs that
+    lock and unlock the transactions. The process works as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A user, Alice, initiates a transaction that she wants to send to Bob.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Alice uses her private key to sign the transaction.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The transaction is broadcast on the network and anyone can use Alice's public
+    key to verify that the transaction originated from her.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Bob receives the transaction after it has been verified on the network and propagated
+    to him.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Bob unlocks the transaction using his private key. The transaction was signed
+    with a script such that only the recipient could unlock the transaction and assign
+    it to themselves.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'We mention that the transaction locking and unlocking mechanisms use a script,
+    so what is this script? The Bitcoin protocol uses a minimal, bare-bones, Turing-incomplete
+    programming language to manage transactions. Satoshi’s intention was to keep the
+    programming logic very simple and largely off the blockchain whenever possible.
+    A script is attached to every transaction and it contains instructions on how
+    the user receiving Bitcoins can access them. Essentially, the sender needs to
+    provide a public key that anyone on the network can use to determine that the
+    transaction did indeed originate from the address contained in the script, and
+    a signature to show that the transaction was signed by using the sender’s private
+    key. Without the private–public key pair authorization, transactions between users
+    would not occur. Let’s complete the picture that we started to create with the
+    UTXOs, shown in Figure [3-3](#Fig3).![A430562_1_En_3_Fig3_HTML.jpg](Images/A430562_1_En_3_Fig3_HTML.jpg)Figure
+    3-3.Transactions on the blockchainConceptually, it might be bizarre to consider
+    transactions on the network as UTXOs being spread across hundreds of blocks, but
+    this process is exactly how transactions are propagated across the network. In
+    this example, Bob first initiated the transaction that was sent to Alice in which
+    one BTC was assigned to Alice. He received nine BTC in change as the unspent output.
+    Alice further sends 0.5 BTC to another user and in doing so, she receives 0.5
+    back in change from her transaction. Notice that the first transaction was signed
+    by Bob, who initiated the transaction, and then Alice signed the second transaction.
+    In a sense, the output from the first transaction became an input for the second,
+    so Bob’s signature was retained as proof of the first transaction and Alice’s
+    signature now serves as the unlocking mechanism. This is how transactions can
+    be tracked across the Bitcoin network from the origin to the final owner (final
+    address). By using network addresses, the network retains a level of pseudonymity.Now
+    that we have talked about UTXOs, signatures, scripts, and how transactions are
+    recorded, let’s integrate these concepts and review the workflow of a transaction
+    between Alice and Bob, shown in Figure [3-4](#Fig4).![A430562_1_En_3_Fig4_HTML.jpg](Images/A430562_1_En_3_Fig4_HTML.jpg)Figure
+    3-4.Overview of a transaction on the networkAlice initiates the transaction from
+    her wallet, which contains multiple addresses. Each address has a certain amount
+    of Bitcoin balance (the sum of all UTXOs associated with that address) that can
+    be used to create new transactions. The transaction is then signed using Alice’s
+    private key and it enters the mining phase, where it will be packaged into a candidate
+    block. As the mining concludes, the winning miner announces the block on the network
+    and the block is included into the blockchain. The remaining transactions are
+    thrown into the pool of transactions to be added. The transaction propagates to
+    Bob, who can now use his private key to unlock the transaction output amount and
+    use it. The ideas of UTXOs , signing, and script locking and unlocking provide
+    deeper insights into how the blockchain remains internally consistent as a decentralized
+    ledger.Figure [3-4](#Fig4) introduces the concept of the wallet, which can be
+    used to initiate transactions. Wallets are now a standard part of the Bitcoin
+    core-code and they mainly serve three purposes for the users:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Create transactions: A user can create transactions easily with a graphical
+    interface using the wallet.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Maintain balance: The wallet software tracks all the UTXOs associated with
+    an address and gives a user his or her final balance.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Maintain multiple addresses: Within the wallet, a user can have multiple addresses
+    and each address can be associated with certain transactions.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In a sense, addresses are the only means of ownership in the Bitcoin network.
+    UTXOs and balances are associated with a particular address and a user can create
+    as many addresses as her or she wants. We saw in Figure [3-4](#Fig4) that Alice
+    had three addresses in her wallet, and each of the addresses can work with her
+    private key. There are actually other types of wallets, aside from a software
+    wallet. Figure [3-4](#Fig4) used a software wallet, but the process is similar
+    for the other two main types, mobile wallets and a cold storage physical wallet.Mobile
+    wallets have largely been designed for the sake of convenience and as a gateway
+    into the world of mobile payments using cryptocurrencies such as Bitcoin. These
+    wallets often serve as an independent but miniaturized version of a complete wallet,
+    and allow for access to balances and transactions on the go. The apps that work
+    as wallets are often designed in an open source environment, so they are also
+    helping bring developers and power users together in the community. Cold storage
+    wallets are a more permanent method of storing Bitcoins over a long period of
+    time. There have been instances where wallets got corrupted or the users couldn’t
+    remember the key to unlocking those wallets, rendering their balance effectively
+    useless. There is no recovery mechanism for a password on a wallet. The idea here
+    is to create a new wallet, and send a transaction to a new address on that wallet.
+    Now this wallet can be backed up and saved to a physical device such as a flash
+    drive and stored away securely. Once that transaction has been verified on the
+    blockchain, your Bitcoins are safe to be retrieved from the flash drive at any
+    time. This can be done to prevent any accidents from happening and to keep your
+    currency separate from the main wallet that you use to conduct transactions or
+    mine for Bitcoins. Some developers have taken a step further and created paper
+    wallets where the address is encoded in a QR code and a private key for that particular
+    wallet is also printed on the paper in another QR code.NoteHow can you actually
+    see your transaction taking place on the Bitcoin network without having to write
+    a script or code yourself to do it? In Bitcoin (and most cryptocurrencies), there
+    is a feature called Blockchain Explorer, usually a web site where all transactions
+    are visible from the Bitcoin network. You can obtain all sorts of details about
+    transactions, such as the origin of the transaction, the amount, the block hash,
+    or how many verifications it received.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Simple Payment Verification
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'So far, we have talked about the structure of blocks, transaction lists, how
+    transactions occur between users, and how they are recorded on the blockchain.
+    Blocks are fundamentally data structures linked on the blockchain, and transactions
+    can be thought of as property of that data structure. More precisely, in the case
+    of blockchains, transactions are represented as leaves of a merkle tree. Hashes
+    have been used throughout the Bitcoin protocol as a method for maintaining data
+    consistency because a hash is very easy to verify and nearly impossible to reverse
+    engineer. Building on these properties, we can tackle a very difficult technical
+    challenge on the blockchain: How can we check if a particular transaction belongs
+    to a block? Checking through an N number of items in a list would be very inefficient,
+    so we cannot simply check every transaction in a blockchain containing millions
+    of blocks to verify. This is where a merkle tree provides speed and efficiency.To
+    visualize a merkle tree, refer to Figure [3-5](#Fig5). It is constructed from
+    the transactions of a block to allow fast access for verification purposes. Let’s
+    follow the example shown in Figure [3-5](#Fig5). In this case, there are eight
+    transactions collected in a block and represented on a merkle tree. The lowest
+    level is the transactions themselves, and they are abstracted to a higher level
+    by hashing two transactions together and obtaining an output hash. This hash is
+    combined with a second one and hashed again to abstract a higher level. This process
+    is repeated until only two hashes are left. Notice that each level contains information
+    about the level below, and finally the highest level holds a hash with information
+    from the entire tree. This hash is called the merkle root. How would a merkle
+    root assist in finding a transaction? Let’s run through the example shown in Figure
+    [3-6](#Fig6) and try to find transaction 6 from the merkle tree. For starters,
+    the merkle root allows us to skip the other half of the tree, and now our search
+    is limited to transactions 5 through 8\. The hashes guide the search further,
+    allowing us to step into (reach) transaction 6 in just three steps. Compare this
+    to searching through the whole tree, stepping into every level, and comparing
+    every transaction to see if it is indeed transaction 6\. That process would be
+    more involved in terms of the steps taken and the time needed, and this becomes
+    too exhausting if the search expands to millions of transactions.![A430562_1_En_3_Fig5_HTML.jpg](Images/A430562_1_En_3_Fig5_HTML.jpg)Figure
+    3-5.Constructing a merkle rootThe lowest level is formed from the transactions
+    and the general idea is to keep hashing two elements together and retain some
+    information about the level below. Ultimately, we are left with only two elements
+    that are hashed together to form the merkle root.When would searching for a transaction
+    come in handy? Every new user to get started with the standard Bitcoin wallet
+    client has to download the entire blockchain. Over time, the blockchain has increased
+    in download size, recently reaching a few gigabytes. This can be intimidating
+    to new users, who cannot use their wallets until the blockchain download is finished,
+    and it might turn them away. To solve the problem of having to download a bloated
+    blockchain with historic transactions, Satoshi came up with a solution called
+    SPV. The rationale in SPV is to create a wallet client that downloads only the
+    block headers instead of the entire blockchain. This new lightweight client can
+    use the merkle root in the block headers to verify if a particular transaction
+    resides in a given block. The precise mechanism requires the wallet to rely on
+    a merkle branch and reach the specific transaction, much like the example shown
+    in Figure [3-6](#Fig6). Currently, for Bitcoin, there is an alternative wallet
+    client known as Electrum that implements SPV and allows new users to avoid the
+    hassle of downloading the entire blockchain.![A430562_1_En_3_Fig6_HTML.jpg](Images/A430562_1_En_3_Fig6_HTML.jpg)Figure
+    3-6.Finding a transaction using the merkle rootThe root allows us to skip half
+    of the tree during our search and the next level narrows down the search even
+    further. Using the merkle root, we can reach the transaction in just three steps,
+    which allows a very high operational efficiency that we would need in Bitcoin’s
+    current network. The path to reaching transaction 6 is also known as a merkle
+    branch, connecting the root to a leaf.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Blockchain Forks
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Here’s an interesting scenario to consider: Several miners are competing to
+    solve the PoW and create a block. Incidentally, two miners find a valid value
+    within a few seconds of each other and broadcast them to the network. What happens
+    now? This situation is known as a fork, and it is completely normal on the Bitcoin
+    network, especially as the network starts to scale and include thousands of miners.
+    To resolve the fork, there are a few rules in place on the network, called the
+    consensus rules. The tie creates two versions of the blockchain, and this tie
+    is resolved when the next block is discovered. Some of the peers will be working
+    on one version of the blockchain, and others will be working on the second version.
+    When the next block is discovered, one of the chains will become longer due to
+    the inclusion of this new block. This chain now becomes the active chain and the
+    nodes will converge to the new chain. This process is visually illustrated in
+    Figure [3-7](#Fig7).![A430562_1_En_3_Fig7_HTML.jpg](Images/A430562_1_En_3_Fig7_HTML.jpg)Figure
+    3-7.Fork in the chainIn this example, block 4 is discovered at the same time by
+    two miners, but the tie is resolved when the next block is discovered on Branch
+    B. This branch now becomes the active chain and all the nodes converge to using
+    Branch B as the new active chain.Normal forks on the blockchain are not a concerning
+    event, because they are usually resolved within a matter of minutes. Soft and
+    hard forks are an entirely different matter, however. These can occur in the case
+    of upgrades to the Bitcoin core-code where a permanent split happens between nonupgraded
+    nodes that cannot validate any newly created blocks and upgraded nodes that have
+    begun creating blocks following the new consensus rules. Two entirely different
+    types of blocks begin to appear on the network and the network is unable to converge
+    on a single active chain until the nodes are upgraded to the new rules.In this
+    case, there are two possible outcomes. The first possibility is that the majority
+    of the network switches over to the new rules (a soft fork), and the new rules
+    allow for the carryover of some portion of the valid old blocks. The second alternative
+    is that the old blocks remain invalid for the new nodes, and no old blocks are
+    accepted in the network by the new nodes. This is a hard fork, where no forward
+    compatibility exists and the old blocks will no longer be accepted by the new
+    nodes. All the miners and nodes have to upgrade to the new software so that their
+    blocks can be considered valid under the new rules. A hard fork can be chaotic
+    and cause a problem for users and merchants that have created payment terminals
+    and interfaces relying on the old rules for transactions. They have to upgrade
+    their back-end software to be compatible with the new rules and ensure a smooth
+    transition of incoming Bitcoins. A hard fork is not upcoming for the Bitcoin network,
+    but developers have begun researching just how complex the process might be. We
+    end our discussion of the blockchain forks here, but we return to it later. In
+    the next chapters, we take a look at circumstances in which a hard fork might
+    become necessary in the next generation of Bitcoin protocols.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In this chapter, we integrated the concepts of mining into the whole blockchain
+    network. We described what a blockchain is and how it functions at a technical
+    level. Then, we described the workflow of a transaction and tracking unspent transaction
+    outputs. We talked about how transactions are put together and propagated on the
+    blockchain and also mining software such as a wallet and mining client. Then,
+    we put mining in the context of a proper network and showed how a transaction
+    goes from being included in a block to being propagated. After that, we talked
+    about the concept of SPV and the importance of merkle hashes and roots in Bitcoin.
+    We ended the chapter with a discussion of blockchain forks and how they influence
+    the network, which we revisit later in the book as well.
+  prefs: []
+  type: TYPE_NORMAL
+- en: References
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The main references used to prepare this chapter are the Bitcoin Developer Guide
+    for discussions on UTXOs and block headers. Georg Becker’s work on Merkel Tree
+    signatures was used to prepare the sections on Simple Payment Verification and
+    Merkel roots.
+  prefs: []
+  type: TYPE_NORMAL

@@ -1,0 +1,724 @@
+- en: ©  Vikram Dhillon, David Metcalf, and Max Hooper 2017Vikram Dhillon, David Metcalf
+    and Max HooperBlockchain Enabled Applications[https://doi.org/10.1007/978-1-4842-3081-7_4](A430562_1_En_4_Chapter.xhtml)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 4. Unpacking Ethereum
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Vikram Dhillon^(1 ), David Metcalf¹ and Max Hooper¹(1)Orlando, Florida, USA
+  prefs: []
+  type: TYPE_NORMAL
+- en: Any sufficiently advanced technology is indistinguishable from magic.—R. Buckminster
+    Fuller
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Ethereum is an open source, decentralized, blockchain platform with computational
+    capabilities that reconstruct elementary currency exchange into a transfer of
+    value between users via a scripting language. Ethereum is widely recognized as
+    a successor to the Bitcoin protocol, generalizing the original ideas and enabling
+    a more diverse array of applications to be built on top of blockchain technology.
+    Ethereum has two essential components. The first is a Turing-complete virtual
+    processor that can load resources and execute scripts, called the Ethereum Virtual
+    Machine (EVM). The second component is a token of value called Ether, which is
+    the currency of the network used for user-to-user transactions or compensation
+    to miners of the network. In this chapter, we begin our journey with an overview
+    of Ethereum’s architecture in comparison to Bitcion, focusing on the EVM and Turing-completeness
+    properties. Following the architecture, there is a short discussion on the accounts
+    model in Ethereum, and account representation with Merkel-Patricia Trees. This
+    will lead us to global state in Ethereum, account storage and gas, which is a
+    spam-prevention mechanism in the network. Then, we deconstruct the notion of a
+    smart contract enabled by EVM, the security concerns revolving around sandboxing
+    executable code, and how the EVM pushes executable code (bytecode) to the blockchain.
+    After that, we provide an introduction to Solidity, a programming language for
+    writing smart contracts in Ethereum. We will explore the syntax of Solidity, and
+    the common integrated development environments (IDEs) being used to work with
+    it. Next, we focus on the World Computer model proposed using Ethereum and a few
+    related decentralized technologies such as IPFS and Whisper. Then, we will look
+    at the apps available in Ethereum. On the enterprise side, a particularly noteworthy
+    development is the Blockchain-as-a-Service (BaaS) deployed on the Azure cloud
+    by Microsoft. For the network, distributed apps (Dapps) are being built on top
+    of Ethereum and published using other World-Computer components such as Mist.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Overview of Ethereum
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'It was around mid-2013 when a majority of the Bitcoin community was starting
+    to flirt with the idea of other applications beyond simply currency. Soon, there
+    was a flood of new ideas discussed in online forums . Some common examples include
+    domain registration, asset insurance, voting, and even Internet of Things (IoT).
+    After the hype started to fade away, a more serious analysis of the Bitcoin protocol
+    revealed severe limitations of potential applications that can be built on top
+    of the blockchain.A crucial point of debate was whether a full scripting language
+    should be allowed within the blockchain or applications should be built with logic
+    residing outside of the blockchain. There were two key issues that sparked this
+    debate:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The scripting language and OPCODES in the Bitcoin protocol were designed to
+    be very limited in functionality.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'The protocol itself was not general enough, and alternative currencies such
+    as Namecoin and others emerged specialized for one specific task. The big question
+    at the time was this: How can a protocol be generalized such that it becomes future-compatible
+    with applications that we know nothing about?'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Eventually, two schools of thought emerged regarding scripting: Traditionally,
+    Satoshi’s paper proposed keeping the scripting language very limited in functionality.
+    This would avoid the security concerns of having executable code in the blockchain.
+    In a sense, the blockchain executable code is limited to a handful of necessary
+    primitives that update the distributed states. The second school of thought was
+    championed by Vitalik, who thought of the blockchain as more than just a ledger.
+    He envisioned the blockchain as a computational platform that can execute well-defined
+    functions using contracts and arguments. The design of EVM allows for complete
+    isolation of the executable code and safe execution of the applications built
+    on top of the EVM. Let’s begin with the design principles and the core idea behind
+    Ethereum.Core ideaInstead of building a platform to support specific applications,
+    in Ethereum, we build to support a native programming language with extensibility
+    to implement business logic on the platform using that language.We return shortly
+    to discuss the implications of this principle. In the meantime, let’s talk about
+    another feature of Ethereum, consensus. We discussed the concept of consensus
+    in earlier chapters: In PoW-based cryptocurrencies such as Bitcoin, the network
+    awards miners who solve cryptographic puzzles to validate transactions and mine
+    new blocks. Ethereum uses a different consensus algorithm called PoS. In a PoS
+    algorithm, the validator or creator of the next block is chosen in a pseudorandom
+    manner based on the stake that an account has in the network. Therefore, if you
+    have a higher stake in the network, you have a higher chance of being selected
+    as a validator. The validator will then forge the next block and get a reward
+    from the network. Here, the validator is truly forging a block (in the blacksmith
+    sense of the term) instead of mining, because in PoS, the idea of hardware-based
+    mining has been replaced by this virtual stake. To some extent, the rationale
+    behind using PoS was due to the high-energy requirements of PoW algorithms that
+    became a frequent complaint. Peercoin was the first cryptocurrency to launch with
+    PoS, but more prominent recent PoS implementations can be seen in ShadowCash,
+    Nxt, and Qora. The main differences between Bitcoin and Ethereum as protocols
+    are highlighted in Figure [4-1](#Fig1).![A430562_1_En_4_Fig1_HTML.jpg](Images/A430562_1_En_4_Fig1_HTML.jpg)Figure
+    4-1.Overview of Bitcoin and Ethereum as computational platformsIn the Bitcoin
+    protocol, addresses map the transactions from sender to receiver. The only program
+    that runs on the blockchain is the transfer program. Given the addreses and the
+    key signature, this program can transfer money from one user to another. Ethereum
+    generalizes this concept by placing an EVM at every node so that verifiable code
+    can be executed on the blockchain. Here, the general scheme is that an external
+    account will pass arguments to a function and the EVM will direct that call to
+    the appropriate contract and execute the function, granted the appropriate amount
+    of Ether and gas are supplied. As a consequence, every transaction in Ethereum
+    can be considered a function call. The function calls and transactions in Ethereum
+    comply with PoS, which has a faster resolution time than the Bitcoin blockchain
+    that relies on PoW. The security level of this process verified by the network
+    is also very high.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Accounts in Ethereum
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Accounts are a metastructure in Ethereum and the fundamental operational unit
+    of the blockchain. Accounts also serve as a model to store and track information
+    on the users in the network. There are two types of accounts available on the
+    network.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'User accounts: These are user-controlled accounts also known as external accounts.
+    These accounts have an Ether balance, are controlled by public–private key pairs,
+    and can send transactions, but have no associated code. All actions in the Ethereum
+    network are triggered by transactions intiated by external accounts. In the Bitcoin
+    protocols, we referred to these simply as addresses. The key difference between
+    accounts and addresses is the ability to contain and execute generalized code
+    in Ethereum.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Contracts: This is essentially an account controlled by its own code. A contract
+    account is the functional programmatic unit in Ethereum that resides on the blockchain.
+    This account has an Ether balance, has associated code, can execute code when
+    triggered by transactions recieved from other accounts, and can manipulate its
+    own persistent storage. (Every contract on the blockchain has its own storage
+    that only it can write to; this is known as the contract''s state.) Any member
+    on the network can create an application with some arbritary rules, defining it
+    as a contract.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'If accounts play such a key role, how are they represented on the blockchain?
+    Accounts become an element of the merkle trees, which in turn are an element of
+    every block header. Ethereum uses a modified form of the binary merkle trees called
+    Merkle-Patricia trees. A complete explanation of the Merkle-Patricia tree (see
+    [http://www.emsec.rub.de/media/crypto/attachments/files/2011/04/becker_1.pdf](http://www.emsec.rub.de/media/crypto/attachments/files/2011/04/becker_1.pdf)
+    ) would be beyond the scope of this text, but a graphical synopsis is provided
+    in Figure [4-2](#Fig2).NoteThe two-account system explained here might not remain
+    in Ethereum for the long term. Recently, there has been a push in the development
+    community toward a one-account model, where user accounts are implemented by using
+    contracts.![A430562_1_En_4_Fig2_HTML.jpg](Images/A430562_1_En_4_Fig2_HTML.jpg)Figure
+    4-2.Overview of block headers and Merkle-Patricia trees for Block A and BThe block
+    header contains a few standard definitions that broadcast the status of the network.
+    Additionally, every block header in Ethereum has three trees for three classes
+    of objects: transactions (function calls), receipts (the results of a function
+    call, recording the effect of each transaction), and state objects. We explore
+    the Merkle-Patricia tree further with the state root, which contains account objects.
+    Binary trees are useful to manage transaction history, but the state has more
+    components and needs to be updated more frequently. The balance of an account
+    and the nonce for the network are often changed and therefore what is needed is
+    a data structure where we can quickly calculate a new tree root after an insert,
+    update, edit, or delete operation without needing to recompute the entire tree.
+    This modified merkle tree allows for rapid queries to questions such as these:
+    Does this account exist? Has this transaction been included in a particular block?
+    What is the current balance of my account? The Merkle-Patricia tree shown in Figure
+    [4-2](#Fig2) is two levels deep and has numerous branches. One of the branches
+    points to a dashed box containing the four components that make up an account.
+    The balance is only relavent for an external account, and similarly, the codehash
+    (which holds executable code) is only applicable to contracts. The storage root
+    actually contains data uploaded by a user to the blockchain or the internal storage
+    space available to a contract that can be updated as that contract is executed.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: State, Storage, and Gas
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'We briefly mentioned that a contract can manipulate its own storage and update
+    the state, so what is a state? Recall that in the Bitcoin protocol, data on users
+    and transactions is framed and stored in the context of UTXOs. Ethereum employs
+    a different design strategy of using a state object. Essentially, the state stores
+    a list of accounts where each account has a balance, as well as blockchain-specific
+    data (code and data storage). A transaction is considered valid if the sending
+    account has enough balance to pay for it (avoiding double spending), therefore
+    the sending account is debited and the receiving account is credited with the
+    value. If the receiving account has code associated with it, the code will run
+    when the transaction is received. The execution of a contract or the code associated
+    with an account can have different effects on the state: Internal storage could
+    also be changed, or the code might even create additional transactions to other
+    accounts.Ethereum makes a distinction between state and history in the network.
+    The state is essentially a snapshot of the current information regarding network
+    state and accounts at a given time. On the other hand, history is a compilation
+    of all the events that have taken place on the blockchain, such as function calls
+    (transactions) and the changes brought about as a result (receipts). Most nodes
+    in the Ethereum network keep a record of the state. More formally, the state is
+    a data structure that contains key value mapping addresses to account objects.
+    Each account object contains four values:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Current nonce value
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Account balance (in Ethers)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Codehash, which contains code in the case of contracts, but remains empty for
+    external accounts
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Storage root, which is the root of the Merkle-Patricia tree that contains code
+    and data stored on the blockchain
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Next, let’s talk about gas in Ethereum. Gas is the internal unit for keeping
+    track of execution costs in Ethereum. In other words, it is a microtransaction
+    fee for performing a computation on the blockchain. For a computational platform
+    like Ethereum, this becomes crucial when running code because of the halting problem:
+    One cannot tell whether a program will run indefinitely, or just has a long runtime.
+    Gas puts a limiter on the runtime as the user has to pay for executing step-by-step
+    instructions of a contract. The nature of microtransactions allows steps to be
+    executed very inexpensively, but even those transations will add up for very long
+    runtimes. Once the gas supplied for a contract is exhausted, the user would have
+    to pay for more to continue. Special gas fees are also applied to operations that
+    take up storage.Operations like storage, memory, and processing all cost gas in
+    the Ethereum network. Let’s talk about storage next. In Ethereum, external accounts
+    can store data on the blockchain using contracts. A contract would manage the
+    upload and storage process, but the data types that can be stored currently are
+    very limited. A natural question then becomes: What are the limits on uploading
+    content and information to the Ethereum blockchain? What would prevent the bloating
+    of the blockchain? As it turns out, there are currently two mechanisms in place
+    preventing a data overload:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Gas limits per block that dictate how much gas can be spent per block on storage
+    and computational operations
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Amount of money a user would have to spend to purchase the gas needed to store
+    data
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'The second limitation is usually a deterrent for users to store directly on
+    the blockchain, as it becomes much more efficienct and economical to use a third-party
+    decentralized serivce like STORJ ( [https://storj.io/](https://storj.io/) ) or
+    IPFS ( [https://ipfs.io/](https://ipfs.io/) ) for the storage and hash the location
+    in Ethereum to include it in a contract. In the future, new distributed storage
+    applications will allow for all sorts of data files to be uploaded and included
+    in contracts on the blockchain. Let’s summarize what we have discussed so far:
+    We started with the differences between Bitcoin and Ethereum using accounts, charging
+    gas for operations, storing data directly on the blockchain, allowing executable
+    code on the blockchain, state objects, and Merkle-Patricia trees. Figure [4-3](#Fig3)
+    below a simplified functional overview of the processes occuring in Ethereum.![A430562_1_En_4_Fig3_HTML.jpg](Images/A430562_1_En_4_Fig3_HTML.jpg)Figure
+    4-3.A simplified overview of the Ethereum networkThere are three important Ethereum
+    components to discuss: the API, the network, and the blockchain. The Ethereum
+    JavaScript API (also known as web3.js) provides a large feature set for functionality
+    such as constructing transactions and contracts, referring to functions, and storing
+    receipts. An enhanced wallet client for Ethereum such as Mist ( [https://github.com/ethereum/mist](https://github.com/ethereum/mist)
+    ) can take over several of these functions with a GUI. Once a candidate block
+    is constructed, it is broadcast to the network by the Ethereum client. The validators
+    on the network determine if the transactions are valid, and if any code (in the
+    block) associated with a transaction or a contract is valid. Once the validation
+    is complete, the validators execute the associated code and apply it to the current
+    state. The block is broadcast to the network and a miner will forge the block,
+    then the verified block is added to the blockchain. This step also creates transaction
+    receipts for every transaction included in the block . The new block also provides
+    updates to the state objects and relational links for the state from the current
+    block to a new block.NoteWhat will prevent the Ethereum network from being bloated
+    by small unused contracts? Currently, there are no mechanisms to control the life
+    span of a contract, however, there are a few proposals in the air about temporary
+    subscription-based contracts. In the future, there might be two different types
+    of contracts, one that has a permanent life span (which is significantly more
+    expensive to create and compute), and the other one that operates until its subscription
+    expires (cheaper and temporary; self-destructs after subscription runs out to
+    prevent cluttering).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Ethereum Virtual Machine
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Formally, EVM is the runtime environment for smart contracts in Ethereum. Contracts
+    are written in a higher level language called Solidity and then compiled into
+    bytecode using an interpreter in EVM. This bytecode is then uploaded to the blockchain
+    using an Ethereum client. Contracts live on the blockchain in this executable
+    bytecode form. The EVM is designed to be completely isolated from the environment
+    and the rest of the network. The code running inside the EVM has no access to
+    the network or any other processes; only after being compiled to bytecode do contracts
+    have access to the external world and other contracts.From an operational standpoint,
+    the EVM behaves as a large decentralized computer with millions of objects (accounts)
+    that have the ability to maintain an internal database, execute code, and talk
+    to each other through message passing. This model is not yet complete, but in
+    Ethereum, this concept is often referred to as the idea of a world computer. Let’s
+    return to the topic of code execution and how it is intimately linked to consensus.
+    EVM allows any user on the network to execute arbitrary code in a trustless environment
+    where the outcome is fully deterministic and the execution can be guaranteed.
+    The default execution environment and settings lead to stasis: Nothing happens
+    on the network and the state of everything remains the same. However, as we mentioned
+    before, any user can trigger an action by sending a transaction from an external
+    account. We can have two outcomes here: If the receiver is another external account,
+    then the transaction will transfer some Ether but nothing else happens. However,
+    if the receiver is a contract, then the contract becomes activated and executes
+    the code within. Executing code within the network takes time, and the process
+    is relatively slow and costly. For every step in the instructions, the user is
+    charged gas for execution. When a user initiates an execution through a transaction,
+    they commit an upper limit for the maximum currency that they are willing to pay
+    as gas for that contract or code.TipEthereum has recently begun the process of
+    migrating over to a just-In-time virtual machine (VM), which offers some optimizations
+    in gas usage and performance.What does it mean for the outcome of EVM to be deterministic?
+    It is essential for each node to reach the identical final state given the same
+    input for a contract method . Otherwise, each node that executes the contract
+    code to validate the transaction would end with different results and no consensus
+    would be possible. This is the deterministic nature of EVM that allows every node
+    to reach consensus on execution of a contract and the same final state of accounts.
+    The nodes executing a contract are similar to cogs synchronized to move inside
+    of a clock, as they work in a harmonious fashion and reach the matching final
+    state. A contract can also refer to other contracts, but it cannot directly access
+    the internal storage of another contract. Every contract runs in a dedicated and
+    private instance of the EVM where it only has access to some input data, its internal
+    storage, the code of other contracts on the blockchain, and various blockchain
+    parameters such as recent block hashes.Every full node on the network executes
+    the contract code simultaneously for each transaction. When a node is validating
+    a block, transactions are executed sequentially, in the order specified by the
+    block. This is necessary because a block might contain multiple transactions that
+    call the same contract, and the current state of a contract might depend on state
+    modified by previous references during the code execution. Executing contract
+    code is relatively expensive, so when nodes receive a block, they only do a basic
+    check on the transactions: Does the sending account have enough Ether to pay for
+    gas? Does the transaction have a valid signature? Then, mining nodes perform the
+    relatively expensive task of executing the transaction, including it in a block,
+    and collecting the transaction fee as a reward. When a full node recieves a block,
+    it executes the transactions in the block to independently verify the security
+    and integrity of the transactions to be included in the blockchain. Let’s look
+    at the EVM visually in Figure [4-4](#Fig4).![A430562_1_En_4_Fig4_HTML.jpg](Images/A430562_1_En_4_Fig4_HTML.jpg)Figure
+    4-4.Four instances of Ethereum Virtual Machines (EVMs) running on four different
+    nodesThe four EVMs are synchronously executing a contract’s instructions and will
+    arrive at the identical account state once the execution has been completed. This
+    is due to the deterministic nature of the EVM, which allows the contract to reach
+    consensus across the network at every step of instructions. The EVM has a very
+    straightforward rationale: It has a single run loop that will attempt to execute
+    the instruction one step at a time. Within this loop, the gas is calculated for
+    each instruction and the allocated memory is expanded if necessary. The loop will
+    continue until the EVM either recieves an exit code indicating successful execution
+    or throws an exception such as out of gas.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Solidity Programming Language
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Solidity is a higher level, object-oriented programming language for writing
+    smart contracts in Etheruem. Any code written in Solidity can be executed on the
+    EVM after being compiled into bytecode, which is an instruction set for the EVM.
+    How does the bytecode encode references to other functions and contracts that
+    are called during execution? This is done using an application binary interface
+    (ABI). In general, an ABI is the interface between two program modules: machine-level
+    instructions and a human-readable higher level programming language. Let’s break
+    down this answer into three components:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Contract: A contract is simply higher level code defined in a formal language
+    such as Solidity.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Compiled contract: The contract is converted to bytecode to be executed on
+    the EVM, adhering to the compiler specification. Note that function names and
+    input parameters get hashed and obfuscated during compilation. Therefore, for
+    another account to call a function, it must have access to the given function
+    name and arguments, and we need another layer that interfaces encoding into and
+    out of the bytecode.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'ABI: An ABI is a list of the contract’s function definition and arguments in
+    JavaScript Object Notation (JSON) format. The function definitions and input arguments
+    are hashed into the ABI. This is included in the data of a transaction and interpreted
+    by the EVM at the target account. An ABI is necessary so that you can specify
+    which function in the contract to invoke, as well as get a guarantee that the
+    function will return data in the format you are expecting.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Solidity (see [https://solidity.readthedocs.io/en/develop/](https://solidity.readthedocs.io/en/develop/)
+    ) has a new plug-in for Visual Studio (see [https://marketplace.visualstudio.com/items?itemName=ConsenSys.Solidity](https://marketplace.visualstudio.com/items?itemName=ConsenSys.Solidity)
+    ) to help write smart contracts in a powerful IDE and deploy them to the Ethereum
+    network. Our discussion of Solidity here is limited to covering the fundamentals,
+    such as storing variables and creating a simple contract, so let’s get started./*
+    defining a contract */contract ExampleStorage {    uint storedNumber; //unsigned
+    integer (uint) used to declare a state variable/* Function set can modify the
+    value of the state variable */    function set(uint x) {        storedNumber =
+    x;    }/* Function get can retrieve the value of state variable  */    function
+    get() constant returns (uint retVal) {        return storedData;    }}This storage
+    contract allows a user to store an integer as a state variable storedNumber and
+    then modify or retrieve its value using the get() and set() functions. Solidity
+    also offers several advanced features available in modern programming languages
+    such as inheritance (for contracts), function overloading, and class interfaces.
+    Next, let’s look at a more complex example of a contract. This time we create
+    a simple bank contract using Solidity:// This bank contract allows deposits, withdrawals,
+    and checking the balance// ''contract'' is a keyword to declare class similar
+    to any other OOPcontract SimpleBank {// ''mapping'' is a dictionary that maps
+    address objects to balances// ''private'' means that other contracts can''t directly
+    query balances    mapping (address => uint) private balances;// ''public'' makes
+    externally readable by users or contracts on the blockchain    address public
+    owner;// Events trigger messages throughout the Ethereum network    event LogDepositMade(address
+    accountAddress, uint amount);// Constructor    function SimpleBank() {        //
+    msg provides details about the message that''s sent to the contract        //
+    msg.sender is the address of contract creator        owner = msg.sender;    }    //
+    Deposit Ether into the bank    // Returns the balance of the user after a deposit
+    is made    function deposit() public returns (uint) {// Add the value being deposited
+    to the account balance        balances[msg.sender] += msg.value;// Log the deposit
+    that was just made        LogDepositMade(msg.sender, msg.value);// Return the
+    balance after the deposit        return balances[msg.sender];    }// Withdraw
+    Ether from bank// withdrawAmount is the amount you want to withdraw// Returns
+    the balance remaining for the user    function withdraw(uint withdrawAmount) public
+    returns (uint remainingBal) {/* If the account balance is greater than amount
+    requested for withdrawal, subtract it from the balance */        if(balances[msg.sender]
+    >= withdrawAmount) {            balances[msg.sender] -= withdrawAmount;// Increment
+    the balance back to the original account on fail            if (!msg.sender.send(withdrawAmount))
+    {                balances[msg.sender] += withdrawAmount;            }        }//
+    Return the remaining balance after withdrawal        return balances[msg.sender];    }//
+    Return the balance of the user// ''constant'' prevents function from editing state
+    variables;    function balance() constant returns (uint) {        return balances[msg.sender];    }}Although
+    this contract has plenty of moving parts, it has a straightforward schematic :
+    We start by declaring state variables and here we used an advanced data type called
+    a mapping. Then, we declare an address variable used throughout the contract and
+    an event logger. The constructor prepares the owner object to be usable and we
+    attach the owner object to recieve messages in the form of return types from functions.
+    There are three functions that follow the constructor that allow for the basic
+    functions of a bank. The deposit function adds the argument amount to the balance.
+    The withdrawal function checks whether the requested amount is lower than the
+    balance available for an account. If this is the case, the withdrawal is confirmed
+    and the argument amount is subtracted from the balance. If there is not enough
+    balance, the amount that was supposed to be withdrawn is added back to the account
+    and the final balance is returned to the user. Finally, the last function allows
+    us to return the balance of an account at a given time as requested by the contract.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: World Computer
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'The Ethereum project has a grand vision of becoming a shared world computer
+    with millions of accounts, powered by the blockchain, which becomes a back-end
+    for smart-logging of communications. Contracts provide the decentralized logic
+    to be executed and EVMs are the execution platform. Computation and processing
+    are not enough, though; a computer must also be able to store information and
+    allow for a mechanism for applications to communicate among each other. This world
+    computer, depicted in Figure [4-5](#Fig5), would operate in an Internet 3.0 era,
+    where servers are no longer needed due to the decentralized nature of information
+    flow. In this ambitious endeavour, Ethereum is only one third of the project,
+    so let’s introduce the other two components:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Whisper: A message-passing protocol that allows decentralized applications
+    and accounts on the blockchain to communicate with each other. This is different
+    from traditional message passing protocols where applications execute on the same
+    machine; here, the decentralized apps can execute on any node in the blockchain.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Swarm: A decentralized data storage and distribution resource available to
+    the Ethereum blockchain. Swarm is a peer-to-peer data sharing network where files
+    are addressed by the hash value of their content. This resource is very similar
+    to BitTorrent, where data can be fetched from multiple nodes (called peers) that
+    host small pieces of a file(s), and they are put together by the receiving party.
+    Swarm’s most powerful feature is that if even a single node hosts a piece of data,
+    it can be accessed from anywhere within the network. Currently, Swarm is in the
+    early stages of development and doesn’t specify one service (Storj, IPFS) that
+    will provide decentralized storage; however, Swarm does have the tools to handle
+    storage and hashed references to the data stored off-blockchain. Using Swarm makes
+    it possible to distribute data across the network to replicate redundancy in a
+    decentralized fashion without having to host any kind of server. Multiple nodes
+    in the network can be incentivized to replicate and store the data, much like
+    a RAID configuration, eliminating the need for hosting servers in the network.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Contracts: These are the final component of the world computer that we mentioend
+    previously. They allow programmatic access to the blockchain and provide the logical
+    framework to power applications that will eventually run on the world computer
+    .'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '![A430562_1_En_4_Fig5_HTML.jpg](Images/A430562_1_En_4_Fig5_HTML.jpg)Figure
+    4-5.A layered approach to the world computer model in EthereumUser accounts (or
+    simply users) on the world computer are fundamental entities in the world computer,
+    so users are the first layer. The second layer is the blockchain, which serves
+    as a communication serial bus between the different components in the network.
+    The third layer is the logical framework called smart contracts that reside on
+    the blockchain, and provide the computational capabilities to the world computer.
+    Some of these contracts might require external storage for output and use Swarm
+    to coordinate storage, which is the fourth layer. Finally, looking back at the
+    first layer, we have the message passing protocol called Whisper to facilitate
+    user-to-user or application-to-application communication.More than a philosophical
+    vision or a technological blueprint, the concept of a world computer and Internet
+    3.0 have some far-reaching implications for how content is controlled and distributed
+    across the Web. Taylor Gerring from Ethereum spoke very eloquently about building
+    this dream:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: As economics of the Ethereum ecosystem mature such that open contracts for lowest-rate
+    storage develop, a free market of content hosting could evolve. Given the nature
+    and dynamics of P2P applications, popular content will readily scale as the swarm
+    shares, rather than suffering from the buckling load of siloed servers. The net
+    result is that popular content is delivered faster, not slower.This metamorphosis
+    will offer developers an opportunity to build the next-generation of decentralized,
+    private, secure, censorship-resistant platforms that return control to creators
+    and consumers of the next best idea. Anyone with a dream is free to build on this
+    new class of next-generation decentralized web services without owning a credit
+    card or signing up for any accounts.Although we are not told to or expected to,
+    we have an imperative to cherish and improve the very shared resources that some
+    wish to disturb, manipulate, and control. Just as no single person fully understands
+    the emerging internet collective intelligence, we should not expect any single
+    entity to fully understand or maintain perfectly aligned motives. Rather, we should
+    rely on the internet to solve the problems of the internet.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Blockchain-as-a-Service
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Microsoft recently announced a partnership with the Ethereum Foundation to
+    launch a blockchain-based service on their cloud platform Azure. This Infrastructure-as-a-Service
+    approach to offering fast and easy implementations of blockchain will allow developers
+    to experiment with new features and deploy DApps at reduced costs. Marley Grey
+    from the Azure Blockchain Engineering team described how Blockchain-as-a-Serivce
+    (BaaS) will foster an ecosystem of DApps:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Microsoft and ConsenSys are partnering to offer Ethereum Blockchain as a Service
+    (E-BaaS) on Microsoft Azure so Enterprise clients and developers can have a single-click
+    cloud-based blockchain developer environment. The initial offering contains two
+    tools that allow for rapid development of SmartContract based applications: Ether.Camp,
+    an integrated developer environment, and BlockApps, a private, semiprivate Ethereum
+    blockchain environment, can deploy into the public Ethereum environment.“Ethereum
+    Blockchain as a Service” provided by Microsoft Azure and ConsenSys allows for
+    financial services customers and partners to play, learn, and fail fast at a low
+    cost in a ready-made dev/test/production environment. It will allow them to create
+    private, public and consortium based Blockchain environments using industry leading
+    frameworks very quickly, distributing their Blockchain products with Azure’s World
+    Wide distributed (private) platform. That makes Azure a great Dev/Test/Production
+    Environment for Blockchain applications. Surrounding capabilities like Cortana
+    Analytics (machine learning), Power BI, Azure Active Directory, O365 and CRMOL
+    can be integrated into apps launching a new generation of decentralized cross-platform
+    applications.'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: This initial update on BaaS was provided at the end of 2015 and currently a
+    whole ecosystem of Blockchain Labs is flourishing within the Azure DevTest community.
+    The DevTest Labs allow users and developers to explore and test a template designed
+    for a specific use case. In addition, the platform began with Ethereum blockchains
+    but recently more startups have started to build on Azure, offering new services
+    such as Emercoin, which offered an SSH service, and PokiDot, with its health-care-oriented
+    blockchain called Dokchain. Over time, more startups have begun using Azure as
+    the standard to run a blockchain and build applications on top. With the integration
+    of intelligent services such as Cortana, it might become easier to develop oracles
+    that can sign incoming data from external streams (e.g., IoT devices) and provide
+    a level of integrity.NoteTwo recent developments from Microsoft in the BaaS space
+    are noteworthy here. The first is introduction of Cryptlets, a secure middleware
+    to interface with external events for building enterprise smart contracts. The
+    second development is the Coco framework. An open-source system for building a
+    high throughput network on top of a blockchain, where nodes and actors are explicitly
+    declared and controlled. By design, Coco is compatible with any ledger protocol,
+    and would allow enterprises to build production-ready blockchain networks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Decentralized Applications
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'We alluded to DApps in our discussion of Whisper, but we will talk about them
+    in more depth here. A DApp is a serverless application that runs on the Ethereum
+    stack and interfaces with the end user via an HTML/JavaScript front end that can
+    make calls to the back-end stack. Clasically, a mobile or web app has a back end
+    running on centralized dedicated servers; however, a DApp has its back-end code
+    running on a decentralized peer-to-peer network. The structure of a DApp is shown
+    in Figure [4-6](#Fig6).![A430562_1_En_4_Fig6_HTML.jpg](Images/A430562_1_En_4_Fig6_HTML.jpg)Figure
+    4-6.Structure of a DAppThe user interace is often written in HTML or JavaScript
+    and it is the only component loaded on a user device. The interface makes back-end
+    calls to the blockchain to execute a particular contract and also to the back-end
+    resources such as Swarm or Whisper if external storage is needed or when the application
+    needs to communicate with other apps.If a traditional app is made up of a front
+    end and a server running the back end, then a DApp running on the Ethereum stack
+    would be made up from a front end and contracts running on the blockchain. DApps
+    usually have their own set of associated contracts on the blockchain that are
+    used to encode business logic and allow persistent storage of their consensus-critical
+    state. Recall that all code on the Ethereum stack runs within an EVM that keeps
+    track of step-by-step operations and charges gas to the owner of a contract. This
+    prevents DApp developers from running too many operations on the blockchain or
+    bloating it by storing data directly on the blockchain.NoteTo briefly review,
+    the Ethereum stack is made of three components: the blockchain, Whisper, and Swarm.
+    The front-end interface makes calls to the blockchain to specific contracts running
+    the DApp based on user actions.How does the back end of a DApp pull static content
+    for the front end such as JavaScript from the Ethereum stack to static content
+    and receive the updated global state from the blockchain? Let’s look at an example
+    using IPFS as storage to understand these back-end calls, as depicted in Figure
+    [4-7](#Fig7).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The back-end code is essentially a contract that executes on the blockchain
+    given the appropriate amount of resources.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Some applications need to use a persistent database to host static content used
+    in the app. We can rely on IPFS that stores static files, hosted throughout the
+    network on several nodes.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Hashes from IPFS are delivered to the DApp and the contract’s execution updates
+    the global state, which is deliverd to the DApp from the Ethereum stack.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '![A430562_1_En_4_Fig7_HTML.jpg](Images/A430562_1_En_4_Fig7_HTML.jpg)Figure
+    4-7.A simple schematic of back-end calls made by a DAppThe blockchain can deposit
+    content to an IPFS-like system on one of the nodes and the hashes can be made
+    available to the app for retrieval when necessary. The app can request updates
+    from the blockchain on the global state as it affects the app running on a device.
+    Finally, as needed, the app can retrieve and download full content from the decentralized
+    storage to the user device. Splitting up roles in this manner allows for more
+    innovative user interfaces, as a developer can switch it out, not having to change
+    the back end at all.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Geth and Mist
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'There are two more tools we need to discuss briefly that play a role in DApp
+    develpoment. Geth is the command-line interface (written in Go-lang) for running
+    a full node on the Ethereum network. Using Geth, you can interact with the Ethereum
+    network and perform tasks such as:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Mine Ether on the network
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Transfer funds between addresses
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Create contracts and send transactions
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Use the DApps API
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Geth comes with two interfaces that are used in development: The JavaScript
+    console with web3.js library, and the JSON-RPC server. Let’s talk about both technologies
+    briefly. Geth can be launched with an interactive console that provides the JavaScript
+    runtime environment for you to interact with a node. This runtime environment
+    includes the web3 library, which can construct contracts and transactions to be
+    propagated to the node. The JSON-RPC server is a remote procedure call (RPC) protocol
+    that facilitates data exchange between the node and its clients (JSON is a data-exchange
+    format that nodes use to communicate with clients). More precisely, RPC is a collection
+    of methods and rules that define how data (commands and output) can be transferred
+    between a node and a client. The JavaScript API uses the web3.js library to offer
+    a convenient interface for using the RPC methods.TipFor most Ethereum applications
+    today, Geth is a prerequisite for installation as a command-line tool. Often,
+    during the installation, Geth is provided as an add-on so that a user doesn''t
+    have to download and install it separately.The second tool is called the Mist
+    DApp browser. In early discussions, Mist was conceptualized to be a stand-alone
+    app-store-type browser for DApps, but that vision has evolved. Mist is still in
+    heavy development; however, the release plan is to bundle Mist together with the
+    Ethereum wallet to make a powerful tool. In future releases, the wallet will just
+    be a single DApp running on the Mist browser. Soon the browser will be able to
+    open any DApp available and the wallet will just be one app among them.Eventually,
+    the most powerful entitites on the Ethereum network using Geth and Mist will be
+    decentralized autonomous organizations (DAOs) , which are essentially automated
+    companies powered by smart contracts that run on the Ethereum network. We end
+    our journey exploring Ethereum here and pick up our discussion of DAOs in the
+    next chapter.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In this chapter, we introduced Ethereum, one of the biggest alternate currencies
+    competing against Bitcoin. In recent years, it has gained a very serious focus
+    from developers and investors. We began our discussion here with a broad overview
+    of what Ethereum is in comparison to Bitcoin. We talked about accounts and function
+    calls as being foundational to Ethereum. We then provided some more depth to the
+    ideas of accounts as entities on the blockchain. After that, we discuss the use
+    of gas on Ethereum for smart contract execution, how internal storage is adapted
+    to work with Merkel-Patricia trees, and the concept of internal state for an account.
+    After that, we talked about EVM and how smart contracts are executed on the blockchain.
+    Then, we discussed a model for writing smart contracts using Solidity and applying
+    a plug-in for Visual Studio to rapidly prototype smart contracts. Finally, we
+    talked about the world computer model as it applies to Ethereum components such
+    as IPFS and Whisper. We ended the discussion with a short description of all the
+    components in the world computer.
+  prefs: []
+  type: TYPE_NORMAL
+- en: References
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The main reference material used to prepare this chapter was Ethereum Homestead
+    developer documentation and Solidity documentation. A detailed list of references
+    is given at the end of the book.
+  prefs: []
+  type: TYPE_NORMAL

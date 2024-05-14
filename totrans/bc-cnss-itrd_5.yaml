@@ -1,0 +1,5449 @@
+- en: as a single leader to propose a new value. Proposers handle client
+  prefs: []
+  type: TYPE_NORMAL
+- en: requests.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '• **Acceptor**: Acceptors evaluate and accept or reject proposals'
+  prefs: []
+  type: TYPE_NORMAL
+- en: proposed by the proposers according to several rules and conditions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '• **Learner**: Learns the decision, that is, the agreed-upon value.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '296'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 7 ClassiCal Consensus
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are also some rules associated with Paxos nodes. Paxos nodes must be
+  prefs: []
+  type: TYPE_NORMAL
+- en: persistent, that is, they must store what their action is and must remember
+    what they’ve
+  prefs: []
+  type: TYPE_NORMAL
+- en: accepted. Nodes must also know how many acceptors make a majority.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Paxos can be seen as similar to the two-phase commit protocol. A two-phase commit
+  prefs: []
+  type: TYPE_NORMAL
+- en: (2PC) is a standard atomic commitment protocol to ensure that the transactions
+    are
+  prefs: []
+  type: TYPE_NORMAL
+- en: committed in distributed databases only if all participants agree to commit.
+    Even if a
+  prefs: []
+  type: TYPE_NORMAL
+- en: single node does not agree to commit the transaction, it is rolled back completely.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Similarly, in Paxos, the proposer sends a proposal to the acceptors in the first
+    phase.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Then, the proposer broadcasts a request to commit to the acceptors if and when
+    they
+  prefs: []
+  type: TYPE_NORMAL
+- en: accept the proposal. Once the acceptors commit and report back to the proposer,
+    the
+  prefs: []
+  type: TYPE_NORMAL
+- en: proposal is deemed final, and the protocol concludes. In contrast with the two-phase
+  prefs: []
+  type: TYPE_NORMAL
+- en: commit, Paxos introduced ordering, that is, sequencing, to achieve the total
+    order of
+  prefs: []
+  type: TYPE_NORMAL
+- en: the proposals. In addition, it also introduced a majority quorum–based acceptance
+    of
+  prefs: []
+  type: TYPE_NORMAL
+- en: the proposals rather than expecting all nodes to agree. This scheme allows the
+    protocol
+  prefs: []
+  type: TYPE_NORMAL
+- en: to make progress even if some nodes fail. Both improvements ensure the safety
+    and
+  prefs: []
+  type: TYPE_NORMAL
+- en: liveness of the Paxos algorithm.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The protocol is composed of two phases, the prepare phase and the accept phase.
+  prefs: []
+  type: TYPE_NORMAL
+- en: At the end of the prepare phase, a majority of acceptors have promised a specific
+  prefs: []
+  type: TYPE_NORMAL
+- en: proposal number. At the end of the accept phase, a majority of acceptors have
+    accepted a
+  prefs: []
+  type: TYPE_NORMAL
+- en: proposed value, and consensus is reached.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The algorithm works as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Phase 1 – prepare phase**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: • The proposer receives a request to reach consensus on a value by
+  prefs: []
+  type: TYPE_NORMAL
+- en: a client.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • The proposer sends a message *prepare*( *n*) to a majority or all
+  prefs: []
+  type: TYPE_NORMAL
+- en: acceptors. At this stage, no value is proposed for a decision yet.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The majority of acceptors is enough under the assumption that
+  prefs: []
+  type: TYPE_NORMAL
+- en: all acceptors in the majority will respond. Here, the *n* represents
+  prefs: []
+  type: TYPE_NORMAL
+- en: the proposal number which must be globally unique and must be
+  prefs: []
+  type: TYPE_NORMAL
+- en: greater than any proposal number this proposer has used before.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, *n* can be a timestamp in nanoseconds or some other
+  prefs: []
+  type: TYPE_NORMAL
+- en: incrementing value. If a timeout occurs, then the proposer will retry
+  prefs: []
+  type: TYPE_NORMAL
+- en: with a higher *n*. In other words, if the proposer is unable to make
+  prefs: []
+  type: TYPE_NORMAL
+- en: progress due to a lack of responses from the acceptors, it can retry
+  prefs: []
+  type: TYPE_NORMAL
+- en: with a higher proposal number.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '297'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 7 ClassiCal Consensus
+  prefs: []
+  type: TYPE_NORMAL
+- en: • When an acceptor receives this *prepare*( *n*) message, it makes a
+  prefs: []
+  type: TYPE_NORMAL
+- en: '“promise.” It performs the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: • If no previous promise has been made by responding to the
+  prefs: []
+  type: TYPE_NORMAL
+- en: prepare message, then the acceptor now promises to ignore any
+  prefs: []
+  type: TYPE_NORMAL
+- en: request less than the proposal number *n*. It records *n* and replies
+  prefs: []
+  type: TYPE_NORMAL
+- en: with message *promise*( *n*).
+  prefs: []
+  type: TYPE_NORMAL
+- en: • If the acceptor has previously promised, that is, already
+  prefs: []
+  type: TYPE_NORMAL
+- en: responded to another prepare message with some proposal
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'number lower than *n*, the acceptor performs the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: • If the acceptor has not received any accept messages already
+  prefs: []
+  type: TYPE_NORMAL
+- en: from a proposer in the accept phase, it stores the higher proposal
+  prefs: []
+  type: TYPE_NORMAL
+- en: number *n* and then sends a promise message to the proposer.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • If the acceptor has received an accept message earlier with some
+  prefs: []
+  type: TYPE_NORMAL
+- en: other lower proposal number, it must have already accepted a
+  prefs: []
+  type: TYPE_NORMAL
+- en: proposed value from some proposer. This previous full proposal
+  prefs: []
+  type: TYPE_NORMAL
+- en: is now sent along with the promise message to the proposer,
+  prefs: []
+  type: TYPE_NORMAL
+- en: indicating that the acceptor has already accepted a value.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Phase 2 – accept phase**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Phase 2 starts when the proposer has received enough responses, that is, promise
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'messages, from the majority of the acceptors for a specific *n*:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: • The proposer waits until it gets responses from the majority of the
+  prefs: []
+  type: TYPE_NORMAL
+- en: acceptors for *n*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • When responses are received, the proposer evaluates what value *v* to
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'be sent in the accept message. It performs the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: • If the proposer received one or more promise messages with full
+  prefs: []
+  type: TYPE_NORMAL
+- en: proposals, it chooses the value *v* in the proposal with the highest
+  prefs: []
+  type: TYPE_NORMAL
+- en: proposal number.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • If no promise messages received by the proposer include a full
+  prefs: []
+  type: TYPE_NORMAL
+- en: proposal, the proposer can choose any value it wants.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • The proposer now sends an accept message – a full proposal of the
+  prefs: []
+  type: TYPE_NORMAL
+- en: form *accept*( *n*, *v*) – to the acceptors, where *n* is the promised proposal
+    number and *v* is the actual proposed value.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '298'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 7 ClassiCal Consensus
+  prefs: []
+  type: TYPE_NORMAL
+- en: '• When an acceptor receives this *accept*( *n*, *v*) message, it does the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: • If the acceptor has promised not to accept this proposal number
+  prefs: []
+  type: TYPE_NORMAL
+- en: previously, it will ignore the message.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Otherwise, if it has responded to the corresponding prepare
+  prefs: []
+  type: TYPE_NORMAL
+- en: request with the same *n*, that is, *prepare*( *n*), only then it replies with
+    *accepted*( *n*, *v*) indicating acceptance of the proposal.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Finally, the acceptor sends *accepted*( *n*, *v*) to all learners.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • If a majority of acceptors accept the value *v* in the proposal, then *v*
+  prefs: []
+  type: TYPE_NORMAL
+- en: becomes the decided value of the protocol i.e., consensus is reached.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Sometimes, there is a distinction made between the accept phase and a third
+  prefs: []
+  type: TYPE_NORMAL
+- en: phase called the learning phase where learners learn about the decided value
+    from the
+  prefs: []
+  type: TYPE_NORMAL
+- en: acceptors. We have not shown that separately in the preceding algorithm, as
+    learning
+  prefs: []
+  type: TYPE_NORMAL
+- en: is considered part of the second phase. As soon as a proposal is accepted in
+    the accept
+  prefs: []
+  type: TYPE_NORMAL
+- en: phase, the acceptor informs the learners. Figur[e 7-3 do](#p315)es show a third
+    phase called the learn phase, but it is just for visualizing the protocol in a
+    simpler way; learning is in fact part of phase 2, the accept phase.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We have used the term majority indicating that a majority of acceptors have
+  prefs: []
+  type: TYPE_NORMAL
+- en: responded to or accepted a message. Majority comes from a quorum. In the majority
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*n*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: quorum, every quorum has
+  prefs: []
+  type: TYPE_NORMAL
+- en: +1 nodes. Also note that in order to tolerate *f* faulty
+  prefs: []
+  type: TYPE_NORMAL
+- en: '2'
+  prefs: []
+  type: TYPE_NORMAL
+- en: acceptors, at least a set consisting of 2 *f* + 1 acceptors is required. We
+    discussed quorum systems in Chapter [3](https://doi.org/10.1007/978-1-4842-8179-6_3).
+  prefs: []
+  type: TYPE_NORMAL
+- en: The protocol is illustrated in Figur[e 7-3](#p315).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '299'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](index-315_1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Chapter 7 ClassiCal Consensus
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Figure 7-3\.** A normal run of Paxos*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note that the Paxos algorithm once reached a single consensus will not proceed
+  prefs: []
+  type: TYPE_NORMAL
+- en: to another consensus. Another run of Paxos is needed to reach another consensus.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Moreover, Paxos cannot make progress if half or more than half of the nodes
+    are faulty
+  prefs: []
+  type: TYPE_NORMAL
+- en: because in such a case a majority cannot be achieved, which is essential for
+    making
+  prefs: []
+  type: TYPE_NORMAL
+- en: progress. It is safe because once a value is agreed, it is never changed. Even
+    though Paxos is guaranteed to be safe, liveness of the protocol is not guaranteed.
+    The assumption here is that a large portion of the network is correct (nonfaulty)
+    for adequately enough time, and then the protocol reaches consensus; otherwise,
+    the protocol may never terminate.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Usually, learners learn the decision value directly from the acceptors; however,
+    it is
+  prefs: []
+  type: TYPE_NORMAL
+- en: possible that in a large network learners may learn values from each other by
+    relaying
+  prefs: []
+  type: TYPE_NORMAL
+- en: what some of them (a small group) have learned directly from acceptors. Alternatively,
+  prefs: []
+  type: TYPE_NORMAL
+- en: learners can poll the acceptors at intervals to check if there’s a decision.
+    There can also be an elected learner node which is notified by the acceptors,
+    and this elected learner
+  prefs: []
+  type: TYPE_NORMAL
+- en: disseminates the decision to other learners.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now let’s consider some failure scenarios.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '300'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 7 ClassiCal Consensus
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Failure Scenarios**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Imagine if an acceptor fails in the first phase, that is, the prepare phase,
+    then it won’t send the promise message back to the proposer. However, if a majority
+    quorum can
+  prefs: []
+  type: TYPE_NORMAL
+- en: respond back, the proposer will receive the responses, and the protocol will
+    make
+  prefs: []
+  type: TYPE_NORMAL
+- en: progress. If an acceptor fails in the second phase, that is, the accept phase,
+    then the
+  prefs: []
+  type: TYPE_NORMAL
+- en: acceptor will not send the accepted message back to the proposer. Here again,
+    if the
+  prefs: []
+  type: TYPE_NORMAL
+- en: majority of the acceptors is correct and available, the proposer and learners
+    will receive enough responses to proceed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: What if the proposer failed either in the prepare phase or the accept phase?
+    If a
+  prefs: []
+  type: TYPE_NORMAL
+- en: proposer fails before sending any prepare messages, there is no impact; some
+    other
+  prefs: []
+  type: TYPE_NORMAL
+- en: proposer will run, and the protocol will continue. If a proposer fails in phase
+    1, after
+  prefs: []
+  type: TYPE_NORMAL
+- en: sending the prepare messages, then acceptors will not receive any accept messages,
+  prefs: []
+  type: TYPE_NORMAL
+- en: because promise messages did not make it to the proposer. In this case, some
+    other
+  prefs: []
+  type: TYPE_NORMAL
+- en: proposer will propose with a higher proposal number, and the protocol will progress.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The old prepare will become history. If a proposer fails during the accept phase
+    after
+  prefs: []
+  type: TYPE_NORMAL
+- en: sending the accept message which was received by at least one acceptor, some
+    other
+  prefs: []
+  type: TYPE_NORMAL
+- en: proposer will send a prepare message with a higher proposal number, and the
+    acceptor
+  prefs: []
+  type: TYPE_NORMAL
+- en: will respond to the proposer with a promise message that an earlier value is
+    already
+  prefs: []
+  type: TYPE_NORMAL
+- en: accepted. At this point, the proposer will switch to proposing the same earlier
+    value
+  prefs: []
+  type: TYPE_NORMAL
+- en: bearing the highest accepted proposal number, that is, send an accept message
+    with the
+  prefs: []
+  type: TYPE_NORMAL
+- en: same earlier value.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Another scenario could be if there are two proposers trying to propose their
+    value at
+  prefs: []
+  type: TYPE_NORMAL
+- en: the same time. Imagine there are two proposers who have sent their prepare messages
+  prefs: []
+  type: TYPE_NORMAL
+- en: to the acceptors. In this case, any acceptor who had accepted a larger proposal
+    number
+  prefs: []
+  type: TYPE_NORMAL
+- en: previously from P1 would ignore the proposal if the proposal number proposed
+    by the
+  prefs: []
+  type: TYPE_NORMAL
+- en: proposer P2 is lower than what acceptors had accepted before. If there is an
+    acceptor
+  prefs: []
+  type: TYPE_NORMAL
+- en: A3 who has not seen any value before, it would accept the proposal number from
+    P2
+  prefs: []
+  type: TYPE_NORMAL
+- en: even if it is lower than the proposal number that the other acceptors have received
+    and
+  prefs: []
+  type: TYPE_NORMAL
+- en: accepted from P1 before because the acceptor A3 has no idea what other acceptors
+    are
+  prefs: []
+  type: TYPE_NORMAL
+- en: doing. The acceptor will then respond as normal back to P2\. However, as proposers
+  prefs: []
+  type: TYPE_NORMAL
+- en: wait for a majority of acceptors to respond, P2 will not receive promise messages
+    from a
+  prefs: []
+  type: TYPE_NORMAL
+- en: majority, because A3 only is not a majority. On the other hand, P1 will receive
+    promise
+  prefs: []
+  type: TYPE_NORMAL
+- en: messages from the majority, because A1 and A2 (other proposers) are in the majority
+  prefs: []
+  type: TYPE_NORMAL
+- en: and will respond back to P1\. When P2 doesn’t hear from a majority, it times
+    out and can
+  prefs: []
+  type: TYPE_NORMAL
+- en: retry with a higher proposal number.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '301'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 7 ClassiCal Consensus
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now imagine a scenario where with P1 the acceptors have already reached a
+  prefs: []
+  type: TYPE_NORMAL
+- en: consensus, but there is another proposer P2 which doesn’t know that and sends
+    a
+  prefs: []
+  type: TYPE_NORMAL
+- en: prepare message with a higher than before proposal number. The acceptors at
+    this point,
+  prefs: []
+  type: TYPE_NORMAL
+- en: after receiving the higher proposal number message from P2, will check if they
+    have
+  prefs: []
+  type: TYPE_NORMAL
+- en: accepted any message at all before; if yes, the acceptors will respond back
+    to P2 with
+  prefs: []
+  type: TYPE_NORMAL
+- en: the promise message of the form promise(nfromp2,(nfromp1, vfromp1)) containing
+    the
+  prefs: []
+  type: TYPE_NORMAL
+- en: previous highest proposal number they have accepted, along with the previous
+    accepted
+  prefs: []
+  type: TYPE_NORMAL
+- en: value. Otherwise, they will respond normally back to P2 with a promise message.
+    When
+  prefs: []
+  type: TYPE_NORMAL
+- en: P2 receives this message, promise(nfromp2,(nfromp1, vfromp1)), it will check
+    the
+  prefs: []
+  type: TYPE_NORMAL
+- en: message, and value v will become vfromp1 if nfromp1 is the highest previous
+    proposal
+  prefs: []
+  type: TYPE_NORMAL
+- en: number. Otherwise, P2 will choose any value v it wants. In summary, if P2 has
+    received
+  prefs: []
+  type: TYPE_NORMAL
+- en: promise messages indicating that another value has already been chosen, it will
+    propose
+  prefs: []
+  type: TYPE_NORMAL
+- en: the previously chosen value with the highest proposal number. At this stage,
+    P2 will
+  prefs: []
+  type: TYPE_NORMAL
+- en: send an accept message with its n and v already chosen (vfromp1). Now acceptors
+    are
+  prefs: []
+  type: TYPE_NORMAL
+- en: happy because they see the highest n and will respond back with an accepted
+    message
+  prefs: []
+  type: TYPE_NORMAL
+- en: as normal and will inform learners too. Note that the previously chosen value
+    is still the value proposed by P2, just with the highest proposal number n now.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are scenarios where the protocol could get into a livelock state and progress
+  prefs: []
+  type: TYPE_NORMAL
+- en: can halt. A scenario could be where two different proposers are competing with
+  prefs: []
+  type: TYPE_NORMAL
+- en: proposals. This situation is also known as “dueling proposers.” In such cases,
+    the liveness of Paxos cannot be guaranteed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Imagine we have two proposers, P1 and P2\. We have three acceptors, A1, A2,
+    and A3\.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now, P1 sends the prepare messages to the majority of acceptors, A1 and A2\.
+    A1 and A2
+  prefs: []
+  type: TYPE_NORMAL
+- en: reply with promise messages to P1\. Imagine now the other proposer, P2, also
+    proposes
+  prefs: []
+  type: TYPE_NORMAL
+- en: and sends a prepare message with a higher proposal number to A2 and A3\. A3
+    and A2
+  prefs: []
+  type: TYPE_NORMAL
+- en: send the promise back to P2 because, by protocol rules, acceptors will promise
+    back to
+  prefs: []
+  type: TYPE_NORMAL
+- en: the prepare message if the prepare message comes with a higher proposal number
+    than
+  prefs: []
+  type: TYPE_NORMAL
+- en: what the acceptors have seen before. In phase 2, when P1 sends the accept message,
+  prefs: []
+  type: TYPE_NORMAL
+- en: A1 will accept it and reply with accepted, but A2 will ignore this message because
+    it has already promised a higher proposal number from P2\. In this case, P1 will
+    eventually time
+  prefs: []
+  type: TYPE_NORMAL
+- en: out, waiting for a majority response from acceptors because the majority will
+    now never
+  prefs: []
+  type: TYPE_NORMAL
+- en: respond. Now, P1 will try again with a higher proposal number and send the prepare
+  prefs: []
+  type: TYPE_NORMAL
+- en: message to A1 and A2\. Assume both A1 and A2 have responded with promise messages.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now suppose P2 sends an accept message to get its value chosen to A2 and A3\.
+    A3 will
+  prefs: []
+  type: TYPE_NORMAL
+- en: respond with an accepted message, but A2 will not respond to P2 because it has
+    already
+  prefs: []
+  type: TYPE_NORMAL
+- en: '302'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 7 ClassiCal Consensus
+  prefs: []
+  type: TYPE_NORMAL
+- en: promised another higher proposal number from P1\. Now, P2 will time out, waiting
+    for
+  prefs: []
+  type: TYPE_NORMAL
+- en: the majority response from the acceptors. P2 now will try again with a higher
+    proposal
+  prefs: []
+  type: TYPE_NORMAL
+- en: number. This cycle can repeat again and again, and consensus will never be reached
+  prefs: []
+  type: TYPE_NORMAL
+- en: because there is never a majority response from the acceptors to any proposers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This issue is typically handled by electing a single proposer as the leader
+    to
+  prefs: []
+  type: TYPE_NORMAL
+- en: administer all clients’ incoming requests. This way, there is no competition
+    among
+  prefs: []
+  type: TYPE_NORMAL
+- en: different proposers, and this livelock situation cannot occur. However, electing
+    a leader is also not straightforward. A unique leader election is equivalent to
+    solving consensus. For leader election, an instance of Paxos will have to run,
+    that election consensus may get a livelock too, and we are in the same situation
+    again. One possibility is to use a different type of election mechanism, for example,
+    the bully algorithm. Some other leader
+  prefs: []
+  type: TYPE_NORMAL
+- en: election algorithms are presented in works of Aguilera et.al. We may use some
+    other
+  prefs: []
+  type: TYPE_NORMAL
+- en: kind of consensus mechanism to elect a leader that perhaps guarantees termination
+  prefs: []
+  type: TYPE_NORMAL
+- en: but somewhat sacrifices safety. Another way to handle the livelock problem is
+    to use
+  prefs: []
+  type: TYPE_NORMAL
+- en: random exponentially increasing delays, resulting in a client having to wait
+    for a while
+  prefs: []
+  type: TYPE_NORMAL
+- en: before proposing again. I think these delays may well also be introduced at
+    proposers,
+  prefs: []
+  type: TYPE_NORMAL
+- en: which will result in one proposer taking a bit of precedence over another and
+    getting
+  prefs: []
+  type: TYPE_NORMAL
+- en: its value accepted before the acceptors could receive another prepared message
+    with a
+  prefs: []
+  type: TYPE_NORMAL
+- en: higher proposal number. Note that there is no requirement in classical Paxos
+    to have a
+  prefs: []
+  type: TYPE_NORMAL
+- en: single elected leader, but in practical implementations, it is commonly the
+    case to elect a leader. Now if that single leader becomes the single point of
+    failure, then another leader must be elected.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A key point to remember is that 2 *f* + 1 acceptors are required for *f* crash
+    faults to be tolerated. Paxos can also tolerate omission faults. Suppose a prepare
+    message is lost and didn’t make it to acceptors, the proposer will wait and time
+    out and retry with a higher
+  prefs: []
+  type: TYPE_NORMAL
+- en: proposal number. Also, another proposer can propose meanwhile with a higher
+    proposal
+  prefs: []
+  type: TYPE_NORMAL
+- en: number, and the protocol can still work. Also, as only a majority of acceptor
+    responses
+  prefs: []
+  type: TYPE_NORMAL
+- en: are required, as long as a majority of messages (2 *f* + 1) made it through
+    to the proposer from acceptors, the protocol will progress. It is however possible
+    that due to omission
+  prefs: []
+  type: TYPE_NORMAL
+- en: faults, the protocol takes longer to reach consensus or may never terminate
+    under some
+  prefs: []
+  type: TYPE_NORMAL
+- en: scenarios, but it will always be safe.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '303'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 7 ClassiCal Consensus
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Safety and Liveness**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Paxos algorithm solves the consensus problem by achieving **safety** and
+    **liveness** properties. We have some requirements for each property. Under safety,
+    we mainly
+  prefs: []
+  type: TYPE_NORMAL
+- en: have the agreement and validity. An **agreement** means that no two different
+    values are chosen. **Validity** or sometimes called **nontriviality** means no
+    value is decided unless proposed by some process participating in the protocol.
+    Another safety requirement
+  prefs: []
+  type: TYPE_NORMAL
+- en: which stems from the validity property and may be called “**valid learning**”
+    is that if a process **learns** a value, the value must have been decided by a
+    process. An agreement ensures that all processes decide on the same value. Validity
+    and valid learning
+  prefs: []
+  type: TYPE_NORMAL
+- en: requirements ensure that processes decide only on a proposed value and do not
+    trivially
+  prefs: []
+  type: TYPE_NORMAL
+- en: choose to not decide or just choose some predefined value.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Under **liveness**, there are two requirements. First, the protocol eventually
+    **decides**, that is, a proposed value is eventually decided. Second, if a value
+    is decided, the learners eventually **learn** that value.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s now discuss how these safety and liveness requirements are met.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Intuitively, the agreement is achieved by ensuring that a majority of acceptors
+  prefs: []
+  type: TYPE_NORMAL
+- en: can vote for only one proposal. Imagine two different values v1 and v2 are somehow
+  prefs: []
+  type: TYPE_NORMAL
+- en: chosen (decided). We know that the protocol will choose a value only if a majority
+    of the acceptors accept the same accept message from a proposer. This condition
+    implies that
+  prefs: []
+  type: TYPE_NORMAL
+- en: a set of majority acceptors A1 must have accepted an accept message with a proposal
+  prefs: []
+  type: TYPE_NORMAL
+- en: (n1,v1). Also, another accept message with proposal (n2, v2) must have been
+    accepted
+  prefs: []
+  type: TYPE_NORMAL
+- en: by another set of majority acceptors A2\. Assuming that two majority sets A1
+    and A2 must
+  prefs: []
+  type: TYPE_NORMAL
+- en: intersect, meaning they will have at least one acceptor in common due to the
+    quorum
+  prefs: []
+  type: TYPE_NORMAL
+- en: intersection rule. This acceptor must have accepted two different proposals
+    with the
+  prefs: []
+  type: TYPE_NORMAL
+- en: same proposal number. Such a scenario is impossible because an acceptor will
+    ignore
+  prefs: []
+  type: TYPE_NORMAL
+- en: any prepare or accept messages with the same proposal number they have already
+  prefs: []
+  type: TYPE_NORMAL
+- en: accepted.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If n1 <> n2 and n1 < n2 and n1 and n2 are consecutive proposal rounds, then
+    this means that A1 must have accepted the accept message with proposal number
+    n1 before
+  prefs: []
+  type: TYPE_NORMAL
+- en: A2 accepted the accept messages with n2\. This is because an acceptor ignores
+    any
+  prefs: []
+  type: TYPE_NORMAL
+- en: prepare or accept messages if they have a smaller proposal number than the previously
+  prefs: []
+  type: TYPE_NORMAL
+- en: promised proposal number. Also, the proposed value by a proposer must be from
+    either
+  prefs: []
+  type: TYPE_NORMAL
+- en: an earlier proposal with the highest proposal number or the proposer’s own proposed
+  prefs: []
+  type: TYPE_NORMAL
+- en: value if no proposed value is included in the accepted message. As we know,
+    A1 and A2
+  prefs: []
+  type: TYPE_NORMAL
+- en: must intersect with at least one common acceptor; this common acceptor must
+    have
+  prefs: []
+  type: TYPE_NORMAL
+- en: '304'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 7 ClassiCal Consensus
+  prefs: []
+  type: TYPE_NORMAL
+- en: accepted the accept messages for both proposals (n1,v1) and (n2,v2). This scenario
+    is
+  prefs: []
+  type: TYPE_NORMAL
+- en: also impossible because the acceptor would have replied with (n1,v1) in response
+    to the
+  prefs: []
+  type: TYPE_NORMAL
+- en: prepare message with proposal number n2, and the proposer must have selected
+    the
+  prefs: []
+  type: TYPE_NORMAL
+- en: value v1 instead of v2\. Even with nonconsecutive proposals, any intermediate
+    proposals
+  prefs: []
+  type: TYPE_NORMAL
+- en: must also select v1 as the chosen value.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Validity is ensured by allowing only the input values of proposers to be proposed.
+    In
+  prefs: []
+  type: TYPE_NORMAL
+- en: other words, the decided value is never predefined, nor is it proposed by any
+    other entity that is not part of the cluster running Paxos.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Liveness is not guaranteed in Paxos due to asynchrony. However, if some synchrony
+  prefs: []
+  type: TYPE_NORMAL
+- en: assumption, that is, a partially synchronous environment, is assumed, then progress
+    can
+  prefs: []
+  type: TYPE_NORMAL
+- en: be made, and termination is achievable. We assume that after GST, at least a
+    majority of
+  prefs: []
+  type: TYPE_NORMAL
+- en: acceptors is correct and available. Messages are delivered within a known upper
+    bound,
+  prefs: []
+  type: TYPE_NORMAL
+- en: and an elected unique nonfaulty leader proposer is correct and available.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**In Practice**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Paxos has been implemented in many practical systems. Even though the Paxos
+  prefs: []
+  type: TYPE_NORMAL
+- en: algorithm is quite simple at its core, it is often viewed as difficult to understand.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As a result, many papers have been written to explain it. Still, it is often
+    considered
+  prefs: []
+  type: TYPE_NORMAL
+- en: complicated and tricky to comprehend fully. Nevertheless, this slight concern
+    does
+  prefs: []
+  type: TYPE_NORMAL
+- en: not mean that it has not been implemented anywhere. On the contrary, it has
+    been
+  prefs: []
+  type: TYPE_NORMAL
+- en: implemented in many production systems, such as Google’s Spanner and Chubby.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The first deployment of Paxos was in a Petal distributed storage system. Some
+    other
+  prefs: []
+  type: TYPE_NORMAL
+- en: randomly chosen examples include Apache ZooKeeper, NoSQL Azure Cosmos database,
+  prefs: []
+  type: TYPE_NORMAL
+- en: and Apache Cassandra. It proves to be the most efficient protocol to solve the
+    consensus
+  prefs: []
+  type: TYPE_NORMAL
+- en: problem. It has been shown that the two-phase commit is a special case of Paxos,
+    and
+  prefs: []
+  type: TYPE_NORMAL
+- en: PBFT is a refinement of Paxos.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Variants**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are many variants of classical Paxos, such as multi-Paxos, Fast Paxos,
+    Byzantine
+  prefs: []
+  type: TYPE_NORMAL
+- en: Paxos, Dynamic Paxos, Vertical Paxos, Disk Paxos, Egalitarian Paxos, Stoppable
+    Paxos,
+  prefs: []
+  type: TYPE_NORMAL
+- en: and Cheap Paxos.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '305'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 7 ClassiCal Consensus
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Multi-Paxos**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In classical Paxos, even in an all-correct environment, it takes two round trips
+    to achieve consensus on a single value. This approach is slow, and if consensus
+    is required on a
+  prefs: []
+  type: TYPE_NORMAL
+- en: growing sequence of values (which is practically the case), this single value
+    consensus
+  prefs: []
+  type: TYPE_NORMAL
+- en: must repeatedly run, which is not efficient. However, an optimization can make
+    classical
+  prefs: []
+  type: TYPE_NORMAL
+- en: Paxos efficient enough to be used in practical systems. Recall that Paxos has
+    two phases.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Once phases 1 and 2 both have completely run once, then, at that point, a majority
+  prefs: []
+  type: TYPE_NORMAL
+- en: of acceptors is now available to that proposer who ran this round of phases
+    1 and 2\.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This proposer is now a recognized leader. Instead of rerunning phase 1, the
+    proposer
+  prefs: []
+  type: TYPE_NORMAL
+- en: (leader) can keep running phase 2 only, with the available majority of acceptors.
+    As long as it does not crash, or some other proposer doesn’t come along and propose
+    with a
+  prefs: []
+  type: TYPE_NORMAL
+- en: higher proposal number, this process of successive accept messages can continue.
+    The
+  prefs: []
+  type: TYPE_NORMAL
+- en: proposer can keep running the accept/accepted round (phase 2) with even the
+    same
+  prefs: []
+  type: TYPE_NORMAL
+- en: proposal number without running the prepare/promise round (phase 1). In other
+    words,
+  prefs: []
+  type: TYPE_NORMAL
+- en: the message delays are reduced from four to two. When another proposer comes
+    along
+  prefs: []
+  type: TYPE_NORMAL
+- en: or the previous one fails, this new proposer can run another round of phases
+    1 and 2
+  prefs: []
+  type: TYPE_NORMAL
+- en: by following classical Paxos. When this new proposer becomes the leader by receiving
+  prefs: []
+  type: TYPE_NORMAL
+- en: a majority from the acceptors, the basic classical Paxos protocol upgrades to
+    multi-
+  prefs: []
+  type: TYPE_NORMAL
+- en: Paxos, and it can start running phase 2 only. As long as there is only a single
+    leader in the network, no acceptor would notify the leader that it has accepted
+    any other proposal,
+  prefs: []
+  type: TYPE_NORMAL
+- en: which will let the leader choose any value. This condition allows omitting the
+    first phase when only one elected proposer is the leader.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This protocol is known as optimization Paxos or multi-Paxos. A normal run of
+    multi-
+  prefs: []
+  type: TYPE_NORMAL
+- en: Paxos is shown in Figur[e 7-4](#p322).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '306'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](index-322_1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Chapter 7 ClassiCal Consensus
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Figure 7-4\.** Multi-Paxos – note the first phase, prepare phase, skipped*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Original Paxos is a leaderless (also called symmetric) protocol, whereas multi-
+  prefs: []
+  type: TYPE_NORMAL
+- en: Paxos is leader driven (also called asymmetric). It is used in practical systems
+    instead of classical Paxos to enable state machine replication. Commonly in implementations,
+    the
+  prefs: []
+  type: TYPE_NORMAL
+- en: role of the proposer, acceptor, and learner is contracted to so-called servers,
+    which may all assume these three roles. Eventually, only a client-server model
+    emerges. With roles
+  prefs: []
+  type: TYPE_NORMAL
+- en: collapsed, a steady leader and prepare phase removed, the protocol becomes efficient
+  prefs: []
+  type: TYPE_NORMAL
+- en: and simple.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Paxos is seen as a difficult protocol to understand. This is mostly due to
+  prefs: []
+  type: TYPE_NORMAL
+- en: underspecification. Also, the original protocol described by Lamport is a single
+    decree
+  prefs: []
+  type: TYPE_NORMAL
+- en: protocol, which is not practical to implement. There have been several attempts,
+    such
+  prefs: []
+  type: TYPE_NORMAL
+- en: as multi-Paxos, and several papers that try to explain Paxos, but, overall,
+    the protocol is still considered a bit tricky to understand and implement. With
+    these and several other
+  prefs: []
+  type: TYPE_NORMAL
+- en: points in mind, a protocol called RAFT was developed. We introduce RAFT next.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '307'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 7 ClassiCal Consensus
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**RAFT**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: RAFT is designed in response to shortcomings in Paxos. RAFT stands for Replicated
+    And
+  prefs: []
+  type: TYPE_NORMAL
+- en: Fault Tolerant. The authors of RAFT had the main aim of developing a protocol
+    which is
+  prefs: []
+  type: TYPE_NORMAL
+- en: easy to understand and easy to implement. The key idea behind RAFT is to enable
+    state
+  prefs: []
+  type: TYPE_NORMAL
+- en: machine replication with a persistent log. The state of the state machine is
+    determined
+  prefs: []
+  type: TYPE_NORMAL
+- en: by the persistent log. RAFT allows cluster reconfiguration which enables cluster
+  prefs: []
+  type: TYPE_NORMAL
+- en: membership changes without service interruption. Moreover, as logs can grow
+    quite
+  prefs: []
+  type: TYPE_NORMAL
+- en: large on high throughput systems, RAFT allows log compaction to alleviate the
+    issue of
+  prefs: []
+  type: TYPE_NORMAL
+- en: consuming too much storage and slow rebuild after node crashes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'RAFT operates under a system model with the following assumptions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: • No Byzantine failures.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Unreliable network communication.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Asynchronous communication and processors.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Deterministic state machine on each node that starts with the same
+  prefs: []
+  type: TYPE_NORMAL
+- en: initial state on each node.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Nodes have uncorruptible persistent storage with write-ahead
+  prefs: []
+  type: TYPE_NORMAL
+- en: logging, meaning any write to storage will complete before crashing.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • The Client must communicate strictly with only the current leader.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It is the Client’s responsibility as clients know all nodes and are
+  prefs: []
+  type: TYPE_NORMAL
+- en: statically configured with this information.
+  prefs: []
+  type: TYPE_NORMAL
+- en: RAFT is a leader-based (asymmetric) protocol, where one node is elected as a
+    leader.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This leader accepts client requests and manages the log replication. There can
+    only
+  prefs: []
+  type: TYPE_NORMAL
+- en: be one leader at a time in a RAFT cluster. If a current leader fails, then a
+    new leader is elected. There are three roles that nodes (more precisely the consensus
+    module within
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'nodes) can assume in a RAFT cluster: leader, follower, and candidate.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: • The **leader** receives client requests, manages replication logs, and
+  prefs: []
+  type: TYPE_NORMAL
+- en: manages communication with the followers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • **Follower** nodes are passive in nature and only respond to Remote
+  prefs: []
+  type: TYPE_NORMAL
+- en: Procedure Call (RPCs). They never initiate any communication.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • A **candidate** is a role that is used by a node that is trying to become
+    a
+  prefs: []
+  type: TYPE_NORMAL
+- en: leader by requesting votes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '308'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](index-324_1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Chapter 7 ClassiCal Consensus
+  prefs: []
+  type: TYPE_NORMAL
+- en: Time in RAFT is logically divided into terms. A term (or epoch) is basically
+    a
+  prefs: []
+  type: TYPE_NORMAL
+- en: monotonically increasing value which acts as a logical clock to achieve global
+    partial
+  prefs: []
+  type: TYPE_NORMAL
+- en: ordering on events in the absence of a global synchronized clock. Each term
+    starts with
+  prefs: []
+  type: TYPE_NORMAL
+- en: an election of a new leader, where one or more candidates compete to become
+    the
+  prefs: []
+  type: TYPE_NORMAL
+- en: leader. Once a leader is elected, it serves as a leader until the end of the
+    term. The key role of terms is to identify stale information, for example, stale
+    leaders. Each node stores a current term number. When current terms are exchanged
+    between nodes, it is checked
+  prefs: []
+  type: TYPE_NORMAL
+- en: if one node’s current term number is lower than the other node’s term number;
+    if it is,
+  prefs: []
+  type: TYPE_NORMAL
+- en: then the node with the lower term number updates its current term to the larger
+    value.
+  prefs: []
+  type: TYPE_NORMAL
+- en: When a candidate or a leader finds out that its current term number is stale,
+    it transitions its state to follower mode. Any requests with a stale term number
+    received by a node are
+  prefs: []
+  type: TYPE_NORMAL
+- en: rejected.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Terms can be visualized in Figure [7-5](#p324).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Figure 7-5\.** Terms in RAFT*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A RAFT protocol works using two RPCs, AppendEntries RPC, which is invoked by
+  prefs: []
+  type: TYPE_NORMAL
+- en: a leader to replicate log entries and is also used as a heartbeat, and RequestVote
+    RPC,
+  prefs: []
+  type: TYPE_NORMAL
+- en: which is invoked by candidates to collect votes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: RAFT consists of two phases. The first is leader election, and the second is
+    log
+  prefs: []
+  type: TYPE_NORMAL
+- en: replication. In the first phase, the leader is elected, and the second phase
+    is where
+  prefs: []
+  type: TYPE_NORMAL
+- en: the leader accepts the clients’ requests, updates the logs, and sends a heartbeat
+    to all
+  prefs: []
+  type: TYPE_NORMAL
+- en: followers to maintain its leadership.
+  prefs: []
+  type: TYPE_NORMAL
+- en: First, let’s see how leader election works.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '309'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](index-325_1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Chapter 7 ClassiCal Consensus
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Leader Election**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A heartbeat mechanism is used to trigger a leader election process. All nodes
+    start up as followers. Followers will run as followers as long as they keep receiving
+    valid RPCs from a leader or a candidate. If a follower does not receive heartbeats
+    from the leader for some time, then an “election timeout” occurs, which indicates
+    that the leader has failed. The
+  prefs: []
+  type: TYPE_NORMAL
+- en: election timeout is randomly set to be between 150ms and 300ms.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now the follower node undertakes the candidate role and attempts to become
+  prefs: []
+  type: TYPE_NORMAL
+- en: the leader by starting the election process. The candidate increments the current
+  prefs: []
+  type: TYPE_NORMAL
+- en: term number, votes for itself, resets election timer, and seeks votes from others
+    via the RequestVote RPC. If it receives votes from the majority of the nodes,
+    then it becomes the leader and starts sending heartbeats to other nodes, which
+    are now followers. If another
+  prefs: []
+  type: TYPE_NORMAL
+- en: candidate has won and became a valid leader, then this candidate would start
+    receiving
+  prefs: []
+  type: TYPE_NORMAL
+- en: heartbeats and will return to a follower role. If no one wins the elections
+    and election
+  prefs: []
+  type: TYPE_NORMAL
+- en: timeout occurs, the election process starts again with a new term.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note that votes will only be granted by the receiver node in response to the
+  prefs: []
+  type: TYPE_NORMAL
+- en: RequestVote RPC if a candidate’s log is at least as up to date as the receiver’s
+    log. Also, a
+  prefs: []
+  type: TYPE_NORMAL
+- en: “false” will be replied if the received term number is lower than the current
+    term.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The specific process of a leader election is shown in Figur[e 7-6\.](#p325)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Figure 7-6\.** RAFT leader election*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '310'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](index-326_1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Chapter 7 ClassiCal Consensus
+  prefs: []
+  type: TYPE_NORMAL
+- en: A node can be in three states; we can visualize server states in the state diagram
+  prefs: []
+  type: TYPE_NORMAL
+- en: shown in Figure [7-7](#p326), which also shows leader election.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Figure 7-7\.** Node states in RAFT*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Once a leader is elected, it is ready to receive requests from clients. Now
+    the log
+  prefs: []
+  type: TYPE_NORMAL
+- en: replication can start.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Log Replication**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The log replication phase of RAFT is straightforward. First, the client sends
+    commands/
+  prefs: []
+  type: TYPE_NORMAL
+- en: requests to the leader to be executed by the replicated state machines. The
+    leader
+  prefs: []
+  type: TYPE_NORMAL
+- en: then assigns a term and index to the command so that the command can be uniquely
+  prefs: []
+  type: TYPE_NORMAL
+- en: identified in the logs held by nodes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It appends this command to its log. When the leader has a new entry in its log,
+    at the
+  prefs: []
+  type: TYPE_NORMAL
+- en: same time it sends out the requests to replicate this command via the AppendEntries
+  prefs: []
+  type: TYPE_NORMAL
+- en: RPC to the follower nodes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: When the leader is able to replicate the command to the majority of the follower
+  prefs: []
+  type: TYPE_NORMAL
+- en: nodes, that is, acknowledged, the entry is considered committed on the cluster.
+    Now the
+  prefs: []
+  type: TYPE_NORMAL
+- en: leader executes the command in its state machine and returns the result to the
+    client. It also notifies the followers that the entry is committed via the AppendEntries
+    RPC, and
+  prefs: []
+  type: TYPE_NORMAL
+- en: the followers execute committed commands in their state machines. A set of logs
+    from
+  prefs: []
+  type: TYPE_NORMAL
+- en: five nodes is shown in Figur[e 7-8\.](#p327)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '311'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](index-327_1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Chapter 7 ClassiCal Consensus
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Figure 7-8\.** Logs in RAFT nodes*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Notice that entries up to log index number 6 are replicated on a majority of
+    servers
+  prefs: []
+  type: TYPE_NORMAL
+- en: as the leader, follower 3, and follower 4 all have these entries, resulting
+    in a majority –
+  prefs: []
+  type: TYPE_NORMAL
+- en: three out of five nodes. This means that they are committed and are safe to
+    apply to their respective state machines. The log on followers 1 and 3 is not
+    up to date, which could
+  prefs: []
+  type: TYPE_NORMAL
+- en: be due to a fault on the node or communication link failure. If there is a crashed
+    or slow follower, the leader will keep retrying via the AppendEntries RPC until
+    it succeeds.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The log replication process is shown in Figure [7-9](#p328).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '312'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](index-328_1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Chapter 7 ClassiCal Consensus
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Figure 7-9\.** RAFT log replication and state machine replication*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: When a follower receives an AppendEntries RPC for replication of log entries,
+    it
+  prefs: []
+  type: TYPE_NORMAL
+- en: checks if the term is less than the current term it replies false. It appends
+    only new
+  prefs: []
+  type: TYPE_NORMAL
+- en: entries that are not already in the logs. If an existing entry has the same
+    index as the new one, but different terms, it will delete the existing entry and
+    all entries following it. It will also reply false if the log does not have an
+    entry at the index of the log entry immediately preceding the new one but the
+    term matches.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If there is a failed follower or candidate, the protocol will keep retrying
+    via the
+  prefs: []
+  type: TYPE_NORMAL
+- en: AppendEntries RPC until it succeeds.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If a command is committed, the RAFT cluster will not lose it. This is the guarantee
+  prefs: []
+  type: TYPE_NORMAL
+- en: provided by RAFT despite any failures such as network delays, packet loss, reboots,
+    or
+  prefs: []
+  type: TYPE_NORMAL
+- en: crash faults. However, it does not handle Byzantine failures.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Each log entry consists of a term number, an index, and a state machine command.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A term number helps to discover inconsistencies between logs. It gives an indication
+  prefs: []
+  type: TYPE_NORMAL
+- en: about the time of the command. An index identifies the position of an entry
+    in the log. A command is the request made by the client for execution.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '313'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 7 ClassiCal Consensus
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Guarantees and Correctness**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Guarantees provided by RAFT are
+  prefs: []
+  type: TYPE_NORMAL
+- en: • **Election correctness**
+  prefs: []
+  type: TYPE_NORMAL
+- en: '• **Election safety**: At most, one leader can be elected in each term.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '• **Election liveness**: Some candidate must eventually become'
+  prefs: []
+  type: TYPE_NORMAL
+- en: a leader.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '• **Leader append-only**: A leader can only append to the log. No'
+  prefs: []
+  type: TYPE_NORMAL
+- en: overwrite or deletion of entries in the log is allowed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '• **Log matching**: If two logs on two different servers have an entry with'
+  prefs: []
+  type: TYPE_NORMAL
+- en: the same index and term, then these logs are identical in all previous
+  prefs: []
+  type: TYPE_NORMAL
+- en: entries, and they store the same command.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '• **Leader completeness**: A log entry committed in a given term will'
+  prefs: []
+  type: TYPE_NORMAL
+- en: always be present in the logs of the future leaders, that is, leaders
+  prefs: []
+  type: TYPE_NORMAL
+- en: for higher-numbered terms. Also, nodes with incomplete logs must
+  prefs: []
+  type: TYPE_NORMAL
+- en: never be elected.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '• **State machine safety**: If a node has applied a log entry at a given'
+  prefs: []
+  type: TYPE_NORMAL
+- en: index to its state machine, no other node will ever apply a different
+  prefs: []
+  type: TYPE_NORMAL
+- en: log entry for the same index.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Election correctness requires safety and liveness. Safety means that at most
+    one
+  prefs: []
+  type: TYPE_NORMAL
+- en: leader is allowed per term. Liveness requires that some candidate must win and
+    become
+  prefs: []
+  type: TYPE_NORMAL
+- en: a leader eventually. To ensure safety, each node votes only once in a term which
+    it
+  prefs: []
+  type: TYPE_NORMAL
+- en: persists on storage. The majority is required to win the election; no two different
+  prefs: []
+  type: TYPE_NORMAL
+- en: candidates will get a majority at the same time.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Split votes can occur during leader election. If two nodes get elected simultaneously,
+  prefs: []
+  type: TYPE_NORMAL
+- en: then the so-called “split vote” can occur. RAFT uses randomized election timeouts
+    to
+  prefs: []
+  type: TYPE_NORMAL
+- en: ensure that this problem resolves quickly. This helps because random timeouts
+    allow
+  prefs: []
+  type: TYPE_NORMAL
+- en: only one node to time out and win the election before other nodes time out.
+    In practice,
+  prefs: []
+  type: TYPE_NORMAL
+- en: this works well if the random time chosen is greater than the network broadcast
+    time.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Log matching achieves a high level of consistency between logs. We assume that
+    the
+  prefs: []
+  type: TYPE_NORMAL
+- en: leader is not malicious. A leader will never add more than one entry with the
+    same index
+  prefs: []
+  type: TYPE_NORMAL
+- en: and same term. Log consistency checks ensure that all previous entries are identical.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The leader keeps track of the latest index that it has committed in its log.
+    The leader
+  prefs: []
+  type: TYPE_NORMAL
+- en: '314'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 7 ClassiCal Consensus
+  prefs: []
+  type: TYPE_NORMAL
+- en: broadcasts this information in every AppendEntries RPC. If a follower node doesn’t
+    have
+  prefs: []
+  type: TYPE_NORMAL
+- en: an entry in its log with the same index number, it will not accept the incoming
+    entry.
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, if the follower accepts the AppendEntries RPC, the leader knows that
+    the
+  prefs: []
+  type: TYPE_NORMAL
+- en: logs are identical on both. Logs are generally consistent unless there are failures
+    on the network. In that case, the log consistency check ensures that nodes eventually
+    catch up
+  prefs: []
+  type: TYPE_NORMAL
+- en: and become consistent. If a log is inconsistent, the leader will retransmit
+    missing entries to followers that may not have received the message before or
+    crashed and now have
+  prefs: []
+  type: TYPE_NORMAL
+- en: recovered.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Reconfiguration and log compaction are two useful features of RAFT. I have not
+  prefs: []
+  type: TYPE_NORMAL
+- en: discussed those here as they are not related directly to the core consensus
+    protocol. You can refer to the original RAFT paper mentioned in the bibliography
+    for more details.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**PBFT**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Remember, we discussed the oral message protocol and the Byzantine generals
+  prefs: []
+  type: TYPE_NORMAL
+- en: problem earlier in the book. While it solved the Byzantine agreement, it was
+    not a
+  prefs: []
+  type: TYPE_NORMAL
+- en: practical solution. The oral message protocol only works in synchronous environments,
+  prefs: []
+  type: TYPE_NORMAL
+- en: and computational complexity (runtime) is also high unless there is only one
+    faulty
+  prefs: []
+  type: TYPE_NORMAL
+- en: processor, which is not practical. However, systems show some level of communication
+  prefs: []
+  type: TYPE_NORMAL
+- en: and processor asynchrony in practice. A very long algorithm runtime is also
+  prefs: []
+  type: TYPE_NORMAL
+- en: unacceptable in real environments.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A practical solution was developed by Castro and Liskov in 1999 called practical
+  prefs: []
+  type: TYPE_NORMAL
+- en: Byzantine fault tolerance (PBFT). As the name suggests, it is a protocol designed
+    to
+  prefs: []
+  type: TYPE_NORMAL
+- en: provide consensus in the presence of Byzantine faults. Before PBFT, Byzantine
+    fault
+  prefs: []
+  type: TYPE_NORMAL
+- en: tolerance was considered impractical. With PBFT, the duo demonstrated that practical
+  prefs: []
+  type: TYPE_NORMAL
+- en: Byzantine fault tolerance is possible for the first time.
+  prefs: []
+  type: TYPE_NORMAL
+- en: PBFT constitutes three subprotocols called normal operation, view change, and
+  prefs: []
+  type: TYPE_NORMAL
+- en: checkpointing. The normal operation subprotocol refers to a mechanism executed
+  prefs: []
+  type: TYPE_NORMAL
+- en: when everything is running normally, and the system is error-free. The view
+    change is a
+  prefs: []
+  type: TYPE_NORMAL
+- en: subprotocol that runs when a faulty leader node is detected in the system. Checkpointing
+  prefs: []
+  type: TYPE_NORMAL
+- en: is used to discard the old data from the system.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The PBFT protocol consists of three phases. These phases run one after another
+    to
+  prefs: []
+  type: TYPE_NORMAL
+- en: complete a single protocol run. These phases are pre-prepare, prepare, and commit,
+  prefs: []
+  type: TYPE_NORMAL
+- en: which we will cover in detail shortly. In normal conditions, a single protocol
+    run is
+  prefs: []
+  type: TYPE_NORMAL
+- en: enough to achieve consensus.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '315'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 7 ClassiCal Consensus
+  prefs: []
+  type: TYPE_NORMAL
+- en: The protocol runs in rounds where, in each round, a leader node, called the
+  prefs: []
+  type: TYPE_NORMAL
+- en: primary node, handles the communication with the client. In each round, the
+    protocol
+  prefs: []
+  type: TYPE_NORMAL
+- en: progresses through the three previously mentioned phases. The participants in
+    the PBFT
+  prefs: []
+  type: TYPE_NORMAL
+- en: protocol are called replicas. One of the replicas becomes primary as a leader
+    in each
+  prefs: []
+  type: TYPE_NORMAL
+- en: round, and the rest of the nodes act as backups. PBFT enables state machine
+    replication,
+  prefs: []
+  type: TYPE_NORMAL
+- en: which we discussed earlier. Each node maintains a local log, and the logs are
+    kept in sync with each other via the consensus protocol, PBFT.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We know by now that to tolerate Byzantine faults, the minimum number of nodes
+  prefs: []
+  type: TYPE_NORMAL
+- en: required is *n* = 3 *f* + 1 in a partially synchronous environment, where *n*
+    is the number of nodes and *f* is the number of faulty nodes. PBFT ensures Byzantine
+    fault tolerance as long as the number of nodes in a system stays *n* ≥ 3 *f* +
+    1\.
+  prefs: []
+  type: TYPE_NORMAL
+- en: When a client sends a request to the primary (leader), a sequence of operations
+  prefs: []
+  type: TYPE_NORMAL
+- en: between replicas runs, leading to consensus and a reply to the client.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This sequence of operations is composed of three phases:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Pre-prepare
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Prepare
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Commit
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In addition, each replica maintains a local state containing three main elements:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: • A service state
+  prefs: []
+  type: TYPE_NORMAL
+- en: • A message log
+  prefs: []
+  type: TYPE_NORMAL
+- en: • A number representing that replica’s current view
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s look at each of the phases in detail.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Pre-prepare phase – phase 1**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: When the primary node receives a request from the client, it assigns a sequence
+  prefs: []
+  type: TYPE_NORMAL
+- en: number to the request. It then sends the pre-prepare message with the request
+    to all
+  prefs: []
+  type: TYPE_NORMAL
+- en: backup replicas.
+  prefs: []
+  type: TYPE_NORMAL
+- en: When the backup replicas receive the pre-prepare message, they check several
+    things
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'to ensure the validity of the message:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Whether the digital signature is valid.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Whether the current view number is valid, that is, the replica is in the
+  prefs: []
+  type: TYPE_NORMAL
+- en: same view.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '316'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 7 ClassiCal Consensus
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Whether the sequence number of the operation’s request message
+  prefs: []
+  type: TYPE_NORMAL
+- en: is valid, for example, if the same sequence number is used again,
+  prefs: []
+  type: TYPE_NORMAL
+- en: the replica will reject the subsequent request with the same
+  prefs: []
+  type: TYPE_NORMAL
+- en: sequence number.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • If the hash of the request message is valid.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • No previous pre-prepare message received with the same sequence
+  prefs: []
+  type: TYPE_NORMAL
+- en: number and view but a different hash.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If all these checks pass, the backup replicas accept the message, update their
+    local
+  prefs: []
+  type: TYPE_NORMAL
+- en: state, and move to the prepare phase.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In summary, the pre-prepare phase
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Accepts a request from the client.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Assigns to it the next sequence number. This sequence number is the
+  prefs: []
+  type: TYPE_NORMAL
+- en: order in which the request is going to be executed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Broadcasts this information as the pre-prepare message to all backup
+  prefs: []
+  type: TYPE_NORMAL
+- en: replicas.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This phase assigns a unique sequence number to the client request. We can think
+    of
+  prefs: []
+  type: TYPE_NORMAL
+- en: it as an orderer that applies order to the client requests.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Prepare phase – phase 2**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Each backup replica sends the prepare message to all other replicas in the system.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Each backup replica waits for at least 2 *f* + 1 prepare messages to arrive
+    from other replicas. They check
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Whether the prepare message has a valid digital signature.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • The replica is in the same view as in the message.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • The sequence number is valid and within the expected range.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • The message digest (hash) value is correct.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If all these checks pass, the replica updates its local state and moves to the
+  prefs: []
+  type: TYPE_NORMAL
+- en: commit phase.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '317'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 7 ClassiCal Consensus
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In summary, the prepare phase performs the following steps:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Accepts the pre-prepare message only if the replica has not
+  prefs: []
+  type: TYPE_NORMAL
+- en: accepted any pre-prepare messages for the same view or sequence
+  prefs: []
+  type: TYPE_NORMAL
+- en: number before
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Sends the prepare message to all replicas
+  prefs: []
+  type: TYPE_NORMAL
+- en: This phase ensures that honest replicas in the network agree on the total order
+    of
+  prefs: []
+  type: TYPE_NORMAL
+- en: requests within a view.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Commit phase**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Each replica sends a commit message to all other replicas in the network in
+    the
+  prefs: []
+  type: TYPE_NORMAL
+- en: commit phase. Like the prepare phase, replicas wait for 2 *f* + 1 commit messages
+    to arrive from other replicas. The replicas also check the view number, sequence
+    number,
+  prefs: []
+  type: TYPE_NORMAL
+- en: digital signature, and message digest values. If they are valid for 2 *f* +
+    1 commit messages received from other replicas, the replica executes the request,
+    produces a result, and
+  prefs: []
+  type: TYPE_NORMAL
+- en: finally updates its state to reflect a commit. If some messages are queued up,
+    the replica will execute those requests first before processing the latest sequence
+    numbers. Finally, the replica sends the result to the client in a reply message.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The client accepts the result only after receiving 2 *f* + 1 reply messages
+    containing the same result.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The commit subprotocol steps
+  prefs: []
+  type: TYPE_NORMAL
+- en: • The replica waits for 2 *f* + 1 prepare messages with the same view,
+  prefs: []
+  type: TYPE_NORMAL
+- en: sequence, and request.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • It sends a commit message to all replicas.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • It waits until a 2 *f* + 1 valid commit message arrives and is accepted.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • It executes the received request.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • It sends a reply containing the execution result to the client.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This phase ensures that honest replicas in the network agree on the total order
+    of
+  prefs: []
+  type: TYPE_NORMAL
+- en: client requests across views.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In essence, the PBFT protocol ensures that enough replicas process each request
+    so
+  prefs: []
+  type: TYPE_NORMAL
+- en: that the same requests are processed and in the same order.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We can visualize the normal mode of operation of the protocol in Figur[e 7-10](#p334).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '318'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](index-334_1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Chapter 7 ClassiCal Consensus
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Figure 7-10\.** PBFT normal mode operation*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: During the execution of the protocol, the protocol must maintain the integrity
+    of the
+  prefs: []
+  type: TYPE_NORMAL
+- en: messages and operations to deliver an adequate level of security and assurance.
+    Digital
+  prefs: []
+  type: TYPE_NORMAL
+- en: signatures fulfill this requirement. It is assumed that digital signatures are
+    unforgeable, and hash functions are collision resistant. In addition, certificates
+    are used to ensure the proper majority of participants (nodes).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Certificates in PBFT**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Certificates in PBFT protocols establish that at least 2 *f* + 1 replicas have
+    stored the required information. In other words, the collection of 2 *f* + 1 messages
+    of a particular type is considered a certificate. For example, suppose a node
+    has collected 2 *f* + 1
+  prefs: []
+  type: TYPE_NORMAL
+- en: messages of type prepare. In that case, combining it with the corresponding
+    pre-prepare
+  prefs: []
+  type: TYPE_NORMAL
+- en: message with the same view, sequence, and request represents a certificate,
+    called a
+  prefs: []
+  type: TYPE_NORMAL
+- en: prepared certificate. Likewise, a collection of 2 *f* + 1 commit messages is
+    called a commit certificate.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '319'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 7 ClassiCal Consensus
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are also several variables that the PBFT protocol maintains to execute
+    the
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'algorithm. These variables and the meanings of these are listed as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '• **v**: View number'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '• **o**: Operation requested by a client'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '• **t**: Timestamp'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '• **c**: Client identifier'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '• **r**: Reply'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '• **m**: Client’s request message'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '• **n**: Sequence number of the message'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '• **h**: Hash of the message m'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '• **i**: Identifier of the replica'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '• **s**: Stable checkpoint – last'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '• **C**: Certificate of the stable checkpoint (2f + 1 checkpoint messages)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '• **P**: Set of prepared certificates for requests'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '• **O**: Set of pre-prepare messages to be processed'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '• **V**: Proof of the new view (2f + 1 view change messages)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s now look at the types of messages and their formats. These messages are
+    easy to
+  prefs: []
+  type: TYPE_NORMAL
+- en: understand if we refer to the preceding variable list.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Types of Messages**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The PBFT protocol works by exchanging several messages. A list of these messages
+    is
+  prefs: []
+  type: TYPE_NORMAL
+- en: shown in Ta[ble 7-1 w](#p336)ith their format and direction.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '320'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 7 ClassiCal Consensus
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Table 7-1\.** PBFT protocol messages*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Message**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**From**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**To**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Format**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Signed by**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: request
+  prefs: []
+  type: TYPE_NORMAL
+- en: Client
+  prefs: []
+  type: TYPE_NORMAL
+- en: primary
+  prefs: []
+  type: TYPE_NORMAL
+- en: <reQuest, o, t, c>
+  prefs: []
+  type: TYPE_NORMAL
+- en: Client
+  prefs: []
+  type: TYPE_NORMAL
+- en: pre-prepare
+  prefs: []
+  type: TYPE_NORMAL
+- en: primary
+  prefs: []
+  type: TYPE_NORMAL
+- en: replicas
+  prefs: []
+  type: TYPE_NORMAL
+- en: <<pre-prepare, v, n, h>, m>>
+  prefs: []
+  type: TYPE_NORMAL
+- en: primary
+  prefs: []
+  type: TYPE_NORMAL
+- en: prepare
+  prefs: []
+  type: TYPE_NORMAL
+- en: replica
+  prefs: []
+  type: TYPE_NORMAL
+- en: replicas
+  prefs: []
+  type: TYPE_NORMAL
+- en: <prepare, v, n, h, i>
+  prefs: []
+  type: TYPE_NORMAL
+- en: replica
+  prefs: []
+  type: TYPE_NORMAL
+- en: Commit
+  prefs: []
+  type: TYPE_NORMAL
+- en: replica
+  prefs: []
+  type: TYPE_NORMAL
+- en: replicas
+  prefs: []
+  type: TYPE_NORMAL
+- en: <CoMMit, v, n, h, i>
+  prefs: []
+  type: TYPE_NORMAL
+- en: replica
+  prefs: []
+  type: TYPE_NORMAL
+- en: reply
+  prefs: []
+  type: TYPE_NORMAL
+- en: replicas
+  prefs: []
+  type: TYPE_NORMAL
+- en: Client
+  prefs: []
+  type: TYPE_NORMAL
+- en: <replY, r, i>
+  prefs: []
+  type: TYPE_NORMAL
+- en: replica
+  prefs: []
+  type: TYPE_NORMAL
+- en: View change
+  prefs: []
+  type: TYPE_NORMAL
+- en: replica
+  prefs: []
+  type: TYPE_NORMAL
+- en: replicas
+  prefs: []
+  type: TYPE_NORMAL
+- en: <VieWChanGe, v+1, n, s, C, p, i>
+  prefs: []
+  type: TYPE_NORMAL
+- en: replica
+  prefs: []
+  type: TYPE_NORMAL
+- en: new view
+  prefs: []
+  type: TYPE_NORMAL
+- en: primary
+  prefs: []
+  type: TYPE_NORMAL
+- en: replicas
+  prefs: []
+  type: TYPE_NORMAL
+- en: <neWVieW, v + 1, V, o>
+  prefs: []
+  type: TYPE_NORMAL
+- en: replica
+  prefs: []
+  type: TYPE_NORMAL
+- en: Checkpoint
+  prefs: []
+  type: TYPE_NORMAL
+- en: replica
+  prefs: []
+  type: TYPE_NORMAL
+- en: replicas
+  prefs: []
+  type: TYPE_NORMAL
+- en: <CheCKpoint, n, h, i>
+  prefs: []
+  type: TYPE_NORMAL
+- en: replica
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note that all messages are signed with digital signatures, which enable every
+    node to
+  prefs: []
+  type: TYPE_NORMAL
+- en: identify which replica or client generated any given message.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**View Change**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A view change occurs when a primary replica is suspected faulty by other replicas.
+    This
+  prefs: []
+  type: TYPE_NORMAL
+- en: phase ensures protocol progress. A new primary is selected with a view change,
+    which
+  prefs: []
+  type: TYPE_NORMAL
+- en: starts normal mode operation again. The new primary is chosen in a round-robin
+  prefs: []
+  type: TYPE_NORMAL
+- en: fashion using the formula *p* = *v mod n*, where v is the view number and n
+    is the total number of nodes in the system.
+  prefs: []
+  type: TYPE_NORMAL
+- en: When a backup replica receives a request, it tries to execute it after validating
+    the
+  prefs: []
+  type: TYPE_NORMAL
+- en: message, but for any reason, if it does not execute it for a while, the replica
+    times out. It then initiates the view change subprotocol.
+  prefs: []
+  type: TYPE_NORMAL
+- en: During the view change, the replica stops accepting messages related to the
+    current
+  prefs: []
+  type: TYPE_NORMAL
+- en: view and updates its state to a view change. The only messages it can receive
+    in this state are *checkpoint*, *view change*, and *new view* messages. After
+    that, it broadcasts a view change message with the next view number to all replicas.
+  prefs: []
+  type: TYPE_NORMAL
+- en: When this message reaches the new primary, the primary waits for at least 2
+    *f* view change messages for the next view. If at least 2 *f* + 1 view change
+    messages are acquired, it broadcasts a new view message to all replicas and runs
+    normal operation mode
+  prefs: []
+  type: TYPE_NORMAL
+- en: once again.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '321'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](index-337_1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Chapter 7 ClassiCal Consensus
+  prefs: []
+  type: TYPE_NORMAL
+- en: When other replicas receive a new view message, they update their local state
+  prefs: []
+  type: TYPE_NORMAL
+- en: accordingly and start the normal operation mode.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The algorithm for the view change protocol is as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 1\. Stop accepting pre-prepare, prepare, and commit messages for
+  prefs: []
+  type: TYPE_NORMAL
+- en: the current view.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 2\. Construct a set of all the certificates prepared so far.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3\. Broadcast a view change message with the next view number and
+  prefs: []
+  type: TYPE_NORMAL
+- en: a set of all the prepared certificates to all replicas.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figur[e 7-11 illus](#p337)trates the view change protocol.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Figure 7-11\.** View change protocol*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The view change subprotocol is a means to achieve liveness. Three clever techniques
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'are used in this subprotocol to ensure that:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 1\. A replica that has broadcast the view change message waits for
+  prefs: []
+  type: TYPE_NORMAL
+- en: 2f+1 view change messages and then starts its timer. If the timer
+  prefs: []
+  type: TYPE_NORMAL
+- en: expires before the node receives a new view message for the next
+  prefs: []
+  type: TYPE_NORMAL
+- en: view, the node will start the view change for the next sequence
+  prefs: []
+  type: TYPE_NORMAL
+- en: but increase its timeout value. This situation will also occur if the
+  prefs: []
+  type: TYPE_NORMAL
+- en: replica times out before executing the new unique request in the
+  prefs: []
+  type: TYPE_NORMAL
+- en: new view.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 2\. As soon as the replica receives f+1 view change messages for a
+  prefs: []
+  type: TYPE_NORMAL
+- en: view number greater than its current view, the replica will send
+  prefs: []
+  type: TYPE_NORMAL
+- en: the view change message for the smallest view it knows of in the
+  prefs: []
+  type: TYPE_NORMAL
+- en: '322'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 7 ClassiCal Consensus
+  prefs: []
+  type: TYPE_NORMAL
+- en: set so that the next view change does not occur too late. This is
+  prefs: []
+  type: TYPE_NORMAL
+- en: also the case even if the timer has not expired; it will still send the
+  prefs: []
+  type: TYPE_NORMAL
+- en: view change for the smallest view.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3\. As the view change will only occur if at least *f* + 1 replicas have
+  prefs: []
+  type: TYPE_NORMAL
+- en: sent the view change message, this mechanism ensures that a
+  prefs: []
+  type: TYPE_NORMAL
+- en: faulty primary cannot indefinitely stop progress by successively
+  prefs: []
+  type: TYPE_NORMAL
+- en: requesting view changes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It can happen especially in busy environments that storage becomes a bottleneck.
+    To
+  prefs: []
+  type: TYPE_NORMAL
+- en: solve this issue, checkpointing is used in the PBFT protocol.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**The Checkpoint Subprotocol**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Checkpointing is a crucial subprotocol. It is used to discard old messages in
+    the log of
+  prefs: []
+  type: TYPE_NORMAL
+- en: all replicas. With this, the replicas agree on a stable checkpoint that provides
+    a snapshot of the global state at a certain point in time. This is a periodic
+    process carried out by each replica after executing the request and marking that
+    as a checkpoint in its log. A
+  prefs: []
+  type: TYPE_NORMAL
+- en: variable called “low watermark” (in PBFT terminology) is used to record the
+    last stable
+  prefs: []
+  type: TYPE_NORMAL
+- en: checkpoint sequence number. This checkpoint is broadcast to other nodes. As
+    soon as
+  prefs: []
+  type: TYPE_NORMAL
+- en: a replica has at least 2 *f* + 1 checkpoint messages, it saves these messages
+    as proof of a stable checkpoint. It discards all previous pre-prepare, prepare,
+    and commit messages
+  prefs: []
+  type: TYPE_NORMAL
+- en: from its logs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**PBFT Advantages and Disadvantages**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: PBFT is a groundbreaking protocol that has introduced a new research area of
+    practical
+  prefs: []
+  type: TYPE_NORMAL
+- en: Byzantine fault–tolerant protocols. The original PBFT have many strengths, but
+    it also
+  prefs: []
+  type: TYPE_NORMAL
+- en: has some weaknesses. We introduce those next.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Strengths**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: • PBFT provides immediate and deterministic transaction finality. In
+  prefs: []
+  type: TYPE_NORMAL
+- en: comparison, in the PoW protocol, several confirmations are required
+  prefs: []
+  type: TYPE_NORMAL
+- en: to finalize a transaction with high probability.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • PBFT is also energy efficient as compared to PoW, which consumes a
+  prefs: []
+  type: TYPE_NORMAL
+- en: tremendous amount of electricity.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '323'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 7 ClassiCal Consensus
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Weaknesses**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: • PBFT is not very scalable. This limitation is why it is more suitable
+  prefs: []
+  type: TYPE_NORMAL
+- en: for consortium networks than public blockchains. It is, however,
+  prefs: []
+  type: TYPE_NORMAL
+- en: considerably faster than PoW protocols.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Sybil attacks are possible to perform on a PBFT network, where a
+  prefs: []
+  type: TYPE_NORMAL
+- en: single entity can control many identities to influence the voting and,
+  prefs: []
+  type: TYPE_NORMAL
+- en: consequently, the decision.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • High communication complexity.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Not suitable for public blockchains with anonymous participants.
+  prefs: []
+  type: TYPE_NORMAL
+- en: PBFT guarantees safety and liveness. Let’s see how.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Safety and Liveness**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Liveness means that a client eventually gets a response to its request if the
+    message
+  prefs: []
+  type: TYPE_NORMAL
+- en: delivery delay does not increase quicker than the time itself indefinitely.
+    In other words, the protocol ensures progress if latency increases slower than
+    the timeout threshold.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A Byzantine primary may induce delay on purpose. However, this delay cannot
+  prefs: []
+  type: TYPE_NORMAL
+- en: be indefinite because every honest replica has a view change timer. This timer
+    starts
+  prefs: []
+  type: TYPE_NORMAL
+- en: whenever the replica receives a request. Suppose the replica times out before
+    the request is executed; the replica suspects the primary replica and broadcasts
+    a view change
+  prefs: []
+  type: TYPE_NORMAL
+- en: message to all replicas. As soon as *f* + 1 replicas suspect the primary as
+    faulty, all honest replicas enter the view change process. This scenario will
+    result in a view change, and
+  prefs: []
+  type: TYPE_NORMAL
+- en: the next replica will take over as the primary, and the protocol will progress.
+  prefs: []
+  type: TYPE_NORMAL
+- en:  *n* −1
+  prefs: []
+  type: TYPE_NORMAL
+- en: Liveness is guaranteed, as long as no more than
+  prefs: []
+  type: TYPE_NORMAL
+- en: replicas are faulty, and the
+  prefs: []
+  type: TYPE_NORMAL
+- en:  3 
+  prefs: []
+  type: TYPE_NORMAL
+- en: message delay does not grow faster than the time itself. It means that the protocol
+    will
+  prefs: []
+  type: TYPE_NORMAL
+- en: eventually make progress with the preceding two conditions. This weak synchrony
+  prefs: []
+  type: TYPE_NORMAL
+- en: assumption is closer to realistic environments and enables the system to circumvent
+  prefs: []
+  type: TYPE_NORMAL
+- en: the FLP result. A clever trick here is that if the view change timer expires
+    before a replica receives a valid new view message for the expected new view,
+    the replica doubles the
+  prefs: []
+  type: TYPE_NORMAL
+- en: timeout value and restarts its view change timer. The idea is that the timeout
+    timer
+  prefs: []
+  type: TYPE_NORMAL
+- en: doubles the wait time to wait for a longer time as the message delays might
+    be more
+  prefs: []
+  type: TYPE_NORMAL
+- en: extensive. Ultimately, the timer values become larger than the message delays,
+    meaning
+  prefs: []
+  type: TYPE_NORMAL
+- en: '324'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 7 ClassiCal Consensus
+  prefs: []
+  type: TYPE_NORMAL
+- en: messages will eventually arrive before the timer expires. This mechanism ensures
+    that
+  prefs: []
+  type: TYPE_NORMAL
+- en: eventually a new view will be available on all honest replicas, and the protocol
+    will make progress.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Also, a Byzantine primary cannot do frequent view changes successively to slow
+  prefs: []
+  type: TYPE_NORMAL
+- en: down the system. This is so because an honest replica joins the view change
+    only when
+  prefs: []
+  type: TYPE_NORMAL
+- en: it has received at least *f* + 1 view change messages. As there are at most
+    *f* faulty replicas, only f replicas cannot cause a view change when all honest
+    replicas are live, and the
+  prefs: []
+  type: TYPE_NORMAL
+- en: protocol is making progress. In other words, as at most *f* successive primary
+    replicas can be faulty, the system eventually makes progress after at most *f*
+    + 1 view changes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Replicas wait for 2 *f* + 1 view change messages and start a timer to start
+    a new view which avoids starting a view change too soon. Similarly, if a replica
+    receives *f* + 1 view change messages for a view greater than its current view,
+    it broadcasts a view change.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This prevents starting the next view change too late.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Safety requires that each honest replica execute the received client request
+    in the
+  prefs: []
+  type: TYPE_NORMAL
+- en: same total order, that is, execute the same request in the same order in all
+    phases.
+  prefs: []
+  type: TYPE_NORMAL
+- en: PBFT is assumed safe if the total number of nodes is 3 *f* + 1\. In that case,
+    f Byzantine nodes are tolerated.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s first recall what a quorum intersection is. If there are two sets, say
+    S1 and S2,
+  prefs: []
+  type: TYPE_NORMAL
+- en: with ≥2 *f* + 1 nodes each, then there is always a correct node in *S* 1 ∩ *S*
+    2\. This is true because if there are two sets of at least 2 *f* + 1 nodes each,
+    and there are 3 *f* + 1 nodes in total, then the pigeonhole principle implies
+    that the intersection of S1 and S2 will have at least *f* + 1 nodes. As there
+    are at most *f* faulty nodes, the intersection, *S* 1 ∩ *S* 2 must contain at
+    least 1 correct node.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Each phase in PBFT must acquire 2 *f* + 1 certificate/votes to be accepted.
+    It turns out that at least one honest node must vote twice on the same sequence
+    number to result in
+  prefs: []
+  type: TYPE_NORMAL
+- en: a safety violation, which is not possible because an honest node cannot vote
+    maliciously.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In other words, if the same sequence number is assigned to two different messages
+    by a
+  prefs: []
+  type: TYPE_NORMAL
+- en: malicious primary to violate safety, then at least one honest replica will reject
+    it due to a quorum intersection property. This is because a 2 *f* + 1 quorum means
+    that there is at least one honest intersecting replica.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The commit phase ensures that the correct order is achieved even across views.
+    If a
+  prefs: []
+  type: TYPE_NORMAL
+- en: view change occurs, the new primary replica acquires prepared certificates from
+    2 *f* + 1
+  prefs: []
+  type: TYPE_NORMAL
+- en: replicas, which ensures that the new primary gets at least one prepared certificate
+    for
+  prefs: []
+  type: TYPE_NORMAL
+- en: every client request executed by a correct replica.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '325'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 7 ClassiCal Consensus
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Order Within a View**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: If a replica acquires a prepared certificate for a request within a view and
+    a unique
+  prefs: []
+  type: TYPE_NORMAL
+- en: sequence number, then no replica can get a prepared certificate for a different
+    request
+  prefs: []
+  type: TYPE_NORMAL
+- en: with the same view and sequence number. Replicas can only get a prepared certificate
+  prefs: []
+  type: TYPE_NORMAL
+- en: for the same request with the same view and sequence number.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Imagine two replicas have gathered prepared certificates for two different requests
+  prefs: []
+  type: TYPE_NORMAL
+- en: with the same view and sequence number. We know that a prepared certificate
+    contains
+  prefs: []
+  type: TYPE_NORMAL
+- en: 2f+1 messages, which implies that a correct node must have sent a pre-prepare
+    or
+  prefs: []
+  type: TYPE_NORMAL
+- en: prepare message for two different requests with the same sequence and view due
+    to
+  prefs: []
+  type: TYPE_NORMAL
+- en: quorum intersection. However, a correct replica only ever sends a single pre-prepare
+  prefs: []
+  type: TYPE_NORMAL
+- en: for each view and sequence, that is, a sequence number is always incremented
+    when
+  prefs: []
+  type: TYPE_NORMAL
+- en: the client request is received by the primary and assigned to the request. Also,
+    a correct replica only sends one prepare message in each view and for a sequence.
+    It sends out a
+  prefs: []
+  type: TYPE_NORMAL
+- en: prepare message only if it has not accepted any pre-prepare messages for the
+    same view
+  prefs: []
+  type: TYPE_NORMAL
+- en: or sequence number before. This means that the prepare must be for the same
+    request.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This achieves order within a view.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Order Across Views**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The protocol guarantees that if a correct replica has executed a client request
+    in a view with a specific sequence number, then no correct replica will execute
+    any other client
+  prefs: []
+  type: TYPE_NORMAL
+- en: request with the same sequence number in any future view or current view. In
+    other
+  prefs: []
+  type: TYPE_NORMAL
+- en: words, every request executed by an honest replica must make it to the next
+    view in the
+  prefs: []
+  type: TYPE_NORMAL
+- en: same order assigned to it previously.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We know that a request only executes at a replica if it has received 2 *f* +
+    1 commit messages. Suppose an honest replica has acquired 2 *f* + 1 commit messages.
+    In that case, it means that the client request must have been prepared at, at
+    least, *f* + 1 honest replicas, and each of these replicas has a prepare certificate
+    for it and all the previous client
+  prefs: []
+  type: TYPE_NORMAL
+- en: requests. We also know that at least one of these *f* + 1 honest replicas will
+    participate in the view change protocol and report these requests along with their
+    certificates. This
+  prefs: []
+  type: TYPE_NORMAL
+- en: implies that the request will always carry the same sequence number in the new
+    view.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This completes our discussion on PBFT. However, it’s a vast subject, and you
+    can
+  prefs: []
+  type: TYPE_NORMAL
+- en: further explore the original papers and thesis to learn more.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '326'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 7 ClassiCal Consensus
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Blockchain and Classical Consensus**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We can implement classical algorithms in the blockchain. However, the challenge
+    is
+  prefs: []
+  type: TYPE_NORMAL
+- en: modifying these protocols to make them suitable for blockchain implementations.
+    The
+  prefs: []
+  type: TYPE_NORMAL
+- en: core algorithm remains the same, but some aspects are changed to make the protocol
+  prefs: []
+  type: TYPE_NORMAL
+- en: suitable for the blockchain. One issue is that these traditional consensus algorithms
+    are for permissioned environments where all participants are known and identifiable.
+    But
+  prefs: []
+  type: TYPE_NORMAL
+- en: blockchain networks are public and anonymous, for example, Bitcoin and Ethereum.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Therefore, classical algorithms are primarily suitable for permissioned blockchain
+  prefs: []
+  type: TYPE_NORMAL
+- en: networks for enterprise use cases where all participants are known. Also, blockchain
+  prefs: []
+  type: TYPE_NORMAL
+- en: network environments are Byzantine, where malicious actors may try to deviate
+    from
+  prefs: []
+  type: TYPE_NORMAL
+- en: the protocol. And Paxos and RAFT are CFT protocols that are not suitable for
+    Byzantine
+  prefs: []
+  type: TYPE_NORMAL
+- en: environments. As such, either these protocols need to be modified to BFT protocols
+  prefs: []
+  type: TYPE_NORMAL
+- en: to tolerate Byzantine faults, or different BFT protocols need to be used. These
+    BFT
+  prefs: []
+  type: TYPE_NORMAL
+- en: protocols can be a modification of existing classical CFT or BFT protocols or
+    can be
+  prefs: []
+  type: TYPE_NORMAL
+- en: developed specifically for blockchains from scratch. One attempt to modify an
+    existing
+  prefs: []
+  type: TYPE_NORMAL
+- en: classical protocol to suit a permissioned blockchain environment is IBFT, which
+    we will
+  prefs: []
+  type: TYPE_NORMAL
+- en: introduce in Chapter [8](https://doi.org/10.1007/978-1-4842-8179-6_8). We will
+    discuss more about blockchain protocols in the next chapter.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Dynamic membership (reconfiguration) and log compaction using snapshots are
+  prefs: []
+  type: TYPE_NORMAL
+- en: two very useful features which RAFT supports. These two features are particularly
+  prefs: []
+  type: TYPE_NORMAL
+- en: useful in consortium blockchains. Over time, the blockchain can grow significantly
+  prefs: []
+  type: TYPE_NORMAL
+- en: large, and snapshotting would be a useful way to handle that storage issue.
+    Also,
+  prefs: []
+  type: TYPE_NORMAL
+- en: membership management can be a useful feature where a new consortium member
+  prefs: []
+  type: TYPE_NORMAL
+- en: can be onboarded in an automated fashion. RAFT, however, is CFT only, which
+    is
+  prefs: []
+  type: TYPE_NORMAL
+- en: not quite suitable for consortium chains. Nevertheless, introducing Byzantine
+    fault
+  prefs: []
+  type: TYPE_NORMAL
+- en: tolerance in RAFT is possible, as Tangaroa shows - a BFT extension to RAFT.
+    Some
+  prefs: []
+  type: TYPE_NORMAL
+- en: issues however are reported in Tangaroa, but it is quite possible to build a
+    BFT version
+  prefs: []
+  type: TYPE_NORMAL
+- en: of RAFT. Alternatively, these two features can be implemented in a PBFT variant
+  prefs: []
+  type: TYPE_NORMAL
+- en: for blockchain networks. Variants of PBFT include IBFT, HotStuff, LibraBFT,
+    and
+  prefs: []
+  type: TYPE_NORMAL
+- en: many others.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '327'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 7 ClassiCal Consensus
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Summary**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this chapter, we covered a number of topics including viewstamped replication,
+  prefs: []
+  type: TYPE_NORMAL
+- en: practical Byzantine fault tolerance, RAFT, and Paxos. Paxos and viewstamped
+    replication
+  prefs: []
+  type: TYPE_NORMAL
+- en: are fundamentally important because they provide very fundamental ideas in the
+    history
+  prefs: []
+  type: TYPE_NORMAL
+- en: of the distributed consensus problem. Paxos especially provided formal description
+  prefs: []
+  type: TYPE_NORMAL
+- en: and proofs of protocol correctness. VR bears resemblance with multi-Paxos. RAFT
+    is a
+  prefs: []
+  type: TYPE_NORMAL
+- en: refinement of Paxos. PBFT is in fact seen as a Byzantine-tolerant version of
+    Paxos, though PBFT was developed independently.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This chapter serves as a foundation to understand classical protocols before
+  prefs: []
+  type: TYPE_NORMAL
+- en: blockchain age protocols in the next chapter. Many ideas originate from these
+    classical
+  prefs: []
+  type: TYPE_NORMAL
+- en: protocols that lead to the development of newer protocols for the blockchain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Bibliography**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 1\. A Google TechTalk, 2/2/18, presented by Luis Quesada Torres.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[https://youtu.be/d7nAGI_NZPk](https://youtu.be/d7nAGI_NZPk)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '2\. Lindsey Kuper’s lectures on distributed systems[: https://youtu.](https://youtu.be/fYfX9IGUiVw)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[be/fYfX9IGUiVw](https://youtu.be/fYfX9IGUiVw)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '3\. Bashir, I., 2020\. Mastering Blockchain: A deep dive into'
+  prefs: []
+  type: TYPE_NORMAL
+- en: distributed ledgers, consensus protocols, smart contracts, DApps,
+  prefs: []
+  type: TYPE_NORMAL
+- en: cryptocurrencies, Ethereum, and more. Packt Publishing Ltd.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '4\. Bully algorithm[: https://en.wikipedia.org/wiki/Bully_](https://en.wikipedia.org/wiki/Bully_algorithm)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[algorithm](https://en.wikipedia.org/wiki/Bully_algorithm)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 5\. Zhao, W., 2014\. Building dependable distributed systems. John
+  prefs: []
+  type: TYPE_NORMAL
+- en: Wiley & Sons.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 6\. Unique Leader election is equivalent to solving consensus – Gray,
+  prefs: []
+  type: TYPE_NORMAL
+- en: J. and Lamport, L., 2006\. Consensus on transaction commit. ACM
+  prefs: []
+  type: TYPE_NORMAL
+- en: Transactions on Database Systems (TODS), 31(1), pp. 133–160\.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 7\. Leader election algorithms – Aguilera, M.K., Delporte-Gallet,
+  prefs: []
+  type: TYPE_NORMAL
+- en: C., Fauconnier, H., and Toueg, S., 2001, October. Stable leader
+  prefs: []
+  type: TYPE_NORMAL
+- en: election. In International Symposium on Distributed Computing
+  prefs: []
+  type: TYPE_NORMAL
+- en: (pp. 108–122). Springer, Berlin, Heidelberg.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '328'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 7 ClassiCal Consensus
+  prefs: []
+  type: TYPE_NORMAL
+- en: 8\. [https://en.wikipedia.org/wiki/Paxos_(computer_science)](https://en.wikipedia.org/wiki/Paxos_(computer_science))
+  prefs: []
+  type: TYPE_NORMAL
+- en: 9\. Aspnes, J., 2020\. Notes on theory of distributed systems. arXiv
+  prefs: []
+  type: TYPE_NORMAL
+- en: preprint arXiv:2001.04235\.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '10\. Howard, H., 2014\. ARC: analysis of Raft consensus (No. UCAM-'
+  prefs: []
+  type: TYPE_NORMAL
+- en: CL-TR-857). University of Cambridge, Computer Laboratory.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 11\. Ongaro, D. and Ousterhout, J., 2015\. The raft consensus algorithm.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 12\. Ongaro, D. and Ousterhout, J., 2014\. In search of an
+  prefs: []
+  type: TYPE_NORMAL
+- en: understandable consensus algorithm. In 2014 USENIX Annual
+  prefs: []
+  type: TYPE_NORMAL
+- en: Technical Conference (Usenix ATC 14) (pp. 305–319).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '13\. Tangaroa issues: Cachin, C. and Vukolić, M., 2017\. Blockchain'
+  prefs: []
+  type: TYPE_NORMAL
+- en: consensus protocols in the wild. arXiv preprint arXiv:1707.01873\.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 14\. Liskov, B., 2010\. From viewstamped replication to Byzantine
+  prefs: []
+  type: TYPE_NORMAL
+- en: fault tolerance. In *Replication* (pp. 121–149). Springer, Berlin,
+  prefs: []
+  type: TYPE_NORMAL
+- en: Heidelberg.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 15\. Wattenhofer, R., 2016\. *The science of the blockchain*. Inverted
+  prefs: []
+  type: TYPE_NORMAL
+- en: Forest Publishing.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '329'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**CHAPTER 8**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Blockchain Age Protocols**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This chapter covers blockchain age protocols. Some novel protocols and some
+    variants
+  prefs: []
+  type: TYPE_NORMAL
+- en: of classical blockchain consensus protocols were discussed in Chapter [7](https://doi.org/10.1007/978-1-4842-8179-6_7).
+    We start with Ethereum and finish this chapter with a discussion on Solana. Along
+    the way, we will
+  prefs: []
+  type: TYPE_NORMAL
+- en: cover in detail the characteristics, strengths, weaknesses, properties, and
+    inner workings of major consensus protocols used in platforms such as Cosmos,
+    Ethereum 2.0, and
+  prefs: []
+  type: TYPE_NORMAL
+- en: Polkadot.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We already covered proof of work in detail in Chapt[er 5\. S](https://doi.org/10.1007/978-1-4842-8179-6_5)o,
+    I will not repeat that here; however, Ethereum’s PoW will be discussed in this
+    chapter.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Introduction**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Consensus protocols are at the core of any blockchain. A new class of consensus
+    protocols emerged with Bitcoin. Therefore, we can categorize all consensus protocols
+    for a
+  prefs: []
+  type: TYPE_NORMAL
+- en: blockchain that emerged with and after Bitcoin as “blockchain age consensus
+    protocols.”
+  prefs: []
+  type: TYPE_NORMAL
+- en: The primary aim of a consensus protocol in a blockchain is to achieve an agreement
+  prefs: []
+  type: TYPE_NORMAL
+- en: on the state of the blockchain while preserving the safety and liveness of the
+    system. The state generally refers to the value, history, and rules of the blockchain.
+    An agreement on the canonical history of the blockchain is vital, and so is the
+    agreement on the governing rules of the chain. Additionally, consensus on values
+    (data) added to the chain is
+  prefs: []
+  type: TYPE_NORMAL
+- en: fundamentally critical.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Like traditional pre-blockchain protocols, safety and liveness are two key properties
+  prefs: []
+  type: TYPE_NORMAL
+- en: that should be fulfilled by a consensus protocol to ensure the consistency and
+    progress
+  prefs: []
+  type: TYPE_NORMAL
+- en: of the blockchain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Blockchain consensus protocols can be divided into two main categories: the'
+  prefs: []
+  type: TYPE_NORMAL
+- en: probabilistic finality protocols and absolute finality protocols – in other
+    words,
+  prefs: []
+  type: TYPE_NORMAL
+- en: probabilistic termination protocols and deterministic termination protocols.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Probabilistic protocols are abundantly used in cryptocurrency public blockchains
+  prefs: []
+  type: TYPE_NORMAL
+- en: like Ethereum and Bitcoin. Deterministic protocols, usually from the BFT class
+    of
+  prefs: []
+  type: TYPE_NORMAL
+- en: '331'
+  prefs: []
+  type: TYPE_NORMAL
+- en: © Imran Bashir 2022
+  prefs: []
+  type: TYPE_NORMAL
+- en: I. Bashir, *Blockchain Consensus*, [https://doi.org/10.1007/978-1-4842-8179-6_8](https://doi.org/10.1007/978-1-4842-8179-6_8#DOI)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 8 BloCkChain age protoCols
+  prefs: []
+  type: TYPE_NORMAL
+- en: protocols, are commonly used in enterprise blockchains; however, they are also
+  prefs: []
+  type: TYPE_NORMAL
+- en: used in some public blockchains. While PBFT variants are more commonly used
+    in
+  prefs: []
+  type: TYPE_NORMAL
+- en: enterprise blockchains, their usage in public chains is somewhat limited only
+    to some
+  prefs: []
+  type: TYPE_NORMAL
+- en: public blockchains. For example, TowerBFT used in Solana is a deterministic
+    finality
+  prefs: []
+  type: TYPE_NORMAL
+- en: consensus protocol. BFT-DPOS used in EOSIO is another example. Deterministic
+    finality
+  prefs: []
+  type: TYPE_NORMAL
+- en: is also known as *forward security* where a guarantee is provided that a transaction
+    once finalized will not be rolled back.
+  prefs: []
+  type: TYPE_NORMAL
+- en: From the perspective of how the consensus algorithms work, blockchains or
+  prefs: []
+  type: TYPE_NORMAL
+- en: distributed ledgers are based on one or a combination of the following types
+    of
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'consensus algorithms:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '• **PoW based**: Such as Nakamoto consensus in Bitcoin, which relies on'
+  prefs: []
+  type: TYPE_NORMAL
+- en: solving a math puzzle using brute force.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '• **Leader based**: Such as usual BFT protocols where a leader acts as a'
+  prefs: []
+  type: TYPE_NORMAL
+- en: primary proposer of blocks/values.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '• **Voting based**: Usually applicable in BFT protocols where a leader'
+  prefs: []
+  type: TYPE_NORMAL
+- en: gathers votes from followers to finalize a decision. Also called
+  prefs: []
+  type: TYPE_NORMAL
+- en: “quorum based.”
+  prefs: []
+  type: TYPE_NORMAL
+- en: '• **Virtual voting**: Usually, voting in BFT protocols is complex from'
+  prefs: []
+  type: TYPE_NORMAL
+- en: a communication point of view, where each voter has to send and
+  prefs: []
+  type: TYPE_NORMAL
+- en: receive several messages to the leader. Virtual voting is a technique in
+  prefs: []
+  type: TYPE_NORMAL
+- en: the Hashgraph algorithm used in Hedera where votes are evaluated
+  prefs: []
+  type: TYPE_NORMAL
+- en: by looking at the local copies of the Hashgraph instead of complex
+  prefs: []
+  type: TYPE_NORMAL
+- en: communication with other nodes. This process eventually leads to
+  prefs: []
+  type: TYPE_NORMAL
+- en: achieving a Byzantine agreement.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '• **Economy based**: Such as proof of stake mechanisms that rely on a'
+  prefs: []
+  type: TYPE_NORMAL
+- en: stake bonded in the network.
+  prefs: []
+  type: TYPE_NORMAL
+- en: After Bitcoin’s inception, many blockchains emerged, and alternative PoW algorithms
+  prefs: []
+  type: TYPE_NORMAL
+- en: were introduced, for example, Litecoin. As PoW consumes excessive amounts of
+    energy,
+  prefs: []
+  type: TYPE_NORMAL
+- en: the community felt very early that alternatives that are not excessively energy
+    consuming need to be designed. In the wake of introducing less energy-consuming
+    protocols,
+  prefs: []
+  type: TYPE_NORMAL
+- en: developers introduced proof of stake. With PoS, the sustainable public blockchain
+  prefs: []
+  type: TYPE_NORMAL
+- en: networks have become possible to build. There are, however, some challenges
+    and caveats.
+  prefs: []
+  type: TYPE_NORMAL
+- en: After going through the mechanics of how PoS works, we will discuss these limitations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '332'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 8 BloCkChain age protoCols
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Proof of Stake**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Even though Bitcoin’s PoW has proven to be a resilient and robust protocol,
+    it has several limitations:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Excessive energy consumption
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Slow rate of block generation
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Becoming centralized due to the requirement of specialized
+  prefs: []
+  type: TYPE_NORMAL
+- en: hardware and large mining pools
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Probabilistic finality which is not suitable for most of the applications
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Not a perfect consensus algorithm, some attacks exist, for example,
+  prefs: []
+  type: TYPE_NORMAL
+- en: Goldfinger attack, 51% attack
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Barrier to entry getting higher as a special hardware
+  prefs: []
+  type: TYPE_NORMAL
+- en: requirement to mine
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Not scalable enough to support usual high throughput applications
+  prefs: []
+  type: TYPE_NORMAL
+- en: Significant research has been ongoing to address the abovementioned weaknesses.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Especially, high energy consumption from the limitations mentioned earlier led
+    to the
+  prefs: []
+  type: TYPE_NORMAL
+- en: development of alternatives. Proof of stake is one such alternative.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Proof of stake first appeared in Peercoin in 2012\. Later, many blockchains
+    adopted
+  prefs: []
+  type: TYPE_NORMAL
+- en: this mechanism, such as EOS, NxT, Steem, Tezos, and Cardano. In addition, Ethereum,
+  prefs: []
+  type: TYPE_NORMAL
+- en: with its Serenity release, will soon transition to a PoS-based consensus mechanism.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Proof of stake is also called virtual mining. This is so because in PoS instead
+    of requiring miners to allocate compute resources to solve a puzzle, the right
+    to produce the
+  prefs: []
+  type: TYPE_NORMAL
+- en: next block is decided on the basis of what value the miner possesses. This valuable
+  prefs: []
+  type: TYPE_NORMAL
+- en: possession can be anything of value (usually coins) that aligns with the interest
+    of the
+  prefs: []
+  type: TYPE_NORMAL
+- en: network. PoW’s motto was one CPU = one vote, whereas we can think of PoS as
+    one coin
+  prefs: []
+  type: TYPE_NORMAL
+- en: = one vote.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The next proposer is usually elected randomly. Proposers are incentivized either
+  prefs: []
+  type: TYPE_NORMAL
+- en: with transaction fees or block rewards. Like PoW, control over the majority
+    of the
+  prefs: []
+  type: TYPE_NORMAL
+- en: network in the form of controlling a large portion of the stake is required
+    to attack and control the network.
+  prefs: []
+  type: TYPE_NORMAL
+- en: PoS protocols usually select stakeholders and grant suitable rights based on
+    their
+  prefs: []
+  type: TYPE_NORMAL
+- en: staked assets. The stake calculation is application specific but is typically
+    based on
+  prefs: []
+  type: TYPE_NORMAL
+- en: the total balance, deposited value, or voting between the validators. Once the
+    stake is
+  prefs: []
+  type: TYPE_NORMAL
+- en: '333'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](index-348_1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Chapter 8 BloCkChain age protoCols
+  prefs: []
+  type: TYPE_NORMAL
+- en: calculated and a stakeholder is selected as the block proposer, the block proposed
+    by the proposer is readily accepted. The higher the stake, the better the chances
+    of winning the right to propose the next block.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A general scheme of a PoS scheme is shown in Figur[e 8-1\.](#p348)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Figure 8-1\.** Proof of stake scheme*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: As shown in Figur[e 8-1](#p348), PoS uses a stake calculator function to calculate
+    the amount of staked funds, and, based on that, it selects a new proposer.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The next proposer is usually elected randomly. Proposers are incentivized either
+  prefs: []
+  type: TYPE_NORMAL
+- en: with transaction fees or block rewards. Control over most of the network by
+    having a
+  prefs: []
+  type: TYPE_NORMAL
+- en: large portion of the stake is needed to attack the network.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There is some element of randomness introduced in the selection process to ensure
+  prefs: []
+  type: TYPE_NORMAL
+- en: fairness and decentralization. Other factors in electing a proposer include
+    the age of the tokens, which takes into account for how long the staked tokens
+    have been unspent; the
+  prefs: []
+  type: TYPE_NORMAL
+- en: longer the tokens have been unspent, the better the chances to be elected.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'There are several types of PoS:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Chain-based PoS
+  prefs: []
+  type: TYPE_NORMAL
+- en: • BFT-based PoS
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Committee-based PoS
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Delegated proof of stake
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Liquid proof of stake
+  prefs: []
+  type: TYPE_NORMAL
+- en: '334'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 8 BloCkChain age protoCols
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Chain-Based PoS**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This scheme is the first alternative proposed to PoW. It was used first in Peercoin
+    in 2012\.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This mechanism is like PoW; however, the block generation method is changed,
+    which
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'finalizes blocks in two steps:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Pick transactions from the memory pool and create a
+  prefs: []
+  type: TYPE_NORMAL
+- en: candidate block.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Set up a clock with a constant tick interval. At each clock tick, check
+  prefs: []
+  type: TYPE_NORMAL
+- en: whether the hash of the block header concatenated with the clock
+  prefs: []
+  type: TYPE_NORMAL
+- en: time is less than the product of the target value and the stake value.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We can show this simple formula as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Hash* ( *B*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ) <
+  prefs: []
+  type: TYPE_NORMAL
+- en: ×
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*h* || *clock tim*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*e target stake valu*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*e*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The stake value depends on how the algorithm works. In some chains, it is
+  prefs: []
+  type: TYPE_NORMAL
+- en: proportional to the amount of stake. In others, it is based on the amount of
+    time the
+  prefs: []
+  type: TYPE_NORMAL
+- en: participant has held the stake. The target is the mining difficulty per unit
+    of the value of the stake.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This mechanism uses hashing puzzles, as in PoW. But, instead of competing to
+    solve
+  prefs: []
+  type: TYPE_NORMAL
+- en: the hashing puzzle by consuming high energy and using specialized hardware,
+    the hashing
+  prefs: []
+  type: TYPE_NORMAL
+- en: puzzle in PoS is solved only once at regular clock intervals. A hashing puzzle
+    becomes
+  prefs: []
+  type: TYPE_NORMAL
+- en: proportionally easier to solve if the stake value of the miner is high. This
+    contrasts with PoW where repeated brute-force hashing is required to solve the
+    math puzzle.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Committee-Based PoS**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this scheme, a group of stakeholders is chosen randomly, usually using a
+    verifiable
+  prefs: []
+  type: TYPE_NORMAL
+- en: random function (VRF). The VRF produces a random set of stakeholders based on
+    their
+  prefs: []
+  type: TYPE_NORMAL
+- en: stake and the current state of the blockchain. The chosen group of stakeholders
+    becomes
+  prefs: []
+  type: TYPE_NORMAL
+- en: responsible for proposing blocks in sequential order.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '335'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 8 BloCkChain age protoCols
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A general scheme is described as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: • A validator joins the network and deposits a stake.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Participate in the committee election process and keep checking
+  prefs: []
+  type: TYPE_NORMAL
+- en: its turns.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • When it’s the turn, collect transaction, generate block, append the
+  prefs: []
+  type: TYPE_NORMAL
+- en: new block in the chain, and finally broadcast the block.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • At the other receiver nodes, verify the block; if valid, append the
+  prefs: []
+  type: TYPE_NORMAL
+- en: block into the blockchain and gossip the block to others.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The committee election produces a pseudorandom sequence of turns for validators
+  prefs: []
+  type: TYPE_NORMAL
+- en: to produce blocks. Ouroboros Praos and BABE are common examples of committee-
+  prefs: []
+  type: TYPE_NORMAL
+- en: based PoS.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**BFT-Based PoS**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this scheme, the blocks are generated using a proof of stake mechanism where
+    a block
+  prefs: []
+  type: TYPE_NORMAL
+- en: proposer is chosen based on the proof of stake which proposes new blocks. The
+    proposer
+  prefs: []
+  type: TYPE_NORMAL
+- en: is elected based on the stake deposited in the system. The chance of being chosen
+    is
+  prefs: []
+  type: TYPE_NORMAL
+- en: proportional to the amount of stake deposited in the system. The proposer generates
+    a
+  prefs: []
+  type: TYPE_NORMAL
+- en: block and appends it to a temporary pool of blocks from which the BFT protocol
+    finalizes
+  prefs: []
+  type: TYPE_NORMAL
+- en: one block.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A general scheme works as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Elect a block proposed based on the PoS mechanism, proportional to
+  prefs: []
+  type: TYPE_NORMAL
+- en: a stake.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '• Proposer: Propose a new block, add to a temporary block pool, and'
+  prefs: []
+  type: TYPE_NORMAL
+- en: broadcast the new block.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '• Receiver: When other nodes receive this, they validate the block and,'
+  prefs: []
+  type: TYPE_NORMAL
+- en: if valid, add to the local temporary block pool.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • During the consensus epoch
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Run BFT consensus to finalize a valid (most voted) block.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Add the most voted valid block to the main blockchain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Remove other blocks from the temporary block pool.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '336'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 8 BloCkChain age protoCols
+  prefs: []
+  type: TYPE_NORMAL
+- en: Tendermint in Cosmos is one example where the validator is chosen based on a
+  prefs: []
+  type: TYPE_NORMAL
+- en: stake, and the rest of the protocol works on BFT principles. Other examples
+    include
+  prefs: []
+  type: TYPE_NORMAL
+- en: Casper FFG.
+  prefs: []
+  type: TYPE_NORMAL
+- en: BFT-based PoS is fault tolerant as long as two-thirds of validators remain honest.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Also, blocks are finalized immediately.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Delegated PoS**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: DPoS works like proof of stake, but a critical difference is a voting and delegation
+  prefs: []
+  type: TYPE_NORMAL
+- en: mechanism which incentivizes users to secure the network. DPoS limits the size
+    of
+  prefs: []
+  type: TYPE_NORMAL
+- en: the chosen consensus committee, which reduces the communication complexity in
+  prefs: []
+  type: TYPE_NORMAL
+- en: the protocol. The consensus committee is composed of so-called delegates elected
+    by
+  prefs: []
+  type: TYPE_NORMAL
+- en: a delegation mechanism. The process works by stakeholders voting for delegates
+    by
+  prefs: []
+  type: TYPE_NORMAL
+- en: using their stake. Delegates (also called witnesses) are identifiable, and voters
+    know
+  prefs: []
+  type: TYPE_NORMAL
+- en: who they are, thus reducing the delegates’ chance of misbehavior. Also, a reputation-
+  prefs: []
+  type: TYPE_NORMAL
+- en: based mechanism can be implemented, allowing delegates to earn a reputation
+    based
+  prefs: []
+  type: TYPE_NORMAL
+- en: on the services they offer and their behavior on the network. Delegates can
+    represent
+  prefs: []
+  type: TYPE_NORMAL
+- en: themselves for earning more votes. Delegates who get the most votes become members
+  prefs: []
+  type: TYPE_NORMAL
+- en: of the consensus committee or group. Usually, a BFT-style protocol runs between
+    the
+  prefs: []
+  type: TYPE_NORMAL
+- en: members of the chosen consensus committee to produce and finalize blocks. Each
+  prefs: []
+  type: TYPE_NORMAL
+- en: member can take a round-robin fashion to propose the next block, but this activity
+  prefs: []
+  type: TYPE_NORMAL
+- en: remains within the elected consensus committee. Delegates earn incentives to
+    produce
+  prefs: []
+  type: TYPE_NORMAL
+- en: blocks. Again, under the BFT assumptions, the protocol within the consensus
+    committee
+  prefs: []
+  type: TYPE_NORMAL
+- en: can tolerate f faults in a 3f+1 member group. In other words, it can tolerate
+    one-third
+  prefs: []
+  type: TYPE_NORMAL
+- en: or 33% of delegates being faulty. This protocol provides instant finality and
+    incentives
+  prefs: []
+  type: TYPE_NORMAL
+- en: in proportion to the stake of the stakeholders. As network-wide consensus is
+    not
+  prefs: []
+  type: TYPE_NORMAL
+- en: required and only a smaller group of delegators oversee making decisions, the
+    efficiency
+  prefs: []
+  type: TYPE_NORMAL
+- en: increases significantly. Delegated PoS is implemented in EOS, Lisk, Tron, and
+    quite a few other chains.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Liquid PoS**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: LPoS is a variant of DPoS. Token holders delegate their validation rights to
+    validators
+  prefs: []
+  type: TYPE_NORMAL
+- en: without requiring transferring the ownership of the tokens. There exists a delegation
+  prefs: []
+  type: TYPE_NORMAL
+- en: market where delegates compete to become the chosen validator. Here, the competition
+  prefs: []
+  type: TYPE_NORMAL
+- en: '337'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 8 BloCkChain age protoCols
+  prefs: []
+  type: TYPE_NORMAL
+- en: is primarily on fees, services offered, reputation, payout frequency, and possibly
+    other
+  prefs: []
+  type: TYPE_NORMAL
+- en: factors. Any misbehavior such as charging high fees by a validator is detectable
+    quickly
+  prefs: []
+  type: TYPE_NORMAL
+- en: and will be penalized accordingly. Token holders are also free to move to any
+    other
+  prefs: []
+  type: TYPE_NORMAL
+- en: validator. LPoS supports a dynamic number of validators as compared to DPoS’s
+    fixed
+  prefs: []
+  type: TYPE_NORMAL
+- en: validator set. Token holders are also allowed to become validators themselves
+    by self-
+  prefs: []
+  type: TYPE_NORMAL
+- en: electing. Token holders with small amount can delegate to larger amount holders.
+    Also, a
+  prefs: []
+  type: TYPE_NORMAL
+- en: number of small token holders can form a syndicate. Such “liquid” protocol allows
+    much
+  prefs: []
+  type: TYPE_NORMAL
+- en: flexibility as compared to other PoS protocols and helps to thwart creation
+    of lobbies to become a fixed validator set. LPoS is used in the Tezos blockchain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are some attacks against PoS, such as the nothing-at-stake attack, long-range
+  prefs: []
+  type: TYPE_NORMAL
+- en: attack, and stake grinding attack. We explain these attacks as follows.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Attacks**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: PoS suffers generally from a costless simulation problem where an adversary
+    can
+  prefs: []
+  type: TYPE_NORMAL
+- en: simulate any history of the chain without incurring any additional cost, as
+    opposed to
+  prefs: []
+  type: TYPE_NORMAL
+- en: PoW where the cost is computational power. This no-cost block generation is
+    the basis of
+  prefs: []
+  type: TYPE_NORMAL
+- en: many attacks in PoS.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Nothing-at-Stake Problem**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The nothing-at-stake or double bet problem occurs when multiple forks occur.
+    An
+  prefs: []
+  type: TYPE_NORMAL
+- en: attacker can generate a block on top of each fork without any additional cost.
+    To solve
+  prefs: []
+  type: TYPE_NORMAL
+- en: this problem, economic penalties are introduced in protocols that prevent attackers
+    from
+  prefs: []
+  type: TYPE_NORMAL
+- en: launching this attack. If a significant number of nodes do this, then an attacker
+    holding even less than 50% of tokens can launch a double-spend attack.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Long-Range Attacks**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Long-range attacks exist due to weak subjectivity and costless simulation. Long-range
+  prefs: []
+  type: TYPE_NORMAL
+- en: attacks are also possible because of costless simulation where an adversary
+    creates a
+  prefs: []
+  type: TYPE_NORMAL
+- en: new branch starting from the genesis block with the aim to take over the main
+    good
+  prefs: []
+  type: TYPE_NORMAL
+- en: chain, once the bad chain becomes longer than the real main chain. This can
+    create an
+  prefs: []
+  type: TYPE_NORMAL
+- en: alternate history which is detrimental to the blockchain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A weak subjectivity problem affects new nodes and the nodes which were offline
+  prefs: []
+  type: TYPE_NORMAL
+- en: for a long time and rejoined the network. As nodes are not synchronized and
+    there are
+  prefs: []
+  type: TYPE_NORMAL
+- en: '338'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 8 BloCkChain age protoCols
+  prefs: []
+  type: TYPE_NORMAL
+- en: usually multiple forks available in the network, these nodes are unable to differentiate
+  prefs: []
+  type: TYPE_NORMAL
+- en: between which node is correct and which one is malicious; they may as well accept
+    a
+  prefs: []
+  type: TYPE_NORMAL
+- en: malicious fork as valid.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Other Attacks**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Liveness denial** is another attack that PoS can suffer from. In this attack,
+    some or all validators collectively decide to stop validating the blocks, resulting
+    in halting block'
+  prefs: []
+  type: TYPE_NORMAL
+- en: production. Penalizing such activities by the protocol can prevent these types
+    of attacks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A **selfish mining** or block withholding attack occurs when an adversary mines
+    their
+  prefs: []
+  type: TYPE_NORMAL
+- en: own chain offline. Once the chain is at a desired length, the adversary releases
+    this chain to the network with the expectation that the bad chain will take over
+    the main good
+  prefs: []
+  type: TYPE_NORMAL
+- en: chain. It can cause disruption on the network as it can result in causing honest
+    validators to waste resources.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A **grinding attack** on PoS occurs if a slot leader election process is not
+    random. If no randomness is introduced in this process, then a slot leader can
+    increase the frequency
+  prefs: []
+  type: TYPE_NORMAL
+- en: of its own election again and again, which can result in censorship or disproportionate
+  prefs: []
+  type: TYPE_NORMAL
+- en: rewards. An easy way to solve this is to use some good random selection process,
+    usually
+  prefs: []
+  type: TYPE_NORMAL
+- en: based on verifiable random functions (VRFs).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Next, we discuss Ethereum’s proof of work – Ethash.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Ethereum’s Proof of Work**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We discussed PoW for Bitcoin in detail in Chapt[er 5](https://doi.org/10.1007/978-1-4842-8179-6_5).
+    In this section, we’ll see how ETHASH works, the PoW used in Ethereum.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Ethash is the evolved form of the Dagger-Hashimoto algorithm. The key idea behind
+  prefs: []
+  type: TYPE_NORMAL
+- en: mining is to find a nonce (an arbitrary random number), which, once concatenated
+  prefs: []
+  type: TYPE_NORMAL
+- en: with the block header and hashed, results in a lower number than the current
+    network
+  prefs: []
+  type: TYPE_NORMAL
+- en: difficulty level. Initially, the difficulty was low when Ethereum was new, and
+    even CPU
+  prefs: []
+  type: TYPE_NORMAL
+- en: and single GPU mining was profitable to a certain extent, but that is no longer
+    the case.
+  prefs: []
+  type: TYPE_NORMAL
+- en: So now, only pooled mining or large GPU mining farms are used for profitable
+    mining
+  prefs: []
+  type: TYPE_NORMAL
+- en: purposes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Ethash is a memory-hard algorithm, making it challenging to implement on
+  prefs: []
+  type: TYPE_NORMAL
+- en: specialized hardware due to the requirement of large and fast memories on ASICS,
+  prefs: []
+  type: TYPE_NORMAL
+- en: which is generally not practical.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '339'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 8 BloCkChain age protoCols
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note that for quite some time, this memory hardness of Ethash prevented the
+  prefs: []
+  type: TYPE_NORMAL
+- en: development of ASICs, but now various ASIC miners are available for Ethereum
+    mining.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This algorithm requires subsets of a fixed resource called a directed acyclic
+    graph
+  prefs: []
+  type: TYPE_NORMAL
+- en: (DAG) to be chosen, depending on the nonce and block headers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: DAG is a large, pseudorandomly generated dataset. This graph is represented
+    as
+  prefs: []
+  type: TYPE_NORMAL
+- en: a matrix in the DAG file created during the Ethereum mining process. The Ethash
+  prefs: []
+  type: TYPE_NORMAL
+- en: algorithm has the DAG as a two-dimensional array of 32-bit unsigned integers.
+    Mining
+  prefs: []
+  type: TYPE_NORMAL
+- en: only starts when DAG is fully created the first time a mining node starts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This DAG is used as a seed by the Ethash algorithm. The Ethash algorithm requires
+    a
+  prefs: []
+  type: TYPE_NORMAL
+- en: DAG file to work. A DAG file is generated every epoch, 30,000 blocks. DAG grows
+    linearly
+  prefs: []
+  type: TYPE_NORMAL
+- en: as the chain size grows.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The protocol works as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: • The header from the latest block and a 32-bit random nonce are
+  prefs: []
+  type: TYPE_NORMAL
+- en: combined using the Keccak-256 hash function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • This produces a 128-bit structure called mix which determines which
+  prefs: []
+  type: TYPE_NORMAL
+- en: data, that is, a 128-byte page, to select from the DAG.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Once the data is fetched from the DAG, it is “mixed” with the mix to
+  prefs: []
+  type: TYPE_NORMAL
+- en: produce the next mix, which is then used to fetch data from the DAG
+  prefs: []
+  type: TYPE_NORMAL
+- en: and subsequently mixed again. This process repeats 64 times.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Eventually, the 64th mix is run through a digest function to produce a
+  prefs: []
+  type: TYPE_NORMAL
+- en: 32-byte sequence called the mix digest.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • This sequence is compared with the difficulty target. If it is less than
+  prefs: []
+  type: TYPE_NORMAL
+- en: the difficulty target, the nonce is valid, and the PoW is solved. As a
+  prefs: []
+  type: TYPE_NORMAL
+- en: result, the block is mined. If not, then the algorithm repeats with a
+  prefs: []
+  type: TYPE_NORMAL
+- en: new nonce.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We can visualize this process in Figure [8-2\.](#p355)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '340'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](index-355_1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Chapter 8 BloCkChain age protoCols
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Figure 8-2\.** Ethash process*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Ethash has several objectives:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: • The algorithm consumes almost all available memory access
+  prefs: []
+  type: TYPE_NORMAL
+- en: bandwidth, which is an ASIC resistance measure.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Mining with Ethash using GPUs is easier to perform.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Light clients can verify mining rounds much efficiently and should be
+  prefs: []
+  type: TYPE_NORMAL
+- en: able to become operational quickly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • The algorithm runs prohibitively slow on light clients as they are not
+  prefs: []
+  type: TYPE_NORMAL
+- en: expected to mine.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As the Ethereum execution layer (formerly Eth1) advances toward the consensus
+  prefs: []
+  type: TYPE_NORMAL
+- en: layer (formerly Ethereum 2), this PoW will eventually phase out. When the current
+    EVM
+  prefs: []
+  type: TYPE_NORMAL
+- en: chain is docked into the beacon chain, that is, the so-called “the merge” happens,
+    Casper FFG will run on top of PoW. Eventually, however, Casper CBC, the pure PoS
+    algorithm,
+  prefs: []
+  type: TYPE_NORMAL
+- en: will finally take over.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Also, with ice age activation, the PoW will become almost impossible to mine
+    due to
+  prefs: []
+  type: TYPE_NORMAL
+- en: the extreme difficulty level induced by the “ice age,” and users will have no
+    choice but to switch to PoS.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '341'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 8 BloCkChain age protoCols
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Solana**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Solana is a layer 1 blockchain with smart contract support introduced in 2018\.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Developers of Solana aimed for speed, security, scalability, and decentralization.
+    At
+  prefs: []
+  type: TYPE_NORMAL
+- en: the time of writing, it is in Beta, and it is growing in popularity quickly.
+    Though it is an operational network with production systems running on it, there
+    are some technical
+  prefs: []
+  type: TYPE_NORMAL
+- en: issues which are being addressed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The ledger is a verifiable delay function where time is a data structure, that
+    is, data
+  prefs: []
+  type: TYPE_NORMAL
+- en: is time. It potentially supports millions of nodes and utilizes GPUs for acceleration.
+    SOL
+  prefs: []
+  type: TYPE_NORMAL
+- en: coin is the native token on the platform used for governance and incentivization.
+    The
+  prefs: []
+  type: TYPE_NORMAL
+- en: main innovations include the following.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Proof of history (PoH) enables ordering of events using a data structure–based
+  prefs: []
+  type: TYPE_NORMAL
+- en: cryptographic clock instead of an external source of time, which then leads
+    to consensus.
+  prefs: []
+  type: TYPE_NORMAL
+- en: TowerBFT is a protocol for consensus derived from PBFT. Note that PoH is not
+    a
+  prefs: []
+  type: TYPE_NORMAL
+- en: consensus protocol, it is simply a mechanism to enable ordering of events using
+    a data
+  prefs: []
+  type: TYPE_NORMAL
+- en: structure–based clock. A consensus mechanism is still needed to enable nodes
+    to vote
+  prefs: []
+  type: TYPE_NORMAL
+- en: on a correct branch of the ledger.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Turbine is another innovation which enables block propagation in small chunks
+  prefs: []
+  type: TYPE_NORMAL
+- en: called shreds, which helps to achieve speed and efficiency. There are no memory
+    pools
+  prefs: []
+  type: TYPE_NORMAL
+- en: in Solana as transactions are processed so fast that memory pools do not form.
+    This
+  prefs: []
+  type: TYPE_NORMAL
+- en: mechanism has been named the Gulf stream.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Solana supports parallel execution of smart contracts, which again results in
+  prefs: []
+  type: TYPE_NORMAL
+- en: efficiency gains.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Transactions are validated in an optimized fashion using pipelining in the so-called
+  prefs: []
+  type: TYPE_NORMAL
+- en: transaction processing unit residing within validators.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Cloud break is a name given to the database which is horizontally scalable.
+    Finally,
+  prefs: []
+  type: TYPE_NORMAL
+- en: archivers or replicators are nodes which allow for distributed ledger storage,
+    as in a
+  prefs: []
+  type: TYPE_NORMAL
+- en: high throughput system such as Solana data storage can become a bottleneck.
+    For this
+  prefs: []
+  type: TYPE_NORMAL
+- en: purpose, archivers are used which are incentivized to store data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As our main focus is consensus algorithms, I will leave the introduction to
+  prefs: []
+  type: TYPE_NORMAL
+- en: blockchains here and move on to discussing the actual consensus and relevant
+  prefs: []
+  type: TYPE_NORMAL
+- en: mechanisms in Solana.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Solana uses proof of stake and TowerBFT consensus algorithms. One of the key
+  prefs: []
+  type: TYPE_NORMAL
+- en: innovations in Solana is proof of history, which is not a consensus algorithm
+    but allows
+  prefs: []
+  type: TYPE_NORMAL
+- en: to create a self-consistent record of events proving that some event occurred
+    before
+  prefs: []
+  type: TYPE_NORMAL
+- en: and after some point in time. This then leads to consensus. It results in reducing
+    the
+  prefs: []
+  type: TYPE_NORMAL
+- en: '342'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 8 BloCkChain age protoCols
+  prefs: []
+  type: TYPE_NORMAL
+- en: message complexity in a BFT protocol where effectively communication is replaced
+    by
+  prefs: []
+  type: TYPE_NORMAL
+- en: local computations. This immediately results in high throughput and subsecond
+    finality
+  prefs: []
+  type: TYPE_NORMAL
+- en: times. It has been long known in the distributed systems research community
+    that if
+  prefs: []
+  type: TYPE_NORMAL
+- en: somehow communication can be replaced with local computation, then significant
+  prefs: []
+  type: TYPE_NORMAL
+- en: performance can be achieved, and many clock synchronization protocols emerged
+    as
+  prefs: []
+  type: TYPE_NORMAL
+- en: a result. However, generally all of these relied on an external source of time
+    either via atomic clocks or GPS and then use an NTP type of protocol to synchronize.
+    PoH is a
+  prefs: []
+  type: TYPE_NORMAL
+- en: proof for cryptographically proving order and passage of time between events
+    without
+  prefs: []
+  type: TYPE_NORMAL
+- en: relying on an external source of time.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Proof of History**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: As discussed in Chapt[er 1](https://doi.org/10.1007/978-1-4842-8179-6_1), time
+    in distributed systems is crucial. If time is synchronized among processes, that
+    is, a synchronized clock is available in a distributed network, then communication
+    can be reduced, which results in improved performance. A node can
+  prefs: []
+  type: TYPE_NORMAL
+- en: deduce information from past events instead of asking another node repeatedly
+    about
+  prefs: []
+  type: TYPE_NORMAL
+- en: some information. For example, with the availability of a global clock where
+    all nodes
+  prefs: []
+  type: TYPE_NORMAL
+- en: are synchronized, the system can establish a notion of the system-wide history
+    of events.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, a timestamp on an event can inform a node when this event occurred
+    in
+  prefs: []
+  type: TYPE_NORMAL
+- en: reference to the globally synchronized time across the network, instead of asking
+    a node
+  prefs: []
+  type: TYPE_NORMAL
+- en: again who produced that event when this event occurred.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Another application of a synchronized clock is that entities in the system can
+    deduce
+  prefs: []
+  type: TYPE_NORMAL
+- en: if something has expired, for example, a timestamped security token can immediately
+  prefs: []
+  type: TYPE_NORMAL
+- en: tell a node how much time has elapsed since its creation. The node can infer
+    if it is valid anymore or not and not something that occurred in the distant past,
+    making this token
+  prefs: []
+  type: TYPE_NORMAL
+- en: no longer applicable and expired.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In replication protocols, clock synchronization also plays a crucial role. If
+    nodes
+  prefs: []
+  type: TYPE_NORMAL
+- en: don’t have clocks synchronized, that can lead to inconsistency because every
+    node will
+  prefs: []
+  type: TYPE_NORMAL
+- en: have a different view of the order of events.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If the time is not synchronized among nodes, the system cannot establish a global
+  prefs: []
+  type: TYPE_NORMAL
+- en: notion of time and history. It is usually possible in practical systems using
+    an NTP
+  prefs: []
+  type: TYPE_NORMAL
+- en: protocol. We discussed this in Chapt[er 2](https://doi.org/10.1007/978-1-4842-8179-6_2)
+    before in the context of time and order in distributed systems.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '343'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 8 BloCkChain age protoCols
+  prefs: []
+  type: TYPE_NORMAL
+- en: So far, we have established that synchronized time is indeed a valuable construct
+    in
+  prefs: []
+  type: TYPE_NORMAL
+- en: distributed systems for performance gains. In other words, if we can somehow
+    replace
+  prefs: []
+  type: TYPE_NORMAL
+- en: communication with local computation, then we can gain tremendous efficiency.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Also, synchrony and time together solve consensus easily. Safety and liveness,
+  prefs: []
+  type: TYPE_NORMAL
+- en: the two fundamental requirements, are easy to implement with a trusted clock
+    and
+  prefs: []
+  type: TYPE_NORMAL
+- en: synchronous network. However, networks are empirically asynchronous. We also
+  prefs: []
+  type: TYPE_NORMAL
+- en: know that a trusted synchronized clock in distributed networks is difficult
+    to maintain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Blockchains and distributed systems are characterized by no clocks, which make
+    them
+  prefs: []
+  type: TYPE_NORMAL
+- en: slow due to inherent asynchrony and the need for complex message passing for
+    ordering
+  prefs: []
+  type: TYPE_NORMAL
+- en: of events and agreement.
+  prefs: []
+  type: TYPE_NORMAL
+- en: On the other hand, a reliable, trusted clock makes network synchronization much
+  prefs: []
+  type: TYPE_NORMAL
+- en: simpler and quicker, which leads to very fast networks. Solana’s PoH is a solution
+    where
+  prefs: []
+  type: TYPE_NORMAL
+- en: the system can keep time reliably between nontrusting computers. In short, PoH
+    enables
+  prefs: []
+  type: TYPE_NORMAL
+- en: clocks in clockless blockchains.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Solana’s PoH is a way to establish the history and provide that global notion
+    of
+  prefs: []
+  type: TYPE_NORMAL
+- en: synchronized time among nodes in a distributed network. The key innovation here
+  prefs: []
+  type: TYPE_NORMAL
+- en: is that it does not use any external source of time and synchronize nodes using
+    that,
+  prefs: []
+  type: TYPE_NORMAL
+- en: for example, via an NTP protocol; instead, it uses a cryptographic proof to
+    show that
+  prefs: []
+  type: TYPE_NORMAL
+- en: some time has passed, and other nodes directly accept this history of events
+    due
+  prefs: []
+  type: TYPE_NORMAL
+- en: to cryptographic guarantees. So instead of relying on a source of global time,
+    this
+  prefs: []
+  type: TYPE_NORMAL
+- en: mechanism is built into validators that generate a sequence of events with a
+    proof when
+  prefs: []
+  type: TYPE_NORMAL
+- en: an event has occurred. The following describes how it works.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In a blockchain network, the right of adding a new block is won after solving
+    a
+  prefs: []
+  type: TYPE_NORMAL
+- en: puzzle, that is, PoW, which takes a long time. Although this mechanism is secure
+    and
+  prefs: []
+  type: TYPE_NORMAL
+- en: thwarts Sybil attacks (as we saw in Chapter [5](https://doi.org/10.1007/978-1-4842-8179-6_5)),
+    it is slow. If BFT-style consensus is used, the leader validator that proposes
+    a block only gets to commit after at least two
+  prefs: []
+  type: TYPE_NORMAL
+- en: sequential phases, which is also time-consuming even under a normal environment.
+    In
+  prefs: []
+  type: TYPE_NORMAL
+- en: case of failures, it can ever further slow down with new leader selection (election)
+    and
+  prefs: []
+  type: TYPE_NORMAL
+- en: view changes. What if somehow there is a deterministic leader election algorithm
+    that
+  prefs: []
+  type: TYPE_NORMAL
+- en: can select leaders in quick successions, and each leader quickly proposes, and
+    then the
+  prefs: []
+  type: TYPE_NORMAL
+- en: algorithm moves to the next leader and so on? All this without going through
+    complex
+  prefs: []
+  type: TYPE_NORMAL
+- en: leader election, acknowledgment from other nodes, and running multiple phases
+    to
+  prefs: []
+  type: TYPE_NORMAL
+- en: reach consensus. The problem here is that it’s quick to create a deterministic
+    algorithm
+  prefs: []
+  type: TYPE_NORMAL
+- en: that can select the next leader, but how do I ensure that what they propose
+    is correct and that selected leaders are not malicious and will not censor transactions
+    or exhibit other malicious behaviors?
+  prefs: []
+  type: TYPE_NORMAL
+- en: '344'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](index-359_1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Chapter 8 BloCkChain age protoCols
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is where PoH comes in. In Solana, one leader at a time processes transactions
+  prefs: []
+  type: TYPE_NORMAL
+- en: and updates the state. Other validators read the state and send votes to the
+    leader
+  prefs: []
+  type: TYPE_NORMAL
+- en: to confirm them. This activity is split into very short successive sessions
+    where one
+  prefs: []
+  type: TYPE_NORMAL
+- en: leader after another performs this. It can be thought of as if the ledger is
+    split into
+  prefs: []
+  type: TYPE_NORMAL
+- en: small intervals. These small intervals are of 400ms each. The leader rotation
+    schedule
+  prefs: []
+  type: TYPE_NORMAL
+- en: is predetermined and deterministic based on several factors such as the stake
+    and
+  prefs: []
+  type: TYPE_NORMAL
+- en: behavior of previous transactions. But how can we ensure that the leader rotation
+    is done at the right time and does not skip the leader’s turn?
+  prefs: []
+  type: TYPE_NORMAL
+- en: In PoH, the passage of time is proven by creating a sequence of these hashes,
+    as
+  prefs: []
+  type: TYPE_NORMAL
+- en: shown in Figure [8-3](#p359).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Figure 8-3\.** Solana proof of history sequence*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In Figur[e 8-3, a s](#p359)equence of hash operations is shown. The genesis
+    input (shown at the left in the diagram) is first provided to the hash function.
+    In the next iteration, the output of the previous hash function is used as an
+    input to the hash function, and
+  prefs: []
+  type: TYPE_NORMAL
+- en: this process continues indefinitely. This sequence is generated using the SHA-256
+  prefs: []
+  type: TYPE_NORMAL
+- en: function on a single core. This process cannot parallelize it because the output
+    of the
+  prefs: []
+  type: TYPE_NORMAL
+- en: previous hash function can only be known if and only if the hash function has
+    processed
+  prefs: []
+  type: TYPE_NORMAL
+- en: the previous input. It is assumed that the functions are cryptographic hash
+    functions
+  prefs: []
+  type: TYPE_NORMAL
+- en: that are preimage resistant. Therefore, this is a purely sequential function.
+    However,
+  prefs: []
+  type: TYPE_NORMAL
+- en: this sequence can be verified in parallel using multicore GPUs. As all the inputs
+    and
+  prefs: []
+  type: TYPE_NORMAL
+- en: outputs are available, it becomes just a matter of verifying each output, which
+    GPUs
+  prefs: []
+  type: TYPE_NORMAL
+- en: can do in parallel. This property makes this sequence a verifiable delay function
+    (VDF)
+  prefs: []
+  type: TYPE_NORMAL
+- en: because the time taken (i.e., delay) in generating the hash sequence can be
+    verified
+  prefs: []
+  type: TYPE_NORMAL
+- en: using quick parallel verification. However, there is some debate between cryptographic
+  prefs: []
+  type: TYPE_NORMAL
+- en: VDFs introduced by researchers at Stanford and hardware VDF introduced by Solana
+  prefs: []
+  type: TYPE_NORMAL
+- en: researchers. See the reference in the bibliography.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '345'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 8 BloCkChain age protoCols
+  prefs: []
+  type: TYPE_NORMAL
+- en: We can then sample this sequence at regular intervals to provide a notion of
+    the
+  prefs: []
+  type: TYPE_NORMAL
+- en: passage of time. This is so because hash generation takes some CPU time (roughly
+    1.75
+  prefs: []
+  type: TYPE_NORMAL
+- en: cycles for SHA-256 instruction on an Intel or AMD CPU), and this process is
+    purely
+  prefs: []
+  type: TYPE_NORMAL
+- en: sequential; we can infer from looking at this sequence, that since the first
+    hash is
+  prefs: []
+  type: TYPE_NORMAL
+- en: generated, up to a later hash in the sequence, some time has passed. If we can
+    also add
+  prefs: []
+  type: TYPE_NORMAL
+- en: some data with the input hash to the hash function, then we can also deduce
+    that this
+  prefs: []
+  type: TYPE_NORMAL
+- en: data must have existed before the next hash and after the previous hash. This
+    sequence
+  prefs: []
+  type: TYPE_NORMAL
+- en: of hashes thus becomes a proof of history, proving cryptographically that some
+    event,
+  prefs: []
+  type: TYPE_NORMAL
+- en: let’s say event e, occurred before event f and after event d.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It is a sequential process that runs SHA-256 repeatedly and continuously, using
+    its
+  prefs: []
+  type: TYPE_NORMAL
+- en: previous output as its input. It periodically records a counter for each output
+    sample,
+  prefs: []
+  type: TYPE_NORMAL
+- en: for example, every one second, and current state (hash output), which acts like
+    clock
+  prefs: []
+  type: TYPE_NORMAL
+- en: ticks. Looking at this structure of sampled hashes at regular intervals, we
+    can infer that some time has passed. It is impossible to parallelize because the
+    previous output is the
+  prefs: []
+  type: TYPE_NORMAL
+- en: input for the next iteration. For example, we can say time has passed between
+    counter
+  prefs: []
+  type: TYPE_NORMAL
+- en: 1 and counter N (Figure [8-3), wher](#p359)e time is the SHA-256 counter. We
+    can approximate real time from this count. We can also associate some data, which
+    we can append to
+  prefs: []
+  type: TYPE_NORMAL
+- en: the input of the hash function; once hashed, we can be sure that data must have
+    existed
+  prefs: []
+  type: TYPE_NORMAL
+- en: before the hash is generated. This structure can only be generated in sequence;
+    however,
+  prefs: []
+  type: TYPE_NORMAL
+- en: we can verify it in parallel. For example, if 4000 samples took 40 seconds to
+    produce, it will take only 1 second to verify the entire data structure with a
+    4000 core GPU.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The key idea is that PoH transactional throughput is separated from consensus,
+  prefs: []
+  type: TYPE_NORMAL
+- en: which is key to scaling. Note that the order of events generated, that is, the
+    sequence, is not globally unique. Therefore, a consensus mechanism is needed to
+    ascertain the true
+  prefs: []
+  type: TYPE_NORMAL
+- en: chain, as anyone can generate an alternate history.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Proof of history is a cryptographically proven way of saying that time has elapsed.
+    It
+  prefs: []
+  type: TYPE_NORMAL
+- en: can be seen as an application-specific verifiable delay function. It encodes
+    the passage
+  prefs: []
+  type: TYPE_NORMAL
+- en: of time as data using SHA-256 hashing to hash the incoming events and transactions.
+    It
+  prefs: []
+  type: TYPE_NORMAL
+- en: produces a unique hash and count of each event, which produces a verifiable
+    ordering of
+  prefs: []
+  type: TYPE_NORMAL
+- en: events as a function of time. This means that time and ordering of events can
+    be agreed
+  prefs: []
+  type: TYPE_NORMAL
+- en: without waiting to hear from other nodes – in other words, no weak subjectivity
+    where
+  prefs: []
+  type: TYPE_NORMAL
+- en: nodes must rely on other nodes to determine the current state of the system.
+    This results in high throughput, because the information that is usually required
+    to be provided by
+  prefs: []
+  type: TYPE_NORMAL
+- en: other nodes is already there in the sequence generated by the PoH mechanism
+    and is
+  prefs: []
+  type: TYPE_NORMAL
+- en: cryptographically verifiable, ensuring integrity. This means that a global order
+    of events 346
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 8 BloCkChain age protoCols
+  prefs: []
+  type: TYPE_NORMAL
+- en: can be enforced without going through a communication-wise complex agreement
+  prefs: []
+  type: TYPE_NORMAL
+- en: protocol or trusting an external source of time for clock synchronization. In
+    summary,
+  prefs: []
+  type: TYPE_NORMAL
+- en: instead of trusting the timestamp, proof of history allows to create a historical
+    record
+  prefs: []
+  type: TYPE_NORMAL
+- en: proving that an event e occurred at a particular point in time t, before another
+    event f
+  prefs: []
+  type: TYPE_NORMAL
+- en: and after an event d.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using PoH, leadership can be switched without needing to communicate with other
+  prefs: []
+  type: TYPE_NORMAL
+- en: nodes, which results in increased block production frequency. PoH results in
+    high node
+  prefs: []
+  type: TYPE_NORMAL
+- en: scalability and low communication complexity as compared to BFT-style protocols
+    with
+  prefs: []
+  type: TYPE_NORMAL
+- en: high communication complexity and limited node capacity.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It provides global read consistency and cryptographically verifiable passage
+    of time
+  prefs: []
+  type: TYPE_NORMAL
+- en: between two events. With PoH, nodes can trust the ordering and timing of events,
+    even
+  prefs: []
+  type: TYPE_NORMAL
+- en: before the consensus stage is reached. In other words, it’s a clock before consensus
+  prefs: []
+  type: TYPE_NORMAL
+- en: approach. Consensus then simply works by voting on different branches where
+    nodes
+  prefs: []
+  type: TYPE_NORMAL
+- en: vote on a branch that they believe is the main chain. Over time, by keep voting
+    on the
+  prefs: []
+  type: TYPE_NORMAL
+- en: chain they first voted on, and by voting on any other branch, they earn rewards
+    and
+  prefs: []
+  type: TYPE_NORMAL
+- en: eventually the other branches orphan.
+  prefs: []
+  type: TYPE_NORMAL
+- en: TowerBFT is a variant of PBFT. It is basically a fork selection and voting algorithm.
+    It
+  prefs: []
+  type: TYPE_NORMAL
+- en: is used to vote on the chains produced by PoH to select the true canonical chain.
+    It is less communication-wise complex because PoH has already provided an order,
+    and now the
+  prefs: []
+  type: TYPE_NORMAL
+- en: decision is only required on the choice of canonical chain. PoH provides timing
+    of events before consensus initiates, and TowerBFT is then used for voting on
+    the canonical chain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: TowerBFT is BFT in the sense that once two-thirds of validators have voted on
+  prefs: []
+  type: TYPE_NORMAL
+- en: a chain (hash), then it cannot be rolled back. Validators vote on a PoH hash
+    for two
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'reasons: first, the ledger is valid up until that hash, that is, a point in
+    time, and, second, to support for a fork at a given height as many forks can exist
+    at a given height.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Furthermore, PoS in Solana is used for economics and governance to control
+  prefs: []
+  type: TYPE_NORMAL
+- en: slashing, inflation, supply, and penalties.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Tendermint**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Tendermint is inspired by the DLS protocol that we covered in Chapter [6](https://doi.org/10.1007/978-1-4842-8179-6_6)
+    and was originally introduced in the DLS paper. It can be seen as a variant of
+    PBFT too with
+  prefs: []
+  type: TYPE_NORMAL
+- en: similarities in the phases.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '347'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 8 BloCkChain age protoCols
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Tendermint protocol works in rounds. In each round, an elected leader proposes
+  prefs: []
+  type: TYPE_NORMAL
+- en: the next block. In Tendermint, the view change process is part of the normal
+    operation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This concept is different from PBFT, where a view change only occurs in the
+    event of a
+  prefs: []
+  type: TYPE_NORMAL
+- en: suspected faulty leader. Tendermint works similarly to PBFT, where three phases
+    are
+  prefs: []
+  type: TYPE_NORMAL
+- en: required to achieve consensus. A key innovation in Tendermint is the design
+    of a new
+  prefs: []
+  type: TYPE_NORMAL
+- en: termination mechanism. Unlike other PBFT-like protocols, Tendermint has developed
+    a
+  prefs: []
+  type: TYPE_NORMAL
+- en: more straightforward mechanism like a PBFT-style normal operation. Instead of
+    having
+  prefs: []
+  type: TYPE_NORMAL
+- en: two subprotocols for normal mode and view change mode (recovery in case of a
+    faulty
+  prefs: []
+  type: TYPE_NORMAL
+- en: leader), Tendermint terminates without additional communication costs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Tendermint works under some assumptions about the operating environment,
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'which we describe next:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Processes:** A process is a participant on the network. Processes'
+  prefs: []
+  type: TYPE_NORMAL
+- en: are expected to be honest, but they can turn faulty. Each process
+  prefs: []
+  type: TYPE_NORMAL
+- en: has a voting power that serves as a confirmation to the leader.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Processes can connect loosely or with their immediate subset of
+  prefs: []
+  type: TYPE_NORMAL
+- en: processes/nodes. They are not necessarily connected directly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Processes have a local timer that they use to measure timeout.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Network model:** The network is a message-passing network'
+  prefs: []
+  type: TYPE_NORMAL
+- en: where a gossip protocol is used for communication between
+  prefs: []
+  type: TYPE_NORMAL
+- en: processes. The standard BFT assumption of *n* ≥ 3 *f* + 1 applies
+  prefs: []
+  type: TYPE_NORMAL
+- en: here, which means that the protocol operates correctly only if the
+  prefs: []
+  type: TYPE_NORMAL
+- en: number of nodes in the network stays more than 3F, where F is
+  prefs: []
+  type: TYPE_NORMAL
+- en: the number of faulty nodes and N represents the total number of
+  prefs: []
+  type: TYPE_NORMAL
+- en: nodes in the network. In practice, this means that there must be at
+  prefs: []
+  type: TYPE_NORMAL
+- en: least four nodes in a network to tolerate Byzantine faults.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Timing assumptions:** Tendermint assumes a partially'
+  prefs: []
+  type: TYPE_NORMAL
+- en: synchronous network. There is an unknown bound on the
+  prefs: []
+  type: TYPE_NORMAL
+- en: communication delay, but it only applies after an unknown
+  prefs: []
+  type: TYPE_NORMAL
+- en: instance of time called global stabilization time or GST.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Security and cryptography:** The security assumption in the'
+  prefs: []
+  type: TYPE_NORMAL
+- en: system is that the public key cryptography used is secure. Also, the
+  prefs: []
+  type: TYPE_NORMAL
+- en: impersonation or spoofing of identities is not possible. All messages
+  prefs: []
+  type: TYPE_NORMAL
+- en: on the network are authenticated and verified via digital signatures.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The protocol ignores any messages with an invalid digital signature.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '348'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 8 BloCkChain age protoCols
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**State machine replication:** SMR is used to achieve replication'
+  prefs: []
+  type: TYPE_NORMAL
+- en: among the nodes. SMR ensures that all processes on the network
+  prefs: []
+  type: TYPE_NORMAL
+- en: receive and process the same sequence of requests. In addition,
+  prefs: []
+  type: TYPE_NORMAL
+- en: the agreement and order provide that the sequence in which
+  prefs: []
+  type: TYPE_NORMAL
+- en: the nodes have received requests is the same on all nodes. Both
+  prefs: []
+  type: TYPE_NORMAL
+- en: requirements ensure the total order in the system. The protocol
+  prefs: []
+  type: TYPE_NORMAL
+- en: only accepts valid transactions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Tendermint solves consensus by fulfilling the properties listed as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '• **Agreement**: No two correct processes decide on different values.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '• **Termination**: All correct processes eventually decide on a value.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '• **Validity**: A decided-upon value is valid if it satisfies an application'
+  prefs: []
+  type: TYPE_NORMAL
+- en: specific predefined predicate denoted valid( ).
+  prefs: []
+  type: TYPE_NORMAL
+- en: State transition at processes in Tendermint depends on the messages received
+    and
+  prefs: []
+  type: TYPE_NORMAL
+- en: timeouts. The timeout mechanism guarantees liveness and prevents indefinite
+    waiting.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here, the assumption is that eventually, after some period of asynchrony, there
+    will be a synchronous communication period during which all processes can communicate
+    in a
+  prefs: []
+  type: TYPE_NORMAL
+- en: timely fashion, ensuring that processes eventually decide on a value.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A Tendermint protocol has three types of messages: proposal, pre-vote, and
+    pre-'
+  prefs: []
+  type: TYPE_NORMAL
+- en: commit. These messages can be viewed as equivalent to the PBFT protocol’s PRE-
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'PREPARE, PREPARE, and COMMIT messages:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: • **Proposal:** This message is used by the leader of the current round to
+  prefs: []
+  type: TYPE_NORMAL
+- en: propose a value or block.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • **Pre-vote:** This message is used to vote on a proposed value.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • **Pre-commit:** This message is also used to vote on a proposed value.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Only the proposal message contains the original value. The other two messages,
+    pre-
+  prefs: []
+  type: TYPE_NORMAL
+- en: vote and pre-commit, use a value identifier representing the initially proposed
+    value.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'There are three timeouts in the protocol, corresponding to each message type:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Timeout-propose
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Timeout-prevote
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Timeout-precommit
+  prefs: []
+  type: TYPE_NORMAL
+- en: '349'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 8 BloCkChain age protoCols
+  prefs: []
+  type: TYPE_NORMAL
+- en: These timeouts prevent the algorithm from waiting indefinitely for certain
+  prefs: []
+  type: TYPE_NORMAL
+- en: conditions to be met. They also ensure that processes make progress through
+    the rounds.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A mechanism to increase timeout with every new round assures that after reaching
+    GST,
+  prefs: []
+  type: TYPE_NORMAL
+- en: the communication between correct processes eventually becomes reliable, nodes
+    can
+  prefs: []
+  type: TYPE_NORMAL
+- en: reach a decision, and protocol terminates.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'All processes maintain some necessary variables in the protocol:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: • **Step:** This variable holds the current state of the Tendermint state
+  prefs: []
+  type: TYPE_NORMAL
+- en: machine in the current round.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • **lockedValue:** This variable stores the most recent value (concerning
+  prefs: []
+  type: TYPE_NORMAL
+- en: the round number) for which a pre-commit message has been sent.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • **lockedRound:** This variable holds information about the last round
+  prefs: []
+  type: TYPE_NORMAL
+- en: where the process sent a non-nil pre-commit message which implies
+  prefs: []
+  type: TYPE_NORMAL
+- en: that this is the round where a possible decision value has been
+  prefs: []
+  type: TYPE_NORMAL
+- en: locked. This means that if a proposal message and corresponding
+  prefs: []
+  type: TYPE_NORMAL
+- en: 2F + 1 messages have been received for a value in a round, then, due
+  prefs: []
+  type: TYPE_NORMAL
+- en: to the reason that 2F + 1 pre-votes have already been accepted for this
+  prefs: []
+  type: TYPE_NORMAL
+- en: value, this is a possible decision value.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • **validValue:** The role of the validValue variable is to store the most
+  prefs: []
+  type: TYPE_NORMAL
+- en: recent possible decision value.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • **validRound:** The validRound variable is the last round in which
+  prefs: []
+  type: TYPE_NORMAL
+- en: validValue was updated.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • **Height:** Stores the current consensus instance.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Current round number
+  prefs: []
+  type: TYPE_NORMAL
+- en: • An array of decisions
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Tendermint proceeds in rounds. Each round contains three phases: propose,'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'pre-vote, pre-commit. The algorithm works as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Every round starts with a proposal value proposed by a proposer.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The proposer proposes a new value at the start of the first round for
+  prefs: []
+  type: TYPE_NORMAL
+- en: each height.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '350'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 8 BloCkChain age protoCols
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Any subsequent rounds will only have a proposer proposing a
+  prefs: []
+  type: TYPE_NORMAL
+- en: new value if there is no valid value already present, that is, null.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Otherwise, the validValue, the possible decision value, is proposed,
+  prefs: []
+  type: TYPE_NORMAL
+- en: already locked from a previous round. The proposal message also
+  prefs: []
+  type: TYPE_NORMAL
+- en: includes a value denoting the last valid round in which there was a
+  prefs: []
+  type: TYPE_NORMAL
+- en: valid value updated.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • A correct process accepts the proposal only if
+  prefs: []
+  type: TYPE_NORMAL
+- en: • The proposed value is valid.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • The process has not locked on a value.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Or the process has a value locked.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • The correct process accepts the proposal and sends a pre-vote
+  prefs: []
+  type: TYPE_NORMAL
+- en: message if the preceding conditions meet.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • If the conditions do not meet, the process will send a pre-vote
+  prefs: []
+  type: TYPE_NORMAL
+- en: message with a nil value.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • A timeout mechanism associated with the proposal phase triggers
+  prefs: []
+  type: TYPE_NORMAL
+- en: timeout if a process has not sent a pre-vote message in the current
+  prefs: []
+  type: TYPE_NORMAL
+- en: round or the timer expires in the proposal stage.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • If a correct process receives a proposal message with a valid value
+  prefs: []
+  type: TYPE_NORMAL
+- en: and 2F + 1 pre-vote messages, it sends the pre-commit message.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • Otherwise, it sends out a nil pre-commit.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • A timeout mechanism associated with the pre-commit will initialize
+  prefs: []
+  type: TYPE_NORMAL
+- en: if the associated timer expires or if the process has not sent a pre-
+  prefs: []
+  type: TYPE_NORMAL
+- en: commit message after receiving a proposal message and 2F + 1 pre-
+  prefs: []
+  type: TYPE_NORMAL
+- en: commit messages.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • A correct process decides on a value if it has received the proposal
+  prefs: []
+  type: TYPE_NORMAL
+- en: message in some round and 2F + 1 pre-commit messages for the ID
+  prefs: []
+  type: TYPE_NORMAL
+- en: of the proposed value.
+  prefs: []
+  type: TYPE_NORMAL
+- en: • This step also has an associated timeout mechanism, ensuring that
+  prefs: []
+  type: TYPE_NORMAL
+- en: the processor does not wait indefinitely to receive 2F + 1 messages.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If the timer expires before the processor can decide, the processor
+  prefs: []
+  type: TYPE_NORMAL
+- en: starts the next round.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '351'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](index-366_1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Chapter 8 BloCkChain age protoCols
+  prefs: []
+  type: TYPE_NORMAL
+- en: • When a processor eventually decides, it triggers the next consensus
+  prefs: []
+  type: TYPE_NORMAL
+- en: instance for the following block proposal, and the entire cycle of a
+  prefs: []
+  type: TYPE_NORMAL
+- en: proposal, pre-vote, and pre-commit starts again.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The protocol can be simply depicted as a recurring sequence of proposal ➤ pre-vote
+  prefs: []
+  type: TYPE_NORMAL
+- en: ➤ pre-commit, and after every commit, a new height is achieved and a new round
+    starts,
+  prefs: []
+  type: TYPE_NORMAL
+- en: as shown in Figur[e 8-4\.](#p366)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Figure 8-4\.** Tendermint flow – single run*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '352'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 8 BloCkChain age protoCols
+  prefs: []
+  type: TYPE_NORMAL
+- en: Tendermint introduced a new termination mechanism. There are two variables,
+  prefs: []
+  type: TYPE_NORMAL
+- en: namely, validValue and validRound, used by the proposal message. Both are updated
+  prefs: []
+  type: TYPE_NORMAL
+- en: by a correct process when receiving a valid proposal message and subsequent
+  prefs: []
+  type: TYPE_NORMAL
+- en: corresponding 2f + 1 pre-vote messages.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This termination process benefits from the gossip protocol and synchrony
+  prefs: []
+  type: TYPE_NORMAL
+- en: assumptions. For example, suppose a correct process has locked a value in a
+    round.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Then all other correct processes will update their validValue and validRound
+    variables
+  prefs: []
+  type: TYPE_NORMAL
+- en: with the locked values by the end of the very round during which they were locked.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The fundamental presumption is that a gossip protocol will propagate them to
+    other
+  prefs: []
+  type: TYPE_NORMAL
+- en: nodes within the same round once a correct processor has locked these values.
+    Each
+  prefs: []
+  type: TYPE_NORMAL
+- en: processor will know the locked value and round, that is, the valid values. Now,
+    when the
+  prefs: []
+  type: TYPE_NORMAL
+- en: next proposal is made, the same locked values will be picked up by the proposer,
+    which
+  prefs: []
+  type: TYPE_NORMAL
+- en: has already been locked due to the valid proposal and corresponding 2 *f* +
+    1 pre-vote messages. This way, it can be ensured that the value that processes
+    eventually decide
+  prefs: []
+  type: TYPE_NORMAL
+- en: upon is acceptable as specified by the validity condition.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This completes our discussion on the Tendermint protocol. Next, we explore HotStuff,
+  prefs: []
+  type: TYPE_NORMAL
+- en: which improves on several limitations in previous PBFT and its variant protocols.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**HotStuff**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: HotStuff is a BFT protocol for state machine replication. Several innovations
+    make
+  prefs: []
+  type: TYPE_NORMAL
+- en: it a better protocol than traditional PBFT. However, like PBFT, it works under
+    partial
+  prefs: []
+  type: TYPE_NORMAL
+- en: synchrony in a message-passing network with minimum *n* = 3 *f* + 1 and relies
+    on a leader-based primary backup approach. It utilizes reliable and authenticated
+    communication
+  prefs: []
+  type: TYPE_NORMAL
+- en: links. HotStuff makes use of threshold signatures where all nodes use a single
+    public key, but each replica uses a unique private key. The use of threshold signatures
+    results in
+  prefs: []
+  type: TYPE_NORMAL
+- en: reduced communication complexity.
+  prefs: []
+  type: TYPE_NORMAL
+- en: HotStuff introduced some innovations which we introduce as follows.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Linear View Change**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A view change in a HotStuff protocol requires only *O*( *n*) messages. It is
+    part of the normal run instead of a separate subprotocol. In a worst-case scenario
+    where leaders fail successively, the communication cost increases to *O*( *n*
+    2), quadratic. Instead of a stable leader like PBFT, a leader rotation in HotStuff
+    occurs every three rounds even if the
+  prefs: []
+  type: TYPE_NORMAL
+- en: leader doesn’t fail.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '353'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 8 BloCkChain age protoCols
+  prefs: []
+  type: TYPE_NORMAL
+- en: In simpler words, quadratic complexity means that the algorithm’s performance
+    is
+  prefs: []
+  type: TYPE_NORMAL
+- en: proportional to the squared size of the input.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In a linear view change, after GST, any honest selected leader sends only *O*(
+    *n*) authenticators to drive a decision, including the case where a leader fails
+    and a new
+  prefs: []
+  type: TYPE_NORMAL
+- en: one is elected. So even in the worst case where leaders fail one after another,
+    the
+  prefs: []
+  type: TYPE_NORMAL
+- en: communication cost to reach consensus after GST is *O*( *n* 2).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Optimistic Responsiveness**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Optimistic responsiveness allows any correct leader after GST to only need the
+    first *n* − *f* responses to ensure progress instead of waiting for *n* − *f*
+    from every replica. This means that it operates at network speed instead of waiting
+    unnecessarily for more messages
+  prefs: []
+  type: TYPE_NORMAL
+- en: from other nodes and move to the next phase.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Chain Quality**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This property provides fairness and liveness in the system by allowing frequent
+    leader
+  prefs: []
+  type: TYPE_NORMAL
+- en: rotation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Hidden Lock**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: It also solves the hidden lock problem. A “hidden lock” problem occurs when
+    a leader
+  prefs: []
+  type: TYPE_NORMAL
+- en: validator does not wait for the expiration time of a round. The highest lock
+    may not
+  prefs: []
+  type: TYPE_NORMAL
+- en: get to the leader if we rely only on receiving *n* – *f* messages. The highest
+    locked value may be held in another replica from which the leader did not wait
+    to get a response,
+  prefs: []
+  type: TYPE_NORMAL
+- en: thus resulting in a situation where the leader is unaware of the highest locked
+    value. If a leader then proposes a lower lock value and some other nodes already
+    have a higher
+  prefs: []
+  type: TYPE_NORMAL
+- en: value locked, this can lead to liveness issues. The nodes will wait for a higher
+    lock or the same lock reply, but the leader is unaware of the highest lock value
+    and will keep sending a lower lock value, resulting in a race condition and liveness
+    violation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: HotStuff has solved this problem by adding the precursor lock round before the
+  prefs: []
+  type: TYPE_NORMAL
+- en: actual lock round. The insight here is that if 2 *f* + 1 nodes accept the precursor
+    lock, the leader will get a response from them and learn the highest locked value.
+    So now the
+  prefs: []
+  type: TYPE_NORMAL
+- en: leader doesn’t have to wait for *Δ* (delta – an upper bound on a message delivery
+    delay) time and can learn the highest lock with *n* − *f* responses.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '354'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 8 BloCkChain age protoCols
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Pacemaker**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: HotStuff innovatively separates the safety and liveness mechanisms. Safety is
+    ensured
+  prefs: []
+  type: TYPE_NORMAL
+- en: through voting and commit rules for participants in the network. On the other
+    hand,
+  prefs: []
+  type: TYPE_NORMAL
+- en: liveness is the responsibility of a separate module, called pacemaker, which
+    ensures a
+  prefs: []
+  type: TYPE_NORMAL
+- en: new, correct, and unique leader is elected. Furthermore, pacemaker guarantees
+    progress
+  prefs: []
+  type: TYPE_NORMAL
+- en: after GST is reached. The first responsibility it has is to bring all honest
+    replicas and a unique leader to a common height for a sufficiently long period.
+    For synchronization,
+  prefs: []
+  type: TYPE_NORMAL
+- en: replicas keep increasing their timeouts gradually until progress is made. As
+    we assume a
+  prefs: []
+  type: TYPE_NORMAL
+- en: partially synchronous model, this mechanism is likely to work. Also, the leader
+    election
+  prefs: []
+  type: TYPE_NORMAL
+- en: process is based on a simple rotating coordinator paradigm, where a specific
+    schedule,
+  prefs: []
+  type: TYPE_NORMAL
+- en: usually round-robin, is followed by replicas to select a new leader. Pacemaker
+    also
+  prefs: []
+  type: TYPE_NORMAL
+- en: ensures that the leader chooses a proposal that replicas will accept.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Better Participant Organization Topology**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A PBFT protocol organizes nodes in a clique (mesh topology), resulting in a
+    quadratic
+  prefs: []
+  type: TYPE_NORMAL
