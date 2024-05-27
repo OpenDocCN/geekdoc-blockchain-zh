@@ -1,0 +1,890 @@
+- en: © The Author(s), under exclusive license to Springer Nature Singapore Pte Ltd. 2021Z.
+    Zheng et al. (eds.)Blockchain Intelligence[https://doi.org/10.1007/978-981-16-0127-9_4](https://doi.org/10.1007/978-981-16-0127-9_4)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 4. Intelligence-Driven Optimization of Smart Contracts
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Yuan Huang^([1](#Aff4)), Queping Kong^([1](#Aff4) [ ](#ContactOfAuthor2)),
+    Nan Jia^([2](#Aff5) [ ](#ContactOfAuthor3)), Xiangping Chen^([3](#Aff6) [ ](#ContactOfAuthor4))
+    and Zibin Zheng^([4](#Aff7), [5](#Aff8) [ ](#ContactOfAuthor5))(1)National Engineering
+    Research Center of Digital Life, School of Data and Computer Science, Sun Yat-sen
+    University, Guangzhou, China(2)School of Management Science and Engineering, Hebei
+    GEO University, Shijiazhuang, China(3)Guangdong Key Laboratory for Big Data Analysis
+    and Simulation of Public Opinion, School of Communication and Design, Sun Yat-sen
+    University, Guangzhou, China(4)Sun Yat-sen University, Guangzhou, China(5)National
+    Engineering Research Center of Digital Life, Sun Yat-sen University, Guangzhou,
+    ChinaQueping KongEmail: [kongqp@mail2.sysu.edu.cn](mailto:kongqp@mail2.sysu.edu.cn)Nan JiaEmail:
+    [jianan_0101@163.com](mailto:jianan_0101@163.com)Xiangping Chen (Corresponding
+    author)Email: [chenxp8@mail.sysu.edu.cn](mailto:chenxp8@mail.sysu.edu.cn)Zibin ZhengEmail:
+    [zhzibin@mail.sysu.edu.cn](mailto:zhzibin@mail.sysu.edu.cn)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Abstract
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In this chapter, we present an overview on how smart contracts could be optimized
+    by intelligence-driven approaches. We empirically study the repetitiveness of
+    smart contracts via cluster analysis and try to extract differentiated codes from
+    the similar contracts. Differentiated codes are defined as the source codes except
+    the repeated ones in two similar smart contracts, usually illustrating how a software
+    feature is implemented or a programming issue is solved. Then, a differentiated
+    code might be used to guide the update of a smart contract in its next version.
+    Finally, we apply syntax and semantic similarities to discover its similar smart
+    contracts from more than 120,000 smart contracts, and recommend the differentiated
+    codes to the target smart contracts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 4.1 Overview
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Blockchain serves as a public ledger and transactions stored in blockchain
+    are nearly impossible to tamper (Nakamoto [2009](#CR21)). Its purpose is to solve
+    the trust problems of both sides of the transaction in a decentralized environment,
+    which can greatly improve transaction efficiency and reduce costs (Dinh et al.
+    [2018](#CR9); Zheng et al. [2018](#CR32)). Blockchain technology allows to establish
+    contracts using cryptography and to replace third parties that have been necessary
+    to establish trust in the past (Zheng et al. [2017](#CR33)). The smart contract
+    is a computerized transaction protocol that executes the terms of a contract (Nick
+    [2008](#CR22)). With the increasing popularity of blockchain technology, smart
+    contracts are applied in various domains (Christidis and Devetsikiotis [2016](#CR7);
+    Juels et al. [2016](#CR17); Norta [2015](#CR23)): from finance, game to healthcare.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The difficulty of implementing smart contracts lies in how to express and write
+    legal contracts through programming languages. Low-quality smart contracts may
+    lead to unclear definitions of rights and obligations and become vulnerable. Loi
+    et al. discovered that 8833 out of 19,366 existing Ethereum contracts are vulnerable
+    (Luu et al. [2016](#CR19)). Smart contracts are executed as transactions on the
+    blockchain; the input, output, and contract states of the network are all visible.
+    As a result, smart contracts with security vulnerabilities may cause financial
+    losses. Famous attacks including selfish mining attack (Sapirshtein et al. [2017](#CR28))
+    and DAO attack (Norta [2015](#CR23)) have caused loss of million dollars. Some
+    researchers noticed the difficulties in implementing smart contracts and proposed
+    to specify and model smart contract before implementation (Frantz and Nowostawski
+    [2016](#CR10); He et al. [2018](#CR13)). In this chapter, we observe that most
+    of the smart contracts on the Ethereum are highly similar, as they share lots
+    of repetitive source code. Meanwhile, we notice that “personalized code” exists
+    between the similar smart contracts, referred to as differentiated code. Differentiated
+    code is defined as the source code except the repeated code in two similar contract
+    smarts, which usually illustrates how a software feature is implemented or a programming
+    issue is solved (Huang et al. [2017](#CR14)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Therefore, the differential codes in similar contracts can be used as candidate
+    implementations for other smart contract updates. The following example shows
+    a smart contract *C* [1] using throw in its initial version, which may cause additional
+    gas consumption when exception throws. By searching its similar smart contract,
+    we can observe that smart contract *C* [2] uses an alternative function revert(
+    ) instead of throw, which can return the remaining gas to the user when exception
+    throws.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Therefore, the differentiated code revert( ) (i.e., red font in contract *C*
+    [2]) can be used to support the update of contract *C* [1] when releasing a new
+    version (Fig. [4.1](#Fig1)).![../images/506524_1_En_4_Chapter/506524_1_En_4_Fig1_HTML.png](../images/506524_1_En_4_Chapter/506524_1_En_4_Fig1_HTML.png)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Fig. 4.1
+  prefs: []
+  type: TYPE_NORMAL
+- en: Overall framework of the smart contract update supporting
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this chapter, we propose to an approach that use differentiated code to support
+    the smart contract update. For a target smart contract, we firstly apply code
+    syntactic and semantic similarities to discover the similar smart contracts from
+    more than 120,000 smart contracts. Then, we compare the source code of the target
+    smart contracts and the similar smart contracts to extract the differentiated
+    code. At last, we recommend the differentiated code to the target smart contract,
+    which might be used to support the update of the target smart contract. The case
+    study shows that the differentiated code we recommended can exactly match the
+    code change in evolving versions of 42 smart contracts. Encouraging experimental
+    results demonstrated that differentiated codes can effectively support smart contract
+    updates.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The rest of this chapter is organized as follows. Section [4.2](#Sec2) describes
+    the main method of smart contracts syntax and semantic similarities analysis.
+    Section [4.3](#Sec6) presents the overall framework, while Section [4.4](#Sec9)
+    provides case study. And Section [4.5](#Sec18) discusses treats to validity and
+    related work for future studies.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 4.2 Smart Contracts Similarity Analysis
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 4.2.1 Syntax Similarity Analysis
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: In fact, detecting the similar smart contracts is a code clone detection problem
+    (Jiang et al. [2018](#CR16); Yue et al. [2018](#CR31)). There are many ways to
+    detect code clone. One of the representative methods is to compare the similarity
+    of abstract syntax trees of the source code of smart contracts, namely, tree-based
+    method (Baxter et al. [1998](#CR3)). This method firstly calculates the subtrees’
+    similarity, and then calculates entire trees’ similarity. The tree-based method
+    can achieve an exponential time complexity (Roy et al. [2009](#CR27)), which is
+    not suitable for using in our scenario.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The second representative method to detect code clone is based on the token
+    sequences of code fragments, which is called token-based method (Wettel and Marinescu
+    [2005](#CR29)). This method firstly generates token for each code line, and then
+    calculates the syntax similarity by finding a longest matching token sequence
+    of two code fragments. The token-based method achieves a time complexity of *O*(*n* × *m*)
+    (Wettel and Marinescu [2005](#CR29)), and we apply it to calculate the code syntax
+    similarity in this chapter.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Code Tokenizing
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To obtain code syntax structure of a smart contract, we should first identify
+    the syntax of each code line containing in the smart contract. In this chapter,
+    code syntax is subdivided into 90 types (e.g., *MappingExpression*, *ModifierDeclaration*,
+    *IfStatement*, *ForStatement*, *AssignmentExpression*, *ReturnStatement*). Our
+    algorithm parses abstract syntax tree to obtain the syntactic types of each code
+    line. It is worth noting that a single code line may contain multiple syntax types.
+    For example, an if code line “if( _to == address( this) ) ” contains three syntax
+    types: *IfStatement*, *BinaryExpression*, and *CallExpression*.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Hash Sequence
+  prefs: []
+  type: TYPE_NORMAL
+- en: For the source code from two smart contracts, we use tokens to mark each line
+    of code, and each token type corresponds to a unique hash value (10 digits). If
+    the code line contains multiple types of tokens, the hash value corresponding
+    to the token of the code line is added to generate a new unique hash value. After
+    this, each line of code is mapped to a hash value, so the source code of the smart
+    contract corresponds to a hash sequence. Then, we use the hash sequence of the
+    source code of the two smart contracts to calculate their syntactic similarity.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Matching Algorithm
+  prefs: []
+  type: TYPE_NORMAL
+- en: For two hash sequences from a pair of smart contracts, our goal is to find the
+    longest matching subsequence from these two hash sequences, and use the longest
+    matching subsequence to measure their syntactic similarity. We employ the algorithm
+    proposed by Wettel and Marinescu ([2005](#CR29)) to look for the longest matching
+    subsequence, while the difference is that we use abstract syntax tree to parse
+    the code elements for obtaining the tokenization in this chapter, and Wettel et
+    al. use regular expressions to identify the code elements.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As shown in Algorithm [4.1](#FPar1), the matching algorithm consists of four
+    steps. Firstly, we compare every hash in hash sequence 1 with every hash in hash
+    sequence 2\. The result is stored in matrix *M*, and every matrix cell *M*[*i*,*j*]
+    stores the result of the comparison between the relevant hash *i* and the relevant
+    hash *j*. *M*[*i*,*j*] = 1 means the relevant hashes are matched (i.e., identical).
+    Secondly, we look for the matched cells from upper left corner of the matrix.
+    From the first matched cell, we will further expand to the first unmatched cell
+    in the main diagonal direction. Consecutively matched cells form a subsequence.
+    We continue to find all the subsequences in the matrix. Third, we check the interval
+    between any two subsequences in the matrix. If the gap is smaller than a certain
+    threshold *η*, we link these two subsequences to form a longer subsequence. Repeat
+    the gap check in the same way until all the subsequences are traversed, and then
+    we can finally find the longest subsequence. Fourth, dividing the length of the
+    longest subsequence by the maximum length of hash sequence 1 and hash sequence
+    2 is the syntactic similarity. It is worth noting that because the matrix is symmetric,
+    we only need to use half of the matrix to find the longest subsequence.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Algorithm 4.1 Syntax Matching Algorithm![../images/506524_1_En_4_Chapter/506524_1_En_4_Figc_HTML.png](../images/506524_1_En_4_Chapter/506524_1_En_4_Figc_HTML.png)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 4.2.2 Semantic Similarity Analysis
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Code syntax can catch the program similarity from a perspective of program logic,
+    while code semantic can intuitionally catch the program similarity from the word-choices
+    of the source code (Huang et al. [2018](#CR15)). For example, if the identifier
+    of the code line contains the word “withdraw,” the code line can implement the
+    extraction function. Therefore, to evaluate the similarity of two smart contracts,
+    we can analyze their semantic similarity by analyzing the word choices included
+    in the function prototypes of the two smart contracts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Code Preprocessing
+  prefs: []
+  type: TYPE_NORMAL
+- en: The source code of the smart contract is represented by a set of meaningful
+    words, punctuation marks, and operation symbols. We can think of the source code
+    of a smart contract as a text document. However, text documents are different
+    from ordinary documents, which are not sentences but a set of random words and
+    symbols. Therefore, we cannot employ the method in Oliva et al. ([2011](#CR24))
+    to firstly calculate the semantic similarity of sentences, and then calculate
+    the semantic similarity of two text documents. Instead, we use word embeddings
+    (Mikolov et al. [2013](#CR20)) to vectorize each significative word, and then
+    calculate the semantic similarity of two smart contracts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Obviously, not all words in the smart contract source code play an active role
+    in semantic similarity analysis, and some original words may weaken the semantics
+    of the code. Therefore, a series of preprocess rules are applied: (1) split the
+    camel-case words into single words, such as: ‘*giveRightVote*’ is divided into
+    ‘*give*’, ‘*right*’, and ‘*vote*’; (2) filter out the function words in the source
+    code, such as ‘*and*’, ‘*the*’, and ‘*an*’; (3) filter out the keywords of Solidity,
+    such as ‘*mapping*’, ‘*public*’, ‘*function*’, ‘*if*’, ‘*modifier*’, and ‘*for*’;
+    and (4) filter out the letters sequence which does not denote a word, such as
+    ‘*tttt*’, ‘*hhhk*’, and ‘*kkkk*’.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Word embeddings are unsupervised word representations that only require large
+    amounts of unlabeled text to learn (Mikolov et al. [2013](#CR20)). In this work,
+    we collect the source code of the smart contract as a software engineering text.
+    In order to reduce the vocabulary in the entire corpus, first, we apply stemming
+    technology to segment the text. Since English verbs may appear in different tenses
+    such as the past, future, and perfect tenses, we convert the verbs in different
+    tenses into their original forms. Second, we filter out words that appear less
+    than three times in the entire corpus.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Code VectorizationTo obtain the vector representation of a word, we used the
+    continuous skip-gram model to learn the word embedding of a central word (i.e.,
+    *w* [*i*]) (Mikolov et al. [2013](#CR20)). It is well known that the required
+    word embedding is an intermediate result of the continuous skip-gram model. Continuous
+    skip-gram is effective at predicting the surrounding words in a context window
+    of 2*k*+1 words (generally, *k*=2, and the window size is 5). The objective function
+    of the skip-gram model aims at maximizing the sum of log probabilities of the
+    surrounding context words conditioned on the central word (Mikolov et al. [2013](#CR20)):![
+  prefs: []
+  type: TYPE_NORMAL
+- en: $$\displaystyle \begin{aligned} \sum_{i=1}^n \sum_{-k \leq j \leq k, j \neq
+    0}\log p(w_{i+j}|w_i) \end{aligned} $$
+  prefs: []
+  type: TYPE_NORMAL
+- en: '](../images/506524_1_En_4_Chapter/506524_1_En_4_Chapter_TeX_Equ1.png)(4.1)where
+    *w* [*i*] and *w* [*i*+*j*] denote the central word and the context word, respectively,
+    in a context window of length 2*k*+1 and *n* denotes the length of the word sequence.
+    The term !['
+  prefs: []
+  type: TYPE_NORMAL
+- en: $$\log p(w_{i+j}|w_i)$$
+  prefs: []
+  type: TYPE_NORMAL
+- en: '](../images/506524_1_En_4_Chapter/506524_1_En_4_Chapter_TeX_IEq1.png) is the
+    conditional probability, defined using the softmax function:!['
+  prefs: []
+  type: TYPE_NORMAL
+- en: $$\displaystyle \begin{aligned} \log p(w_{i+j}|w_i) = \frac{{\mathrm{exp}}(v_{w_{i+j}}^{\prime
+    T} v_{w_i})}{\sum_{w \in W} {\mathrm{exp}}}(v_{w}^{\prime T} v_{w_i}) \end{aligned}
+    $$
+  prefs: []
+  type: TYPE_NORMAL
+- en: '](../images/506524_1_En_4_Chapter/506524_1_En_4_Chapter_TeX_Equ2.png)(4.2)where
+    *v* [*w*] and !['
+  prefs: []
+  type: TYPE_NORMAL
+- en: $$v_{w}^{\prime }$$
+  prefs: []
+  type: TYPE_NORMAL
+- en: '](../images/506524_1_En_4_Chapter/506524_1_En_4_Chapter_TeX_IEq2.png) are the
+    input and output vectors of a word *w* in the underlying neural model, and *W*
+    is the vocabulary of all words. Intuitively, *p*(*w* [*i*+*j*]|*w* [*i*]) estimates
+    the normalized probability of a word *w* [*i*+*j*] appearing in the context of
+    a central word *w* [*i*] over all words in the vocabulary. Here, we employ negative
+    sampling method (Mikolov et al. [2013](#CR20)) to compute this probability.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: After training the model, each word in the corpus is associated with the vector
+    representation and forms a word dictionary. In order to obtain the semantic information
+    of smart contracts, we first collect their preprocessing identifiers, and then
+    determine the corresponding vector representation of each identifier from the
+    dictionary. Subsequently, we sum the vectors of all identifiers in the smart contract
+    dimension by dimension. Then, we can calculate the semantic similarity of any
+    two smart contracts via the vectorial angle of their semantic vectors.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 4.2.3 Similarity Calculation of Smart Contracts
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: For the given source code of a pair of smart contracts *C* [*n*] and *C* [*m*],
+    our algorithm analyzes their code syntax to obtain the hash sequences, and extracts
+    significative words to generate semantic vectors. After that, we calculate syntax
+    similarity between the hash sequences of smart contracts *C* [*n*] and *C* [*m*].
+    Meanwhile, we calculate the semantic similarity between *C* [*n*] and *C* [*m*].
+    After obtaining the syntax and semantic similarities, we use Eq. ([4.3](#Equ3))
+    to calculate a comprehensive similarity.![
+  prefs: []
+  type: TYPE_NORMAL
+- en: $$\displaystyle \begin{aligned} CompSimi = \alpha \cdot SyntSimi + \beta \cdot
+    SemanSimi, \end{aligned} $$
+  prefs: []
+  type: TYPE_NORMAL
+- en: '](../images/506524_1_En_4_Chapter/506524_1_En_4_Chapter_TeX_Equ3.png)(4.3)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Where, *CompSimi*, *SyntSimi*, and *SemanSimi* correspond to comprehensive,
+    syntax, and semantic similarity, respectively; *α* plus *β* equal to 1.0.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 4.3 Differentiated Code Recommendation
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Based on the similarity calculation method, our method can retrieve many similar
+    smart contracts for any target smart contract from the contract repository. However,
+    given that there are more than 120,000 smart contracts in the contract repository,
+    the retrieval efficiency of this method is very low. Therefore, we can first cluster
+    smart contracts according to the comprehensive similarity, and then retrieve similar
+    contracts to target smart contracts from closer clusters, which can significantly
+    improve retrieval efficiency. Then, we can compare the source codes of similar
+    smart contracts to obtain code differences, which can be used as distinguishing
+    codes to support smart contract updates.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 4.3.1 Similar Smart Contracts Clustering
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: To cluster the similar smart contracts, we employ K-means clustering (Hartigan
+    and Wong [1979](#CR12)) in this chapter. The main idea behind K-means clustering
+    is that given a specific parameter *K*, it will partition *n* instances into *K*
+    clusters, and each instance belongs to the cluster with nearest mean.
+  prefs: []
+  type: TYPE_NORMAL
+- en: When initializing K-means clustering, we should randomly select the *K* smart
+    contract as the clustering center; then, according to the comprehensive similarity,
+    when the center of the cluster is closest to the smart contract, each smart contract
+    will be assigned to the cluster. Later, when a new smart contract is added to
+    the cluster, it should update the cluster center iteratively. Finally, when the
+    cluster centers remain unchanged, we stop the iteration.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 4.3.2 Differentiated Code Extraction
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: To support the update of a target smart contract, we need to extract the differentiated
+    code from its similar smart contracts. Again, we apply the syntax matching algorithm
+    (i.e., Algorithm [4.1](#FPar1)) to extract the differentiated code. Specifically,
+    for target smart contract *C* [*n*] and its similar smart contract *C* [*m*],
+    we can find the longest matching subsequence in matrix *M*[*i*,*j*]. On the one
+    hand, we can identify the matched code statements of *C* [*n*] and *C* [*m*] according
+    to the longest matching subsequence. On the other hand, the nonmatching code statements
+    of *C* [*n*] and *C* [*m*] can be also identified by removing the matching ones
+    in the longest matching subsequence in matrix *M*[*i*,*j*].
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are two types of nonmatching statements, that is, statements contained
+    in smart contract *C* [*n*], but not in *C* [*m*] (case 1); or statements contained
+    in smart contract *C* [*m*], but not in *C* [*n*] (case 2). When we try to use
+    the differentiated code to support the update of smart contract *C* [*n*], the
+    non-matching statements in case 2 can be used as differentiated code to recommend
+    to smart contract *C* [*n*] for updating. In the same manner, the nonmatching
+    statements in case 1 can be used as differentiated code to support the update
+    of smart contract *C* [*m*].
+  prefs: []
+  type: TYPE_NORMAL
+- en: 4.4 Case Study
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 4.4.1 Dataset
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: We downloaded 32,537 solidity files from Etherscan,^([1](#Fn1)) and each solidity
+    file contains an average of 3.7 smart contracts (ranges from 0 to 36). There are
+    a total of 120,389 smart contracts, which are stored in a local repository. And
+    these smart contracts were released before March 24, 2018\. Table [4.1](#Tab1)
+    shows the statistical characteristics of the dataset.Table 4.1
+  prefs: []
+  type: TYPE_NORMAL
+- en: Statistical characteristics of the dataset
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| Solidity files | # of contract (Min) | # of contract (Max) | Average | Contracts
+    (Total) |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- | --- | --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| 32,537 | 0 | 36 | 3.7 | 120,389 |'
+  prefs: []
+  type: TYPE_TB
+- en: 4.4.2 Research Questions
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'With the purpose of analyzing our approach’s capability to recommend differentiated
+    code to support smart contract update, we would like to answer the following research
+    questions in our evaluation:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**RQ1**:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Can the recommended differentiated code guide the developers in updating smart
+    contract?
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**RQ2**:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Does the choice of weight values (i.e., *α* and *β*) affect the performance
+    of our approach?
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**RQ3**:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: What differentiated code can the developers obtain in the recommended smart
+    contracts?
+  prefs: []
+  type: TYPE_NORMAL
+- en: In whole experiment, our approach is executed on Windows 7, with a quad-core
+    3.3 GHz Intel Core i5 processor and 8 GB memory. The gap parameter *η* = 3 in
+    whole experiment.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 4.4.3 Evaluation Criteria
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: For **RQ1**, we want to evaluate whether the differentiated code in recommended
+    smart contract can help developers in updating smart contract. To achieve this
+    goal, we firstly collect the smart contracts with two versions (the earlier-released
+    version is called target smart contract, and the later-released version is called
+    evolving smart contract) in the dataset, and then apply the proposed method to
+    recommend a number of similar smart contracts (called recommended smart contract)
+    for the target smart contract. Finally, we determine whether the recommended smart
+    contracts and the evolving smart contract involve the same code change (i.e.,
+    differentiated code) when comparing with the target smart contract. If this is
+    true, it can prove that the recommended smart contract can be used to guide future
+    update of the target smart contract, as the code change in recommended smart contract
+    is consistent with the ones in evolving version of the target smart contract.
+    In order to determine whether a smart contract has two versions, we require that
+    the two smart contracts should be in the same account (i.e., published by the
+    same author). In addition, we also require that the similarity of the two smart
+    contracts is equal to or greater than 0.7\. If both of the two conditions are
+    met, the smart contract is regarded as having two versions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For **RQ2**, we want to evaluate whether there is a tradeoff between *α* and
+    *β* that can make the proposed method get a best result. To achieve this goal,
+    we propose a parameter optimization method. Specifically, for each target smart
+    contract in **RQ1**, the goal of our parameter optimization method is to improve
+    the ranks of the recommended smart contracts in the recommendation list via gradually
+    adjusting the values of *α* and *β*. Because only when the recommended smart contract
+    appears in the top of the recommendation list, it means our algorithm works well
+    and can further effectively provide reference for the developers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For **RQ3**, We try to quantitatively analyze the recommended smart contracts.
+    We hope to understand what difference codes developers can obtain in the recommended
+    smart contracts, and further determine whether the difference knowledge can be
+    used to help developers update the version. In order to achieve this goal, we
+    analyze and classify the difference codes in the recommended smart contracts based
+    on experience.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 4.4.4 Results Analysis
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 4.4.4.1 **RQ1**
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: We found that a total number of 42 smart contracts have two versions. Due to
+    the space limitation, Table [4.2](#Tab2) shows the information of part of the
+    smart contracts. The *Name* column in Table [4.2](#Tab2) represents the contract
+    name; the *Address* column represents the address of the smart contract in the
+    blockchain. The *Address* consisted of a 40-bit hexadecimal number, also due to
+    the space limitation, we only retained its first 5-bit in the Table [4.2](#Tab2).
+    The *Block Height* column represents the height of the block that current smart
+    contract locates in. The *Simi* column represents the code similarity between
+    target smart contract and recommended smart contract (or target smart contract
+    and evolving smart contract), and *Rank* column represents the similarity rank
+    of the recommended smart contract in the recommended list via applying the proposed
+    method.Table 4.2
+  prefs: []
+  type: TYPE_NORMAL
+- en: The results of RQ1
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|   | Target smart contracts | Recommended smart contracts | Evolving smart
+    contracts |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- | --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| No. | Name | Address | Block height | Name | Address | Block height | Simi
+    | Rank | Name | Address | Block height | Simi |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | ---
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| 1 | Owned | 0x2561b | 4,886,545 | Owned | 0x492a4 | 4,704,537 | 0.83 | 1
+    | Owned | 0x14b0d | 4,887,631 | 0.83 |'
+  prefs: []
+  type: TYPE_TB
+- en: '| 2 | ERC20 | 0x6c4fe | 4,928,600 | ABTokenBase | 0x007e7 | 4,547,466 | 0.89
+    | 2 | ERC20 | 0x01b84 | 5,168,599 | 0.89 |'
+  prefs: []
+  type: TYPE_TB
+- en: '| 3 | Token | 0x759a5 | 4,538,168 | Token | 0x273f5 | 4,494,277 | 0.8 | 3 |
+    Token | 0x5d113 | 4,627,084 | 0.8 |'
+  prefs: []
+  type: TYPE_TB
+- en: '| 4 | ERC20 | 0x37bda | 4,551,394 | ABTokenBase | 0x007e7 | 4,547,466 | 0.73
+    | 3 | ERC20 | 0x1dfa4 | 4,685,008 | 0.73 |'
+  prefs: []
+  type: TYPE_TB
+- en: '| 5 | USDGOLD | 0x00755 | 4,879,124 | FireLottoToken | 0x04939 | 4,713,248
+    | 0.87 | 2 | ILoveYou | 0xaeda4 | 4,981,202 | 0.87 |'
+  prefs: []
+  type: TYPE_TB
+- en: '| 6 | FengShuiCoin | 0x0661f | 5,158,332 | PI | 0x69124 | 4,649,999 | 0.78
+    | 4 | FSRatCoin | 0x5ab63 | 5,158,430 | 0.78 |'
+  prefs: []
+  type: TYPE_TB
+- en: '| 7 | BRM | 0xd7732 | 5,231,383 | MOT | 0x263c6 | 4,753,082 | 0.82 | 1 | BRM
+    | 0x61d16 | 5,239,862 | 0.82 |'
+  prefs: []
+  type: TYPE_TB
+- en: '| 8 | AbstractToken | 0xc25c2 | 4,967,169 | ERC20 | 0x003f7 | 4,508,340 | 0.89
+    | 1 | ERC20 | 0x15adb | 4,971,923 | 0.89 |'
+  prefs: []
+  type: TYPE_TB
+- en: '| 9 | ERC20Basic | 0x6c4fe | 4,928,600 | ERC20Basic | 0x0056A | 4,791,096 |
+    0.8 | 1 | ERC20Basic | 0x01b84 | 5,168,599 | 0.8 |'
+  prefs: []
+  type: TYPE_TB
+- en: '| 10 | VenusERC20 | 0xa723c | 4,837,227 | ELYTE | 0x05d37 | 4,506,864 | 0.84
+    | 7 | VenusToken | 0x1e4e3 | 4,846,201 | 0.84 |'
+  prefs: []
+  type: TYPE_TB
+- en: '| 11 | BIGCToken | 0xa6768 | 4,823,807 | TokenERC20 | 0x0445a | 4,526,508 |
+    0.81 | 2 | BIGCToken | 0x574fa | 4,824,268 | 0.81 |'
+  prefs: []
+  type: TYPE_TB
+- en: '| 12 | Token | 0x419ca | 4,209,736 | ERC20 | 0x01b6f | 4,135,914 | 0.75 | 3
+    | ERC20 | 0x661Eb | 4,163,888 | 0.75 |'
+  prefs: []
+  type: TYPE_TB
+- en: '| 13 | Token | 0xbca13 | 4,140,369 | ERC20Token | 0x03698 | 3,982,761 | 0.8
+    | 1 | Token | 0xc14b3 | 4,177,015 | 0.8 |'
+  prefs: []
+  type: TYPE_TB
+- en: '| 14 | Owned | 0xd32c2 | 4,424,760 | Managed | 0x259b0 | 4,343,542 | 0.94 |
+    1 | Managed | 0x9a9f1 | 4,430,409 | 0.94 |'
+  prefs: []
+  type: TYPE_TB
+- en: For a target smart contract, it may have the same name with its recommended
+    smart contract and evolving smart contract, as the first target smart contract
+    (i.e., Owned in Table [4.2](#Tab2)) shows. It is worth noting that although the
+    target smart contract and the recommended smart contract have the same name, they
+    are created by different accounts. Therefore, the contract (Owned, with address
+    0x492a4) can be used as a recommended smart contract for the target smart contract
+    (Owned, with address 0x2561b). In some cases, the target smart contract and its
+    evolving smart contract have different names, as the second target smart contract
+    (i.e., Owned) shows. We can determine the contract Owned is an evolving version
+    of contract Managed because they are created by the same account and with a higher
+    code similarity (i.e., 0.94). Moreover, the release time of contracts Owned and
+    Managed can also confirm this fact, because the higher the block height, the later
+    the contract releasing. Thus contract Owned is released later than contract Managed.
+    Similarly, we require that the release time of the recommend smart contract should
+    be earlier than the release time of the target smart contract. Because the developer
+    of the target smart contract can only obtain references from previously released
+    smart contracts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In Table [4.2](#Tab2), we can observe that there are some target smart contracts
+    with overlapping name, that is, the first and the last target smart contracts,
+    the 3rd and 5th smart contracts, the 4th and 13th, 14th smart contracts. Although
+    these smart contracts have same name, they are created by different accounts and
+    have different addresses. More importantly, they are different in source code.
+    For example, we compare source code of the first and the last smart contracts,
+    and find that the code similarity of these two smart contracts is less than 40%.
+    Then, when applying the proposed approach to retrieve similar smart contracts
+    for them, the obtained recommended smart contracts are also different.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We conclude that for RQ1, the proposed smart contracts of 42 target smart contracts
+    are the same as their evolving smart contracts, and this discovery enables developers
+    to use the suggested method to retrieve similar contracts to help them update
+    their smart contracts in practice development.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 4.4.4.2 **RQ2**
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: In smart contract recommendation, we employ code syntactic and semantic information
+    to measure the code similarity between smart contracts. We compute the comprehensive
+    similarity according to Eq. ([4.3](#Equ3)). To tune the best values of *α* and
+    *β*, we gradually increase their values from 0.1 to 0.9 (every time we increase
+    threshold by 0.1). And we should make sure that *α* + *β* = 1 in every iteration.
+    Our goal is to find a pair of *α* and *β* resulting in the best ranks of the recommended
+    smart contracts in the recommendation list.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure [4.2](#Fig2) presents the detailed information to estimate the values
+    of *α* and *β*. The vertical axis shows the total rank of the 42 recommended smart
+    contracts when applying the proposed method, and the horizontal axis shows the
+    value pairs of *α* and *β*. For example, (0.1, 0.9) represents the value of *α*
+    equals 0.1 and *β* equals 0.9\. We can observe that the total rank of recommended
+    smart contracts is improved with *α* incrementally increasing. When *α* equals
+    0.9 and *β* equals 0.1, the total rank of recommended smart contracts achieves
+    a best result in the recommendation list. This result shows that the code syntax
+    plays a dominant role in the calculation of contract similarity.![../images/506524_1_En_4_Chapter/506524_1_En_4_Fig2_HTML.png](../images/506524_1_En_4_Chapter/506524_1_En_4_Fig2_HTML.png)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Fig. 4.2
+  prefs: []
+  type: TYPE_NORMAL
+- en: The effect of weight values
+  prefs: []
+  type: TYPE_NORMAL
+- en: Table [4.3](#Tab3) shows the comparison of applying different metrics to measure
+    the code similarity. When we only apply semantic information to calculate the
+    code similarity, the recommended smart contracts can obtain a total rank of 172,
+    and an average of 4.1; When we apply syntactic information alone, the recommended
+    smart contracts can obtain a total rank of 148, and an average of 3.5\. When we
+    combine these two metrics with a weight values of 0.9 and 0.1, the recommended
+    smart contracts get a best total rank of 144, and an average of 3.4\.Table 4.3
+  prefs: []
+  type: TYPE_NORMAL
+- en: The comparison of different metrics
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| Metrics | Sum ranks | Average ranks |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Semantic | 172 | 4.1 |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Syntax | 148 | 3.5 |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Syntax + Semantic (*α* = 0.9, *β* = 0.1) | 144 | 3.4 |'
+  prefs: []
+  type: TYPE_TB
+- en: We conclude RQ2 that a combination of syntactic and semantic information with
+    weight values of 0.9 and 0.1 can make the recommended smart contracts get the
+    best ranks. Therefore, we use *α* = 0.9 and *β* = 0.1 as default values in this
+    study.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 4.4.4.3 **RQ3**
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: We conducted an empirical analysis of the recommended smart contract and tried
+    to see what different codes developers can obtain in the recommended smart contract.
+    Table [4.4](#Tab4) shows 10 types of differentiated code on the 42 recommended
+    smart contracts, where the red font indicates the differentiated code. It is worth
+    noting that a recommended smart contract may involve more than one differentiated
+    code for a target smart contract.Table 4.4
+  prefs: []
+  type: TYPE_NORMAL
+- en: Examples of differentiated code
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![../images/506524_1_En_4_Chapter/506524_1_En_4_Figa_HTML.png](../images/506524_1_En_4_Chapter/506524_1_En_4_Figa_HTML.png)![../images/506524_1_En_4_Chapter/506524_1_En_4_Figb_HTML.png](../images/506524_1_En_4_Chapter/506524_1_En_4_Figb_HTML.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The red font indicates the differentiated code.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The first kind of differentiated code is Events. Events are similar to logging
+    operations in object-oriented programming languages (such as Java), which is a
+    convenient interface with EVM logging facilities. Events are a common programming
+    practice of practical importance to collect EVM runtime information, as they can
+    be used for assisting postmortem analysis (Zhu et al. [2015](#CR34)). In some
+    cases, developers forget to insert Events to record the key runtime information
+    of EVM, which may significantly increase the difficulty in failure diagnosis.
+    In this sense, the differentiated code recommended by our method is an important
+    reference for developers to add Events.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Another kind of differentiated code is the self-destruct function. The self-destruct
+    function can end the current execution. More importantly, the self-destruct function
+    can destroy the current contract and transfer funds to the designated account.
+    Therefore, when our method recommends the self-destruct function to the target
+    smart contract, it can not only enhance the controllability of the smart contract
+    life cycle but also increase the flexibility of the smart contract.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The third kind of differentiated code is the Modifier. Modifier can be used
+    to easily change the behavior of functions, and they can automatically check a
+    condition prior to execute the function. For example, the case 3 in Table [4.4](#Tab4)
+    shows that the Modifier requires owner is msg.sender, if so, the smart contract
+    executes the function that references the Modifier; if not, the smart contract
+    throws an exception. Therefore, the Modifier recommended to the target smart contracts
+    plays an important role to restrict access authority of the function in this case.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Another kind of differentiated code is rollback function optimization. Case
+    4 in Table [4.4](#Tab4) shows that the throw is used in the target smart contract,
+    while the revert( ) is used in the recommended smart contract. The throw can roll
+    back all state changes, but consume the remaining gas. In contrast, revert( )
+    can also roll back all state changes, but return remaining gas to the caller.
+    In this sense, revert( ) is more user friendly, which is an optimized rollback
+    function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The fifth kind of differentiated code is the condition strengthening. Case 5
+    in Table [4.4](#Tab4) shows that when satisfying the additional condition of “allowTransfer
+    == true”, the if statement can be executed. This operation strengthens condition
+    of the if statement, and can also help to avoid program vulnerability.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The next three differentiated codes (i.e., from case 6 to 8) can be classified
+    as code refactoring. For example, case 6 abstracts some program functions as parent
+    contract Iowned, and then Owned inherits from Iowned. Case 7 changes the initial
+    value of variable totalSupply. Case 6 adds the keyword indexed to modify the variables
+    _prevOwner and _newOwner, which makes the variables indexable.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The remaining two different codes are related to variable declarations and function
+    declarations. In these two cases, some variables and functions are recommended
+    to the original target smart contract, and these variables and functions play
+    different roles in the smart contract, so we cannot classify them more fine-grained.
+    It should be noted that the self-destruct function (case 2) and Modifier (case
+    3) are not included in the function declaration (case 10).
+  prefs: []
+  type: TYPE_NORMAL
+- en: We conclude RQ3 that most of the differentiated codes recommended by our method
+    are useful for developers to update their smart contracts. The differentiated
+    codes range from Events, self-destruct function, Modifier to Rollback function,
+    etc. These differentiated codes can help the updated smart contracts increase
+    the maintainability (e.g., Events), flexibility (e.g., self-destruct function),
+    controllability of function behavior (e.g., Modifier), user-friendliness (e.g.,
+    rollback function), reasonableness of code structure (e.g., case 6 to 8), etc.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 4.4.5 Cluster Analysis
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: To further understand the effectiveness of our approach to support the smart
+    contract update, we empirically study the clusters of smart contracts described
+    in Sect. [4.5](#Sec18).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Considering there are more than 120,000 smart contracts in the repository, we
+    set the number of clusters of K-means as 6000, that is, *K* = 6000\. In addition,
+    we require that when the similarity between the smart contract and the central
+    smart contract of the cluster is greater than 0.6, the smart contract is allowed
+    to be added to the cluster. This is done to ensure that the smart contracts in
+    the same cluster have a higher similarity. However, this constraint may result
+    in some smart contracts that do not belong to any cluster.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure [4.3](#Fig3) shows the first 600 clusters according to the number of
+    smart contracts belonging to them. We can observe from the clusters that the largest
+    number of cluster contains 2894 similar smart contracts, and the least number
+    of clusters contains two similar smart contracts. There are 15,800 smart contracts
+    that do not belong to any cluster. The result means that the remaining smart contracts
+    (i.e., more than 104,000) can find at least one similar smart contract from the
+    repository. This is an evidence that most smart contracts are similar in the data
+    set, and they share many codes with similar syntax and semantics.![../images/506524_1_En_4_Chapter/506524_1_En_4_Fig3_HTML.png](../images/506524_1_En_4_Chapter/506524_1_En_4_Fig3_HTML.png)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Fig. 4.3
+  prefs: []
+  type: TYPE_NORMAL
+- en: The first 600 smart contract clusters
+  prefs: []
+  type: TYPE_NORMAL
+- en: To further understand why there are so many similar smart contracts, we manually
+    analyze the smart contracts in same cluster. The top reason causing the similar
+    smart contracts is the implementation of the same “interface.” For example, to
+    achieve the “issue currency,” the corresponding smart contracts should implement
+    the “interface” of ERC20.^([2](#Fn2)) As a result, all the smart contracts with
+    the “issue currency” function have similar source code.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The second reason for similar smart contracts is code reuse. Since many smart
+    contracts on Ethereum are open source, developers can retrieve smart contracts
+    on demand and customize them based on the source code of existing smart contracts.
+    Currently, smart contracts can only be used in some limited areas, such as finance,
+    gaming, and social networking. The smart contracts in same field usually implement
+    similar functionalities. For example, the finance-related smart contracts have
+    the common functionalities, such as *transfer*, *allowance*, and *approve*. Then,
+    developers can largely reuse the existing smart contracts for custom development
+    in same field, which makes many smart contracts keep small code differences on
+    the Ethereum.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Since there are a large number of similar smart contracts in the repository,
+    in most cases, our method can successfully retrieve similar smart contracts for
+    the target smart contract, and further extract differentiated codes from similar
+    smart contracts to support the target smart renewal of the contract.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 4.5 Discussion
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 4.5.1 Related Work
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Smart contracts are applied in various domains, which have been studied by many
+    researchers from various perspectives, such as concurrent programming (Dickerson
+    et al. [2017](#CR8); Yu et al. [2017](#CR30)), security (Atzei et al. [2017](#CR1);
+    Chen et al. [2017](#CR5); Grossman et al. [2018](#CR11); Kosba et al. [2016](#CR18)),
+    and scheme (Bartoletti et al. [2017](#CR2); Chen et al. [2018](#CR6)). The most
+    related works to this study are the ones that assist programmers in smart contract
+    development.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To facilitate collaborative development of smart contract, He et al. ([2018](#CR13))
+    proposed SPESC, a specification language for smart contracts development. SPESC
+    enables users to specify a smart contract in a similar form to a real-world contract,
+    in which the obligations and rights of parties and the transaction rules of cryptocurrencies
+    are clearly defined. In addition, SPESC can derive a program skeleton (or a program
+    interface) in accordance with the contract terms and the account balance. Their
+    preliminary study results demonstrate that SPESC can be easily learned and understood
+    by both IT and non-IT users.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Frantz and Nowostawski ([2016](#CR10)) proposed a modeling approach that supports
+    the semiautomated translation of human-readable contract representations into
+    computational equivalents. They adapted ADICO (Ostrom [1995](#CR25)) for modeling
+    smart contracts. From ADICO-based models, they also developed a code generator
+    to derive partial source code. The ADICO format can specify a party’s obligations
+    and rights.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Chen et al. ([2017](#CR4)) conducted an investigation on smart contract and
+    revealed the gas-costly programming patterns. They identified seven gas-costly
+    patterns, and divided them into two categories: useless-code related patterns,
+    and loop-related patterns. They proposed and developed GASPER tool to discover
+    gas-costly patterns in smart contract automatically, which can help programmers
+    locate three representative patterns in practice development.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Porru et al. ([2017](#CR26)) identified many challenges for blockchain-oriented
+    software engineering, focusing on collaboration among large teams, testing activities,
+    and specialized tools for the creation of smart contracts. Their study proposed
+    new directions for the blockchain-oriented software engineering.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Different from the mentioned studies, we are among the first to propose the
+    differentiated code for smart contract development at the code level. Differentiated
+    code plays a role of illustrating how a software feature is implemented and a
+    programming issue is solved, hence the differentiated code can be reused by the
+    programmers who want to update their smart contracts in the next version.
+  prefs: []
+  type: TYPE_NORMAL
