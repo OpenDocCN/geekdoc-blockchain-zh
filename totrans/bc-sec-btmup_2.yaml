@@ -1,0 +1,1202 @@
+- en: CHAPTER 3
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Protocols
+  prefs: []
+  type: TYPE_NORMAL
+- en: Blockchains are protocols, not specific implementations. Like HTTP, which defines
+    how web servers and browsers should communicate, blockchain protocols define how
+    nodes should work together to maintain the decentralized digital ledger.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Blockchain protocols are designed to incentivize the nodes in the blockchain
+    network to work in its best interests while assuming that a certain percentage
+    of nodes are greedy and potentially malicious. Blockchain protocols are designed
+    to make it more profitable to play by the rules than to cheat.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The blockchain''s ledger is regularly updated with the addition of new blocks.
+    The two main protocols that enable new blocks define how the network should choose
+    who creates the next one (consensus) and how that selected block creator should
+    go about doing so.  ## Consensus'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Distributed ledgers are designed to operate as distributed, decentralized systems.
+    Each node in the network stores its own copy of the distributed ledger and is
+    responsible for keeping that copy in sync with the rest of the network.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In blockchain-based systems, this is accomplished using consensus algorithms.
+    These algorithms formalize the process by which the creator of the next block
+    in the blockchain is selected. In the following sections, I discuss how some of
+    the major consensus algorithms work, their security assumptions, and some common
+    attacks against them.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '### Key Concepts in Blockchain Consensus'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Blockchain consensus algorithms are designed to implement decentralized decision
+    making. Each node in the network needs to be able to independently determine who
+    the creator of the next block should be and come up with the same answer as everyone
+    else.
+  prefs: []
+  type: TYPE_NORMAL
+- en: While making these decisions, blockchain nodes need to account for a few potential
+    problems. Malicious nodes in the network may attempt to mislead other nodes for
+    their own gain. Simple majority vote is not a workable approach to making decisions.
+    The network may not achieve consensus, leading to multiple versions of the blockchain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: One of the major contributions of Satoshi Nakamoto in the Bitcoin white paper
+    was developing solutions for these problems that work for a blockchain network.
+    These approaches support decentralized decision making and scale to networks the
+    size of Bitcoin.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '#### *Byzantine Generals Problem*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Byzantine Generals Problem (BGP) is a computer science problem designed
+    by Leslie Lamport.[¹](#c03-note-0001) It describes the problem of distributed
+    decision making in an environment where some decision-makers and communication
+    paths cannot be trusted.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In BGP, multiple armies are laying siege to a city and need to decide on what
+    to do next. The majority of the generals either need to agree to attack all at
+    once or retreat all at once. If the group does not reach consensus, they will
+    be defeated by the defenders of the city. Since the armies are spread around the
+    city and the generals cannot leave their armies, they need to communicate via
+    messenger.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The situation is complicated by the fact that some of the generals can be traitors,
+    sending false messages or failing to send messages at all. To achieve consensus,
+    the king sends a message to every general with his orders, and every general relays
+    this message to every other general. As a result, every general receives multiple
+    messages stating the king's wishes. Since some generals may be malicious, these
+    messages may be contradictory. However, as long as two-thirds of the generals
+    are good, it is possible to achieve consensus.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Solutions to the Byzantine Generals Problem have existed for some time now,
+    but they were too inefficient for large-scale use. In order to operate, blockchains
+    need to solve the Byzantine Generals Problem since they are also a distributed
+    system trying to come to an agreement (the contents of the next block) while dealing
+    with potential traitors (malicious nodes). Blockchain consensus algorithms are
+    designed to provide a scalable solution to BGP and are called Byzantine Fault
+    Tolerant (BFT) if they manage to do so.  #### *Security via Scarcity*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The simplest approach to decentralized decision making is majority vote. However,
+    a straightforward majority vote doesn't work for blockchain due to the potential
+    for a Sybil attack.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Blockchain systems are designed to be anonymous, and anyone can create a blockchain
+    account. In a Sybil attack, a malicious user creates many fake accounts, which
+    only requires generating a private key for a new address on the blockchain. If
+    a blockchain implemented consensus via majority vote, a Sybil attacker has a disproportionate
+    vote and potentially could control the majority of accounts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The name *Sybil attack* is inspired by a book titled *Sybil*, which is about
+    a woman with dissociative identity disorder. However, the subject of the book
+    later admitted that the multiple identities were fake, just like an attacker's
+    multiple accounts on the blockchain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Instead of providing each account with equal control over the state of the ledger,
+    blockchain consensus algorithms use a scarce resource to represent control over
+    the blockchain. While different consensus algorithms use different scarce resources
+    and apply them in different ways, a user's control over the block creation process
+    is proportional to the percentage of the scarce resource they control. Since the
+    block creator decides what is and isn't included in the ledger, this control over
+    the scarce resource equates to control over the blockchain's ledger and its history.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The relationship between a resource's supply, demand, and price is a core principle
+    of economics. If an item's demand increases relative to the supply, the price
+    increases as well. An attacker attempting to accumulate enough of the finite resource
+    to gain control of a blockchain's ledger increases the demand for a resource with
+    a fixed supply. As the demand increases and the available supply shrinks (as the
+    attacker accumulates all that is for sale), the price continues to rise.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In a decentralized system, there is no authority that can punish misbehavior,
+    so users must want to behave in order for the system to work. Blockchain attempts
+    to incentivize participation in the block creation process and stimulates demand
+    for the scarce resource by paying nodes to create blocks. At the same time, it
+    tries to prevent any one user from accumulating too much power by making such
+    an attack too expensive to be feasible or profitable.  #### *The Longest Chain
+    Rule*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A valid version of the blockchain is one whose blocks contain only valid transactions
+    and that follows the rules of the blockchain consensus algorithm. For many consensus
+    algorithms, this means that it is possible to have multiple valid versions of
+    the same block and multiple divergent blockchains.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Blockchain systems lack a centralized authority that can decide which of two
+    versions of the blockchain's distributed ledger is the “correct” one. Blockchains
+    require a way to do so in a decentralized fashion, so they use the longest chain
+    rule.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Under the longest chain rule, the “longer” of two conflicting blockchains is
+    the one that a node should accept. In this context, *longer* means the version
+    that required more work to create. For some consensus algorithms, this is literally
+    the one with a greater number of blocks, but in others, a short chain of difficult-to-create
+    blocks may beat out a longer one of easier blocks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The longest chain rule implements the principle of majority vote using the scarce
+    resources mentioned previously. Whichever version of the blockchain is longer
+    should be the one supported by the majority of the scarce resource. The percentage
+    of the scarce resource that a node or group controls is proportional to the probability
+    of being selected to create a block. If more blocks are created by the supporters
+    of one chain than by the creators of the other, then that chain should logically
+    control more of the scarce resource.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Under the longest chain rule, a node may be forced to replace its previously
+    accepted version of the blockchain with a new one. This is why blockchain transactions
+    are said to only offer probabilistic finalization. While any block can theoretically
+    be replaced by a different version, this becomes more difficult as more blocks
+    are built on top of it. The blocks'' chains and blockchain consensus algorithms
+    are designed to make major reorganizations of the blockchain difficult to the
+    point of being impossible.  ### Proof of Work'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Proof of Work is the oldest blockchain consensus algorithm. Satoshi Nakamoto
+    described it in 2008 in the Bitcoin white paper, which introduced the concept
+    of blockchain to the world.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Proof of Work uses computational power as its scarce resource. The more calculations
+    that a miner can perform, the higher probability of finding a valid block that
+    the rest of the network will accept.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '#### *Introduction to Proof of Work*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Blocks in a Proof of Work blockchain have two parts: the header and the body.
+    The body contains the transaction data stored in the block, while the header contains
+    four important fields:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Timestamp:** When the block was created'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Transaction Hash:** Root hash of the Merkle tree containing the transactions
+    in the block'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Previous Block Hash:** Hash of previous block, chaining them together'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Nonce:** A random value generated by the block creator'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The Proof of Work consensus algorithm is designed to make it difficult to create
+    a valid block but easy to validate one. In Proof of Work, a valid block is one
+    whose header hashes to a value less than a certain threshold. Often, this threshold
+    is referred to as the hash of the header having a certain number of leading zeros.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The properties of hash functions make the Proof of Work algorithm both possible
+    and secure. Hash function nonlocality means that similar inputs produce very dissimilar
+    outputs. By modifying the value of the nonce in the block header, Proof of Work
+    miners can create headers with very different hashes that potentially fulfill
+    the requirement that this value be less than the threshold.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Hash function preimage resistance means that the hash of a given block header
+    is unpredictable. As a result, the only method of finding a valid block is by
+    trying different nonce values until a miner hits upon a usable one. This is where
+    the scarce resource of computational power comes into play. The greater the amount
+    of computing power that a miner controls, the more hash calculations they can
+    perform and the higher the probability that they are the one who finds a valid
+    version of the current block.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '##### Difficulty Targets in Proof of Work'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The threshold used to determine whether or not a block is valid is based on
+    the current difficulty target. This difficulty target can change over time as
+    the total hash rate of the blockchain network grows or shrinks. The goal is to
+    set the difficulty target so that the network is able to create a new valid block
+    at a set rate.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, Bitcoin's target block rate is 10 minutes. This means that, on
+    average, a block is created every 10 minutes. Due to the unpredictability of the
+    mining process, some blocks are created more quickly and some take longer. However,
+    the difficulty target is set so that the average number of potential nonces that
+    it takes to find a valid block can be tested within 10 minutes at the blockchain's
+    current hash rate.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Difficulty targets are adjusted at regular intervals in a decentralized fashion.
+    All users in the blockchain network can see the times that each block was created
+    and determine the actual block creation rate. At predefined intervals, they will
+    multiply the current difficulty target by the ratio of the actual and target block
+    times to create a new target that reflects the current resources of the blockchain
+    network.  #### *Security of Proof of Work*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: While many different types of attacks can be performed against a Proof of Work
+    blockchain, three are designed specifically to attack the Proof of Work consensus
+    algorithm. A 51% attack is a “brute-force” approach to taking over the network,
+    while selfish and SPV mining are designed to allow an attacker to take over without
+    committing the same number of resources as in a 51% attack.
+  prefs: []
+  type: TYPE_NORMAL
+- en: An attacker can also take advantage of the mechanics of Proof of Work to disrupt
+    the operation of the blockchain. One method is by forcing artificial difficulty
+    updates for Proof of Work consensus.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '##### 51% Attack'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The 51% attack is probably the most well-known attack against a blockchain and
+    is described in the Bitcoin white paper. Proof of Work is designed to enforce
+    consensus based upon majority vote where the “votes” are the hash calculations
+    performed by miners during the block creation process.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If an attacker has a majority of the network's hash power (i.e., 51%), they
+    are likely to win the race to create every new block and have control over the
+    blockchain. While it's possible that the rest of the network could beat the attacker
+    to creating one or more blocks, it is statistically unlikely that they will be
+    able to maintain this lead. If the attacker can create and maintain the longest
+    version of the blockchain, users following the blockchain protocol are obliged
+    to accept it over the shorter option.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '###### *Countermeasures*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A 51% attack is extremely difficult to prevent if an attacker has the resources
+    to perform it. In fact, it has been said that it's impossible to have a truly
+    decentralized system without being vulnerable to a 51% attack. Two approaches
+    that have been tried are checkpointing and fining miners who attempt to perform
+    one.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Checkpointing***     In a blockchain using checkpointing, miners occasionally
+    checkpoint a block on the chain and refuse to accept a version of the blockchain
+    with a different version of that block, even if the other blockchain version is
+    longer. The issue with this approach is that it risks either dividing the network
+    or centralization.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: If each user individually checkpoints blocks, there is the possibility that
+    users will checkpoint different versions of the same block. As a result, these
+    nodes will refuse to accept each other's version of the ledger, making it impossible
+    for the network to be reunited.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If a single user generates checkpoints and distributes them (to avoid network
+    fragmentation), then the blockchain system has become centralized. Neither of
+    these options is good for blockchain security, so checkpointing is rarely used.  ***Fining***
+        Another option for preventing 51% is fining miners who are performing a 51%
+    attack. In general, 51% attacks are intended to facilitate double-spends, where
+    an attacker publishes one version of a transaction, waits for it to be accepted,
+    and then publishes a longer version of the blockchain that includes a contradictory
+    version of the transaction. Since the longer version will be accepted and only
+    one version of the transaction can be accepted, the original transaction is ignored.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In order to successfully perform a double-spend attack, the attacker must build
+    the contradictory version of the blockchain in secret and not reveal it until
+    the original transaction is accepted, which is typically after three blocks have
+    been built on top of the block containing the transaction. This means that the
+    early blocks in this divergent chain are only visible to the network long after
+    they were created. On Bitcoin, the earliest block on the divergent chain would
+    be published over half an hour after its creation time, which is significantly
+    longer than can be explained by network delays.
+  prefs: []
+  type: TYPE_NORMAL
+- en: One option is to fine miners who created blocks that are first seen by the network
+    long after their creation time. This disincentivizes a 51% attack by making the
+    miner lose money creating malicious blocks instead of being rewarded.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The issue with this approach is that delays in block creations can also happen
+    for legitimate reasons. Later, we''ll talk about denial-of-service attacks where
+    an attacker can cause the rate at which blocks are created to slow. If blocks
+    cannot be created before the cutoff that incurs a penalty, the blockchain may
+    cease to function, as legitimate miners will not create blocks for fear of being
+    penalized.  ###### *Case Studies*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The cost of performing a 51% attack depends on the amount of computing power
+    devoted to performing Proof of Work calculations on the blockchain. The greater
+    the hash rate, the more expensive and less likely a 51% attack.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Over a dozen smaller blockchains have experienced a 51% attack, including well-known
+    ones such as Ethereum Classic (ETC) and Bitcoin Satoshi's Vision (BSV).[²](#c03-note-0002)
+    These cryptocurrencies have a relatively low hash rate, making 51% attacks using
+    rented cloud-based hashing infrastructure possible.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Verge cryptocurrency was the victim of a 51% attack in which the attacker
+    took advantage of the design of the protocol to perform the attack with approximately
+    10 percent of the blockchain's hash rate.[³](#c03-note-0003) This attack exploited
+    the design of the blockchain's protocol to drive down the difficulty threshold
+    on one of its five mining algorithms.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'As a result, miners using the Scrypt algorithm could find blocks much more
+    easily than those using the other four algorithms. Assuming an even distribution
+    of hash power across the five algorithms, this meant that 20 percent of the hash
+    power was guaranteed to find every block. This allowed the attacker to create
+    blocks faster than everyone else simply by controlling 10 percent of the overall
+    hash rate and beating out other Scrypt miners.  ##### SPV Mining'
+  prefs: []
+  type: TYPE_NORMAL
+- en: SPV mining takes advantage of the existence of Simplified Payment Verification
+    (SPV) node software. When a new block is created, an SPV node will download only
+    the header of the block for verification. It ignores the Merkle tree containing
+    transaction data unless it needs to verify a particular transaction within a block.
+    These nodes are not intended for use in mining but only for taking advantage of
+    the services provided by the blockchain system.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'SPV miners take advantage of the rules of the blockchain protocol to give themselves
+    a head start at mining. When a traditional miner receives a new block, they take
+    the following steps:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Download and verify the block header.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Download and validate transaction data.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Update pool of pending transactions.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Build a new block using valid transactions.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Begin mining the new block.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The steps of downloading and validating transactions can be time-consuming but
+    are necessary. It's possible that a malicious user has created two contradictory
+    transactions and transmitted them to the network. If one has already been added
+    to the ledger, the other cannot be included as well. Before building a block,
+    a miner needs to ensure that both the previous block and their current block contain
+    only legitimate transactions. If not, they are wasting their time and resources
+    mining the block as no legitimate user will accept it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'SPV miners skip steps 2 and 3 in the mining process in order to give themselves
+    a head start. They do so by mining a block that contains only a single transaction:
+    the one paying them the set reward for creating a block. This block is perfectly
+    valid and has no chance of including invalid transactions, allowing them to start
+    mining as soon as they have the hash of the previous block.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '###### *Countermeasures*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: SPV mining relies on the fact that it takes some time to perform verification
+    of transactions in the previous and current blocks. The Bitcoin network has had
+    some success in reducing SPV mining attacks by increasing the efficiency of these
+    operations for their clients.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'An SPV miner is making a trade-off between the increase in block rewards gained
+    by mining more blocks (due to their head starts) and the loss of transaction fees
+    due to mining empty blocks. Increasing the efficiency of verification code and
+    the fact that block rewards decrease over time in most cryptocurrency blockchains
+    will quickly make SPV mining an unprofitable form of attack.  ###### *Case Study*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In 2018, the Etherdig Ethereum mining pool performed extensive SPV mining.[⁴](#c03-note-0004)
+    In three months, the pool created 1,250 blocks that did not validate a single
+    transaction. This attack netted the pool 3,750 ETH worth $862,500 at the time.  #####
+    Selfish Mining'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A 51% attack requires significant resources on the part of the attacker, which
+    may be infeasible to acquire. Selfish mining allows an attacker to perform a 51%
+    attack with less than half of the network's total hash rate. It also can be used
+    by malicious miners to increase their probability of creating a new block.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In a Proof of Work blockchain, the block rate is just a target. The difficulty
+    is set so that it takes that amount of time to find a solution to the Proof of
+    Work puzzle on average; however, a solution could also be found on the first try
+    or require much longer than the target.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A selfish miner uses this knowledge to gain an advantage in block creation.
+    If they have found a valid block for the current round, it is unlikely that another
+    one will be found soon. Creation of a new block in the blockchain requires knowledge
+    of the previous block since its hash is included in the new block's header. At
+    the moment of block creation, only the creator of the block has this knowledge
+    and is able to start mining the next block.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A selfish miner will deliberately conceal their knowledge of a valid version
+    of the current block in order to gain a head start in creating the next block
+    in the chain. This head start allows them to try some potential nonce values before
+    any other node can begin mining that block.
+  prefs: []
+  type: TYPE_NORMAL
+- en: With this head start, an attacker with only 49 percent of the network's hash
+    rate may be capable of launching a 51% attack. For miners without this much hash
+    rate, selfish mining still provides an increase in their probability of finding
+    the next block, which increases their chances of earning block rewards.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '###### *Countermeasures*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Unfortunately, it''s difficult to protect against selfish mining. These attackers
+    take advantage of the longest chain rule and the difficulty of Proof of Work mining
+    to game the system and earn increased rewards.  ###### *Case Study*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In 2018, the Ethereum mining pool F2Pool potentially performed a selfish mining
+    attack.[⁵](#c03-note-0005) This pool controlled 12.5 percent of the blockchain's
+    hash rate and combined selfish and SPV mining techniques. F2Pool created an alternative
+    version of the blockchain faster than the rest of the network, taking advantage
+    of the fact that empty blocks could be created about 15 percent faster than legitimate
+    ones.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'When the pool''s blockchain surpassed the legitimate one in length, it published
+    it, causing other nodes to accept it under the longest chain rule. While this
+    attack was not used to perform double-spends, it did net the pool additional block
+    rewards.  ##### Denial of Service: Artificial Difficulty Increases'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Proof of Work blockchains attempt to tune the difficulty of finding a valid
+    block to the network's hash rate. As hash rate rises and falls, the difficulty
+    target changes as well to keep the block rate near the target.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This provides an opportunity for an attacker to perform a Denial-of-Service
+    (DoS) attack to degrade the blockchain's ability to create new blocks. By adding
+    more hash power to the blockchain network, the attacker can drive up the difficulty
+    target at the next update because the network perceives that it is creating blocks
+    too quickly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If the attacker then removes this extra computational power from the blockchain,
+    then the difficulty target is set too high for the remaining nodes. As a result,
+    blocks will be created more slowly until the next time the network updates its
+    difficulty threshold. In the case of the Bitcoin network, updates are performed
+    every 2,016 blocks, which is two weeks at a 10-minute block interval. With a slower
+    block rate, this update will take even longer to perform, extending the impacts
+    of the DoS attack.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Another variant on this attack involves performing a DoS attack against legitimate
+    miners via malware, Distributed DoS (DDoS), and so on. This has the same effect
+    of dropping the hash rate, slowing block production.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '###### *Countermeasures*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Proof of Work blockchains'' difficulty targets are designed to rise and fall
+    as the hash rate changes. Also, it can be difficult to differentiate between an
+    artificial difficulty increase and one caused by benign miners leaving the network.  ###
+    Proof of Stake'
+  prefs: []
+  type: TYPE_NORMAL
+- en: After Proof of Work (PoW), Proof of Stake is probably the most famous blockchain
+    consensus algorithm. It consumes much less energy than PoW and does not require
+    specialized hardware, making it “greener” and easier for newcomers to enter.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '#### *Introduction to Proof of Stake*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In Proof of Stake, the blockchain's own cryptocurrency is the scarce resource
+    used to limit users' control over the blockchain. The more cryptocurrency a user
+    owns, the more control they can exert over the block creation process.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Proof of Stake works a lot like buying stock in a company. If you own stock
+    in a company, you have the potential to receive dividends proportional to the
+    amount of stock you own.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In Proof of Stake, a user can stake some of their cryptocurrency, meaning that
+    they promise not to spend it and send it to a special address. As long as that
+    cryptocurrency remains staked, the user has the opportunity to be selected to
+    create blocks. The user can withdraw their stake at any time but loses the ability
+    to be selected as a block creator.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The algorithms used to select Proof of Stake block creators fall into two groups:
+    randomized block selection and coin-age-based selection. The main distinction
+    is the probability of a user being selected to create blocks. In randomized block
+    selection, this probability is proportional to the percentage of the total amount
+    of staked cryptocurrency that the user owns. In coin-age-based selection, both
+    the size of the user''s stake and the time since the last time the user created
+    a block are taken into account.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'All implementations of Proof of Stake must be capable of performing the block
+    creator selection process in a decentralized and secure manner. Centralization
+    defeats the purpose of blockchain, and an insecure block creator selection process
+    could allow a user to game the system. To accomplish this, the calculation of
+    the next block creator takes several inputs (the hash of the previous block, stake
+    sizes, coin ages, etc.) and passes them through a function that involves a hash
+    calculation. Since all inputs are known to all users, anyone can perform the calculation.
+    However, the use of the previous block hash and a hash function make it difficult
+    for someone to game the system since they can''t predict what allocation of stakes
+    across multiple accounts would give them an advantage in time to make the necessary
+    adjustments.  #### *Variants of Proof of Stake*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Multiple different variants of Proof of Stake exist. Chain-based Proof of Stake
+    uses stake to directly select block creators and the longest chain rule to determine
+    which of two competing versions of the blockchain is the correct one. We'll focus
+    on this version in this chapter.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Another version of Proof of Stake is called BFT-style Proof of Stake. This variant
+    uses a multistage consensus protocol where a randomly selected block producer
+    proposed a block and the rest of the staked validators vote on whether to accept
+    it. This can enable them to achieve transaction finalization, unlike the probabilistic
+    finalization offered by consensus algorithms using the longest chain rule.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Delegated Proof of Stake (DPoS) implements representative democracy using staked
+    assets. Stakeholders vote for delegates, and a certain number of candidates with
+    the most votes are selected. In this scheme, delegates perform the work of block
+    production and pass rewards down to stakers.  #### *Security of Proof of Stake*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The security of Proof of Stake relies on the security of the block creator selection
+    process and digital signatures. For the block creator selection process to be
+    secure, it needs to be impossible for someone to predict block creators in advance
+    and modify their stake to improve their probability of being selected. Proof of
+    Stake uses hash functions to assure this, so the security of Proof of Stake relies
+    on the security of hash functions. Namely, hash functions must be pseudorandom
+    (to prevent prediction of future states) and one way (to prevent someone reverse-engineering
+    a winning solution).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Digital signature security is also vital to the security of Proof of Stake blockchains.
+    Unlike Proof of Work, where creating a valid block is difficult, creating a valid
+    block in Proof of Stake is very easy. Proof of Stake relies on the fact that users
+    will only accept a block created by the chosen block creator. The authenticity
+    of a block is protected by a digital signature, so digital signatures must be
+    secure and unforgeable for a Proof of Stake blockchain to be secure.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As with Proof of Work, the goal of many attacks against Proof of Stake is to
+    enable double-spend attacks on the blockchain. In the following sections, we'll
+    discuss five methods by which an attacker can gain control of the blockchain,
+    be incentivized to allow a double-spend attack, or perform a denial-of-service
+    attack against blockchain nodes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '##### XX% Attack'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The XX% attack is the Proof of Stake equivalent of the 51% attack in Proof of
+    Work. In this attack, the malicious user accumulates enough of the scarce resource,
+    in this case cryptocurrency, to have a high probability of being chosen as the
+    creator of each new block.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Unlike with Proof of Work, owning 51 percent of the staked cryptocurrency does
+    not guarantee control of the distributed ledger, but it provides a 51 percent
+    chance of being selected to create each block. In order to launch an effective
+    double-spend attack, the attacker needs to control enough of the staked cryptocurrency
+    to have a high probability of being selected as the block creator for the desired
+    number of continuous blocks (typically at least three).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The exact percentage of the staked cryptocurrency needed to perform this attack
+    depends on the desired probability that the attack will succeed. This can be modeled
+    using the equation:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![normal upper S equals normal upper P Superscript 1 slash normal upper N](images/c03-disp-0001.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: where S is the percentage of the stake pool that the attacker needs to control
+    in order to achieve a probability, P, of success in being chosen to create N consecutive
+    blocks that the attacker needs to control in order to launch a successful attack.
+    For reference, a 90 percent probability of success in controlling three blocks
+    requires control of over 96 percent of the stake. The attacker has to decide on
+    an acceptable probability of failure since it is unlikely that they will ever
+    control all of the staked coins.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '###### *Countermeasures*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the original Proof of Stake algorithms, “staking” simply referred to owning
+    a cryptocurrency, which meant no penalty existed for misbehavior. The logic was
+    that an attacker would devalue the cryptocurrency, which would hurt the attacker
+    as well.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Modern Proof of Stake algorithms require stakers to deposit their cryptocurrency
+    at a special address to participate in consensus. This gives these algorithms
+    the ability to penalize nodes that misbehave, such as creating divergent versions
+    of the blockchain.  ##### Proof of Stake “Time Bomb”'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Proof of Stake “time bomb” refers to the fact that the user with the highest
+    percentage of stake on the blockchain will eventually be able to perform an XX%
+    attack without any malicious action. This is due to the fact that this user can
+    take advantage of “compounding interest” by staking all cryptocurrency that they
+    earn through block rewards.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In Proof of Stake, the percentage of block rewards that a user earns is proportional
+    to the percentage of the total set of staked coins that they own. The user with
+    the largest percentage of the stake will earn the largest block reward, allowing
+    their stake to grow the most quickly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As a result, their percentage of the total stake will grow over time, allowing
+    them to earn greater and greater block rewards. Eventually, either the cryptocurrency
+    will die (since all coin is tied up in users' stakes) or the controlling player
+    will own all of the stake (as other users give up their stakes in order to use
+    the coins in transactions).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '###### *Countermeasures*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This is more of a theoretical attack than a practical one. Accumulating a controlling
+    stake in a Proof of Stake blockchain via block rewards would take a very long
+    time. Also, if an attacker controlled enough of a blockchain''s cryptocurrency
+    to make this attack possible, most or all of the blockchain''s other users would
+    likely have abandoned it, devaluing the currency and making the attack pointless.  #####
+    Long-Range Attack'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A long-range attack is designed to allow a user without the largest stake in
+    a Proof of Stake blockchain to still take advantage of the “time bomb” effect.
+    In this attack, the attacker chooses a point in the history of the blockchain
+    (typically the genesis block) where they control some of the stake and creates
+    a divergent blockchain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: On the main blockchain, they decline every opportunity they have to create a
+    block. As a result, the main blockchain grows more slowly since any blocks that
+    they fail to create are skipped. This decreases the throughput of the blockchain
+    and is crucial to the attack. The attacker's ability to affect the main blockchain
+    will decrease over time though, since they are earning no new block rewards and
+    their percentage of the total stake is likely shrinking as a result.
+  prefs: []
+  type: TYPE_NORMAL
+- en: On the attacker's version of the blockchain, they create a block whenever possible.
+    As a result, they are the only one earning block rewards, which they reinvest
+    as stake. In the long run, they achieve the same control over the blockchain as
+    the “time bomb.”
+  prefs: []
+  type: TYPE_NORMAL
+- en: The challenge in this attack is getting the attacker's version of the blockchain
+    accepted as the official version. To do so, they need their version to contain
+    more blocks than the official one. Unless they own more than half of the stake
+    at the beginning, their version of the chain will grow more slowly at first. Over
+    time, their ability to create blocks on their side chain will increase and eventually
+    surpass the main chain since the main chain will miss any blocks that they are
+    chosen to create as well as occasional ones due to natural errors (chosen block
+    creator failing to create a block within their window). As a result, they will
+    eventually close the gap and become the longest chain, completing the attack.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '###### *Countermeasures*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A long-range attack exploits the longest chain rule that governs how nodes should
+    treat conflicting versions of the blockchain. In theory, all nodes in the network
+    should accept the malicious version of the blockchain, providing the attacker
+    with complete control over the network and its ledger.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In practice, the nodes in the blockchain are more likely to simply reject the
+    alternative blockchain as obviously malicious even if it should be accepted under
+    the longest chain rule. While this breaks the rules of blockchain, it would enable
+    the blockchain to continue to function.  ##### Resource Exhaustion Attacks'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Proof of Stake blockchains require more work to validate than Proof of Work
+    ones. In a Proof of Work blockchain, it is possible to perform a high-level validation
+    of a potential blockchain by verifying the chain of block headers. A valid chain
+    is hard to compute but easy to verify. As a result, nodes can check the chain
+    as an initial verification step before validating each transaction to check that
+    a divergent blockchain is completely legitimate.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In Proof of Stake, the validity of the blockchain depends on the allocation
+    of stake and whether each block is created by the appropriate block producer.
+    As a result, a divergent blockchain is relatively easy to create but hard to verify
+    because it requires access to block bodies to identify and track the staking and
+    unstaking of cryptocurrency.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As a result, fake versions of the blockchain can be used to perform resource
+    exhaustion attacks on chain-based Proof of Stake blockchains. Under the longest
+    chain rule, a node is obligated to determine if a potentially longer chain is
+    valid and to build on it if it is. An attacker who sends invalid divergent blockchains
+    to a node can waste its resources and potentially slow the creation of new blocks
+    due to resources being diverted to inspecting the invalid chain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '###### *Countermeasures*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'These resource exhaustion attacks take advantage of the design and rules of
+    chain-based Proof of Stake blockchains to attack nodes. Some heuristics exist
+    to determine if a blockchain is likely to be valid before performing an in-depth
+    inspection; however, many of these are vulnerable to attack.[⁶](#c03-note-0006)  #####
+    Nothing at Stake Problem'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Nothing at Stake problem in Proof of Stake refers to the fact that there
+    is no incentive in many blockchain systems for block creators not to misbehave.
+    If a fork occurs in the blockchain, whether accidentally or due to an attacker's
+    double-spend attack, there is no mechanism to prevent a block creator from adding
+    a block to both versions of the blockchain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In fact, doing so is the best move for them. By adding their block to both versions
+    of the blockchain, a block creator guarantees that they will receive their block
+    reward no matter which version of the blockchain eventually is selected as the
+    official one via the longest block rule. Choosing one or the other runs the risk
+    of guessing wrong and having their legitimate block dropped from the ledger.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '###### *Countermeasures*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Nothing at Stake problem assumes that validators have no incentive not to
+    build on multiple versions of the blockchain. Some Proof of Stake blockchains,
+    such as Ethereum 2.0, require nodes to send a security deposit to a particular
+    address to be considered as a potential block creator.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This security deposit provides a mechanism for these blockchains to punish
+    nodes that break the rules. If a Proof of Stake validator creates blocks on conflicting
+    chains, they may lose part of their stake or be ejected as a validator entirely.  ######
+    *Case Studies*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Since the launch of Ethereum 2.0, multiple nodes have been penalized for signing
+    multiple conflicting versions of blocks. Often, this is due to configuration errors
+    and restarting nodes, but some attempts may have been malicious.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'One example is the “slashing” of 75 Eth2 validators operated by Staked, a staking
+    infrastructure provider.[⁷](#c03-note-0007) These nodes unexpectedly restarted
+    due to configuration changes and mistakenly signed an alternative version of a
+    previously signed block. As a result, the nodes incurred a penalty of 18 ETH worth
+    $29,000 at the time.  ### Threat Modeling for Consensus'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Most blockchain consensus attacks are designed to help an attacker achieve
+    a 51% attack or otherwise increase their control over the digital ledger. The
+    following list includes some of the impacts of these attacks mapped to the STRIDE
+    threat model:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Tampering:** 51% attacks allow the digital ledger to be rewritten, breaking
+    blockchain immutability.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Repudiation:** 51% attacks permit double-spend attacks that allow an attacker
+    to overwrite and repudiate past transactions.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Denial of Service:** An attacker can artificially raise the difficulty threshold
+    of a Proof of Work blockchain, slowing block creation. A 51% attacker can refuse
+    to add transactions to the blockchain, blocking them from being added to the digital
+    ledger.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Elevation of Privileges:** 51%, long-range, selfish mining, and SPV mining
+    attacks are designed to provide an attacker with complete or elevated control
+    over the state of the digital ledger.  ## Block Creation'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The blockchain is designed to be a distributed, decentralized ledger. Each node
+    in the blockchain network has the ability to store a complete copy of the blockchain.
+    This makes it necessary to have a formalized method of updating the ledger so
+    that the network can remain synchronized.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Blockchain achieves this by collecting individual transactions into blocks and
+    updating the ledger a block at a time. The blockchain protocol is designed to
+    perform these updates at (near) regular intervals, making it possible to predict
+    how quickly information will be added to the distributed ledger.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '### Stages of Block Creation'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Adding a new block to the distributed ledger is a multistage process. The five
+    main stages of ledger update are as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Transaction transmission
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Block creator selection (consensus)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Block building
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Block transmission
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Block validation
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Each of these stages is important to the effectiveness and security of the blockchain's
+    distributed ledger.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '#### *Transaction Transmission*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The first stage of the block creation process happens continuously. In this
+    stage, people who are using the blockchain system generate transactions and transmit
+    them to their peers in the blockchain network.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, a Bitcoin user may generate and digitally sign a transaction before
+    sending it to the nodes in the network that the user is directly connected to.
+    Upon receipt of this transaction, these nodes send it on to their peers, allowing
+    it to propagate across the network.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'At the time of transmission, this transaction is not considered part of the
+    distributed ledger. Nodes maintain a pool of pending transactions that have not
+    yet been included in blocks. When the time comes to create a block, the block
+    creator will draw from this pool to create the next piece of the distributed ledger.  ####
+    *Block Creator Selection (Consensus)*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This stage of the block creation process uses the consensus algorithms described
+    earlier to select the creator of the next block. The blockchain network has no
+    central authority that determines the contents of each block; however, it needs
+    someone to create the official version of the block that the rest of the network
+    will accept. The blockchain consensus algorithm ensures that this is completed
+    in a decentralized fashion to ensure that no one can control the blockchain's
+    ledger.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This step may fall earlier or later in the block creation process depending
+    on the consensus algorithm used by the blockchain. In Proof of Work, the block
+    needs to be created before consensus is completed since the criteria for becoming
+    the block creator is the ability to generate a valid block. In Proof of Stake,
+    the choice of block creator is not dependent on the contents of the block, so
+    it is completed before the new block is built.  #### *Block Building*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The chosen block creator has a couple of responsibilities. The first is to put
+    together a block that meets the requirements of the blockchain (maximum size,
+    etc.). The second is to ensure that the block is a valid one.
+  prefs: []
+  type: TYPE_NORMAL
+- en: When generating a new block, block creators have complete control over its contents.
+    Many blockchains include the concept of transaction fees, where users can pay
+    for their transaction to be prioritized when a new block is created. A greedy
+    block creator should create a block with the highest possible transaction fees
+    since they receive fees included in their blocks; however, there is no obligation
+    to do so. For this reason, block creators have a great deal of power in the blockchain
+    network, which is why it is so important that the system remains decentralized.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The other important responsibility of block creators is ensuring the validity
+    of the blocks that they create. One of the main threats in blockchain is a double-spend
+    attack, where a user creates mutually conflicting transactions (i.e., sends the
+    same cryptocurrency to two different recipients). The creator of a block is obliged
+    to ensure that their block does not create any double spends within the ledger.
+    Failure to do so risks a future block creator choosing not to build on top of
+    their block, orphaning it and denying the block creator the rewards that they
+    receive for creating the block.  #### *Block Transmission*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Once a block has been completed, its creator digitally signs it and transmits
+    it to the rest of the blockchain network. This mimics the process of transaction
+    transmission, where each node in the network transmits it to their peers once
+    they receive it.  #### *Block Validation*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Finally, each node in the network needs to validate a block before adding it
+    to their official copy of the distributed ledger. The consensus algorithm attempts
+    to ensure that only one node in the network creates a block, but it doesn''t guarantee
+    that the node is not malicious. Each node in the network performs the same search
+    for double-spends that the block creator should have done and accepts the block
+    only if it meets all of the blockchain''s requirements.  ### Attacking Block Creation'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The block creation process is essential to updating the distributed ledger and
+    making the blockchain function. However, the design of this process leaves it
+    vulnerable to attacks on the blockchain's availability and the integrity of the
+    data that it contains.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '#### *Denial of Service*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A denial-of-service attack is a common type of attack against any system. By
+    overwhelming some component of the system's ability to process inputs, it degrades
+    or destroys the effectiveness of the system as a whole. While blockchain's decentralization
+    makes it immune to some types of denial-of-service attacks, others are still possible.
+  prefs: []
+  type: TYPE_NORMAL
+- en: One type of denial-of-service attack that targets the block creation process
+    involves transaction flooding. By creating a large number of spam transactions
+    and posting them to the blockchain, an attacker can have both short-term and long-term
+    impacts on the blockchain's functioning.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the short term, transaction flooding impacts the ability of legitimate transactions
+    to be added to the distributed ledger. Blockchains often have set block sizes
+    and block rates, meaning they have a set maximum capacity. If an attacker's spam
+    transactions take up any part of this capacity, it reduces the ability of the
+    blockchain to process legitimate transactions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: One way that blockchains combat spam transactions is by including transaction
+    fees, making an attacker pay to attack the blockchain. However, if an attacker
+    is undeterred by the cost, this can have another short-term impact on the blockchain.
+    In order to have their transactions added to the ledger during an attack, legitimate
+    users will have to pay higher fees for priority. Increasing the cost of using
+    the system decreases its usability.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The potential long-term impact of this attack is bloat on the blockchain. A
+    crucial feature of blockchain technology is its immutability, meaning that every
+    transaction that makes it onto the ledger must be stored forever (and checked
+    during validation). Every spam transaction that makes it onto the distributed
+    ledger makes the system that much less usable.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is only one form of denial-of-service attack that can impact the block
+    creation process. Block creation can also be disrupted by any attack that inhibits
+    the creation, transmission, or validation of blocks, such as a distributed denial-of-service
+    (DDoS) attack against the block creator or an attempt to disrupt communications
+    over the peer-to-peer network.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '##### Countermeasures'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Protection against these types of denial-of-service attacks requires individual
+    action by the affected nodes. For example, block creators can refuse to include
+    spam transactions in their blocks, keeping them from affecting the digital ledger,
+    and deploy DDoS mitigation solutions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'However, these approaches have their challenges, such as differentiating legitimate
+    from spam transactions. Additionally, this requires relying on a particular node
+    to protect the blockchain, which violates blockchain''s goals of decentralization
+    and not requiring trust in other nodes.  ##### Case Studies'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Solana blockchain has suffered from repeated incidents that may be transaction
+    flooding DDoS attacks or legitimate traffic overwhelming the network.[⁸](#c03-note-0008)
+    These incidents take advantage of the fact that the Solana blockchain has extremely
+    low transaction fees (0.00025 per transaction), making it affordable to flood
+    the blockchain network with spam transactions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Other blockchains have experienced DDoS attacks designed to make a profit for
+    the attackers. An attack in March 2020 caused significant congestion on the Ethereum
+    network at the same time that Ether''s value decreased significantly. These price
+    decreases caused collateral on the MakerDAO lending platform to be auctioned off.
+    The attackers were able to win auctions with zero-bid transactions because competing
+    bids couldn''t get through, netting them $8.3 million.[⁹](#c03-note-0009)  ####
+    *Frontrunning*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In blockchain, the delay between the public transmission of a transaction and
+    its inclusion in the distributed ledger creates the potential for “frontrunning”
+    attacks. A blockchain system can have situations where being the first to submit
+    a solution has a tangible benefit. For example, an auction can be run on the blockchain
+    where, if two bidders have the same maximum that they are willing to bid, whichever
+    one can place their bid first wins.
+  prefs: []
+  type: TYPE_NORMAL
+- en: On blockchain, submitting a bid would require creating and broadcasting a transaction
+    to the network. At the time of broadcast, this transaction is not trusted or considered
+    part of the distributed ledger. Instead, it is stored in a pool of similar, untrusted
+    transactions until the next block is ready to be created. At this point, the block
+    creator will build a block that may contain this transaction and add it to the
+    blockchain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If this block creator is motivated by self-interest (which blockchain encourages),
+    they will order transactions in the block based upon their associated transaction
+    fees. This means that a transaction created later but with a higher transaction
+    fee will be given priority. Therefore, a participant in the auction who observes
+    the bid transaction and makes the same bid but with a higher transaction fee is
+    likely to be the one seen first and chosen by the auctioneer. On blockchain, the
+    first transaction created isn't necessarily the first one processed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '##### Countermeasures'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Frontrunning attacks take advantage of the fact that transactions are publicized
+    to the blockchain network before they are included within a block. This provides
+    an attacker with a window in which to create a competing transaction that might
+    be added and processed first.
+  prefs: []
+  type: TYPE_NORMAL
+- en: One solution to this problem is exclusive mining, in which a transaction creator
+    only shares a transaction with a single potential block creator. When this node
+    is next selected to create a block, they can include the transaction in it. This
+    prevents frontrunning because the transaction is only made public once it has
+    already been added to the ledger. Unless an attacker performs a 51% attack, there
+    is no way for a frontrunning transaction to come before it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This approach has been used in the past to protect transactions designed to
+    exploit a vulnerability before a hacker can. In 2020, a white-hat hack of a vulnerability
+    in a Lien Finance smart contract protected over $9.6 million in tokens from being
+    stolen by an attacker.[^(10)](#c03-note-0010) The exploit involved the use of
+    exclusive mining by the SparkPool mining pool to protect against frontrunning
+    attacks.  ##### Case Studies'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Frontrunning attacks are common occurrences in the decentralized finance (DeFi)
+    spots. Automated bots scan the pools of pending transactions for trades that they
+    can exploit, frontrunning the transaction to buy low and sell high.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'While these bots are designed to exploit other blockchain users, they occasionally
+    end up doing more good than evil. In a hack against the DODO decentralized exchange
+    (DEX), for example, a bot “front ran” transactions by an attacker trying to exploit
+    the vulnerable DEX.[^(11)](#c03-note-0011) Of the $3.8 million in tokens extracted
+    from the protocol, $1.89 million was taken by the bot and later returned to the
+    protocol by the bot''s owner.  #### *SPV Mining*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: SPV mining was mentioned previously since it is an attack against Proof of Work
+    consensus. However, it also applies to the block creation process. SPV miners
+    deliberately skip steps of the block creation process in order to gain an advantage.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A legitimate miner must download a complete copy of each block in the blockchain
+    and then validate that they are not creating double-spends with their new block.
+    An SPV miner skips both of these steps since a block that only contains the miner''s
+    block reward can''t possibly include a double-spend.  ### Threat Modeling for
+    Block Creation'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Mapping attacks against block creation to the STRIDE threat model highlights
+    the following threats:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Tampering:** Frontrunning attacks are designed to allow later transactions
+    to be processed before earlier ones, changing the impacts of these transactions.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Denial of Service:** An attacker can perform a denial-of-service attack in
+    various ways, slowing or stopping block creation and the addition of transactions
+    to the digital ledger.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Elevation of Privileges:** SPV mining provides an attacker with an increased
+    probability of creating blocks and greater control over the contents of the digital
+    ledger.  ## Conclusion'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The blockchain protocols define the theory of blockchain. Consensus algorithms
+    describe how mutually distrusting blockchain nodes work together to choose block
+    producers, and the block creation protocol outlines how the network will organize
+    and validate transactions to update the blockchain's ledger.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In the next chapter, we''ll move on from theory to practice. Blockchain systems
+    are implemented as software that runs on computers and communicates over modern
+    networks. This underlying infrastructure introduces new security considerations
+    and potential attack vectors.  ## Notes'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[1](#R_c03-note-0001).  `[https://lamport.azurewebsites.net/pubs/byz.pdf](https://lamport.azurewebsites.net/pubs/byz.pdf)`'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[2](#R_c03-note-0002).  `[https://hacked.slowmist.io/en/?c=Blockchain](https://hacked.slowmist.io/en/?c=Blockchain)`'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[3](#R_c03-note-0003).  `[https://blog.theabacus.io/the-verge-hack-explained-7942f63a3017](https://blog.theabacus.io/the-verge-hack-explained-7942f63a3017)`'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[4](#R_c03-note-0004).  `[https://decrypt.co/3506/spy-mining-hits-ethereum](https://decrypt.co/3506/spy-mining-hits-ethereum)`'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[5](#R_c03-note-0005).  `[https://decrypt.co/3506/spy-mining-hits-ethereum](https://decrypt.co/3506/spy-mining-hits-ethereum)`'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[6](#R_c03-note-0006).  `[https://medium.com/@dsl_uiuc/fake-stake-attacks-on-chain-based-proof-of-stake-cryptocurrencies-b8b05723f806](https://medium.com/@dsl_uiuc/fake-stake-attacks-on-chain-based-proof-of-stake-cryptocurrencies-b8b05723f806)`'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[7](#R_c03-note-0007).  `[https://cointelegraph.com/news/expensive-lesson-75-eth2-validators-slashed-for-introducing-potential-chain-split-bug](https://cointelegraph.com/news/expensive-lesson-75-eth2-validators-slashed-for-introducing-potential-chain-split-bug)`'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[8](#R_c03-note-0008).  `[https://cryptonews.com/news/solana-reportedly-went-down-again-after-ddos-attack.htm](https://cryptonews.com/news/solana-reportedly-went-down-again-after-ddos-attack.htm)`'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[9](#R_c03-note-0009).  `[www.coindesk.com/tech/2020/07/22/mempool-manipulation-enabled-theft-of-8m-in-makerdao-collateral-on-black-thursday-report](https://www.coindesk.com/tech/2020/07/22/mempool-manipulation-enabled-theft-of-8m-in-makerdao-collateral-on-black-thursday-report)`'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[10](#R_c03-note-0010). `[https://samczsun.com/escaping-the-dark-forest](https://samczsun.com/escaping-the-dark-forest)`'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[11](#R_c03-note-0011). `[https://dodoexhelp.zendesk.com/hc/en-us/articles/900004851126-Important-update-regarding-recent-events-on-DODO](https://dodoexhelp.zendesk.com/hc/en-us/articles/900004851126-Important-update-regarding-recent-events-on-DODO)`'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
