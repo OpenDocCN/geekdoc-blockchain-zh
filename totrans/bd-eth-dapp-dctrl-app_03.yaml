@@ -494,6 +494,7 @@
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**库代理注册合约**（`SafeMathProxyRegistry`）是一个包含不同版本库地址列表的合约。它可能还包含一个状态变量，持有默认地址，通常是添加到列表中的最新地址。库所有者在每次部署库时更新地址列表和默认地址。'
 - en: When a client contract invokes a library function, it performs a corresponding
     `delegatecall` on the library proxy instead. This retrieves the correct library
     address for the client contract to use from the library proxy registry and then
@@ -503,25 +504,30 @@
   id: totrans-70
   prefs: []
   type: TYPE_NORMAL
+  zh: 当客户端合约调用库函数时，它会在库代理上执行相应的`delegatecall`。这从库代理注册表中获取客户端合约要使用的正确库地址，然后对库的相关实例执行`delegatecall`。从客户端合约的角度来看，整个调用链的行为与正常调用库函数完全一样。
 - en: '|  |'
   id: totrans-71
   prefs: []
   type: TYPE_TB
+  zh: '|  |'
 - en: Note
   id: totrans-72
   prefs:
   - PREF_H5
   type: TYPE_NORMAL
+  zh: 注意
 - en: Library functions are implicitly invoked through the `delegatecall` EVM opcode,
     which executes in the context of the caller, as explained in [section 3.2.5](kindle_split_014.xhtml#ch03lev2sec7),
     and as I’ll further explain in [chapter 14](kindle_split_028.xhtml#ch14) on security.
   id: totrans-73
   prefs: []
   type: TYPE_NORMAL
+  zh: 库函数是通过`delegatecall` EVM操作码隐式调用的，如[第3.2.5节](kindle_split_014.xhtml#ch03lev2sec7)所述，我将在[第14章](kindle_split_028.xhtml#ch14)进一步解释。
 - en: '|  |'
   id: totrans-74
   prefs: []
   type: TYPE_TB
+  zh: '|  |'
 - en: In summary, if you find that a library you’d like to use provides a proxy, use
     it rather than hardwiring to a specific deployed instance. You’ll gain maintainability.
     The catch, though, is that you must trust the contract owner won’t maliciously
@@ -530,21 +536,25 @@
   id: totrans-75
   prefs: []
   type: TYPE_NORMAL
+  zh: 总之，如果您发现您想使用的库提供了代理，请使用它，而不是硬编码到特定的已部署实例。你会得到可维护性。但要注意，您必须信任合约所有者不会恶意地将您的调用转发到与原库无关的新库实现。
 - en: If you find the idea of designing an upgradeable library interesting and want
     to learn further, I encourage you to review Araoz’s Medium article, where you
     can find code samples.
   id: totrans-76
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果您对设计可升级的库这个想法感兴趣并想进一步学习，我鼓励您回顾Araoz的Medium文章，那里有代码示例。
 - en: '|  |'
   id: totrans-77
   prefs: []
   type: TYPE_TB
+  zh: '|  |'
 - en: Warning
   id: totrans-78
   prefs:
   - PREF_H5
   type: TYPE_NORMAL
+  zh: 警告
 - en: 'You should thoroughly understand the proxy library technique before you attempt
     to implement it; weak implementations have been found subject to malicious attacks.
     I recommend reading the Medium post “Malicious backdoors in Ethereum Proxies,”
@@ -552,15 +562,19 @@
   id: totrans-79
   prefs: []
   type: TYPE_NORMAL
+  zh: 在尝试实现之前，您应该彻底理解代理库技术；已经发现薄弱的实现容易受到恶意攻击。我建议您阅读Patricio Palladino在Medium上发表的文章“Ethereum
+    Proxies中的恶意后门”，以确保您知道薄弱环节：[http://mng.bz/vNz1](http://mng.bz/vNz1)。
 - en: '|  |'
   id: totrans-80
   prefs: []
   type: TYPE_TB
+  zh: '|  |'
 - en: 13.3\. Designing an upgradeable contract
   id: totrans-81
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 13.3. 设计可升级的合约
 - en: 'As you might have already guessed, contracts suffer from the same limitation
     as libraries: once you deploy a contract, you’re stuck with it. If you discover
     a bug or security vulnerability after deployment, you can at most freeze it or
@@ -570,6 +584,7 @@
   id: totrans-82
   prefs: []
   type: TYPE_NORMAL
+  zh: 正如您可能已经猜到的那样，智能合约与库一样存在相同的局限性：一旦部署了一个合约，你就固定下来了。如果你在部署后发现了一个错误或安全漏洞，你最多只能冻结或销毁它——如果你包含了这种紧急停止功能的按钮。最好的办法是在此之前计划好最坏的情况，并设计一个具有内置可升级性的合约。
 - en: As in the case of proxy libraries, although this solution makes the contract
     safer from your side, from the point of view of the users, you’re introducing
     a layer of obfuscation. The most security-conscious users might not trust your
@@ -578,15 +593,18 @@
   id: totrans-83
   prefs: []
   type: TYPE_NORMAL
+  zh: 与代理库的情况一样，尽管这种解决方案使合约从您的角度来看更安全，但从用户的角度来看，您引入了一层混淆。最注重安全的用户可能不信任您的良好意愿，可能会担心您突然开始将客户端调用重定向到恶意合约。
 - en: 'I’ll illustrate for you these two main techniques for making a contract upgradeable:'
   id: totrans-84
   prefs: []
   type: TYPE_NORMAL
+  zh: 我将为您说明使合约可升级的这两种主要技术：
 - en: Use the same proxy technique I’ve shown you for libraries
   id: totrans-85
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 对库使用相同的代理技术
 - en: Separate state and logic into two contracts, both inherited from an abstract
     `Upgradeable` contract
   id: totrans-86
