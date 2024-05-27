@@ -1,0 +1,1682 @@
+- en: <hgroup>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Part IV](contents.xhtml#rpart4)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[Integration of Probabilistic Data Structures with Blockchain](contents.xhtml#rpart4)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: </hgroup>
+  prefs: []
+  type: TYPE_NORMAL
+- en: <hgroup>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[14](contents.xhtml#rchapter14)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[Applicability of Membership Query PDS with Blockchain](contents.xhtml#rchapter14)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: </hgroup>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[14.1 Full Blockchain Client vs Lightweight Blockchain Client](contents.xhtml#rsec14_1)'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: As discussed in [subsection 6.1.3](08chap_06.xhtml#sec6_1_3), blockchain supports
+    two types of clients. A full blockchain node stores a full copy of the digital
+    ledger. The entire history of blocks has to be downloaded and stored. As it is
+    time-consuming and requires high space to download the entire blockchain. This
+    poses a heavy requirement on resources, memory, bandwidth, and computing of blockchain
+    nodes. Along with disk space consumption, another concern is overhead of verifying
+    the correctness of broadcasted block due to growth of Bitcoin volume. So, blockchain
+    supports another type of client to solve the problem of resource and memory-constrained
+    devices. In contrast to a full client, a lightweight client can transact without
+    downloading full copy of the blockchain. Nevertheless, the lightweight client
+    only stores block header in order to achieve the PoW blockchain concept. However,
+    a lightweight client has to reference a trusted full client's copy of the blockchain.
+    The full client only forwards the copy of the transactions requested by lightweight
+    client.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this context, SPV is a method used by lightweight client to verify whether
+    a transaction is included in a block or not without downloading the entire blockchain.
+    The process of verification has been described in [subsection 6.1.3](08chap_06.xhtml#sec6_1_3).
+    Readers may refer to that subsection. Along with checking the existence of a transaction
+    in a block, Lightweight clients can also verify the block's difficulty. To verify,
+    the lightweight client checks whether a block has successful cryptographic ink
+    to the previous block. Also, the lightweight client checks whether PoW solution
+    meets the block difficulty or not. The difference between full blockchain client
+    and lightweight blocchain client is shown in [Table 14.1](#tab14_1).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**TABLE 14.1**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Full blockchain client vs lightweight blockchain client.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| **Full blockchain client** | **Lightweight blockchain client** |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Stores entire history (full copy) of blockchain distributed ledger | No need
+    to download full copy of blockchain ledger |'
+  prefs: []
+  type: TYPE_TB
+- en: '| No reference to any other node required | References one or more full client
+    for performing operations |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Provides greater privacy | Lightweight client has to specify transaction
+    to full nodes. Hence, privacy risks exists |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Mostly consists of computer system | Mobile consists of mobile wallets |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Nodes have mining rights | No mining rights are given to lightweight clients
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Contributes to full functionality of a network | No contribution in functionality
+    og the network |'
+  prefs: []
+  type: TYPE_TB
+- en: '| No dependency on third-party or any other node | Dependency on light wallet
+    provider |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Full control over your own money | No guarantee that referenced full node
+    is online when required |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Full clients maintenance is highly complex | Provides ease of use |'
+  prefs: []
+  type: TYPE_TB
+- en: '| These nodes have to verify the correctness of each transaction of the network
+    | These nodes doesn''t have rights to verify blocks to be added in blockchain
+    network |'
+  prefs: []
+  type: TYPE_TB
+- en: Key point
+  prefs: []
+  type: TYPE_NORMAL
+- en: A full client can fool a lightweight client by simply not providing interested
+    transaction. This is a case of DoS attack. However, by connecting to more than
+    one full nodes, this problem can be solved.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[14.2 BF with probabilistic data structures](contents.xhtml#rsec14_2)'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[14.2.1 Bitcoin using BF](contents.xhtml#rsec14_2_1)'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Notably, SPV client does not need to list every transaction in which they are
+    interested in (this could be thousand in number). In this context, a BF can be
+    used with SPV clients. Rather than directly sending an interested transaction''s
+    address list, BF can be used with SPV clients to achieve a space-efficient means
+    to acquire the transaction of interest. All the addresses required by SPV client
+    are embedded in BF and is forwarded to associated full client. The step by step
+    sequence of this process is described as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here, client forms a BF by inserting addresses of all interested transaction.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: When referenced full client comes online, the lightweight client establishes
+    a connection with the full client and upon a successful connection, formulated
+    BF is transferred over a secure channel.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: For every received block of transaction, the full client will first check it
+    against BF received from SPV/lightweight clients.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In case of positive results matched transactions along with some Merkle branch
+    required to achieve Merkle hash is sent to SPV client. The sequence steps between
+    SPV client and full client is represented in [Fig. 14.1](#fig14_1).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '![Figure 14.1](../images/fig14_1.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**FIGURE 14.1.**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Sequence of steps between SPV client and Full Client.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Issues with SPV client**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A full node now knows all public addresses of the transaction received by the
+    requesting light client, this fact obviously violates the client's privacy. Information
+    such as- purchase habits may get released with this privacy threat. Also, it can
+    lead to DoS attack.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A full node may get compromised by attacker and steals BF pertaining to SPV
+    client. Moreover, in case of Sybil attack (where attacker intentionally generates
+    lots of malicious nodes) launched by attacker, the chances of picking any malicious
+    node as full client increases.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Unfortunately, the false positive probability exists in this case as well which
+    implies may be an unwanted transaction can be transferred to the lightweight client.
+    However, this property creates difficulty to recognize Bitcoin address owned by
+    users as it is hard to identify what positive addresses are actually inside BF.
+    Nevertheless, authors of [[86](bib.xhtml#ch00-bib-86)] suggested that false positive
+    of BF is not enough to preserve privacy of SPV client. Also, high false positive
+    rate waste more network bandwidth. However, a SPV client with enough bandwidth
+    may choose high positive rate. This implies full client can't accurately judge
+    the interested transaction of SPV client. Infact, a BF with much high false positive
+    rate would result in downloading almost entire blockchain. In contrast, by setting
+    a low FP rate, full node would know exactly the transaction of interest for a
+    SPV client as specific transactions would be downloaded only. Moreover, low FP
+    rates would result in faster synchronization for SPV clients whereas high FPR
+    rate leads to high synchronization time as large number of transactions are downloaded
+    tcolorbox
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Key point:** BF represents a tradeoff between privacy and network bandwidth.'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: The size of memory request gets increased with the increase in number of addresses
+    possessed by SPV client.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Research on preserving privacy of SPV client using BF**'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'Authors of [[86](bib.xhtml#ch00-bib-86)] discussed the issue of addresses information
+    leakage with BF used by SPV client. The authors have concluded and observed the
+    following points:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: It is shown by experiment that address information leakage depends on number
+    of addresses used by SPV client to form BF. It has been concluded that if an SPV
+    client constructs BF with ¡20 addresses, the risk of information leakage is high
+    as compared to case if 20 plus addresses are embedded in BF.
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If an adversary is able to collect more than one BF from same SPV client, this
+    situation leaks considerable more number of addresses. Hence, construction of
+    more than one BF by same SPV client should be avoided. Moreover, BF should be
+    formed with different elements and different seeds in order to avoid much information
+    leakage by adversary.
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Information leakage is worsen if SPV client is restarted and a adversary can
+    link two different BF with same elements but different parameters. Hence, SPV
+    client should remember state for their outsourced BF in order to avoid recomputing
+    a new filter with same elements but different parameters.
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Notably, for a fixed false positive rate of BF, privacy level preserved depends
+    on total number of unique addresses in the block. As these total number of unique
+    addresses in a block may increase steadily, so it is important to decide a strategy
+    for privacy preservation while designing BF. In this context, authors of [[114](bib.xhtml#ch00-bib-114)]
+    proposed a privacy metric, i.e., *γ*-deniability to determine how truly involved
+    addresses are hidden by false positive rate of BF. Basically, *γ* is a parameter
+    to control privacy level while designing SPV client's BF. *γ*-deniability depicts
+    measure of how much addresses inserted in BF are kept balanced by false positive
+    Bitcoin addresses. However to create a BF that specify a particular *γ*, it is
+    required to have information about the number of unique addresses from the last
+    checkpoint to latest block (Nu). To calculate Nu, without accessing the entire
+    blockchain, linear regression model s suggested by authors. To check the mathematics
+    behind estimation scheme of Nu, readers may refer to [[114](bib.xhtml#ch00-bib-114)].
+    After computing Nu using linear regression model and target *γ*, the array size
+    of BF can be constructed. It has been shown in results that as compared to conventional
+    scheme, achieved privacy level is high in the proposed scheme.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Authors of [[163](bib.xhtml#ch00-bib-163)] explained that there is another implementation
+    of SPV client where this client downloads whole Bitcoin blockchain from full node
+    to verify a single transaction of interest. However, client will only keep the
+    interested transactions from block and discard rest other transactions. This approach
+    is privacy preserving as no other node on the network can determine the transaction
+    of interest for SPV client. Unfortunately, this way there is lots of bandwidth
+    wastage. Here, authors used the concept of private information retrieval (PIR)
+    to create fully private queries with low bandwidth and low latency cost. PIR enable
+    users to query a database in a way that database doesnot learn anything about
+    user's query. The system model of this proposal involves different PIR servers
+    that responds to PIR queries of SPV client and provides required data to perform
+    operations. PIR server don't learn anything about user-centric transaction data.
+    PIR server actually first downloads whole blockchain and stores it in PIR database.
+    For every database, a description file named manifest file is created by PIR server.
+    SPV client still downloads BF from associated full client and fetches manifest
+    file to query PIR database afterwards.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'To integrate BF with BC, a similar approach in [[23](bib.xhtml#ch00-bib-23)],
+    presents a method that leverages fast chain synchronization by not sending any
+    irrelevant transaction to SPV Client. Three messages perform operations between
+    lightweight client and full client: *filterload* message initializes and set current
+    BF on connection, *filteradd* message updates current BF by adding data elements
+    to current BF, *filterclear* message deletes current BF in use. Also, authors
+    concluded that compact size of BF enables fast membership which consequently open
+    up risk for DoS attack. Moreover, SPV approach can lead to privacy issue as full
+    client has information regarding bitcoin address used by SPV client. However,
+    false positive generated by BF makes it difficult for a full client to identify
+    actual addresses but it cannot completely hide the anonymity of addresses of SPV
+    Client. Besides, high FPR can lead to wastage of network bandwidth [[153](bib.xhtml#ch00-bib-153)].'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[14.2.1.1 PoW using BF](contents.xhtml#rsec14_2_1_1)'
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: 'In addition to SPV implementation, PoW mechanism of Bitcoin uses BF to avoid
+    nonce reuse attack. To realize In addition to SPV implementation, PoW mechanism
+    of Bitcoin uses BF to avoid nonce reuse attack [[24](bib.xhtml#ch00-bib-24)].
+    To realize this each verifier employs two BF''s: current and previous. Before
+    computing PoW, each nonce is checked against both BF''s and for positive membership
+    results, reject the nonce value and compute <math alttext="" display="inline"><mrow><mi>S</mi><mi>H</mi><mi>A</mi><mo>−</mo><mn>256</mn><mo
+    stretchy="false">(</mo><mi>S</mi><mi>H</mi><mi>A</mi><mo>−</mo><mn>256</mn><mo
+    stretchy="false">(</mo><mo>+</mo><mo>+</mo><mi>n</mi><mo>|</mo><mo>|</mo><mi>h</mi><mo
+    stretchy="false">)</mo><mo stretchy="false">)</mo></mrow></math>(where, *n* is
+    nonce and *h* is previous header) to check whether MSB bits of results match with
+    the given target. Finally, add nonce value *n* to update current BF. Also, the
+    verifier can reset current BF by copying current BF to previous BF.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[14.2.2 Ethereum using BF](contents.xhtml#rsec14_2_2)'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Other than *Bitcoin, Ethereum* also integrates BF to achieve better space efficiency.
+    Parameters in Ethereum storage are indexed, to filter the event logs for specific
+    value/address [[215](bib.xhtml#ch00-bib-215)]. Receipt of each transaction is
+    encoded in Ethereum. Each transaction receipt is denoted as *BR[i]* where *i*
+    represents ith transaction. This receipt consists of 4 items, i.e., (R, Ru, Rl,
+    Rb) where R signifies post transaction state, Ru signifies the amount of cumulative
+    gas consumed in block holding the transaction receipt just immediately after the
+    transaction has been executed, Rl signifies set of logs created while execution
+    of transactions and Rb signifies BF constructed from information in each log entries.
+    The BF is of 2048 bits. With BF entire Ethereum blockchain can be scanned in seconds
+    to find logs matching specific topic.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Whenever a new block is created, the address of any logging contract and indexed
+    fields of logs generated when transaction has happened are inserted in BF and
+    this BF is added to the block header. Indexed fields mostly consists of address
+    fields of transaction including “to, from and smart contract address” and other
+    log topics (e.g., transfer). Nevertheless, actual logs are not added to the block
+    header in order to save space. If an application requires to find log entries
+    of a given contract or having specific indexed fields, it just need to scan each
+    block header to retrieve BF to check for relevant logs it contains or not. In
+    case of positive results, the node again executes the transaction from that block,
+    regenerates logs, and return the relevant ones. However, direct indexing of the
+    transaction by addresses can put a high burden on target machine. In this context,
+    the authors in [[166](bib.xhtml#ch00-bib-166)] proposed a method using BF that
+    extracts account wise information of individual account in an improvised way.
+    Also, authors in [[90](bib.xhtml#ch00-bib-90)] proposed a cuckoo filter to check
+    address membership. It has been concluded that cuckoo filter performs fast membership
+    search over SBF.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[14.2.3 Integration of blockchain and BF for certificate revocation](contents.xhtml#rsec14_2_3)'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Authors of [[64](bib.xhtml#ch00-bib-64)] proposed to use blockchain for a certificate
+    management system which is the core component of public key infrastructure. Here.
+    All the associated operations to certificates are stored on the blockchain for
+    public audit. However, the authors described some of the concerns with blockchain
+    for certificate management.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Centralization in practice: Due to privileged nodes which possess high stakes
+    or better computational capability in consensus algorithm including PoW, PoS,
+    etc., there is a risk of centralization in the network.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Block size management: As discussed earlier, the current block size of the
+    blockchain is specific and limited. However, in some case certification revocation
+    list size can reach up to 76 MB which clearly does not get fit to one block. Hence
+    more than one block is required to store CRL information. Therefore, to check
+    information regarding certificate revocation becomes insufficient.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: To maintain the brevity of this book, we will not discuss the solution to the
+    first problem. We are just discussing the integration of blockchain and Bitcoin.
+    Readers may refer to the original paper for detailing.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In order to solve the later issue, i.e., block size limitation, authors have
+    presented a revocation checking method using Dual Counting Bloom Filter (DCBF).
+    DCBF provides efficient query processing and economic storage. The whole certificates
+    of the system are divided into two sets, i.e., valid certificate set and revoked
+    certificate set. To store two different varieties of sets two counting BF's are
+    employed, i.e., CBF1 and CBF2\. The updated or newly created certificates are
+    stored in CBF1 and a revoked certificate is first deleted from CBF1, then stored
+    in CBF2\. When a block is created, both CBF1 and CBF2 are stored in one block.
+    To check for a revoked certificate, first, the certificate in question is passed
+    through CBF2\. If this BF returns negative, the certificate is marked as a valid
+    certificate. Otherwise, in case of positive results, the certificate is matched
+    in CBF1\. If the result is negative in this case, the certificate is revoked definitely
+    whereas, for positive results, related operations of certificates are then checked
+    in the block. Comparing results in two BF's ensures the accurate status of certificate
+    without any false positive.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[14.2.4 Integration of blockchain and BF in smart grid sector](contents.xhtml#rsec14_2_4)'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: In research work [[91](bib.xhtml#ch00-bib-91)], the authors have presented solutions
+    to achieve privacy in the smart grid. Here, authors employ blockchain for data
+    aggregation rather than relying on trusted third-party. The system architecture
+    divides all users of smart grid in different groups as per their electricity consumption
+    type. The keys of all users are initialized by a key management center (KMC).
+    KMC basically allocates multiple public and private keys to each user and the
+    public key is used as a user's pseudonym. In each time slot, a new miner node
+    is chosen according to electricity consumption data. The selected miner node aggregates
+    nodes data and records this data in private blockchain to ensure message integrity.
+    To select a miner node, a random procedure is followed. The node whose electricity
+    consumption data is nearest to average electricity consumption data for a time
+    slot, that node is selected as the miner node. A user of the network can create
+    multiple pseudonyms to submit their electricity generation/consumption information.
+    This way users true identity can't be revealed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Moreover, to ensure fast authentication in the blockchain-based system, BF is
+    used. BF probes the existence of fake pseudonyms using zero-knowledge proof. The
+    bloom filter is constructed for each different group by using pseudonyms for that
+    group and the constructed BF is sent to all nodes in the corresponding group.
+    To authenticate the validity of a user, the registered pseudonym of the user is
+    passed through BF. If there is a positive match, the user is authenticated otherwise
+    not. Notably, identity authentication is done using zero-knowledge proof. In case
+    an unregistered user uses a pseudonym and sends wrong information to the system,
+    BF can validate a user's pseudonym with efficient space consumption. Therefore
+    is a user without registration at KMC tries to send false information to the network,
+    this attempt will get fail as mapping value in BF will contain at least one zero.
+    To avoid false positive, authors have suggested that the array size of BF should
+    be sufficiently large so that the probability of hash collisions ca be decreased.
+    [Fig. 14.2](#fig14_2) shows the identity management system using bloom filter.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Figure 14.2](../images/fig14_2.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**FIGURE 14.2.**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Identity Authentication Management System using BF.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[14.2.5 Integration of blockchain and Bitcoin for bodyworn sensing devices](contents.xhtml#rsec14_2_5)'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Health issuers are developing strategies to collaborate with bodyworn devices
+    with their policies. Although bodyworn IoT devices generate quite private information
+    about patient's routine and this information should not be tampered with in any
+    sense [[209](bib.xhtml#ch00-bib-209)]. In order to address the concern of secure
+    data logging, authors of [[172](bib.xhtml#ch00-bib-172)] presented a lightweight
+    solution. Here, all smart devices that lie in same broadcast domain serve as witnesses
+    for neighboring devices by logging all data conversation in a chain like structure.
+    However, a gateway is employed for detailed logging of all information that it
+    conducts with sensor devices. Basically, sensor devices record all conversations
+    they overhear in the network and maintain a record and forward it to the gateway.
+    Notably, there is heavy traffic in the network with this approach which uses large
+    memory and imposes high communication overhead for witnesses. As a solution, rather
+    than recording the whole conversation, these devices use BF to store fingerprints
+    of conversation in chronological order instead. Hence, using BF reduces space
+    complexity. After a certain time, witnesses upload their signed BF to the gateway.
+    The digital signing ensures integrity and non-repudiation in the system. Moreover,
+    to reduce false positive probability authors have suggested using different hash
+    functions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[14.2.6 Graphene: Block propagation protocol](contents.xhtml#rsec14_2_6)'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: In distributed systems, it is always required to minimize the network bandwidth
+    for efficient synchronization among replicas. Clearly, the efficiently designed
+    network protocol for synchronization of newly mined block and newly created transactions
+    provides may benefits. For example, if blocks are passed on consuming less network
+    data, consequently maximum block size can be increased. Additionally, there will
+    be an increase in processing of overall number of transactions per second. Many
+    researchers are trying to invent techniques that transmits block with less bandwidth.
+    The lesser the bandwidth is used, faster the blocks or messages will be propagated
+    in the network. Blocks transferred with less bandwidth not only increases synchronization
+    among peers but also reduces forks in the chain. Graphene protocol in blockchain
+    is believed to be a protocol which transmits block with minimum amount of bandwidth
+    possible.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Moreover, Bitcoin miners aim to broadcast the newly founded block fast as delay
+    of even milliseconds increases the probability of other blocks to be added into
+    the BC. This motivates a miner to cut the number of transactions to be added in
+    a block. Miners in Bitcoin network keep a memory pool for all unconfirmed transactions.
+    Miners choose some transaction from memory pool and construct a new candidate
+    block. If mining pool of all the miners are ideally synchronized and they use
+    same protocol for selecting the transactions to be added to their candidate block.
+    This eliminates the need to include transactions in blocks and enables each miner
+    to reconstruct a block from memory pool. In real scenarios, memory pool of miners
+    are not perfectly synchronized, thus it leads to inefficiency in block propagation.
+    To address this issue, authors in [[159](bib.xhtml#ch00-bib-159)] presented a
+    protocol named Graphene to design new blocks for a BC based network. It integrates
+    BF with a Inverse Bloom Lookup Table (IBLT) to solve the issue of set reconciliation
+    in P2P network. IBLT [[25](bib.xhtml#ch00-bib-25)] solves the problem of calculating
+    difference in two data sets which helps in determining what data sets share in
+    common. To synchronize the blocks, sender first constructs a IBLT from transaction
+    ID's in block. Also, it constructs a BF using same transaction ID's. The receiver
+    utilizes BF to strain transactions ID's from memory pool and construct its own
+    IBLT. Finally, receiver decodes the difference between two blocks. This way network
+    bandwidth can be decreased significantly. Simulation results proved that with
+    Graphene, network traffic decreases dramatically.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[14.2.7 Anti-malware software using BF and blockchain](contents.xhtml#rsec14_2_7)'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: With the increase in Internet usage, the threats of viruses and malwares also
+    gets increased. Mostly, anti-malware programs work by matching signatures of attack
+    to arbitrary input stream. Nevertheless, its important to update these pattern
+    matching mechanism in order to protect users from all types of new malwares. The
+    idea of deploying a centralized update server is obviously a target for malicious
+    attacker.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Authors of [[156](bib.xhtml#ch00-bib-156)] provides a architecture named “BitAV”
+    that scans the input with less memory usage and fast speed. Along with this, BitAV
+    provides decentralized updates and maintenance by relying on blockchain based
+    system. Systems can distribute the novel virus pattern on blockchain which increases
+    the fault tolerance. Moreover, the blockchain enabled P2P maintenance mechanism
+    that improves end-to-end performance and it is comparatively less susceptible
+    to DoS attack. The blockchain structure of BitAV blockchain is similar to Bitcoin
+    implementation. The only difference comes in the way transaction fields works.
+    BitAV stores two information in place of transaction field, i.e, identifier and
+    invalidation fields. The identifier field enables addition of new malware identifiers.
+    The rest metadeta section is same as the Bitcoin header section to ensure verifiability.
+    Every new identifier on blockchain holds format: *[Identifier][Publickey][Signature]*.
+    Over and above, the scanning mechanism of BitAV uses a BF to enable constant time
+    key value queries. Instead of storing signatures of malwares or their updates,
+    BF stores them in hash format to save space and to reduce query time.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[14.2.8 Transaction execution in disaster prone area using BF and blockchain](contents.xhtml#rsec14_2_8)'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Authors of [[157](bib.xhtml#ch00-bib-157)] utilizes a BF and blockchain to enable
+    mobile based transaction mechanism in a disaster prone area. Here, it is assumed
+    that there is no or limited access to bank in a disaster prone area as there is
+    no Internet connectivity to this area. Endorsers supports absolute payment security
+    for transactions between customer and merchant. Similar to Bitcoin, here also
+    transactions are stored in blockchain like structure. Nevertheless, in this approach
+    computing PoW by Miners is not required. Users computes hash of transactions log
+    and other neighboring nodes add this signature to the log after verification to
+    form an event chain. An event chain is a use case of cryptographic hash function
+    on block. Rather than signing entire log, endorser computes hash value of previous
+    block and sends it to monitor. Furthermore, monitor signs on the integration of
+    hash value, GPS co-ordinate, spending of coin and sends back to endorser. Each
+    user on the network stores event chain as their transaction log. Whenever a new
+    event happens, a new block is cryptographically linked to last event chain. In
+    case a mobile phone is switched off, the event chain is considered broken as the
+    device is not able to ping messages with neighboring monitor nodes. Therefore,
+    restricting a new event from being added to the event chain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Additionally, in order to depict all spent e-coin from the beginning, a BF is
+    used. All spent e-coins are mapped using hash function to BF. Rather than storing
+    all ID's of spent e-coins, only the hashes of ID's are recorded in event chain.
+    To check double spending of a certain e-coin, BF is probed. Clearly, communication
+    overhead is reduced by using a BF.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[14.2.9 Non-equivocation with BF and blockchain](contents.xhtml#rsec14_2_9)'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Authors of [[197](bib.xhtml#ch00-bib-197)] discussed their concerns on non -equivocation
+    by a Certificate authority. If a CA equivocates different contradicting certificates
+    for the same identity, it can compromise user's privacy. Hence, non-revocation
+    is indeed an important necessity in security system today including blockchain
+    based transparency and public key distribution. However with online trusted parties
+    non-equivocation is difficult again because of privacy concerns and single point
+    of failure.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To address this issue, authors have used Bitcoin witness approach, mainly due
+    to three reasons:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Bitcoin witnesses scheme is resistant to forking attacks.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: It involves a single global witnesses, i.e., Bitcoin blockchain and other multiple
+    trusted entities for example, log providers and auditors are not allowed.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Bitcoin blockchain provides open, decentralized and transparent environment
+    to provide a efficient witnesses system.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Authors present their scheme with name Catena that reduces auditors bandwidth
+    and provides tamper-evident log on the top of Bitcoin blockchain. Also, with Catena,
+    forking is not allowed. Each Catena transaction consists of exactly one statement
+    and previous catena transaction is suspended, thus creating a chain of transactions.
+    Along with prevention of equivocation attack, Man-in-the-Middle (MITM) attacks
+    are also prevented with Catena. Here, Bitcoin blockchain employs a trustworthy
+    witnesses that can confirm for directory digest. For instance, in certificate
+    transparency a log server can be employed to directly witness signed heads via
+    a Catena log. Additionally, auditors who are running client interface can check
+    for non-equivocation via SPV method. Similar to SPV verification, clients only
+    have to download Bitcoin block headers and some pieces of Merkle hash to check
+    for non-equivocation. Here also, thin clients relies on BF in order to avoid downloading
+    whole data. Thin nodes insert only transactions of interest or its relevant connections
+    in BF to filter out irrelevant transactions. Therefore, with using BF, Catena
+    clients only receive relevant Catena transactions. Notably, authors of this scheme
+    also pointed out that thin nodes have less security than full nodes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[14.2.10 Outdoor health monitoring using blockchain and BF](contents.xhtml#rsec14_2_10)'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: A popular application of IoT is in health care system [[149](bib.xhtml#ch00-bib-149)][[214](bib.xhtml#ch00-bib-214)].
+    In this context, Unmanned aerial vehicle (UAV) can provide help to body wearable
+    sensors in outdoor by alarming unpredictable problems for example, natural disaster
+    and traffic hotspot. (UAV also known as drones is a type of aircrraft without
+    a pilot on board and it has capability to provide efficient solutions in military,
+    civil, and commercial sectors for audio and video surveillance [[138](bib.xhtml#ch00-bib-138)].)
+    Notably, UAV collaborated with mobile edge computing (MEC) can enable real-time
+    support to users to store their health related information to MEC server. MEC
+    brings cloud storage services near to user proximity [[45](bib.xhtml#ch00-bib-45)].
+    Nevertheless, communication link between UAV and MEC suffers lots of cyber threats
+    such as- MITM etc. Also, MEC server is prone to data integrity attack.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Authors of [[110](bib.xhtml#ch00-bib-110)] suggested to blockchain as a solution
+    for resolving security issues existing among UAV and MEC server. This is the first
+    attempt when outdoor health monitoring system is proposed using blockchain. Here,
+    health information that is collected from via UAV from users and stored on MEC
+    server is protected with blockchain based architecture. To validate users, authors
+    have used BF and health data is only stored in blockchain if blockchain validators
+    them. Every user first registers on the network and for that user first generate
+    a public and private key pair by using ECC. Next, user requests MEC server for
+    registration. The health data collected from wearable devices and this data is
+    transferred to MEC server via UAV. Before sending health care data, user encrypt
+    this data using public key of UAV. Next, after decrypting health data UAV users
+    using BF. Finally after successful validation, MEC encrypts health data and forwards
+    to nearest MEC server. However before forwarding data, UAV validates identity
+    of user with BF. Hence, using a BF in this case reduces data transmission. MEC
+    server decrypts this data and checks this data for finding abnormalities. In case
+    of any issue it is reported to the hospital. To validate the results parameters,
+    i.e., processing time of MEC server, UAV validation time, UAV energy consumption,
+    transmission of data for MEC server are used. It has been proved in experiments
+    expected size of transmission data increases at much lower rate with BF over non-BF.
+    With increase in number of users, data increases exponentially for non-BF.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[14.2.11 Multi-domain collaboration for MEC in 5G and beyond based on blockchain
+    and BF](contents.xhtml#rsec14_2_11)'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The rapid growth of IoT and 5G systems accelerates the concept of Internet of
+    everything [[145](bib.xhtml#ch00-bib-145)], [[55](bib.xhtml#ch00-bib-55)]. Clearly,
+    this increase in number of devices lead to high growth of data. However, this
+    high data growth possess challenge for the computing power of 5G systems and cloud
+    computing models [[58](bib.xhtml#ch00-bib-58)]. To solve this problem, heterogeneous
+    MEC system were designed [[132](bib.xhtml#ch00-bib-132)], [[220](bib.xhtml#ch00-bib-220)].
+    Heterogeneous MEC is designed as a distributed computing platform integrating
+    more than one MEC server, cloud server, and computing storage that provides intelligent
+    edge services near the data source. As these systems have short transmission link,
+    edge computing responds quickly to the service request. Nevertheless, in order
+    to accomplish a heterogeneous MEC system, multiple MEC servers needs to integrate
+    their resources so as to complete large scale computing tasks. Unfortunately,
+    this multi-server collaboration involves trust and security issues as these server
+    belongs to different domains and they are managed by different organization. MEC
+    server contacts other MEC servers via cross-domain routing enabled by SDN controller.
+    However, to ensure cross-domain routing among multiple server, SDN controller
+    demands topology information of other domain. Notably, this information of different
+    domain should be confidential to each other and this privacy leakage can harm
+    MEC system.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Authors in [[218](bib.xhtml#ch00-bib-218)] resolves privacy leakage issue using
+    blockchain. Here, blockchain enables trusted data sharing between MEC servers
+    to achieve trusted collaboration of multi-domain MEC network. Also, this system
+    adopts accommodative BF as a carrier to help multi-domain collaborative routing
+    consensus without revealing topology privacy.
+  prefs: []
+  type: TYPE_NORMAL
+- en: First, a cross-domain MEC request arrives at controller A through domain 1\.
+    As per this request, controller A computes intra domain path for domain 1 and
+    choses the optimal one with minimized sum of weights. While a new request is also
+    send to controller of subsequent domain having virtual topology of domain 1\.
+    Also, controller A constructs BF containing the routing results from the controller.
+    Here, BF maintains distributed ledger and efficient routing mechanism. In specific,
+    BF are also used as a carrier of routing verification. [Tables 14.2](#tab14_2),
+    and [14.3](#tab14_3) represents tabular comparison of above discussed scheme.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**TABLE 14.2**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Comparison between different schemes integrating blockchain with BF.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Table 14.2](../images/tab14_2.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**TABLE 14.3**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Comparison between different schemes integrating blockchain with BF.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Table 14.3](../images/tab14_3.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '[14.3 Integration of QF with Blockchain](contents.xhtml#rsec14_3)'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: QF serves the same purpose as BF. However, BF fails if data does not fit inside
+    main memory. Literature does not support any work integrating QF and blockchain.
+    Nevertheless, the above mentioned work using BF can be replaced with QF specially
+    if the filter size is too large to get fit inside main memory.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[14.4 Integration of Skiplist with Blockchain](contents.xhtml#rsec14_4)'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: One of the worth mentioning use case for blockchain is in notarizing document
+    for example, academic degrees. The tamper proof and transparent property of blockchain
+    makes the document on blockchain harder to forge and modify. However, being a
+    promising application the notarization use case suffers from some limitations.
+    One of such challenge is to verify the presence of a document on blockchain even
+    if that document is very old with respect to a reference point. There may be a
+    case when a user has not updated his/her blockchain, then verifiers reference
+    point on the blockchain may be behind in time with the block in question. Notably,
+    this problem becomes even more worse for a low powered device.
+  prefs: []
+  type: TYPE_NORMAL
+- en: One solution to this problem is to use SPV client that is discussed in previous
+    chapters. Additionally, SPV introduces security weakness; if SPV client acquires
+    transaction from a single full node, which may become prone to single point of
+    failure. Moreover, SPV and full client are prone to isolation attack (for example,
+    a fork from public blockchain with vey less work) and routing based hijacking
+    attacks [[37](bib.xhtml#ch00-bib-37)]. Also, if a SPV client connects with more
+    than one full node, it may lead to consumption of more bandwidth and power. Hence
+    it is not scalable for large number of thin clients. Importantly, it is necessary
+    that an SPV client should remain online in order to check whether the transaction
+    is committed to blockchain or not. Infact for any verifier to verify, device needs
+    to be online with a good Internet connection. Verification of a transaction without
+    a well connected network is either impossible or insecure.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Other solution to this problem is to use collective signing (CoSi) [[183](bib.xhtml#ch00-bib-183)],
+    an efficient digital signatures technique offered by ByzCoin. ByzCoin constructs
+    a consensus group from recently successful proof of work miners from past few
+    days or weaks. In order to commit transactions securely, this consensus group
+    formed runs PBFT algorithm. However, rather than using all-to-all communication,
+    CoSi is used during each of these phases CoSi produces a single efficiently verifiable
+    compact and collective signature cryptographically signed revealing that a fraction
+    of consensus group has verified. To check CoSi on a transaction, verifier should
+    know the public keys of miners in the consensus group in time when the transaction
+    was committed. Clearly, this consensus group continuously gets changed. To address
+    this problem, on change of a consensus group, some nodes of previous consensus
+    group collectively forms and signs a forward link have two important information.
+    The architecture of CoSi protocol is represented in [Fig. 14.3](#fig14_3).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Figure 14.3](../images/fig14_3.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**FIGURE 14.3.**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: CoSi protocol architecture [[121](bib.xhtml#ch00-bib-121)].
+  prefs: []
+  type: TYPE_NORMAL
+- en: A hash pointer to the very first block committed by next consensus group.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A description telling how consensus group is changed which specifying which
+    miners public keys are inserted or removed.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Also, all committed block has backward links using hashes. Hence, a verifier
+    with no Internet connection can verify using forward and backward link of the
+    chain. However, with his method it is required that prover should send all intervening
+    block headers and forward link. Clearly, this puts bandwidth, power and storage
+    bandwidth on low powered devices.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To solve this problem, Chainiac used Skipchains, a cryptographic blockchain
+    variant of skiplist integrated with blockchain to provide secure P2P verification.
+    *Skipchains* were originally introduced in context of updating softwares by a
+    framework called *CHAINIAC [[154](bib.xhtml#ch00-bib-154)]*. It uses *skipchains*
+    to validate integrity and authenticity of software update provided by the vendors.
+    Also, this proposal eliminates a single point of failure. Skipchain contains both
+    long distance forward and backward links to the blockchain. With *skipchains*,
+    the verifier can traverse both in forward and backward directions to track the
+    timeline from any reference point. Whenever a new block is created in Chainiac,
+    that block contains the hash link to point farther backward in time along with
+    having link to immediate prior block. This backward link can prove integrity of
+    old transaction anywhere in the blockchain. Also, Chainiac provides long distance
+    forward links along with CoSi. The long distance forward links contains information
+    of public key changes in consensus group. With this technique, instead of a single
+    authority to validate the documents, document is validated by a leader as well
+    as by a group of decentralized witnesses. It is implemented in 4 rounds of communication
+    and after each round, signature is generated and verified by witnesses. It gives
+    assurance that if central authority key gets compromised, client can not validate
+    the document unless it is signed by multiple witnesses. Additionally, it reduces
+    communication overhead in PBFT. As each node no longer requires individual node
+    signature. So, *CoSi* reduces the data size of message that is to be broadcasted
+    in network during prepare and commit phase [[72](bib.xhtml#ch00-bib-72)]. With
+    having both long distance forward and long distance backward links, the cryptographic
+    chain is traversable in both direction so that verifier can verify the correctness
+    of a block anywhere in time having others participants reference to a point on
+    blockchain. This verification can be performed in logarithmic number of steps.
+    Hence this offline and P2P verification with skipchain can be extended in future
+    blockchain technology
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Skipchains* is denoted as <math alttext="" display="inline"><mrow><msubsup><mi>S</mi><mi>b</mi><mi>h</mi></msubsup></mrow></math>where
+    *h* and *b*, define height and basis of *skipchain* respectively; if <math alttext=""
+    display="inline"><mrow><mn>0</mn><mtext><</mtext><mi>b</mi><mtext><</mtext><mn>1</mn></mrow></math>skipchain
+    is randomized and if <math alttext="" display="inline"><mrow><mi>b</mi><mtext>></mtext><mn>1</mn></mrow></math>(integer)
+    it is defined to be deterministic. The tuples of *skipchains* contain ( <math
+    alttext="" display="inline"><mrow><mi>i</mi><msub><mi>d</mi><mi>t</mi></msub><mo>,</mo><msub><mi>D</mi><mi>t</mi></msub><mo>,</mo><msub><mi>h</mi><mi>t</mi></msub><mo>,</mo><msub><mi>F</mi><mi>t</mi></msub><mo>,</mo><msub><mi>B</mi><mi>t</mi></msub></mrow></math>)
+    which denotes block identifier, payload data, block height, list of forward and
+    backward link respectively.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In BC, *Skipchains* is used by resource-constrained devices to verify the correctness
+    of a transaction. In order to verify, instead of downloading all BC data, *skipchains*
+    only downloads some logarithmic number of blocks. [Fig. 14.4](#fig14_4) shows
+    forward and backward links in skipchain. Verification process in *skipchain* is
+    also similar to verification process using Merle tree. All committed blocks contain
+    backward hash link to not only immediate prior block, but also it points farther
+    backward. Forward links are formed using *CoSi* which ensures that a certain number
+    of miners have verified and committed a block.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Figure 14.4](../images/fig14_4.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**FIGURE 14.4.**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Structure of <math alttext="" display="inline"><mrow><msubsup><mi>S</mi><mn>2</mn><mn>3</mn></msubsup></mrow></math>
+    deterministic Skipchains.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Activity
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Multiple Choice Questions
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: What are the characteristics of a lightweight blockchain client?
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Lightweight client is also known as SPV client
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Lightweight client only downloads block header of a blockchain network.
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Lightweight client downloads full copy of a blockchain distributed ledger
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Lightweight client has to refer to a trusted full client for performing operations
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The method used by lightweight client to verify inclusion of a transaction in
+    a block is called?
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Complex payment verification
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Simplified payment verification
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Blockchain payment verification
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: None of these
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: What are the characteristics of a full blockchain client?
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Stores entire history of blockchain distributed ledger
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Provides better security over lightweight client
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Refers to lightweight client for performing operations
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: None of these
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Integrating BF with SPV client provides?
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Protection from DoS attack
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Space efficient way to acquire transaction of interest
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Protection from sybil attack
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: BF can't be used with SPV client
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Which of the following is the main issue with SPV client?
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: SPV client can't download block header easily
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: SPV client can't be run on a mobile device
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: SPV client privacy is threatened
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: None of these
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Explain how Ethereum uses BF for better space efficiency?
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Explain how Bitcoin is using BF for implementing SPV client?
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Explain how BF can be used for blockchain based certificate revocation system?
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Explain working of Graphene protocol.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: How anti-malware softwares are using BF and blockchain in integration?
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Explain the concept of Skipchains.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 1\. a, b, d  2\. b  3\. a, b  4\. b  5\. c
+  prefs: []
+  type: TYPE_NORMAL
+- en: <hgroup>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[15](contents.xhtml#rchapter15)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[Applicability of Cardinality Estimation PDS with Blockchain](contents.xhtml#rchapter15)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: </hgroup>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[15.1 DDoS Attack in Blockchain](contents.xhtml#rsec15_1)'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: DDoS stands for distributed denial of service attack. This attack is used to
+    create a complete shutdown for a machine. Here, the target machine is overloaded
+    with bogus traffic so that legitimate requests cannot be processed. The term distributed
+    is used as this attack is delivered by a network of computers called botnets.
+    Particularly, attackers launch this attack for fun and profit purpose. One reason
+    that DDoS is hard to tackle is that it is difficult to differentiate between legitimate
+    and malicious requests.
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, the decentralized nature of blockchain prevents this attack to be launched
+    [[164](bib.xhtml#ch00-bib-164)], [[173](bib.xhtml#ch00-bib-173)], [[174](bib.xhtml#ch00-bib-174)].
+    In particular, attacks on single blockchain machine are known in a blockchain
+    network (such as sybil attack, routing attack). Nevertheless, if some nodes fail
+    to be active, the blockchain network still operates. Later when attacked system
+    manged to recover, they re-sync and updates with recent data collected from the
+    nodes. The degree of protection in blockchain network depends on number of nodes
+    and hash rate of the network. In order to compromise the whole system, attacker
+    needs to attack 51% of the total number of nodes of the network or in other words
+    attacker needs to have more computational power over combination of other participants.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For a blockchain based cryptocurrency system this attack include targeting transaction
+    processes, i.e., disabling a machine so as to refrain the generation of new transactions.
+    One way to launch this attack is by creating various transaction to transfer asset
+    between malicious attacker's pre created wallet's. By creating multiple transactions
+    miners involve themselves solving proof for these transactions. The denial of
+    service is caused by requirement to process legitimate transactions. Notably,
+    in Bitcoin blockchain network, a transaction fee is charged but this fees is not
+    much high to be payed by an attacker.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, when cryptocurrency named Bitcoin gold [[26](bib.xhtml#ch00-bib-26)]
+    was launched, it immediately got effected by DDoS leading to website down for
+    four hours. Bitcoin gold hard fork noticed 10 million hits per minute. Later the
+    twitter statement reveals that most of the hits involve IP addresses routed via
+    china.
+  prefs: []
+  type: TYPE_NORMAL
+- en: An another effort to launch DDoS attack on blockchain is discussed by the authors
+    of [[143](bib.xhtml#ch00-bib-143)] and the attack is named as **blockchain denial
+    of service (BDoS)**. This is based on the fundamental that blockchain protocol
+    distributes incentives for security as miners get reward for mining a block successfully.
+    BDoS exploits rationality of miners by giving them higher profit for playing against
+    system. Compared to traditional DoS attack, BDoS can disrupt the blockchain with
+    significantly less resources. Unlike selfish mining, here aim of attacker is not
+    to provide revenue to adversary but to disrupt the blockchain network. Lets understand
+    BDoS attack.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If more than one miner mines block concurrently, it results in fork (if block
+    have same parent) and in that case chain got different branches. As per Bitcoin
+    rules, to prevent ambiguity, only a single chain is extended, i.e., the miner
+    should extend the longest chain in the main chain. Then the rewards of blocks
+    diverged from that chain are ignored. However, to avoid reward loss, miners usually
+    start mining even before the current block is validated. Notably, they start mining
+    on the latest block once its metadata of the header is received. Therefore by
+    avoiding wasting resources on block, miners try to increase their mining chance
+    of next block. This approach of mining using only header is called SPV mining
+    described earlier in [chapter 7](09chap_07.xhtml). To launch an attack, attacker
+    creates a block and publishes its header only. With a given header, miner tries
+    to extend that block. However, attacker never publishes full block and that block
+    tried by rational miner never gets included in the blockchain's main chain and
+    it comes with zero expected reward from that block. Hence, the attacker created
+    a situation where honest miner ends up in loosing reward. Also, miners can't process
+    legitimate requests that leads to a situation where honest miner gives up with
+    mining and leads to wastage of resources.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Countermeasure of DDoS attack include identifying source of flooding and then
+    to design filter in order to block that source. Allow the outgoing and incoming
+    traffic from a source only if the source address is in the range of expected IP
+    addresses.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Note:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: DDoS attack is not directly effecting the security of data stored in blockchain
+    network but the ode being attacked can't take part in consensus mechanism and
+    its computation power and resources are therefore wasted.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[15.2 Mempool Transaction Count](contents.xhtml#rsec15_2)'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: All transactions waiting to be confirmed is stored in memory pool(mempool) of
+    Bitcoin network. To get confirmed, transaction first needs to be in block from
+    mempool. Notably, there is no global memory pool in blockchain network. Every
+    node on Bitcoin network constructs its own version of mempool by connecting to
+    Bitcoin network. Each transaction in mempool pays a fees and has a size. Clearly,
+    transaction having high fees are picked with priority by miners. Mempool is cleared
+    whenever the node is rebooted. Nodes pay fees to miners for mining transactions.
+    The maximum number of transaction in a block varies as all transaction doesn't
+    have same size. The more the number of transactions in mempool, the more is the
+    congestion in traffic that leads to longer confirmation time. Also, transaction
+    fees of network is determined by network congestion and size of transaction. The
+    size of Bitcoin block size is 1 MB which implies a miner can take and process
+    1 MB of transactions per block roughly around every 10 minutes. For a Bitcoin
+    network, if number of transactions exceeds 1 MB, it leads to network congestion
+    and miners then prioritize transaction having higher fees. In this context, the
+    mempool transaction count metric [[27](bib.xhtml#ch00-bib-27)] of Bitcoin reveals
+    number of transactions causing the congestion. (In contrast, mempool size will
+    specify for how long congestion will last long.)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[15.3 Interation of Linear Counting, LogLog and HyperLogLog with Blockchain](contents.xhtml#rsec15_3)'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Although there is no existing work in literature that integrates HLL, LogLog
+    or linear counting in blockchain. But these PDS can be used for counting purpose
+    in blockchain network as discussed below. Notably, we have presented our view
+    in context of HLL as this the most popular and efficient algorithm among all three.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[15.3.1 Counting transaction in mempool](contents.xhtml#rsec15_3_1)'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: This cardinality estimation PDS can be used to count transactions in mempool.
+    Mempool transaction count tells how many transactions causes the congestion. As
+    each system on blockchain network has different storage capacity for these unconfirmed
+    transactions. In this context, HLL can be used to count number of transactions
+    in each nodes mempool. To implement this logic, whenever a new transaction is
+    added to mempool, it is first hashed and this resultant hash is stored in the
+    bucket as per the value of longest zero sequence. Finally, the values in buckets
+    are combined using harmonic mean of the values in bucket. Moreover, using programming
+    an upper limit can be set on mempool specifying maximum transactions to be added
+    in mempool to avoid congestion. To set a limit, concept of smart contract can
+    also be used where a contract with logic specifying maximum transaction in mempool
+    is developed. The usage of HLL to check congested traffic in blockchain network
+    is show in [Fig. 15.1](#fig15_1).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Figure 15.1](../images/fig15_1.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**FIGURE 15.1.**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: HLL to check congested traffic in Bitcoin network.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[15.3.2 HLL to prevent DoS attack](contents.xhtml#rsec15_3_2)'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: An interesting area where HLL can be implemented is to prevent DDoS in blockchain.
+    Here, the intention of an attacker is to overwhelm victim machine with bulk of
+    non-sense traffic to consume resources and bandwidth. As discussed earlier, DDoS
+    attack can be launched in blockchain by sending lots of transaction simultaneously.
+    Another way, adversary can also send an extra large size opcode so as to process
+    the block, time taken by miners also gets high. Consequently, miners cannot process
+    legitimate request. Another way of performing DoS on blockchain is by filling
+    up orphan blocks with unlimited bogus transactions as orphan transactions blocks
+    are provided with unlimited storage. So, when new transaction arrives, all transactions
+    in orphan blocks are verified and validated if not validated earlier which consequently
+    makes miner node so busy that it is unable to process normal transactions [[28](bib.xhtml#ch00-bib-28)].
+    In this context, HLL can be employed in the network to notify if the source IP
+    of the incoming packet extends a predefined threshold. For example, authors in
+    [[60](bib.xhtml#ch00-bib-60)] proposed an algorithm that uses sliding HLL and
+    BF to detect port scan attack. Port Scan attack is a form of DoS attack where
+    an attacker targets to find some services on victims machine. Sliding HLL is almost
+    similar to original HLL which was proposed by [[61](bib.xhtml#ch00-bib-61)] to
+    approximate cardinality over a changeable bounded interval using sliding window
+    model. Also, smart contracts can be employed for the same purpose. For example,
+    Rodrigues et al. [[164](bib.xhtml#ch00-bib-164)] used smart contract to mitigate
+    DoS. Here, smart contract reports blacklisted IP address across multiple domains.
+    Notably, techniques of blocking IP address only works for static IP addresses
+    and this fails for dynamic IP address. Smart contracts are programmed with logic
+    to block IP address in the blockchain. However, authors used traditional data
+    structures to count number of transactions from same IP address. Instead of using
+    traditional data structures, probabilistic data structure can be used in order
+    to save space and to perform the operation of counting in constant time. The process
+    of handling DoS in blockchain based IoT network is shown in [Fig. 15.2](#fig15_2)
+    To obtain unique count of addresses within a block, extract IP address and port
+    number from data/transaction generated by IoT node. Pass the extracted fields
+    from SHA-256 hash function to estimate cardinality.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Figure 15.2](../images/fig15_2.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**FIGURE 15.2.**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Approximate cardinality estimation in blockchain based IoT environment.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Note** The above discussion can be applicable to IoT based environment as
+    this environment involves financial services like exchanging payments, paying
+    bills etc. for smart grid environment or V2G environment. Also, blockchain network
+    is applicable to many other IoT fields such as agriculture, medical line etc.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[15.3.3 IoT chain](contents.xhtml#rsec15_3_3)'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: A project named, IoT chain [[29](bib.xhtml#ch00-bib-29)] is designed using blockchain
+    and PDS to make IoT network better. IoT chain (ITC) was introduced to solve challenges
+    such as data privacy, DDoS attack, overhead cost of centralized environment, data
+    acquisition, data processing etc. in IoT. This technology is a combination of
+    asymmetric encryption, semi-homomorphic encryption and distributed ledgers powered
+    by blockchain technology. With a private-public key pair of asymmetric algorithm,
+    private data of users cannot be seen by the adversary. Blockchain technology reduces
+    the cost incurred by the centralized architecture, besides it ensures that data
+    is not shared with any third party. Homomorphic encryption enables operations
+    to be performed on an encrypted data. In addition to this, ITC uses BF and HLL
+    in the decentralized environment to perform real-time analysis of data where it
+    becomes necessary to process the data before a certain time period.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Activity
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Multiple Choice Questions
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: What does mempool transaction count reveals?
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Number of transactions that are causing congestion.
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: For how long congestion will last?
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Block size
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: None of these
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: What does mempool size metric tells?
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Number of transactions that are causing congestion.
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: For how long congestion will last?
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Block size
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: None of these
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: What is IoT chain?
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Integration of blockchain and IoT
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Integration of IoT and PDS
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Integration of IoT and homonorphic encryption
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: None of these
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: What is Bitcoin gold?
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Gold version of Bitcoin
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: A variant of Ethereum
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Consensus algorithm
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Hard fork of Bitcoin
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: There is a global memory pool for a blockchain network.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'True'
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'False'
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: To compromise the whole blockchain network, attacker needs to attack ……..% of
+    total nodes?
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 51%
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 30%
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 33%
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 1%
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: What are the main characteristics of homomorphic encryption?
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Operations can be performed on encrypted data.
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: It resolves encryption issues
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Its process involves a third party service provider
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: All of the above
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: BDoS stands for?
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Blockchain Denial of Service
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Base Denial of Service
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Bloated Denial of Service
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: None of these
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 1\. a  2\. b  3\. a  4\. d  5\. b  6\. c  7\. d  8\. a
+  prefs: []
+  type: TYPE_NORMAL
+- en: <hgroup>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[16](contents.xhtml#rchapter16)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[Applicability of Frequency Estimation PDS with Blockchain](contents.xhtml#rchapter16)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: </hgroup>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[16.1 RFID Tag Cloning](contents.xhtml#rsec16_1)'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Radio frequency identification (RFID) is latest auto-identification technology
+    based on radio waves for identification and tracking of object without line of
+    sight [[31](bib.xhtml#ch00-bib-31)]. Unlike conventional barcode, RFID tag is
+    a reusable, readable or writable and less likely to be error prone. RFID use case
+    includes shipping, port operation, supply chain management, banknotes etc. to
+    name a few. Enhanced operational efficiency, better accuracy, lower operational
+    cost, improved service are some of the benefits of RFID. RFID tag reading are
+    in form of data stream. For example, say S=S1, S2,…….,Sm is a data stream of tag
+    readings divided into batches of t seconds. Despite having various technology,
+    security issues of RFID are a matter of concern among which RFID cloning attack
+    is one of the malicious attack. RFID cloning attack implies fabricating more than
+    one replicas of genuine tag. A cloned tag is generally the duplicate copy of Electronic
+    Product Code (EPC) against a genuine tag. Whenever a reader reads the tag, it
+    is hard to differentiate among two tags. Additionally, using same hash function
+    against same EPC results in hash collision. Cloning of RFID can lead to financial
+    loses. However, cryptography based authentication method assures security and
+    privacy but also impose requirements of high memory and computational power [[80](bib.xhtml#ch00-bib-80)].
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[16.2 Understanding Heavy Hitters](contents.xhtml#rsec16_2)'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Network traffic monitoring is very important for secure network operation. In
+    this context, detecting heavy hitters is one of the process for traffic measurement
+    applications. Detecting heavy hitters can be used for network operations such
+    as traffic accounting and anomaly detection. Heavy hitter is defined as a flow
+    that has a particular fraction of total link capacity. In other words it is detecting
+    flow whose size is more than given threshold. According to Zhou et al., detecting
+    heavy hitter is the process of determining the frequency of same element belonging
+    to network data stream [[221](bib.xhtml#ch00-bib-221)]. Notably, network flow
+    is determined by 5 tuples, i.e., source IP address, destination IP address, source
+    port, destination port and protocol. Generally, the data stream is defined as
+    S=p1, p2,….,pn where, pi that is made up of IP address, port number etc. Detecting
+    heavy hitters has been studied in many domains such as- network traffic and IP
+    calling.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To detect heavy hitters with PDS, first step is packet processing stage which
+    extracts network data stream from network packet. Second, each element of data
+    stream is updated to probabilistic sketch. In third step, flow size is calculated
+    by probabilistic counting. Finally, heavy hitters are detected as the estimation
+    of flow size in measurement interval. If the value of a element is greater than
+    or equal to a threshold then the corresponding IP address is identified as heavy
+    hitter.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[16.3 Integration of CMS with Blockchain](contents.xhtml#rsec16_3)'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Literature lacks work supporting integration of CMS and blockchain. However,
+    we could use CMS for various ways in blockchain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[16.3.1 Detecting DoS attack](contents.xhtml#rsec16_3_1)'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: As discussed above detecting DoS attack, anomaly detection, QoS management are
+    important use-cases of detecting heavy hitters in real-time. Apart from HLL, DoS
+    attack can also be handled by CMS by setting a threshold *ϕ* for any time slot
+    *t* and if the frequency of counter in CMS is greater than predefined threshold
+    <math alttext="" display="inline" id="chapter16_eq1"><mrow><mi>ϕ</mi> <mo>*</mo>
+    <mi>N</mi></mrow></math> (N is overall count) then that node can be identified
+    as malicious node. Also, by using frequency count PDS, a verifier can check frequency
+    of address in a block or to count frequency of same source and destination address
+    pair to generate real-time response. This way by using CMS, each streaming update
+    can be processed in logarithmic number of steps. Another advantage of CMS is that
+    legitimate connection can be deleted from the pool of observation [[118](bib.xhtml#ch00-bib-118)].
+  prefs: []
+  type: TYPE_NORMAL
+- en: Inspired from the work of [[179](bib.xhtml#ch00-bib-179)], an idea to detect
+    heavy hitter in real-time for private blockchain based IoT network is presented
+    in [Fig. 16.1](#fig16_1). Although authors in [[179](bib.xhtml#ch00-bib-179)]
+    have not used PDS to detect heavy hitters. As the number of participants in private
+    blockchain are usually less, therefore it is necessary to ensure the availability
+    of nodes in order to operate correctly. Clearly, the nodes of the private blockchain
+    network should be available all time while being protected from DoS attack. The
+    proposal used an Software Defined Network (SDN)-enabled switch to protect nodes
+    within private blockchain against DDoS attack. Within a network, this attack refrains
+    nodes participation in consensus mechanism which can lead to wastage of computational
+    power. However, DDoS is detected based on flow statistics by usage of Count-Sketches
+    [[135](bib.xhtml#ch00-bib-135), [134](bib.xhtml#ch00-bib-134), [84](bib.xhtml#ch00-bib-84)].
+    SDN-enabled switch filters out remote nodes that generate heavy hitters and tries
+    to send data within network. It listens to all incoming packets (*p1, p2,……..,
+    pn*) and extracts source-destination pair from each packet to compute statistics
+    for flow entries. The SDN switch is configured with information (IP address and
+    port number) of registered blockchain nodes of private network. SDN network controller
+    checks probabilistic count sketch periodically to detect heavy hitters. It places
+    heavy hitter flow and normal flow in blacklist and whitelist respectively. Finally,
+    packets from whitelist are forwarded to be verified by miner nodes within the
+    network.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Figure 16.1](../images/fig16_1.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**FIGURE 16.1.**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Heavy hitter detection in blockchain based IoT environment.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[16.3.2 Detecting RFID tag cloning](contents.xhtml#rsec16_3_2)'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: In IoT environment, Count-sketches can be used to detect RFID clone tagging
+    in applications, such as supply chain management, shipping and port operations,
+    water level monitoring etc. In this context, Hazalila *et al.[[113](bib.xhtml#ch00-bib-113)]*
+    proposed a lightweight anti-cloning approach based on CMS vector and consistency
+    of dual hash collisions. CMS uses two independent hash functions to probe identical
+    EPC. While hashing the identical EPC, the same hash function results in hash collisions
+    which implies high chance of tag cloning. Implementation results show that the
+    proposed method performs better than baseline approaches and achieves a better
+    accuracy in detecting clone ratio. Although, this proposal does not implement
+    blockchain technology but the CMS could be extended to a blockchain based IoT
+    network. The sketch is a accumulation of tag reading spread out for multiple RFID
+    readers. Each sketch has tag readings received during batch interval.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Activity
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Multiple Choice Questions
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: What does EPC stand for in context to RFID?
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Explain how integration of CMS and blockchain helps in preventing RFID tag cloning?
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Explain what is meant by heavy hitter?
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: How RFID tag cloning can be performed?
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Explain how count-sketch can prevent DoS attack.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: <hgroup>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[17](contents.xhtml#rchapter17)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[Applicability of Approximate Similarity Search PDS with Blockchain](contents.xhtml#rchapter17)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: </hgroup>
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[17.1 Approximate Nearest Neighbor Binary Search Algorithm for Wireless Multimedia
+    Sensor Network](contents.xhtml#rsec17_1)'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Storing massive IoT data on blockchain requires a large space of memory. Also,
+    existing similarity search methods take space even more than that for an actual
+    dataset for creating indexed structure. In view of this problem, similarity search
+    PDS in blockchain allows a verifier or user to retrieve similar data for a given
+    query in real time. ASS based PDS performs computations with minimum number of
+    distance evaluations. In literature [[136](bib.xhtml#ch00-bib-136)] authors have
+    combined LSH and blockchain with IPFS to manage data generated by Wireless multimedia
+    sensor network (WMSN). Blockchain based system protects highly sensitive data
+    from tampering.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[17.2 A Blockchain of Image Copyrights Using Locality Sensitive Hashing](contents.xhtml#rsec17_2)'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: For proving copyrights on digital asset, A. Zhuvikin [[222](bib.xhtml#ch00-bib-222)]
+    proposed a blockchain based image copyright registry based on robust image features.
+    As discussed above, LSH searches easily on high dimensional data sets by ensuring
+    that similar objects has high probability for collision over dissimilar objects.
+    Rather than using LSH, cross-polytop LSH is used that also maps similar data to
+    same index value [[35](bib.xhtml#ch00-bib-35)]. However, compared to original
+    LSH, cross-polytope significantly reduces space and time complexity. It uses LSH
+    to retrieve images with similar content even if they are changed by content-preserving
+    operations, such as- JPEG compression, shrinking, zooming etc. To share original
+    image with copyright, first robust image features vector is calculated by performing
+    LSH and signing using private key of the owner. In the next step, obtained signature
+    is multiplied with a random integer called blinding factor to generate blind signatures
+    which is broadcasted to all miner nodes on network for verification. Finally,
+    image index item is constructed using LSH and blind signatures to ease locating
+    copyright owner. Moreover, a hybrid data query method named One Permutation with
+    rotation and cross-polytope locality sensitive hashing (OPRCP) is proposed which
+    approximates nearest neighbour search in WMSN hybrid data (audio, image, text)
+    along with constructing a query data structure. OPRCP first extracts feature vector
+    of multimedia data using TF-IDF method followed by constructing a hash table data
+    structure from obtained feature vector. When a verifier or a user has to map query
+    object to data structure, then after feature vectorization query undergoes same
+    hash calculation process. Authors have also analyzed relationship between query
+    time and accuracy of query from LSH nearest neighbor search. Compared to original
+    LSH, OPRCP improves similarity search in terms of space and time.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Activity
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Answer the following questions
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Explain how integration of blockchain and locality sensitive hashing can help
+    to preserve image copyrights.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: According to you, what are the possible fields where minhashing can be integrated
+    with blockchain?
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
