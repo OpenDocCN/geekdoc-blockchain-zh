@@ -1,0 +1,538 @@
+- en: © The Author(s), under exclusive license to APress Media, LLC, part of Springer
+    Nature 2022D. P. BauerGetting Started with Ethereum [https://doi.org/10.1007/978-1-4842-8045-4_5](https://doi.org/10.1007/978-1-4842-8045-4_5)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 5. ERC-721 Nonfungible Tokens
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Davi Pedro Bauer^([1](#Aff2)  )(1)Campo Bom, Rio Grande do Sul, Brazil
+  prefs: []
+  type: TYPE_NORMAL
+- en: A nonfungible token (NFT) is a digital asset that represents physical objects
+    such as art, music, in-game items, and videos. In this chapter, I’ll show you
+    how to create an NFT ERC-721 and deploy it to the Ethereum testnet network, as
+    well as how to add it to your MetaMask mobile wallet.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'At the end of this chapter, you will be able to do the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Create a new NFT project
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Configure the network to deploy on Ganache
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Configure the private key
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Create the badge image
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Add the badge to the local IPFS
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Pin the badge to a remote IPFS
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Create the badge metadata
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Deploy the smart contract
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Award the badge to your wallet
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Check the badge on Etherscan
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Add the badge to your mobile wallet
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Create Your Art NFT Using Ganache and OpenZeppelin
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Let’s configure your first NFT using the OpenZeppelin library and create the
+    metadata that will store the token information and then deploy it to a test network.
+    Finally, you will view the token in your wallet.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Creating the Project
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Create a new project using Truffle.$ truffle initInstall the OpenZeppelin contracts.$
+    npm install @openzeppelin/contractsCreate a new Solidity smart contract.$ touch
+    contracts/UniqueAsset.sol
+  prefs: []
+  type: TYPE_NORMAL
+- en: Open the UniqueAsset.sol file and import the ERC721URIStorage.sol extension
+    and Counters.sol utility. Create a new class extending ERC721URIStorage. Declare
+    the counters variable and declare the constructor passing the coin name and the
+    code.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Create a new method named awardItem. Inside the new method, increment the token
+    ID. Get the new token number using _tokenIds.current().
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Mint a new item using the method _mint. Finally, set the token URI passing
+    the metadata using the method _setTokenURI.// SPDX-License-Identifier: MITpragma
+    solidity ^0.8.0;import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";import
+    "@openzeppelin/contracts/utils/Counters.sol";contract UniqueAsset is ERC721URIStorage
+    {    using Counters for Counters.Counter;    Counters.Counter private _tokenIds;    constructor()
+    ERC721("UniqueAsset", "UNA") {}    function awardItem(address recipient, string
+    memory metadata)    public    returns (uint256)    {        _tokenIds.increment();        uint256
+    newItemId = _tokenIds.current();        _mint(recipient, newItemId);        _setTokenURI(newItemId,
+    metadata);        return newItemId;    }}Create a new migration file using the
+    touch command. This command creates a new file in the migrations folder.$ touch
+    migrations/2_deploy_contracts.solInside the 2_deploy_contracts.js file, export
+    the smart contract in the migration file.const UniqueAsset = artifacts.require("UniqueAsset");module.exports
+    = function (deployer) {    deployer.deploy(UniqueAsset);}'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Configuring the Wallet to Sign Transactions
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Install the file system fs package.$ npm install fsInstall the wallet provider
+    hdwallet package.$ npm install @truffle/hdwallet-provider@1.2.3Open the truffle-config.js
+    file and uncomment the HDWalletProvider code section.const HDWalletProvider =
+    require('@truffle/hdwallet-provider');const infuraKey = '<your_infura_key>';const
+    fs = require('fs');const mnemonic = fs.readFileSync(".secret").toString().trim();
+  prefs: []
+  type: TYPE_NORMAL
+- en: Paste your Infura project ID as a value for the variable infuraKey.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Configuring the Network
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Inside the truffle-config.js file, uncomment the ropsten network section and
+    make the following changes:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Change ropsten to rinkeby.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Change the Ropsten Infura URL to rinkeby.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Change YOU-PROJECT-ID to ${infuraKey}.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Change network_id to 42.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'rinkeby: {    provider: () => new HDWalletProvider(mnemonic, `https://rinkeby.infura.io/v3/${infuraKey}`),    network_id:
+    42,    gas: 5500000,    confirmations: 2,    timeoutBlocks: 200,    skipDryRun:
+    true},'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Configuring the Solidity Compiler
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Also, inside the truffle-config.js file, uncomment the compilers section and
+    change the version to 0.8.0*.*compilers: {    solc: {        version: "0.8.0",        docker:
+    true,        settings: {            optimizer: {                enabled: false,                runs:
+    200            },            evmVersion: "byzantium"        }    }},'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Configuring the Private Key
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Go to your browser and open your MetaMask wallet connected to the Infura network.
+    Click “*your account*” and then click “settings.” Finally, click “security & privacy”
+    (Figure [5-1](#Fig1)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: You have the option to view your seed phrase, but be aware that this information
+    is sensitive, and if someone has access to it, they will be able to restore your
+    wallet and make use of your funds.![](../images/521550_1_En_5_Chapter/521550_1_En_5_Fig1_HTML.jpg)
+  prefs: []
+  type: TYPE_NORMAL
+- en: A screenshot of the Security and Privacy window in the Ropsten test network.
+    A phrase on the screen reads reveal seed phrase. A button with the cursor on it
+    is at the bottom, which also reads reveal seed phrase.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 5-1
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'MetaMask: revealing the seed phrase'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Click Reveal Seed Phrase and enter your wallet password to continue. Copy the
+    private key.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Go back to Visual Studio Code and create a new file named .secret. Paste the
+    private secret recovery phrase on this file.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Creating the Badge Image
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Create the badge folder.$ mkdir badgeNow, go to the badge root folder.$ cd badgeDownload
+    the image that you will use as a badge from the Internet. You can also copy and
+    paste an existing image into this folder. The curl command is used for transferring
+    data via URL syntax.$ curl https://planouhost.z15.web.core.windows.net/badge.png
+    > badge-image.png
+  prefs: []
+  type: TYPE_NORMAL
+- en: Adding the Badge to Your Local IPFS
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Initialize your local IPFS node. This command will start an IPFS local server
+    on 127.0.0.1:5001.$ ipfs daemonAdd your badge image to IPFS.$ ipfs add badge-image.pngRunning
+    this command, you will receive a hash. This hash is your image address in IPFS.
+    Make sure that you see the output shown in Figure [5-2](#Fig2).![](../images/521550_1_En_5_Chapter/521550_1_En_5_Fig2_HTML.jpg)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A screenshot of the I P F S output after adding a file. It reads: dollar, i
+    p f s add badge-image dot p n g. Further details of the file are presented in
+    the next few lines, with the file size and a progress bar.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 5-2
+  prefs: []
+  type: TYPE_NORMAL
+- en: IPFS output after adding a file
+  prefs: []
+  type: TYPE_NORMAL
+- en: Pinning the Badge to a Remote IPFS Node
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Pin your badge using Pinata as a remote IPFS service.ipfs pin remote add --service=pinata
+    --name=badge-image.png QmZPxKJWqJTdudyaZUyf6uBzwwAT41QQyxhTHmMZWB9yx4You will
+    get a response indicating the file was pinned successfully.CID: QmZPxKJWqJTdudyaZUyf6uBzwwAT41QQyxhTHmMZWB9yx4Name:
+    badge-image.pngStatus: pinned'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Creating the Badge Metadata
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Create the badge metadata JSON file.touch badge-metadata.jsonOpen the file
+    badge-metadata.json and set the badge name, description, and image address. For
+    the last one, you can use an IPFS gateway for the image to be displayed on any
+    wallet that supports this badge type; otherwise, you will depend on the destination
+    wallet support displaying images from IPFS hashes directly.{    "name": "My badge",    "description":
+    "My badge description",    "image": "https://ipfs.io/ipfs/QmZPxKJWqJTdudyaZUyf6uBzwwAT41QQyxhTHmMZWB9yx4"}Add
+    your badge metadata to IPFS.$ ipfs add badge-metadata.jsonPin your badge metadata
+    using a remote IPFS service.$ ipfs pin remote add --service=pinata --name=badge-metadata.json
+    QmRzcwAtLWbeYqyaZUyf6uBzwwAT41QQyxhTHmMZWBfUTa'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Compiling the Smart Contract
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Compile the contract using Truffle.$ truffle compile
+  prefs: []
+  type: TYPE_NORMAL
+- en: Migrating the Smart Contract
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Migrate the contract to the Rinkeby network using Truffle.$ truffle migrate
+    --network rinkeby
+  prefs: []
+  type: TYPE_NORMAL
+- en: Instantiate the Smart Contract
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Instantiate the contract using the Truffle console.$ truffle console --network
+    rinkebyGet the instance of the deployed contract.truffle(rinkeby) let instance
+    = await UniqueAsset.deployed()
+  prefs: []
+  type: TYPE_NORMAL
+- en: Awarding a Badge to a Wallet
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Call the method awardItem and pass the Ethereum address as a first parameter
+    and the IPFS address for the badge metadata. Make sure that the IPFS address corresponds
+    to your badge metadata.truffle(rinkeby) let result = await instance.awardItem("0x62761466bB3A3Da83B408B5F5fE00ac7b2a5A996","https://ipfs.io/ipfs/QmRzcwAtLWBeYqUx3ba1BkYKubSDLNTHCuiUB7WAmdfUTa")
+  prefs: []
+  type: TYPE_NORMAL
+- en: Checking a Badge on Etherscan
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Once your contract is deployed, you will be able to see the public address of
+    your contract. Find in the terminal the contract address created and copy it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Go to [https://rinkeby.etherscan.io](https://rinkeby.etherscan.io) and paste
+    the contract address in the search bar (Figure [5-3](#Fig3)). You can use the
+    Rinkeby Testnet Explorer tool to view the details of the created smart contract.![](../images/521550_1_En_5_Chapter/521550_1_En_5_Fig3_HTML.jpg)
+  prefs: []
+  type: TYPE_NORMAL
+- en: A screenshot of Rinkeby Testnet Explorer. On the top, the heading is Rinkeby
+    Testnet Explorer. Below the heading is a drop-down option labeled all filters
+    and an input bar with a random alphanumeric address.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 5-3
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Rinkeby Testnet Explorer: searching for a smart contract'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Click the search icon. Now you can see that the contract was deployed successfully
+    (Figure [5-4](#Fig4)). On this details page, you can view data such as transactions.![](../images/521550_1_En_5_Chapter/521550_1_En_5_Fig4_HTML.jpg)
+  prefs: []
+  type: TYPE_NORMAL
+- en: A screenshot of a page titled contract. The top left and top right are labeled
+    contract overview and more info, respectively. At the bottom, there are 3 options
+    labeled transactions, contract, and events out of which the first tab transaction
+    is selected.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 5-4
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Rinkeby Testnet Explorer: viewing smart contract transactions'
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can also realize that the last transaction made was for awarding a new item.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Adding the NFT Token to Your Wallet
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Open your MetaMask wallet on your mobile phone and click Collectibles (Figure
+    [5-5](#Fig5)). Notice that the collectibles are available only on a mobile version.![](../images/521550_1_En_5_Chapter/521550_1_En_5_Fig5_HTML.jpg)
+  prefs: []
+  type: TYPE_NORMAL
+- en: A screenshot of the Metamask wallet. On the top is the heading wallet, Rinkeby
+    Test Network. Below the heading are account 2, dollars 8548.21009, 0 x 6276 ellipsis
+    A 996\. Receive, send, and swap options are at the bottom.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 5-5
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'MetaMask: Collectibles tab'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Click Add Collectibles***.*** Paste the token contract address here (the same
+    one that you copied in the previous section) and enter the token ID (as it is
+    the first token you will enter a 1 here).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Click Add and wait for a few seconds (Figure [5-6](#Fig6)). The NFT token was
+    added!![](../images/521550_1_En_5_Chapter/521550_1_En_5_Fig6_HTML.jpg)
+  prefs: []
+  type: TYPE_NORMAL
+- en: A screenshot of Metamask wallet. The page is titled Wallet, Rinkeby Test Network.
+    Below the title, are Account 2, dollar 8548.21009, 0 x 6276 ellipses A996\. Receive,
+    send, and swap options. 2 tabs at the bottom are tokens and collectibles. Collectibles
+    tab is selected and a unique asset, 0 U N A option is below the tab.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 5-6
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'MetaMask: after adding the smart contract, it will appear here'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Click UniqueAsset*.* Now you will be able to see all the badges that you earn
+    (Figure [5-7](#Fig7)). You can have multiple tokens originating from the same
+    smart contract, each of which will be distinguished by a unique identifier.![](../images/521550_1_En_5_Chapter/521550_1_En_5_Fig7_HTML.jpg)
+  prefs: []
+  type: TYPE_NORMAL
+- en: A screenshot of Metamask unique asset. The page is titled unique asset, Rinkeby
+    Test Network. Below the title is an icon labeled 1 unique asset and send, add,
+    and info options. An icon labeled my badge, hashtag 1 with a selectable option
+    is at the bottom.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 5-7
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'MetaMask: badge listing'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Click “My badge.” Now you can see the badge details! Also, you have a Send button
+    so that you can send the badge to another wallet (Figure [5-8](#Fig8)).![](../images/521550_1_En_5_Chapter/521550_1_En_5_Fig8_HTML.jpg)
+  prefs: []
+  type: TYPE_NORMAL
+- en: A screenshot of Metamask unique asset. The page is titled unique asset, Rinkeby
+    Test Network. Below the title is a badge labeled M E S T R E. Text my badge hashtag
+    1 and a send button is at the bottom.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 5-8
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'MetaMask: badge display'
+  prefs: []
+  type: TYPE_NORMAL
+- en: That’s it! You just created your first NFT token!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Sell Your Art NFT on OpenSea
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: OpenSea is a marketplace for digital goods such as collectibles, gaming items,
+    digital art, and other digital assets backed by a blockchain such as Ethereum.
+    You can purchase, sell, and trade any of these things with anyone in the world
+    on OpenSea.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Connecting to OpenSea
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Go to OpenSea^([1](#Fn1)) and make sure that you are connected to the wallet
+    that contains the NFT and that you are using the Rinkeby test network.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Viewing Your Badge
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Go to My Profile. Click Activity and then click the badge title. These are your
+    badge details. The details page allows you to view various information regarding
+    the negotiation of your badge.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Listing Your Badge for Sale
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Click Sell and then click Set Price. In Price, set the price that you desire
+    to sell the NFT. On this page you can set the badge pricing method as well as
+    schedule it to be listed at a future date (Figure [5-9](#Fig9)).![](../images/521550_1_En_5_Chapter/521550_1_En_5_Fig9_HTML.jpg)
+  prefs: []
+  type: TYPE_NORMAL
+- en: A screenshot of unique asset, my badge. It has three options for select your
+    sell method, they are set price, highest bid, and bundle. Below them is a price
+    input option. Include ending price, schedule for a future time, and privacy are
+    with switch options.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 5-9
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'OpenSea: badge pricing page'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Click Post Your Listing. You will be redirected to the Summary page (Figure
+    [5-10](#Fig10)). On this page you can see the total fees that will be deducted
+    when selling your badge.![](../images/521550_1_En_5_Chapter/521550_1_En_5_Fig10_HTML.jpg)
+  prefs: []
+  type: TYPE_NORMAL
+- en: A screenshot of the summary page. There are 3 sections, listing, bounties, and
+    fees. Listing has post your listing with a selectable option. Bounties and fees
+    have instructions and details about affiliates. There is an edit button next for
+    Bounties and there is a link to learn more under fees.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 5-10
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'OpenSea: badge’s Summary page'
+  prefs: []
+  type: TYPE_NORMAL
+- en: MetaMask will be open in order to validate the transaction (Figure [5-11](#Fig11)).
+    Click Confirm. In this step you need to approve the transaction that will confirm
+    the listing of your badge for sale on the platform.![](../images/521550_1_En_5_Chapter/521550_1_En_5_Fig11_HTML.jpg)
+  prefs: []
+  type: TYPE_NORMAL
+- en: A screenshot of the Metamask notification window. On the top is Rinkeby Test
+    Network, account 1 rightward arrow 0 x 3301 ellipsis f 83 A. Below them is a link
+    and a button for set approval for all. 2 tabs details and data in which data is
+    selected and it displays gas fee and total. The reject and confirm buttons are
+    at the bottom.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 5-11
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'MetaMask: confirm OpenSea transaction'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now you will need to provide some more details about you, such as your email
+    and nickname. You will be asked to provide additional information after the transaction
+    is approved (Figure [5-12](#Fig12)).![](../images/521550_1_En_5_Chapter/521550_1_En_5_Fig12_HTML.jpg)
+  prefs: []
+  type: TYPE_NORMAL
+- en: A screenshot of a window titled listing successful. The screenshot contains
+    input options for email asterisk and nickname asterisk, send me occasional updates
+    about Opensea is selected, and save button on the bottom left.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 5-12
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'OpenSea: additional information'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Click Save. Now, OpenSea will list your NFT for you!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exploring Listing Details
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Scroll down to Trading History (Figure [5-13](#Fig13)); as you can see, a new
+    event was created named List and with Price set at US 10\. On this page you can
+    see all the badge trading history on the platform.![](../images/521550_1_En_5_Chapter/521550_1_En_5_Fig13_HTML.jpg)
+  prefs: []
+  type: TYPE_NORMAL
+- en: A screenshot of the page titled trading history. There is an option named filter
+    on the top. At the bottom, there are columns named event, price, from, and to.
+    Under event, there are three heads, namely, list, transfer, and created.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 5-13
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'OpenSea: trading history'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Click the Share icon. You can copy the link or share it on your social networks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In this chapter, you learned how to create tokens in the ERC-721 standard, pin
+    the image in IPFS, and import it in OpenSea and put it up for sale.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the next chapter, we will find out how to use faucets and why they are important
+    in testnets.
+  prefs: []
+  type: TYPE_NORMAL
