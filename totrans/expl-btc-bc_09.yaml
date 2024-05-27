@@ -1,0 +1,4408 @@
+- en: '[CHAPTER 7](toc.xhtml#c07)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[Node Communication](toc.xhtml#c07)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In the previous chapter, you learned about the structure of data stored at the
+    nodes and their method of verification, creation, and versioning. In this chapter,
+    we are investigating communication between nodes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Bitcoin network is a peer-to-peer network where there is no master or server
+    and no slave or client. To establish communication, a TCP connection is established,
+    which is based on the server-client model. Once a connection is established, there
+    is no difference for a node if it initiated a connection or accepted a connection
+    request. Once the TCP connection is established, the Bitcoin network connection
+    needs to be established. The Bitcoin network is a very democratic network, and
+    nodes can choose their peers. The decision depends on the version or services
+    the peer is going to offer. Once both sides agree, the connection is established,
+    and they can then exchange information.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are nearly 10,000 known active nodes at almost any time, which is enough
+    to allow most nodes to find and choose multiple suitable peers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Being an open peer-to-peer network, each node relies on its peers to get information
+    about other available peers so that it can connect with them too. It also needs
+    to broadcast transactions and blocks and help propagate them across the network.
+    Additionally, it needs to keep itself in sync with the network, which translates
+    to having the blockchain updated with the latest blocks and mempool with the latest
+    transactions. And it needs to verify transactions and blocks and help SPVs verify
+    transactions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this chapter, you will understand the Bitcoin network topology, network nodes,
+    and detailed information about how these nodes communicate with each other.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Structure](toc.xhtml#s129a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'The following topics will be covered in this chapter:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Bitcoin network topology
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Node bootstrapping
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Network messaging
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Message format
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Establishing connection
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Disconnecting with inactive peer
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Node discovery
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Receiving full blockchain
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Synchronizing blockchain
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Transaction broadcasting
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Block broadcasting
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Unsolicited Block Push
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Direct Headers Announcements
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Compact Block Announcements
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '![](images/ent.jpg) High Bandwidth Compact Block Announcements'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '![](images/ent.jpg) Low Bandwidth Compact Block Announcements'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '[Objectives](toc.xhtml#s130a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The objective of this chapter is to help you learn about the Bitcoin network,
+    which includes network topology and node communication as well as the progression
+    of protocol messages.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this chapter, you will learn about the different types of nodes and their
+    role in the Bitcoin network. You will learn about the mechanism by which each
+    node discovers other nodes. You will also understand how to create and establish
+    a connection with other nodes and exchange protocol messages. Plus, you will understand
+    the different types of payload that protocol messages carry, their purpose, and
+    the expected sequence of message types. Further on in the chapter, we will discuss
+    node versions and their role in establishing connection and communication with
+    peers, and you will understand connection termination.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Bitcoin network topology](toc.xhtml#s131a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The Bitcoin network allows nodes running different versions of code to communicate
+    and find peers who are fine with their version and the services they offer or
+    request. For instance, a node may be an SPV and may need to communicate with only
+    full nodes. A full node may not be interested in connection with SPV and so, may
+    be disconnected. The following figure shows how the nodes are distributed. We
+    can see that most nodes are in the US and Germany.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-7.1.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 7.1:** Illustration of global node distribution'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A Bitcoin node establishes a connection with its peer using a TCP handshake.
+    It can have IPv4 or IPv6 IP Addresses. A node can even connect with its peer on
+    the Tor network, which is an anonymous network and protects the node against surveillance
+    and tracking. If we are running Tor in our system at port 9050, then our node
+    can connect or accept connection using the Tor network with the following command-line
+    option:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`-proxy=127.0.0.1:9050`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following chart shows the distribution of Bitcoin network connections based
+    on the connection type and the address type:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-7.2.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 7.2:** Chart showing the distribution of nodes based on connection
+    type and address type'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We have different kind of nodes in the network, some of which are as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A Full node with complete blockchain, which is also called archival node.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A Full node verifies all the blocks but does not maintain the full blockchain.
+    It is still full node because, by definition, full node verifies the full blockchain,
+    which this node does. These are also called pruned nodes.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A SPV node maintains a chain of block headers with only the required transactions.
+    It needs to talk to full nodes, which can help it verify blocks, but since it
+    does not verify blocks themselves, they also do not relay transactions.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A Full node that does not communicate with SPV nodes.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A Full node that only accepts blocks and not transactions.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: So, there are quite a few variations among nodes. In addition, they can have
+    different versions of software running. There could be an attacker node or group
+    of attacker nodes that network or targeted nodes need to identify and blacklist.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Node bootstrapping](toc.xhtml#s132a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: As you have learned, Bitcoin doesn’t have a centralized server, so finding a
+    node to connect is a challenge. To solve this problem, Bitcoin Core has hard-coded
+    DNS Seeder addresses. These are called seed servers. These servers provide a list
+    of addresses that may or may not be active. We need to iteratively find active
+    address that we can connect with. The seed servers may get updated in the future.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here are the hardcoded DNS seeds:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/187.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Table 7.1:** List of hardcoded DNS seeds'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We are going to use following package to get the addresses from DNS seed node:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-7.3.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 7.3:** Python package to communicate with DNS servers'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following program generates addresses from DNS seeds:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`import dns.name`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`import dns.message`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`import dns.query`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`import dns.flags`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`import ipaddress`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def getNodeAddresses(dnsseed: str):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`dest = ‘8.8.8.8’`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`rdclass = 65535`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`domain = dns.name.from_text(dnsseed)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if not domain.is_absolute():`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`domain = domain.concatenate(dns.name.root)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`request = dns.message.make_query(`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`domain,`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`dns.rdatatype.A,`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`dns.rdataclass.IN)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`request.flags |= dns.flags.RD|dns.flags.RA|dns.flags.AD`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`request.find_rrset(request.additional, dns.name.root, rdclass, dns.rdatatype.OPT,
+    create=True, force_unique=True)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`responseudp = dns.query.udp(request, dest)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`rrset = responseudp.answer`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`rrset_l = []`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`for rrset_val in rrset:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`rrset_l.extend(str(rrset_val).split(“\n”))`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`ipaddr_l = []`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`for rrset_s in rrset_l:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`ipaddr_l.append(rrset_s.split(“ “)[4])`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return ipaddr_l`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def getTestnetPeers():`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`port = 18333`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`dns_seeds = [`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`“testnet-seed.bitcoin.jonasschnelli.ch”,`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`“seed.tbtc.petertodd.org”,`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`“seed.testnet.bitcoin.sprovoost.nl”,`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`“testnet-seed.bluematt.me”`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`ipaddr_l = []`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`for seed in dns_seeds:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: xwi
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``ipaddr_l.extend(getNodeAddresses(seed))``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``peers = []``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`for ipaddr in ipaddr_l:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`peers.append((ipaddr, port))`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return peers`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Program 7.1:** Program to get list of addresses from DNS seed'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We call the preceding method as follows to get the list of the first five address
+    and port numbers:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if __name__ == ‘__main__’:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`peers = getTestnetPeers()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`for index in range(5):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(peers[index])`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This gives us the following first five IP addresses and port numbers:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-7.4.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 7.4:** List of a few IP addresses and port numbers generated using
+    DNS seed'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'There are also hardcoded IP Addresses in the Bitcoin Core source, which are
+    used only as the last resort if the govt. blocks the connection to the known DNS
+    seeds. These addresses are in the following file:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`chainparamsseeds.h`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Bitcoin Core also maintains the `**peers.dat**` file, which maintains active
+    addresses that it is connected to and since when. This helps in reconnecting to
+    nodes after the connection is broken. Bitcoin Core daemon also has an `**addnode**`
+    command option to specify a peer for connecting. This peer is treated at par with
+    other peers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This information is specific to Bitcoin Core. In addition to utilizing the Bitcoin
+    node bootstrapping method, we can connect to addresses available from other websites,
+    such as **[https://bitnodes.io/api/v1/snapshots/latest](https://bitnodes.io/api/v1/snapshots/latest)**.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following code gets lists of nodes from this URL:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`import requests`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`import socket`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`from urllib.parse import urlparse`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def isValidIPv6Addr(addr: str):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`try:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`socket.inet_pton(socket.AF_INET6, addr)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`except socket.error:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return False`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return True`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def parseNodeInfo(ip_port: str, nodeinfo: dict):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`node = {}`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`node[‘selected’] = False`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`node[‘port’] = int(ip_port.split(‘:’)[-1])`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`val = ip_port.rsplit(‘:’, 1)[0]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`parsed = urlparse(‘//{}’.format(val))`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`addr = parsed.hostname`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if isValidIPv6Addr(addr) == False:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return node`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`node[‘selected’] = True`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`node[‘ipaddr’] = addr`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`node[‘type’] = nodeinfo[11]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`node[‘time’] = nodeinfo[2]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return node`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def getMainnetPeers():`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`url = ‘https://bitnodes.io/api/v1/snapshots/latest/’`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`headers = {‘Accept’: ‘application/json’}`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`r = requests.get(url=url, headers=headers)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`jsonobj = r.json()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`peers = []`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`for k, v in jsonobj[‘nodes’].items():`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`node = parseNodeInfo(k, v)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if node[‘selected’] == True:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`peers.append(node)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return peers`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Program 7.2:** Program to get the list of nodes using an external URL'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We call the above-mentioned methods to get peers as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if __name__ == ‘__main__’:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`peers = getMainnetPeers()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`for peer in peers:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘%s\t\t\t%d’ % (peer[‘ipaddr’], peer[‘port’]))`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This gives us the following first five peers:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-7.5.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 7.5:** List of IP addresses and port numbers of peers obtained from
+    an external website'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Network messaging](toc.xhtml#s133a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Bitcoin network nodes communicate with each other for various reasons, like
+    to learn about some other peers, to be sure that the connection is still active,
+    to help other nodes to sync with itself, or ask for missing blocks, or to broadcast
+    any new received block or transaction. In this topic, you will learn in detail
+    about the messaging and its format, and program it by writing a client.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Message format](toc.xhtml#s134a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Messages exchanged over the network have headers and payload, and the payload
+    is dependent on the command.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here’s the message format:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-7.6.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 7.6:** Illustration of protocol message format'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*The following is the explanation of each field of the message format:*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Magic** is the same as we learned in the block structure in ***[Chapter 6,
+    Blockchain, Transactions, and Mining](c06.xhtml)*** and we can look at its values
+    in [table 6.3](c06.xhtml#tab6_3).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Command** is the command sent in ASCII padded with all zeroes i.e. b’\0’.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Length** is the length of the payload.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Checksum** is the checksum of the payload.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Payload** is the parameters of the command sent.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'The following is the method that creates this message:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def createMessage(command, payload):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`magic = 0x0709110B`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`checksum = hashlib.sha256(hashlib.sha256(payload).digest()).digest()[0:4]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`magic_b = struct.pack(‘<L’, magic)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`cmd_b = struct.pack(‘<12s’, command.encode(‘ascii’))`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`payload_len_b = struct.pack(‘<L’, len(payload))`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`checksum_b = struct.pack(‘<4s’, checksum)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`msg = magic_b + cmd_b + payload_len_b + checksum + payload`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return msg`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Program 7.3:** A method for creating protocol message'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Establishing connection](toc.xhtml#s135a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Bitcoin establishes a connection by first exchanging versions and then acknowledging
+    their acceptance. Before acknowledging the version, a node needs to send its own
+    version. So, the network handshake looks as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-7.7.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 7.7:** An illustration of the sequence of message transfers to establish
+    Bitcoin connection'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The f*ollowing is the* `**version**` *message payload* structure:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-7.8.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 7.8:** Version message payload structure'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*The following is the explanation of each field of the `**version**` message:*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`**Version**` is the Protocol version running on a host.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Service** is the service supported by the sending node. Here’s the list of
+    service codes:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '| **Byte Code** | **Service Offered** | **Description** |'
+  prefs: []
+  type: TYPE_TB
+- en: '| 1 | NODE_NETWORK | Full Node |'
+  prefs: []
+  type: TYPE_TB
+- en: '| 2 | NODE_GETUTXO | BIP 0064: Supports getutxos and utxos |'
+  prefs: []
+  type: TYPE_TB
+- en: '| 4 | NODE_BLOOM | BIP 0111: Supports Bloom filters |'
+  prefs: []
+  type: TYPE_TB
+- en: '| 8 | NODE_WITNESS | BIP 0144: Supports Segregated Witness |'
+  prefs: []
+  type: TYPE_TB
+- en: '| 1024 | NODE_NETWORK_LIMITED | BIP 0159: Pruned node |'
+  prefs: []
+  type: TYPE_TB
+- en: '**Table 7.2:** List of service codes required by Version message'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Timestamp** is the Unix epoch time of the payload.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Addr Recv** is the address of the connection receiving node. So, the node
+    sending the `**version**` payload will have the address and port of the peer it
+    is connecting to. The Services field is normally set to zeroes.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Addr from** is the address of the connection originating node. So, the node
+    sending the `**version**` payload will have its own address and port. It also
+    includes services offered by the sender.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Nonce** is a random number that is useful in identifying whether we are not
+    connected to ourselves.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**User Agent** is used to identify the software running at the node. It is
+    defined in BIP-0014.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Start Height** is the current block height at the node blockchain.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Relay** is an optional Boolean value that is set by SPV to false to indicate
+    that the node will not participate in relaying a message. This means it does not
+    want peers to advertise `**inv**` messages with MSG_BLOCK. This protects the node
+    from getting flooded by `**inv**` messages. This is defined in BIP 0037.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'The following is the distribution of version of nodes at the time of writing:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-7.9.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 7.9:** Chart showing the distribution of the version of nodes on the
+    Bitcoin network'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following is the distribution of User Agents in the Bitcoin network:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-7.10.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 7.10:** Bar chart showing the distribution of user agents in the Bitcoin
+    network'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following is the program that creates `**version**` payload:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`from bitcoinrpc.authproxy import AuthServiceProxy, JSONRPCException`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`import struct`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`import random`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`rpc_connection = AuthServiceProxy(“http://%s:%s@127.0.0.1:18332”%(‘test’,
+    ‘test’))`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def setVarInt(n: int):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if n < 0xfd:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`n_h = ‘%02x’ % n`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`elif n > 0xfd and n < 0xffff:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`n_h = ‘fd%04x’ % n`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`elif n > 0xffff and n < 0xFFFFFFFF:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`n_h = ‘fe%08x’ % n`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`else:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`n_h = ‘ff%016x’ % n`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return bytes.fromhex(n_h)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def getLastBlockHeight():`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`height = rpc_connection.getblockcount()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return height`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def createUserAgent():`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`sub_version = “/MyTestAgent:0.0.1/”`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`sub_version_b = sub_version.encode()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`len_b = setVarInt(len(sub_version_b))`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return len_b + sub_version_b`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def createRecvIPAddress(ip, port):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`service_b = struct.pack(‘<Q’, 1)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`ip_b = socket.inet_aton(ip)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`ipv4_to_ipv6 = bytearray.fromhex(“00000000000000000000ffff”) + ip_b`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`ipv6addr_b = struct.pack(‘>16s’, ipv4_to_ipv6)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`port_b = struct.pack(‘>H’, port)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`addr_b = service_b + ipv6addr_b + port_b`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return(addr_b)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def createTransIPAddress():`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`service_b = struct.pack(‘<Q’, 1)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`ip_b = socket.inet_aton(“0.0.0.0”)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`ipv4_to_ipv6 = bytearray.fromhex(“000000000000000000000000”) + ip_b`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`ipv6addr_b = struct.pack(‘>16s’, ipv4_to_ipv6)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`port_b = struct.pack(‘>H’, 0)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`addr_b = service_b + ipv6addr_b + port_b`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return(addr_b)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def createVersionPayload(s: socket, version: int):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`version_b = struct.pack(‘<L’, version)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`services_b = struct.pack(‘<Q’, 1)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`timestamp_b = struct.pack(‘<Q’, int(time.time()))`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`myip, myport = s.getsockname()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`addr_recv_b = struct.pack(‘<26s’, createRecvIPAddress(myip, myport))`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`addr_trans_b = struct.pack(‘<26s’, createTransIPAddress())`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`nonce_b = struct.pack(‘<Q’, random.getrandbits(64))`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`user_agent = createUserAgent()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`user_agent_b = struct.pack(‘<%ds’ % len(user_agent), user_agent)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`start_height_b = struct.pack(‘<L’, getLastBlockHeight())`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`payload = version_b \`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`+ services_b \`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`+ timestamp_b \`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`+ addr_recv_b \`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`+ addr_trans_b \`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`+ nonce_b \`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`+ user_agent_b \`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`+ start_height_b`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return payload`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Program 7.4:** Program for creating Version message payload'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To create the message payload, we use the Python struct pack. The following
+    are the symbols and their meanings:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| **Symbols** | **Represents** |'
+  prefs: []
+  type: TYPE_TB
+- en: '| < | Little Endian |'
+  prefs: []
+  type: TYPE_TB
+- en: '| > | Big Endian |'
+  prefs: []
+  type: TYPE_TB
+- en: '| B | 1-byte Unsigned Integer |'
+  prefs: []
+  type: TYPE_TB
+- en: '| H | 2-byte Unsigned Integer |'
+  prefs: []
+  type: TYPE_TB
+- en: '| L | 4-byte Unsigned Integer |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Q | 8-byte Unsigned Integer |'
+  prefs: []
+  type: TYPE_TB
+- en: '| xs | Byte array of size x |'
+  prefs: []
+  type: TYPE_TB
+- en: '**Table 7.3:** List of Python struct pack symbols and their meanings'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'You can check out the Python docs for more details:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**[https://docs.python.org/3.8/library/struct.html](https://docs.python.org/3.8/library/struct.html)**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: IP address and port are in big endian, while the rest of the message is in the
+    little-endian format. When we pack an ASCII string, it converts it into a byte
+    array and pads it with zeroes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We call the preceding methods as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if __name__ == ‘__main__’:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`peers = getTestnetPeers()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`p = random.choice(peers)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`s = None`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`peerinfo = {}`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(“Trying to connect to “, p)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`err = s.connect(p)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘TCP Connection Established’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`payload = createVersionPayload(s, 70015)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘Version payload: ‘, payload.hex())`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`s.close()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This creates the following payload in hex string:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-7.11.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 7.11:** Shows version payload created by the CreateVersionPayload
+    program'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'When we receive the `***version***` message, we do the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We first receive the message header, verify the magic number and checksum,
+    and identify the command:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '`flog = open(‘communication.log’, ‘wt+’)`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`def calculateChecksum(b: bytes):`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`checksum = hashlib.sha256(hashlib.sha256(b).digest()).digest()[0:4]`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`return checksum`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`def checkMessage(msghdr: dict, payload_b: bytes):`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`if msghdr[‘magic’] == ‘0709110b’:`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`print(‘Magic check passed’, file=flog)`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`else:`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`print(‘Magic check failed’, file=flog)`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`print(‘magic = %s’ % msghdr[‘magic’], file=flog)`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`raise Exception(‘Invalid Magic’, file=flog)`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`checksum_calc = calculateChecksum(payload_b)`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`if msghdr[‘checksum’] == checksum_calc:`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`print(‘checksum check passed’, file=flog)`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`else:`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`print(‘checksum check failed’, file=flog)`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`print(‘payload = %s’ % payload_b.hex(), file=flog)`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`print(‘expected checksum = %s’ % msghdr[‘checksum’].hex(), file=flog)`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`print(‘received checksum = %s’ % checksum_calc.hex(), file=flog)`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`raise Exception(‘Invalid Checksum’)`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`def parseMsgHdr(msghdr_b: bytes):`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`msghdr = {}`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`msghdr[‘magic’] = msghdr_b[0:4][::-1].hex()`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`msghdr[‘command’] = msghdr_b[4:16].decode(“ascii”).strip(‘\0’)`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`msghdr[‘length’] = int.from_bytes(msghdr_b[16:20], byteorder=’little’)`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`msghdr[‘checksum’] = msghdr_b[20:24]`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`return msghdr`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '**Program 7.5:** Program for parsing message header'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: We can see that the program checksum only contains the first 4 bytes of the
+    double SHA256 hash; to get the command, we strip it.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'Next, we receive a message again from the socket and call the parser of the
+    `***version***` payload. To do this, we call the method by name. We will create
+    dummy methods for the ones not required by the subsequent programs:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '`MSGHDR_SIZE = 24`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`CMD_FN_MAP = {`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`‘version’: parseVersionPayload,`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`‘addr’: parseAddrPayload,`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`‘filterload’: parseFilterLoadPayload,`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`‘filteradd’: parseFilterAddPayload,`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`‘merkleblock’: parseMerkleBlockPayload,`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`‘ping’: parsePingPongPayload,`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`‘pong’: parsePingPongPayload,`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`‘feefilter’: parseFeeFilterPayload,`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`‘inv’: parseInvPayload,`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`‘getdata’: parseInvPayload,`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`‘notfound’: parseInvPayload,`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`‘tx’: parseTxPayload,`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`‘block’: parseBlockPayload,`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`‘getblocks’: parseGetBlocksGetHeadersPayload,`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`‘getheaders’: parseGetBlocksGetHeadersPayload,`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`‘headers’: parseHeadersPayload,`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`‘reject’: parseRejectPayload,`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`‘sendcmpct’: parseSendCompactPayload,`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`‘cmpctblock’: parseCompactBlockPayload,`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`‘getblocktxn’: parseGetBlockTxnPayload,`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`‘blocktxn’: parseBlockTxnPayload`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`}`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`def recvAll(s: socket, payloadlen: int):`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`payload_b = b’’`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`length = payloadlen`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`while True:`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`recvd_b = s.recv(length)`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`payload_b += recvd_b`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`if len(payload_b) == payloadlen:`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`break`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`length = payloadlen - len(payload_b)`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`return payload_b`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`def recvMsg(s: socket):`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`msghdr_b = s.recv(MSGHDR_SIZE)`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`msg = parseMsgHdr(msghdr_b)`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`payloadlen = msg[‘length’]`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`payload_b = recvAll(s, payloadlen)`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '``checkMessage(msg, payload_b)``'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`payload_m = mmap.mmap(-1, payloadlen + 1)`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`payload_m.write(payload_b)`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`payload_m.seek(0)`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`msg[‘payload’] = {}`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`if payloadlen > 0:`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`msg[‘payload’] = CMD_FN_MAP[msg[‘command’]](payload_m, payloadlen)`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`print(‘<== msg = %s’ % msg, file=flog)`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`return msg`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '**Program 7.6:** Program to receive and process messages based on command'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'The following code parses the `***version***` payload:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '`import ipaddress`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`import datetime`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`def parseIPAddress(ip_m: mmap):`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`addr = {}`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`addr[‘service’] = int.from_bytes(ip_m.read(8), byteorder=’little’)`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`parseServices(addr[‘service’])`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`ip = ip_m.read(16)`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`if ip[0:12].hex() == “00000000000000000000ffff”:`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`addr[‘version’] = ‘IPv4’`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`addr[‘address’] = str(ipaddress.IPv4Address(ip[12:16]))`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`else:`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`addr[‘version’] = ‘IPv6’`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`addr[‘address’] = str(ipaddress.IPv6Address(ip[0:16]))`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`addr[‘port’] = int.from_bytes(ip_m.read(2), byteorder=’big’)`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`return addr`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`def parseServices(services: int):`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`service_l = []`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`if services == 0x00:`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`service_l.append(‘Unnamed’)`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`if services & 0x01 == 0x01:`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`service_l.append(‘NODE_NETWORK’)`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`if services & 0x02:`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`service_l.append(‘NODE_GETUTXO’)`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`if services & 0x04:`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`service_l.append(‘NODE_BLOOM’)`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`if services & 0x08:`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`service_l.append(‘NODE_WITNESS’)`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`if services & 1024:`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`service_l.append(‘NODE_NETWORK_LIMITED’)`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`print(‘Services: %d implies: %s’ % (services, service_l), file=flog)`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`def parseVersionPayload(payload_m: mmap, payloadlen: int):`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`payload = {}`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`start = payload_m.tell()`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`payload[‘version’] = int.from_bytes(payload_m.read(4), byteorder=’little’)`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`payload[‘services’] = int.from_bytes(payload_m.read(8), byteorder=’little’)`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`parseServices(payload[‘services’])`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`payload[‘timestamp’] = int.from_bytes(payload_m.read(8), byteorder=’little’)`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`payload[‘dt’] = datetime.datetime.fromtimestamp(payload[‘timestamp’]).strftime(‘%Y-%m-%d
+    %H:%M:%S’)`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`payload[‘addr_recv’] = parseIPAddress(payload_m)`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`payload[‘addr_trans’] = parseIPAddress(payload_m)`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`payload[‘nonce’] = int.from_bytes(payload_m.read(8), byteorder=’little’)`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`payload[‘user_agent_size’] = getVarInt(payload_m)`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`payload[‘user_agent’] = payload_m.read(payload[‘user_agent_size’])`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`payload[‘block_height’] = int.from_bytes(payload_m.read(4), byteorder=’little’)`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`if payload_m.tell() - start != payloadlen:`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`payload[‘relay’] = int.from_bytes(payload_m.read(1), byteorder=’little’)`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`return payload`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '**Program 7.7:** Program to parse version payload'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: Bitcoin network messaging uses the same variable integer format as we had discussed
+    in *[Chapter 6, Blockchain, Transactions, and Mining](c06.xhtml), [figure 6.25](c06.xhtml#fig6_25)*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The `**verack**` message has no payload. It is an acknowledgment of the `***version***`
+    received.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Once the `***version***` message is sent and received and `**verack**` message
+    is sent and received, we consider the connection to have been established and
+    are ready to send and receive other types of messages.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following is the code for establishing a Bitcoin connection:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def sendVersionMessage(s: socket, version: int):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`sndcmd = ‘version’`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`payload = createVersionPayload(s, version)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``sndmsg = createMessage(sndcmd, payload)``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``s.send(sndmsg)``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘==> cmd = %s, msg = %s’ % (sndcmd, sndmsg.hex()), file=flog)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return True`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def waitForVersion(s: socket):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`recvmsg = recvMsg(s)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`vers_recvd = False`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if recvmsg[‘command’] != ‘version’:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘Invalid Response’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return False`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`services = recvmsg[‘payload’][‘services’]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if services & 1 == 0x00:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘Peer is not full node’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return False`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return True`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def sendVerackMessage(s: socket):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`sndcmd = ‘verack’`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`payload = b’’`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`sndmsg = createMessage(sndcmd, payload)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``s.send(sndmsg)``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘==> cmd = %s, msg = %s’ % (sndcmd, sndmsg.hex()), file=flog)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return True`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def waitForVerack(s: socket):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``recvmsg = recvMsg(s)``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`verack_recvd = False`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if recvmsg[‘command’] != ‘verack’:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return False`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return True`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def establishConnection(s: socket, version: int):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`vers_sent = sendVersionMessage(s, version)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`vers_recvd = waitForVersion(s)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if vers_recvd == False:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return False`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`verack_sent = sendVerackMessage(s)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`verack_recvd = waitForVerack(s)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if vers_sent and vers_recvd and verack_sent and verack_recvd:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘Connection is established’, file=flog)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return True`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return False`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Program 7.8:** Program to establish Bitcoin connection'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We call the preceding method using the following program:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if __name__ == ‘__main__’:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`peers = getTestnetPeers()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`p = random.choice(peers)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`s = None`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`peerinfo = {}`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(“Trying to connect to “, p, file=flog)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`err = s.connect(p)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘connected’, file=flog)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if establishConnection(s, 70015) == False:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘Establish connection failed’, file=flog)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`s.close()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`flog.close()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We get the following communication log:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-7.12.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 7.12:** Communication log of message exchange during Bitcoin connection
+    establishment'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this subtopic, you learned to establish a Bitcoin connection.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Disconnecting with inactive peer](toc.xhtml#s136a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: TCP/IP connection can become inactive without the knowledge of a peer. To disconnect
+    an inactive connection, the node sends `**ping**` and expects `**pong**` as a
+    response. The `**ping**` message contains an 8-byte nonce, which is a random number.
+    In the response `**pong**` message, the receiving node sends back the same nonce
+    message that it had received as part of the `**ping**` message.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following method parses the `**ping**` message and respond with the `**pong**`
+    message:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def parsePingPongPayload(payload_m: mmap, payloadlen = 0):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`payload = {}`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`payload[‘nonce’] = int.from_bytes(payload_m.read(8), byteorder=’little’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return payload`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def createPongPayload(nonce: int):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`nonce_b = struct.pack(‘<Q’, nonce)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return nonce_b`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def sendPongMessage(s: socket, recvmsg: dict):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`# send pong message`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`sndcmd = ‘pong’`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`nonce = recvmsg[‘payload’][‘nonce’]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`payload = createPongPayload(nonce)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``sndmsg = createMessage(sndcmd, payload)``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``s.send(sndmsg)``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘==> cmd = %s, msg = %s’ % (sndcmd, sndmsg.hex()), file=flog)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Program 7.9:** Program for sending ping and receiving pong messages'
+  prefs: []
+  type: TYPE_NORMAL
+- en: If the peer responds with a different nonce or does not respond, then we can
+    safely assume that it is not active, and we can disconnect the connection.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Node discovery](toc.xhtml#s137a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: As you have learned, there are almost 10,000 active nodes on average, it is
+    important to distribute load across the network. Almost 95% of the full nodes
+    run Bitcoin Core, which has some hardcoded DNS seeds, so if these nodes only depend
+    on addresses from the DNS seeds, then those addresses can get overloaded. This
+    will hamper the decentralized nature of the Bitcoin network, will affect performance,
+    and will be prone to **Denial-of-Service** (**DoS**) *attacks*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To find new peers, we have the following sequence diagram:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-7.13.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 7.13:** Sequence diagram showing the steps to receive addresses of
+    nodes from peer'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'As in `**verack**`, `**getaddr**` doesn’t have a payload. Here’s the payload
+    structure of the `**addr**` message:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-7.14.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 7.14:** Payload structure of addr'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Now, we will try to get the `**addr**` message from a peer. To get an `**addr**`
+    message, we will need to handle a few more messages as these might be sent by
+    the peer. Also, we will send a lower version to avoid getting the `**sendcmpct**`
+    request. We will use version *70013*. The following is the program that sends
+    `**getaddr**` and receives `**addr**`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def parseAddrPayload(payload_m: mmap, payloadlen = 0):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`payload = {}`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`payload[‘count’] = getVarInt(payload_m)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`payload[‘addrs’] = []`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`for i in range(payload[‘count’]):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`addr = {}`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`addr[‘timestamp’] = int.from_bytes(payload_m.read(4), byteorder=’little’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`addr[‘addr’] = parseIPAddress(payload_m)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`payload[‘addrs’].append(addr)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return payload`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def sendrecvHandler(s: socket, version: int):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if establishConnection(s, version) == False:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘Establish connection failed’, file=flog)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`# send getaddr message`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`sndcmd = ‘getaddr’`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`payload = b’’`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`sndmsg = createMessage(sndcmd, payload)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``s.send(sndmsg)``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘==> cmd = %s, msg = %s’ % (sndcmd, sndmsg.hex()), file=flog)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`while True:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`recvmsg = recvMsg(s)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if recvmsg[‘command’] == ‘addr’:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`break`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`elif recvmsg[‘command’] == ‘ping’:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`# send pong message`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`sndcmd = ‘pong’`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`nonce = recvmsg[‘payload’][‘nonce’]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`payload = createPongPayload(nonce)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`elif recvmsg[‘command’] == ‘getheaders’:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`# send header message`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`sndcmd = ‘headers’`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`hashes = recvmsg[‘payload’][‘block locator hashes’]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`stophash = recvmsg[‘payload’][‘hash_stop’]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`payload = createHeadersPayload(hashes, stophash)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``sndmsg = createMessage(sndcmd, payload)``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``s.send(sndmsg)``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘==> cmd = %s, msg = %s’ % (sndcmd, sndmsg.hex()), file=flog)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if recvmsg[‘command’] == ‘addr’:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘Received Addr’, file=flog)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Program 7.10:** Program for sending getaddr and receiving addr'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We need to also handle the `**getheaders**` requests, which you will understand
+    in the next and upcoming subtopics.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We use following code to call the preceding methods. The same calling code
+    will be used to call the upcoming methods:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if __name__ == ‘__main__’:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`peers = getTestnetPeers()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(peers)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``p = random.choice(peers)``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`s = None`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``peerinfo = {}``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(“Trying to connect to “, p, file=flog)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``err = s.connect(p)``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘connected’, file=flog)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`sendrecvHandler(s, 70013)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``s.close()``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``flog.close()``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We get the following communication log:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-7.15.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 7.15:** Communication log of receiving addr from peer'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Receiving full blockchain](toc.xhtml#s138a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: When we install Bitcoin software and it first connects to the network, it syncs
+    all the existing blocks of the blockchain. It tells its peers that its block height
+    is zero and requests its peers to give blocks. This is called **Initial Block
+    Download** (**IBD**). Since Bitcoin Core version 0.10.0, we are using the IBD
+    method called **Headers First**.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following figure shows the steps involved in this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-7.16.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 7.16:** Sequence diagram showing steps involved in IBD'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The new node initially only has a genesis block. It sends this block’s hash
+    in the `**getheaders**` requests. The peer responds with `headers` message containing
+    a list of header hashes. Bitcoin Core sends a list of up to 2,000 block hashes.
+    On receiving the block hashes, the node verifies the block hash and then sends
+    `**getdata**` requests to its peers with a part of the header hashes it has received.
+    Since the node is connected with multiple peers, it can ask all its peers for
+    different sets of block hashes. The requested peer responds with all the blocks
+    one by one. Once the node has received the requested blocks, it can again make
+    a `**getdata**` request with a list of received block hashes. This process continues
+    till the node receives all the blocks and the node’s blockchain is fully synchronized
+    with the network.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following is the structure of the `**getheaders**`, `**headers**`*,* and
+    `**getdata**` messages:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-7.17.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 7.17:** Payload structure of getheaders and getdata'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The structure of the `**block**` is the same as we discussed in *[Chapter 6,
+    Blockchain, Transactions, and Mining](c06.xhtml)* in *[figure 6.6](c06.xhtml#fig6_6)*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In the following code, we are only sending two `**getheaders**` requests: the
+    first one is with only the genesis block hash, and the next one has hashes of
+    32 received blocks. This means we expect to receive two sets of 2000 blocks. We
+    are making multiple `**getdata**` requests for each `headers` response. In the
+    following code, each `**getdata**` request contains 16 block header hashes.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def getGenesisBlockHash():`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`blkhash = rpc_connection.getblockhash(0)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return blkhash`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def parseSendCompactPayload(payload_m: mmap, payloadlen = 0):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`payload = {}`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`payload[‘announce’] = int.from_bytes(payload_m.read(1), byteorder=’little’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`payload[‘version’] = int.from_bytes(payload_m.read(8), byteorder=’little’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return payload`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def parseFeeFilterPayload(payload_m: mmap, payloadlen = 0):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`payload = {}`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`payload[‘feerate’] = int.from_bytes(payload_m.read(8), byteorder=’little’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return payload`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``mempool_l_g = []``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def parseInvPayload(payload_m: mmap, payloadlen = 0):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`MSG_TX = 1`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`payload = {}`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`payload[‘count’] = getVarInt(payload_m)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`payload[‘inventory’] = []`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`for i in range(payload[‘count’]):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`inv = {}`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`inv[‘type’] = int.from_bytes(payload_m.read(4), byteorder=’little’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if inv[‘type’] == MSG_TX:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`mempool = rpc_connection.getrawmempool(True)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if (len(mempool_l_g) > 0):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`new_tx = set(mempool.keys()) ^ set(mempool_l_g[-1].keys())`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if len(new_tx) > 0:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``mempool_l_g.append(mempool)``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘inserted mempool’, file=flog)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`else:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`mempool_l_g.append(mempool)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘inserted mempool’, file=flog)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`inv[‘hash’] = payload_m.read(32)[::-1].hex()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`payload[‘inventory’].append(inv)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return payload`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def parseBlockHeader(payload_m: mmap):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`hdr = {}`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`hdr[‘version’] = int.from_bytes(payload_m.read(4), byteorder=’little’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`hdr[‘prev_blockhash’] = payload_m.read(32)[::-1].hex()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`hdr[‘merkle_root’] = payload_m.read(32)[::-1].hex()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`hdr[‘timestamp’] = int.from_bytes(payload_m.read(4), byteorder=’little’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`hdr[‘bits’] = payload_m.read(4)[::-1].hex()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`hdr[‘nonce’] = payload_m.read(4)[::-1].hex()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return hdr`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def parseGetBlocksGetHeadersPayload(payload_m: mmap, payloadlen = 0):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`payload = {}`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`payload[‘version’] = int.from_bytes(payload_m.read(4), byteorder=’little’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`payload[‘hash count’] = getVarInt(payload_m)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`payload[‘block locator hashes’] = []`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`for i in range(payload[‘hash count’]):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`h = payload_m.read(32)[::-1].hex()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`payload[‘block locator hashes’].append(h)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`payload[‘hash_stop’] = payload_m.read(32)[::-1].hex()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return payload`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def parseHeadersPayload(payload_m: mmap, payloadlen = 0):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`payload = {}`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`payload[‘count’] = getVarInt(payload_m)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`payload[‘headers’] = []`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`for i in range(payload[‘count’]):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`hdr = {}`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``start = payload_m.tell()``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`h_b = hashlib.sha256(payload_m.read(80)).digest()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`hdr[‘blkhash’] = hashlib.sha256(h_b).digest()[::-1].hex()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`payload_m.seek(start)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`hdr[‘header’] = parseBlockHeader(payload_m)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`hdr[‘txn_count’] = getVarInt(payload_m)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`payload[‘headers’].append(hdr)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return payload`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def parseTxPayload(payload_m: mmap, payloadlen = 0):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``payload = {}``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`payload[‘version’] = int.from_bytes(payload_m.read(4), byteorder=’little’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`payload[‘tx_in count’] = getVarInt(payload_m)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`payload[‘tx_in’] = []`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`for i in range(payload[‘tx_in count’]):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``txin = {}``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`txin[‘prev_tx_hash’] = payload_m.read(32)[::-1].hex()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`txin[‘prev_tx_out_index’] = int.from_bytes(payload_m.read(4),`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`byteorder=’little’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`txin[‘bytes_scriptsig’] = getVarInt(payload_m)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`txin[‘sriptsig’] = payload_m.read(txin[‘bytes_scriptsig’]).hex()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`txin[‘sequence’] = payload_m.read(4)[::-1].hex()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`payload[‘tx_in’].append(txin)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`payload[‘tx_out count’] = getVarInt(payload_m)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`payload[‘tx_out’] = []`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`for i in range(payload[‘tx_out count’]):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``txout = {}``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`txout[‘satoshis’] = int.from_bytes(payload_m.read(8), byteorder=’little’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`txout[‘bytes_scriptpubkey’] = getVarInt(payload_m)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`txout[‘scriptpubkey’] = payload_m.read(txout[‘bytes_scriptpubkey’]).hex()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`payload[‘tx_out’].append(txout)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`payload[‘locktime’] = int.from_bytes(payload_m.read(4), byteorder=’little’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return payload`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def parseBlockPayload(payload_m: mmap, payloadlen = 0):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``payload = {}``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`payload[‘version’] = int.from_bytes(payload_m.read(4), byteorder=’little’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`payload[‘prev_blockhash’] = payload_m.read(32)[::-1].hex()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`payload[‘merkle_root’] = payload_m.read(32)[::-1].hex()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`payload[‘timestamp’] = int.from_bytes(payload_m.read(4), byteorder=’little’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`payload[‘bits’] = payload_m.read(4)[::-1].hex()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`payload[‘nonce’] = payload_m.read(4)[::-1].hex()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`payload[‘txn_count’] = getVarInt(payload_m)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`payload[‘txns’] = []`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`for i in range(payload[‘txn_count’]):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`payload[‘txns’].append(parseTxPayload(payload_m))`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return payload`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def createGetHeadersPayload(hdr_info_l: list, version: int):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`version_b = struct.pack(‘<L’, version)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`blk_locator_hashes_b = b’’`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`count = 0`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`for i in range(len(hdr_info_l) - 1, len(hdr_info_l) - 32, -1):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if i < 1: # assuming first block is genesis`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`break`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`blk_locator_hashes_b += bytes.fromhex(hdr_info_l[i][‘blkhash’])[::-1]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`count += 1`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`blk_locator_hashes_b += bytes.fromhex(getGenesisBlockHash())[::-1]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`count += 1`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``hash_count_b = setVarInt(count)``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`stop_hash_b = bytes(32)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`payload = version_b \`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`+ hash_count_b \`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`+ blk_locator_hashes_b \`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`+ stop_hash_b`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return payload`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def waitForBlock(s: socket):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`while True:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``recvmsg = recvMsg(s)``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if recvmsg[‘command’] == ‘block’:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`break`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`elif recvmsg[‘command’] == ‘ping’:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``sendPongMessage(s, recvmsg)``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return recvmsg`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def sendGetHeadersMessage(s: socket, hdr_info_l: list, version: int):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`sndcmd = ‘getheaders’`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``payload = createGetHeadersPayload(hdr_info_l, version)``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``sndmsg = createMessage(sndcmd, payload)``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``s.send(sndmsg)``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘==> cmd = %s, msg = %s’ % (sndcmd, sndmsg.hex()), file=flog)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def waitForHeaders(s: socket):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`while True:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``recvmsg = recvMsg(s)``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if recvmsg[‘command’] == ‘headers’:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`break`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`elif recvmsg[‘command’] == ‘ping’:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``sendPongMessage(s, recvmsg)``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return recvmsg`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def createGetDataPayload(count: int, hash_l: list):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`MSG_BLOCK = 2`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`hash_count_b = setVarInt(count)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`hashes_b = b’’`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`for i in range(count):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`type_b = struct.pack(‘<L’, MSG_BLOCK)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`hashes_b += type_b + bytes.fromhex(hash_l[i][‘blkhash’])[::-1]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`payload_b = hash_count_b + hashes_b`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return payload_b`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def sendGetDataMessage(s: socket, count: int, hash_l: list):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`sndcmd = ‘getdata’`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``payload = createGetDataPayload(count, hash_l)``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``sndmsg = createMessage(sndcmd, payload)``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``s.send(sndmsg)``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘==> cmd = %s, msg = %s’ % (sndcmd, sndmsg.hex()), file=flog)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def sendAndHandleGetHeaders(s: socket, hdr_info_l: list, version: int):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``sendGetHeadersMessage(s, hdr_info_l, version)``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``recvmsg = waitForHeaders(s)``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`count = recvmsg[‘payload’][‘count’]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`for i in range(0, count, 16):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`lindex = i + 16 if i + 16 < count else count`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(i, lindex)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`blk_l = recvmsg[‘payload’][‘headers’][i:lindex]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`sendGetDataMessage(s, lindex - i, blk_l)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`for j in range(i, lindex):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``waitForBlock(s)``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return recvmsg`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def sendrecvHeadersData(s: socket, version: int):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``recvmsg = sendAndHandleGetHeaders(s, [], version)``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`sendAndHandleGetHeaders(s, recvmsg[‘payload’][‘headers’], version)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def sendrecvHandler(s: socket, version: int):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if establishConnection(s, version) == False:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘Establish connection failed’, file=flog)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``return``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``sendrecvHeadersData(s, version)``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Program 7.11:** Program for making IBD request to peer and receiving blocks'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This gives the following output. First, we send the `**getheaders**` request
+    with genesis block hash and no hash stop:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-7.18.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 7.18:** getheaders request sent to the peer'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following is the truncated ***headers*** response containing 2,000 headers:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-7.19.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 7.19:** Received headers response from the peer'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We responded with `**getdata**` requesting 16 blocks. Here’s the request:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-7.20.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 7.20:** Sent getdata request to the peer'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We got 16 blocks, and the following is one of them:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-7.21.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 7.21:** Received block in response from the peer'
+  prefs: []
+  type: TYPE_NORMAL
+- en: After 16 blocks are received, we requested the next 16 blocks and again got
+    16 blocks. This continued till all 2,000 blocks are received. A node also needs
+    to verify each block according to the consensus rules. Some of these consensus
+    rules were covered in *[Chapter 6, Blockchain, Transactions, and Mining](c06.xhtml)*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'After receiving 2,000 blocks, we again send `**getheaders**` requests with
+    a list of the last 31 block hashes and the genesis block hash, making it 32 hashes.
+    The following is the part of the request:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-7.22.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 7.22:** Truncated getheaders request made to the peer'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We again got the next 2,000 block `**headers**`*,* and we repeated the process.
+    This can be continued till we receive all the blocks. Once less than 2,000 `**headers**`
+    are received, we can also send `**getheaders**` request to other peers. By sending
+    `**getheaders**` requests to other peers, we can guess the best blockchain and
+    keep blocks in different chains to be able to undo blocks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The IBD method is also used to synchronize blocks if blockchain is more than
+    24 hours behind.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Synchronizing blockchain](toc.xhtml#s139a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: If our node is less than 24 hours behind, we must consider the possibility that
+    there may be competing chains. In this case, we need to get blocks from different
+    peers and keep the blocks in competing chains to undo them if the other chain
+    becomes longer. We use the same method to get blocks as in the last subtopic,
+    the only difference here is that we are getting blocks from multiple peers. Our
+    node also needs to decide which chain it needs to consider best and generally,
+    the longer chain is preferred.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Transaction broadcasting](toc.xhtml#s140a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: As we know, to spend an unspent output available as UTXO, we create a transaction
+    and send it to the peer. We may also receive a transaction from our peers, which
+    we may need to send to other peers. In this subtopic, we will understand how a
+    node receives a transaction.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following figure shows the steps involved in getting transactions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-7.23.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 7.23:** Sequence diagram showing the steps involved in transaction
+    broadcast'
+  prefs: []
+  type: TYPE_NORMAL
+- en: When a node receives a transaction, it sends an `**inv**` message to its peer.
+    The peer node checks whether it has seen the transaction earlier. If not, it sends
+    back `**getdata**` requests with option `**MSG_TX**` and the `**txid**`. The node
+    that had sent the `**inv**` message responds with the actual raw transaction.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`**inv**` has the same payload structure as `**getdata**`. The `**tx**` message
+    has the same message structure as the Bitcoin transaction we discussed in *[Chapter
+    6, Blockchain, Transactions, and Mining](c06.xhtml), [figure 6.30](c06.xhtml#fig6_30)*.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following code processes the `**inv**` message if it has the option `**MSG_TX**`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def createGetDataTxPayload(payload: dict):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`MSG_TX = 1`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`data_b = b’’`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`count = 0`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`for i in range(payload[‘count’]):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`# we only request data for tx`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if payload[‘inventory’][i][‘type’] == MSG_TX:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`type_b = struct.pack(‘<L’, payload[‘inventory’][i][‘type’])`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`hash_b = bytes.fromhex(payload[‘inventory’][i][‘hash’])[::-1]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``data_b += type_b + hash_b``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`count += 1`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``count_b = setVarInt(count)``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``payload_b = count_b + data_b``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``return count, payload_b``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def waitForInvMessage(s: socket):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`while True:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``recvmsg = recvMsg(s)``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if recvmsg[‘command’] == ‘inv’:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`break`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`elif recvmsg[‘command’] == ‘ping’:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``sendPongMessage(s, recvmsg)``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘Received INV’, file=flog)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return recvmsg`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def waitForTxMsg(s: socket):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`while True:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``recvmsg = recvMsg(s)``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if recvmsg[‘command’] == ‘tx’:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``break``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`elif recvmsg[‘command’] == ‘ping’:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`sendPongMessage(s, recvmsg)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def sendGetDataMessageWithTx(s: socket, recvmsg: dict):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`sndcmd = ‘getdata’`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`count, payload = createGetDataTxPayload(recvmsg[‘payload’])`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``sndmsg = createMessage(sndcmd, payload)``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``s.send(sndmsg)``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘==> cmd = %s, msg = %s’ % (sndcmd, sndmsg.hex()), file=flog)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return count`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def waitAndHandleInvTxnMessage(s: socket):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``recvmsg = waitForInvMessage(s)``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``count = sendGetDataMessageWithTx(s, recvmsg)``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`for i in range(count):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``waitForTxMsg(s)``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def sendrecvHeadersData(s: socket):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``waitAndHandleInvTxnMessage(s)``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def sendrecvHandler(s: socket, version: int):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if establishConnection(s, version) == False:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘Establish connection failed’, file=flog)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``return``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``sendrecvHeadersData(s)``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Program 7.12:** Program for receiving and processing inv messages for transactions'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following are the communication logs showing the received `**inv**` message
+    and the sent `**getdata**` message with a request for two transactions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-7.24.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 7.24:** The inv message received from peer and the getdata request
+    made to the peer in response'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We received two transactions as requested by our node:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-7.25.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 7.25:** tx messages containing transactions received from the peer
+    in response to the getdata request'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Our node can send a received transaction to other connected nodes by first sending
+    an `**inv**` message with the transaction IDs of the received transactions. This
+    process continues till all active nodes have received the transaction.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this subtopic, you learned how a transaction is broadcast on the Bitcoin
+    network.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Block broadcasting](toc.xhtml#s141a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Blocks also need to be propagated on the network as quickly as possible so that
+    even the farthest node receives it in a reasonable time and, consequently, does
+    not create too many or too long competing branches. Before we can receive recent
+    blocks, we need to synchronize our node with the connected peer so that the peer
+    is aware that our node is not lagging, and our node will be able to verify the
+    recently received block.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Once blockchain is synchronized, we are ready for live updates from peers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here are the different methods to broadcast blocks:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A miner that has mined a new block instead just broadcasts the new block via
+    `**block**` message. This is called **Unsolicited Block Push**.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'For a normal node, there are three methods to receive new blocks. These methods
+    are called **Direct Headers Announcements**. This is enabled either by the `**sendheaders**`
+    method or the `**sendcmpct**` message. The `**sendheaders**` method is the legacy
+    Direct headers announcement method, which is available since 70012, while the
+    `**sendcmpct**` method was introduced in 70014\. The following sub-points explain
+    them:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The node sends `**sendheaders**` immediately after the connection is established.
+    This indicates to the peer that whenever it receives a new block, it can send
+    *headers*. Based on `**headers**`, we can request `**getdata**`. And as a response
+    to `**getdata**`*,* the peer sends blocks.
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Relay latency can be further reduced by requesting compact blocks. The `**sendcmpct**`
+    message can be sent immediately after the connection is established. There are
+    two methods:'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**High Bandwidth Relay:** Whenever the peer receives a block, it sends `**cmpctblock**`.
+    It contains a header and a list of short IDs. We look at `**mempool**` for a list
+    of transaction IDs based on short IDs and reconstruct the block. If there are
+    missing transactions in `**mempool**`, we request only those missing transactions
+    by sending `**getblocktxn**`. And the peer responds with a `**blocktxn**` message
+    containing the transactions.'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Low Bandwidth Relay:** Whenever the peer receives a block, it sends a `headers`
+    message. We send a `**getdata**` *message with the* `**MSG_CMPCT_BLOCK**` type
+    as a response. The peer responds with `**cmpctblock**`, and further processing
+    is like in **high bandwidth relay**.'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Unsolicited Block Push](toc.xhtml#s142a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The following figure shows an **unsolicited block push** by the miner, which
+    has successfully mined a block. A miner does not need to first send ***headers***
+    messages as it knows the peer will not have it. It also does not need to synchronize
+    its node with peers as it can only mine a block if it is aware of the previous
+    node in the chain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-7.26.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 7.26:** Illustration of miner broadcasting newly generated block to
+    peers using Unsolicited Block Push'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We can see that in the figure, a miner just pushes the newly mined block to
+    all the connected peers. A miner does not require any other communication.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Direct Headers Announcements](toc.xhtml#s143a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'The following figure shows Direct headers announcements (Legacy):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-7.27.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 7.27:** Sequence diagram of the steps involved in Direct headers announcements
+    (Legacy)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: After a connection is established, we immediately send the `**sendheaders**`
+    message to a peer to make the peer aware that instead of `**inv**` messages, the
+    peer can directly send `***headers***` message for recently received new blocks.
+    Before the peer can broadcast new blocks, we need to make the peer aware of the
+    list of blocks we are holding. For this, we need to send a list of block hashes
+    in reverse order, starting with recently received blocks and ending with the genesis
+    block in `**getheaders**` requests. This is the same as we learned in the previous
+    subtopic. As a response, the peer sends all the missing blocks in the blockchain.
+    If there are no new blocks with the peer, then it sends a **headers** message
+    as a response with count zero.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Once the peer is aware of the blockchain we are holding and has all the blocks
+    in sync with the peer, we can receive new blocks from the peer. Note that our
+    best blockchain may be different from peers’ best blockchain, so we need to be
+    receiving blocks from different peers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In the following piece of code, the connection is already established and now
+    we are sending and handling requests required for receiving new blocks:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def sendSendHeadersMessage(s: socket):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`sndcmd = ‘sendheaders’`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`payload = b’’`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``sndmsg = createMessage(sndcmd, payload)``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``s.send(sndmsg)``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘==> cmd = %s, msg = %s’ % (sndcmd, sndmsg.hex()), file=flog)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def createHeadersPayloadNoHeaders():`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`cnt_b = setVarInt(0)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`headers_b = b’’`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``payload = cnt_b + headers_b``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``return payload``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def createHeadersPayload(hashes, stophash):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`b_cnt_d = {‘fd’: 2, ‘fe’: 4, ‘ff’: 8}`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`found = False`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`for blk_hash in hashes:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``try:``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`blk = rpc_connection.getblock(blk_hash)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`found = True`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``break``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`except Exception as e:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``continue``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if found == True:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`txcnt = 0`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``txcnt_b = setVarInt(txcnt)``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`headers_b = b’’`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`count = 0`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`while True:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``# returns block hex``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘block_hash = %s’ % blk_hash, file=flog)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`blk = rpc_connection.getblock(blk_hash, False)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`blk_b = bytes.fromhex(blk)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`blkhdr_b = blk_b[:80]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``headers_b += blkhdr_b + txcnt_b``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``blk = rpc_connection.getblock(blk_hash)``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`count += 1`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if count == 2000 or ‘nextblockhash’ not in blk or stophash == blk_hash:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(count, file=flog)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(stophash, file=flog)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``break``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`blk_hash = blk[‘nextblockhash’]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``cnt_b = setVarInt(count)``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``payload = cnt_b + headers_b``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``else:``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`cnt_b = setVarInt(0)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`headers_b = b’’`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``payload = cnt_b + headers_b``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``return payload``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def waitForHeaders(s: socket):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`while True:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``recvmsg = recvMsg(s)``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if recvmsg[‘command’] == ‘headers’:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``break``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`elif recvmsg[‘command’] == ‘ping’:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``sendPongMessage(s, recvmsg)``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`elif recvmsg[‘command’] == ‘getheaders’:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``sendHeadersMessage(s)``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``return recvmsg``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def waitAndHandleHeaderResponse(s: socket):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``recvmsg = waitForHeaders(s)``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`count = recvmsg[‘payload’][‘count’]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`for i in range(0, count, 16):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`lindex = i + 16 if i + 16 < count else count`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`blk_l = recvmsg[‘payload’][‘headers’][i:lindex]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``sendGetDataMessage(s, lindex - i, blk_l)``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`for j in range(i, lindex):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``waitForBlock(s)``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def getBlockHashListFromCoreClient():`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``blkhash_l = []``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``height = getLastBlockHeight()``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`for i in range(31, -1, -1):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``d = {}``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`d[‘blkhash’] = rpc_connection.getblockhash(height - i)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``blkhash_l.append(d)``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``return blkhash_l``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def sendrecvHeadersData(s: socket, version: int):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``sendSendHeadersMessage(s)``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``blkhash_l = getBlockHashListFromCoreClient()``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``sendAndHandleGetHeaders(s, blkhash_l, version)``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``waitAndHandleHeaderResponse(s)``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def sendrecvHandler(s: socket, version: int):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if establishConnection(s, version) == False:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘Establish connection failed’, file=flog)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``sendrecvHeadersData(s, version)``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Program 7.13:** Program to receive blocks using Direct Header Announcements
+    (Legacy)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This gives us the following sequence of message exchanges between our node and
+    the peer.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'First, we send `**sendheaders**` to the peer to indicate that we expect `***headers***`
+    message instead of `**inv**` to receive blocks:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-7.28.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 7.28:** The getheaders message sent to the peer indicating that our
+    node accepts direct header announcements'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We then sync the blockchain by sending the `**getheaders**` message with a
+    list of recent blocks of best chain:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-7.29.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 7.29:** getheaders request made to sync with the peer'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Since the peer didn’t have any recent block, it responds with the following
+    empty `**headers**` message:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-7.30.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 7.30:** Peer responds with headers message with a list of headers'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The peer sends us an empty `***headers***` response as it does not have any
+    new blocks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'After this, we wait for the peer to send us new blocks whenever it receives
+    them:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-7.31.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 7.31:** Peer sends a list of headers to our node after receiving a
+    new block'
+  prefs: []
+  type: TYPE_NORMAL
+- en: If we don’t have the block already, we request the peer to send the missing
+    block. This is done by sending a `**getblock**` message to the peer with the block
+    header hash which we received in the `**headers**` message.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-7.32.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 7.32:** Our node sends a getdata request to peer for blocks'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The peer responds with the raw block in a `**block**` message. The following
+    is the truncated `**block**` message:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-7.33.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 7.33:** Peer responds with the block message containing full block'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this subtopic, you learned how the original direct headers announcements
+    method worked. In the next subtopic, you will understand the improved method of
+    broadcasting recently received blocks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Compact Block Announcements](toc.xhtml#s144a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'We are aware that blocks are a collection of transactions. Most of the transactions
+    that a block is made up of are already received by almost all the peers. So, sending
+    the whole block will not be required if we could send a compressed transaction
+    list along with the block header. This is the idea behind the compact Block announcement.
+    So, since, version 70014, Direct Headers Broadcasting has been replaced with `**cmpctblock**`*.*
+    and now two methods are used:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For high bandwidth communication: This method is normally enabled for only
+    a few peers as it requires more processing.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'For low bandwidth communication: This method is enabled for other peers.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: After the connection is established, we instantly send a `**sendheaders**` message
+    to a peer to make our peer aware that instead of `**inv**` messages, the peer
+    can directly send `***headers***` message for new incoming blocks. Then, we send
+    a `**sendcmpct**` message to make our peer aware that for both segregated witness
+    and non-segregated witness transactions, we expect `**headers**` or `**cmpctblock**`
+    messages.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following is the structure of the `**sendcmpct**` payload:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-7.34.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 7.34:** Structure of a sendcmpct message'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In the `**sendcmpct**` message, there are two fields:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Announce** is a one-byte Boolean value. Value **0** indicates support for
+    low bandwidth relay, while value **1** indicates support for high bandwidth relay.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Version** is an 8-byte field; currently, it can have either of the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Value 1, which indicates support for `**wtxid**`, which is witness transaction
+    ID in segregated witness.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Value 0, which indicates support for other transactions that have transaction
+    IDs as this.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: We will cover segregated witness transactions in an upcoming chapter.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The next subtopic covers each of these relay methods.
+  prefs: []
+  type: TYPE_NORMAL
+- en: High Bandwidth Compact Block Announcements
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'The following is the sequence of message exchanges in the activity diagram:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-7.35.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 7.35:** Sequence Diagram of Compact Block Announcement for High Bandwidth
+    Relay'
+  prefs: []
+  type: TYPE_NORMAL
+- en: After receiving `**sendcmpct**` request for both segregated witness and non-segregated
+    witness transactions, we send a `**getheaders**` request with a list of recent
+    blocks and genesis block and synchronize our node with the peer, as we did in
+    the previous subtopic with heading **synchronizing blocks**.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Once the peer is aware that we have all the blocks in the blockchain which it
+    considers as the best blockchain, we can be ready to receive new blocks from the
+    peer. Note that our best blockchain may be different from peers’ best blockchain
+    because we will be receiving blocks from multiple peers. The best blockchain means
+    the chain with the highest accumulated proof-of-work. This can be calculated by
+    adding the difficulty recorded in each block in the chain. The difficulty adjustment
+    happens only after every 2016 blocks, so the chain with the highest accumulated
+    proof-of-work is generally the chain with more blocks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'When the peer receives a new block, it sends a `**cmpctblock**` message containing
+    compressed or short IDs of all the transactions in the block. To parse and generate
+    short IDs, we need to install the following Python package:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-7.36.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 7.36:** pip package to generate and parse short IDs'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following are the structures of the `**cmpctblock**`, `**getblocktxn**`,
+    and `**blocktxn**` messages:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-7.37.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 7.37:** Payload structure of cmpctblock, getblocktxn and blocktxn'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following are the details of these message payloads:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/233.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Table 7.4:** List of compact messages and their description'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In the following code, the connection is already established, and now we are
+    sending and handling requests required for receiving new blocks:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def parseShortIds(payload_m: mmap, shortids_len: int):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`shortids = []`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`for i in range(shortids_len):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`shortids.append(payload_m.read(6).hex())`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return shortids`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def parsePrefilledTxn(payload_m: mmap, prefilledtxn_len: int):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`prefilledtxn_l = []`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`for i in range(prefilledtxn_len):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`prefilledtxn = {}`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`prefilledtxn[‘index’] = getVarInt(payload_m)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`prefilledtxn[‘tx’] = parseTxPayload(payload_m)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`prefilledtxn_l.append(prefilledtxn)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return prefilledtxn_l`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def parseCmpctBlockPayload(payload_m: mmap, payloadlen = 0):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`payload = {}`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`pos = payload_m.tell()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`payload[‘hdr_nonce’] = payload_m.read(88).hex()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`payload_m.seek(pos)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`payload[‘header’] = parseBlockHeader(payload_m)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`payload[‘nonce’] = payload_m.read(8)[::-1].hex()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`payload[‘shortids_length’] = getVarInt(payload_m)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`payload[‘shortids’] = parseShortIds(payload_m, payload[‘shortids_length’])`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`payload[‘prefilledtxn_length’] = getVarInt(payload_m)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`payload[‘prefilledtxn’] = parsePrefilledTxn(payload_m, payload[‘prefilledtxn_length’])`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return payload`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def parseBlockTxnPayload(payload_m: mmap, payloadlen = 0):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`payload = {}`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`payload[‘blkhash’] = payload_m.read(32)[::-1].hex()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`payload[‘txn_len’] = getVarInt(payload_m)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`payload[‘txn’] = []`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`for i in range(payload[‘txn_len’]):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`txn = parseTxPayload(payload_m)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`payload[‘txn’].append(txn)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return payload`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def createSendCompactPayload(announce: int, version: int):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`announce_b = struct.pack(‘<B’, announce)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`version_b = struct.pack(‘<Q’, version)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`payload = announce_b + version_b`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return payload`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def createHeadersPayloadNoHeaders():`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`cnt_b = setVarInt(0)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`headers_b = b’’`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`payload = cnt_b + headers_b`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return payload`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def createGetBlockTxnPayload(payload: dict, shortIDs_index_l: list):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`hdr_b = bytes.fromhex(payload[‘hdr_nonce’])[0:80] #header`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`blkhash_b = hashlib.sha256(hashlib.sha256(hdr_b).digest()).digest()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘blkhash = %s’ % blkhash_b[::-1].hex())`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`indexes_len_b = setVarInt(len(shortIDs_index_l))`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`indexes_b = b’’`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`for shortIDs_index in shortIDs_index_l:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`indexes_b += setVarInt(shortIDs_index)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`payload = blkhash_b + indexes_len_b + indexes_b`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return payload`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def sendSendCompactMessage(s: socket):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`# send sendcmpct message for Segwit`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`sndcmd = ‘sendcmpct’`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`payload = createSendCompactPayload(1, 2)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`sndmsg = createMessage(sndcmd, payload)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`s.send(sndmsg)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘==> cmd = %s, msg = %s’ % (sndcmd, sndmsg.hex()), file=flog)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`# send sendcmpct message for others`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`sndcmd = ‘sendcmpct’`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`payload = createSendCompactPayload(1, 1)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`sndmsg = createMessage(sndcmd, payload)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`s.send(sndmsg)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘==> cmd = %s, msg = %s’ % (sndcmd, sndmsg.hex()), file=flog)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def sendHeadersMessage(s: socket):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`# send header message`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`sndcmd = ‘headers’`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`payload = createHeadersPayloadNoHeaders()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`sndmsg = createMessage(sndcmd, payload)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`s.send(sndmsg)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘==> cmd = %s, msg = %s’ % (sndcmd, sndmsg.hex()), file=flog)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def convertTxIDs2ShortIDs(payload: dict, txid_l: list):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`hdr_nonce_b = bytes.fromhex(payload[‘hdr_nonce’])`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`shortids_l = []`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`for txid in txid_l:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`txid_b = bytes.fromhex(txid)[::-1]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`h_b = hashlib.sha256(hdr_nonce_b).digest()[0:16]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`sip = siphash.SipHash_2_4(h_b, txid_b)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`siphash_b = sip.digest()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`shortid = siphash_b[:-2].hex()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`shortid_l = siphash_b[2:].hex()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`shortids_l.append(shortid)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return shortids_l`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def findMissingShortIDs(payload: dict):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`for i in range(len(mempool_l_g)):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`stored_mempool = mempool_l_g[-1-i]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`txid_l = []`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`for k, v in stored_mempool.items():`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``if ‘wtxid’ in v:``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`txid_l.append(v[‘wtxid’])`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`else:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`txid_l.append(k)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`shortIDs = convertTxIDs2ShortIDs(payload, txid_l)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`shortIDs_index_l = []`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`for recvd_shortID in payload[‘shortids’]:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if recvd_shortID not in shortIDs:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`shortIDs_index_l.append(payload[‘shortids’].index(recvd_shortID) + 1)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if len(shortIDs_index_l) > 0:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`break`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return shortIDs_index_l`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def waitForCmpctBlock(s: socket):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`while True:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`recvmsg = recvMsg(s)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if recvmsg[‘command’] == ‘cmpctblock’:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return recvmsg`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`elif recvmsg[‘command’] == ‘ping’:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`sendPongMessage(s, recvmsg)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return recvmsg`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def sendGetBlockTxn(s: socket, recvmsg: dict, shortIDs_index_l):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`sndcmd = ‘getblocktxn’`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`payload = createGetBlockTxnPayload(recvmsg[‘payload’], shortIDs_index_l)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`sndmsg = createMessage(sndcmd, payload)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`s.send(sndmsg)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘==> cmd = %s, msg = %s’ % (sndcmd, sndmsg.hex()), file=flog)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def waitForBlockTxn(s: socket):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`while True:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`recvmsg = recvMsg(s)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if recvmsg[‘command’] == ‘blocktxn’:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return recvmsg`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`elif recvmsg[‘command’] == ‘ping’:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`sendPongMessage(s, recvmsg)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def waitAndHandleHeaderResponse(s: socket):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`recvmsg = waitForCmpctBlock(s)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`shortIDs_index_l = findMissingShortIDs(recvmsg[‘payload’])`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if len(shortIDs_index_l) > 0:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`sendGetBlockTxn(s, recvmsg, shortIDs_index_l)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`waitForBlockTxn(s)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def sendrecvHeadersData(s: socket, version: int):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`sendSendHeadersMessage(s)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`sendSendCompactMessage(s)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`blkhash_l = getBlockHashListFromCoreClient()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`sendAndHandleGetHeaders(s, blkhash_l, version)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`waitAndHandleHeaderResponse(s)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def sendrecvHandler(s: socket, version: int):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if establishConnection(s, version) == False:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘Establish connection failed’, file=flog)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`sendrecvHeadersData(s, version)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Program 7.14:** Program for receiving and processing compact messages for
+    High Bandwidth relay'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We executed the above-mentioned code and got the following communication messages.
+    I have ignored other messages, such as `**ping**` or `**addr**` or `**inv**`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'First, we sent `**sendheaders**` and `**sendcpmct**` for segwit and `**sendcmpct**`
+    for non-segwit:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-7.38.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 7.38:** Messages sent to peer that our node accepts compact messages
+    for both segwit and non-segwit payload'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Then, we sent a `**getheaders**` message and received **headers** message.
+    The following is the truncated `**getheaders**` message and received `***headers***`
+    message:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-7.39.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 7.39:** Truncated getheaders request sent to peer with a list of block
+    hashes'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We get a list of headers in response, which is empty, in the following incoming
+    message:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-7.40.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 7.40:** Peer responds with a list of recent headers, not in getheaders
+    request'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The peer responded with `***headers***` messages without any *headers* with
+    count zero.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Next, we waited for the peer to send us a `**cmpctblock**` message. Meanwhile,
+    we received `**inv**` messages having transactions. The following is the truncated
+    `**cmpctblock**` message we received:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-7.41.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 7.41:** Peer sends cmpctblock message on receiving a new block'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'On receiving the `**cmpctblock**` message, we search received short IDs in
+    mempool by generating short IDs for each `**txid**` and `**wtxid**`. If there
+    are any missing transactions, we send a `**getblocktxn**` request message to a
+    peer with the index of missing short IDs in the `**cmpctblock**` message. The
+    following is the transaction message we sent:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-7.42.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 7.42:** Our node sends getblocktxn request to peer with a list of
+    missing short ID indexes'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'On receiving the `**getblocktxn**`*,* the peer sends a `**blocktxn**` message
+    with only the missing transaction it received in the `**getblocktxn**` message.
+    The following is the truncated `**blocktxn**` message received from a peer:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-7.43.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 7.43:** Peer responds with blocktxn message containing the missing
+    transaction'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Low Bandwidth Compact Block Announcements
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'The following is the sequence of message exchanges between the host and its
+    peer in the form of an activity diagram:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-7.44.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 7.44:** Sequence Diagram of Compact Block Announcement for Low Bandwith
+    Relay'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the low bandwidth compact block announcement method, we set to announce as
+    0 in the `**sendcmpct**` message and send a `**sendcmpct**` message for both segregated
+    witness and non-segregated witness transactions. Once the blockchain is synchronized,
+    we wait for the `**headers**` message from the peer. In response to the `***headers***`
+    message, we send a `**getdata**` message with `**MSG_CMPCT_BLOCK**` as the response.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following code does this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def sendSendCompactMessage(s: socket):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`# send sendcmpct message for Segwit`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`sndcmd = ‘sendcmpct’`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`payload = createSendCompactPayload(0, 2)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`sndmsg = createMessage(sndcmd, payload)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``s.send(sndmsg)``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘==> cmd = %s, msg = %s’ % (sndcmd, sndmsg.hex()), file=flog)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`# send sendcmpct message for others`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`sndcmd = ‘sendcmpct’`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`payload = createSendCompactPayload(0, 1)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``sndmsg = createMessage(sndcmd, payload)``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``s.send(sndmsg)``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘==> cmd = %s, msg = %s’ % (sndcmd, sndmsg.hex()), file=flog)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def createGetDataPayloadCMPCTBlock(hash_l: list):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`MSG_CMPCT_BLOCK = 4`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`count = len(hash_l)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``hash_count_b = setVarInt(count)``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`hashes_b = b’’`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`for i in range(count):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`type_b = struct.pack(‘<L’, MSG_CMPCT_BLOCK)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`hashes_b += type_b + bytes.fromhex(hash_l[i][‘blkhash’])[::-1]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``payload_b = hash_count_b + hashes_b``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``return payload_b``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def sendGetDataMessage(s: socket, recvmsg: dict):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`sndcmd = ‘getdata’`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`blk_l = recvmsg[‘payload’][‘headers’]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``payload = createGetDataPayloadCMPCTBlock(blk_l)``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``sndmsg = createMessage(sndcmd, payload)``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``s.send(sndmsg)``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘==> cmd = %s, msg = %s’ % (sndcmd, sndmsg.hex()), file=flog)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def waitAndHandleHeaderResponse(s: socket):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``recvmsg = waitForHeaders(s)``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``sendGetDataMessage(s, recvmsg)``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``recvmsg = waitForCmpctBlock(s)``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`shortIDs_index_l = findMissingShortIDs(recvmsg[‘payload’])`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if len(shortIDs_index_l) > 0:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`sendGetBlockTxn(s, recvmsg, shortIDs_index_l)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``waitForBlockTxn(s)``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def sendrecvHandler(s: socket, version: int):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if establishConnection(s, version) == False:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘Establish connection failed’, file=flog)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``return``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``sendrecvHeadersData(s, version)``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Program 7.15:** Program for receiving and processing compact messages for
+    low bandwith relay'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We execute the preceding code and get the communication log. First, our node
+    sends `**sendheader**` and `**sendcmpct**` messages to let it know that our node
+    supports Direct Header Announcements. When the peer receives a new block, it sends
+    our node the following `***headers***` message:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-7.45.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 7.45:** Received headers message from a peer with a list of blockhash
+    and header'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We respond with the following `**getdata**` message containing the `**MSG_CMPCT_BLOCK**`
+    flag and a list of blockhash we expect from the peer:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-7.46.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 7.46:** getdata request sent to the peer with a list of blockhash'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The peer responds with the following `**cmpctblock**` message containing block
+    header and list of short IDs for included transactions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-7.47.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 7.47:** Peer sends cmpctblock message with a list of short IDs'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'After receiving the list of short IDs and block header, our node responds to
+    the peer with the following `**getblocktxn**` message with a list of short IDs
+    representing the missing transaction in our node’s mempool:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-7.48.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 7.48:** getblocktxn request sent to the peer with a list of missing
+    short IDs indexes'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The peer then responds with a `**blocktxn**` message containing only the required
+    transactions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-7.49.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 7.49:** Peer sent blocktxn message with a requested list of transactions'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This brings us to the end of this chapter.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Conclusion](toc.xhtml#s145a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this chapter, you started off by learning about Bitcoin network topology,
+    and you learned that nodes run different versions and may be of different types,
+    like an archival node, a pruned node, or SPV. You also learned how a node finds
+    out addresses of peers to connect and understood how a node gets all the blocks
+    when it first connects with its peers and how it gets all the competing blockchain
+    branches. Next, you learned how a node broadcasts transactions and block messages
+    to all the remaining nodes. We did not cover network communication done by the
+    SPV node to receive the required transactions and verify blocks. We also did not
+    cover segregated witness transactions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the next chapter, you will understand the limitations of technology, its
+    impact on nature, and the potential risks, and vulnerabilities that exist because
+    of the design. We will thoroughly look at them and gauge whether they are real,
+    risky, or just a myth.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Points to remember](toc.xhtml#s146a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Bitcoin is a peer-to-peer network that needs a TCP connection or a tor network
+    to connect to a peer.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Bitcoin network is nonhierarchical, which means all nodes are equal, and there
+    are no masters or servers. There will be TCP servers but not Bitcoin network servers.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Nodes can connect and disconnect anytime and can choose which nodes they need
+    to connect.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Nodes require an initial set of addresses, or we need to provide initial addresses
+    so that they can make the initial connection to peers.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`**Version**` message is the first message each node sends. If a node is fine
+    with the information it received in the `**version**` message, it responds with
+    `**verack**`.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Once `**version**` and `**verack**` messages are exchanged, the connection is
+    considered established. Before that, nodes do not receive any other message.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A node can send a `**ping**` message to a peer anytime to know if a peer is
+    still connected.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A node should reduce dependency on hardcoded DNS seeds by storing active addresses
+    locally and requesting new addresses from its peer.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The first time a node is starting, it fetches a list of all block headers till
+    the 24 hours older block. After it has received them, it needs to get headers
+    from all the connected nodes to get all the competing chains.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Once the node’s blockchain is synchronized with all the peers, it is ready to
+    receive new blocks and transactions.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Questions](toc.xhtml#s147a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: How do we understand that the peer is sending Bitcoin blocks or blocks in a
+    different network?
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Why does a node need to receive recent blocks from multiple peers?
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: How does the Initial Block Download method differ from Blockchain synchronization?
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: When do you think we should use pruned node instead of an archival node?
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: When does a node send `***sendheaders***` and `***sendcmpct***` messages?
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Programming questions:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Write a program that connects with multiple peers and sends the address of one
+    peer to another.
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Write a program to receive multiple TCP connections and limit active connections.
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Write a program to relay blocks to other connected nodes.
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Create a raw transaction using Bitcoin Core wallet and publish it using your
+    own program.
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'True/False:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: It is necessary for a node to respond to `***cmpctblock***` message to the sending
+    peer.
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Transaction `***inv***` messages need the node blockchain to be synchronized
+    with the peer blockchain.
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: During the initial block download, we send `***getdata***` request to multiple
+    peers to improve download performance.
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Fill in the blanks:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: In high bandwidth compact block announcements, a node sends __________ message
+    after receiving block instead of __________ message.
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The `***inv***` messages are not used for broadcasting _________ anymore.
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Unsolicited block push method is only ffused by the _______ node to publish
+    _______.
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL

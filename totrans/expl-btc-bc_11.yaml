@@ -1,0 +1,2556 @@
+- en: '[CHAPTER 9](toc.xhtml#c09)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[Wallets and Addresses](toc.xhtml#c09)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In the previous chapter, we looked at Bitcoin as a network protocol, its strength
+    that makes it a great technological innovation, and its limitations and conditions
+    that pose risks to its long-term existence.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this chapter, you will learn to access your bitcoins, send them to single
+    or multiple addresses, and execute a smart agreement between parties.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To access your bitcoins, you need a software program that can generate addresses
+    for receiving bitcoins and the software can sign a transaction in order to transfer
+    it to the receiving parties. This software program is called a ***wallet***. This
+    chapter focuses on private keys, public keys, addresses, and wallets. We will
+    cover transactions and signing of transactions in detail in the next chapter.
+    The signing of a transaction is also an essential part of wallet functionality.
+    So, a wallet has three essential functionalities:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: It provides information about bitcoins you are holding.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: It provides addresses to receive bitcoins.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: It helps sign a transaction so that it can be published on the network.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Wallets can be classified in several ways. The following are the types of wallets
+    based on the medium of usage:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Mobile wallets:** These are installed on mobile phones. Some of the famous
+    ones are Electrum, Mycelium, Samourai, etc.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Desktop wallets:** These are installed on the desktop. Some of the famous
+    ones are Bitcoin Core, Armory, Electrum, etc.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Hardware wallets:** These are separate hardware devices that are security-focused
+    and considered to provide better security. Two companies mostly dominate this
+    market: Ledger Nano and Trezor.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Apart from the preceding wallet types, wallet services are also provided by
+    most exchanges.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Wallets can also be classified based on keys as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Deterministic wallets:** These wallets allow a user to generate keys deterministically
+    using a seed. These wallets don’t need to store keys and so are safe from hacking
+    and are also safe from the risk of losing the keys.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Non-Deterministic wallets:** These wallets store collections of keys. These
+    are also called **Just a Bunch of Keys (JBOK)**.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Wallets can also be classified as hot and cold:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Cold wallets** store private keys offline, and the signing of transactions
+    happens offline, which makes them very secure. Hardware wallets are examples of
+    cold wallets.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Hot wallets** encrypt private keys but keep them online. These wallets also
+    sign transactions online. Most of the mobile and desktop wallets are online wallets.
+    Bitcoin Core provides an online wallet.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In this chapter, we will build a deterministic wallet. In the next chapter,
+    you will learn how to use the wallet for signing a transaction offline.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***** Never use private keys or mnemonic code used anywhere in this book. Your
+    bitcoins will get stolen *****'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Structure](toc.xhtml#s192a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'In this chapter, we will cover the following topics:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Mnemonic code
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Format and generation of private key, public key, and address
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Private key
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Public key
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Address
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Hierarchical Deterministic (HD) wallet
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Master key generation
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Key derivation
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Parent private key -> Child private key
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Parent public key -> Child public key
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Child private key -> Parent private key (Wallet private key leak)
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Deriving hardened child keys
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Extended keys
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Master extended public and private keys
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Extended public and private keys
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Key derivation path
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Objectives](toc.xhtml#s193a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The objective of this chapter is to help you understand wallet, public keys,
+    private keys, and Bitcoin addresses both in terms of functionality and implementation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We will discuss the functions of wallets. Additionally, you will understand
+    the different ways to classify them and learn to create your own hierarchical
+    deterministic wallet and generate their seed. You will also learn about security
+    related to wallets.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This chapter also covers the format of private keys, public keys, and addresses,
+    and you will also learn to generate them.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Mnemonic code](toc.xhtml#s194a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: To create a deterministic wallet, you first need to learn to generate a random
+    seed. This seed will help you generate private key and public key pairs. The random
+    number you choose determines how secure the private key is against brute force
+    or knowledge-based attacks. A good random number is truly random, which means
+    it does not follow a pattern that an attacker can determine. Additionally, it
+    is preferable that generation is well distributed, which means if we keep on generating
+    it over a finite field, then after a significantly long time, the finite field
+    is very well distributed, does not have large patches of density, and is not quite
+    uniform. So, a random number needs to protect against both brute force attacks
+    and intelligent attacks involving inferring patterns. This requires choosing the
+    right source of randomness, also called the *source of entropy*. This is mostly
+    collected from hardware sources such as fan noise or mouse movement. We can also
+    use background noise as a source of entropy.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We will implement a program to generate the random seed using BIP 39.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Link: **[https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki](https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki)**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The document describes the method of generating seed, which consists of 12/18/24
+    common English words. The set of words is not just a purely random sequence; it
+    also contains checksum, and so, it cannot be randomly generated without following
+    the method described in BIP.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are 2048 mnemonic words with which seed is generated, which translates
+    to 11 bits. The whole list of mnemonic words can be found at **[https://github.com/bitcoin/bips/blob/master/bip-0039/english.txt](https://github.com/bitcoin/bips/blob/master/bip-0039/english.txt)**.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If we are preparing 12-word mnemonic code, we require 11*12 bits, which are
+    132 bits.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 132 bits consists of a 128-bit random number and 4-bit as its checksum.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We will refer to the bits in random numbers as entropy bits. Here’s an illustration
+    of the process of getting a 12-word mnemonic seed:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-9.1.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 9.1:** Illustration of mnemonic code generation from entropy'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following formula is used to calculate the required bits:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Entropy Bit Count = Mnemonic Word count * 32 / 3*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here’s the formula for **checksum_bit_count**:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Checksum Bit Count = Mnemonic Word count/ 3*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This is the code to get the **checksum_bit_count** and **entropy_it_count**:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def getChecksumBitCount(mnemonic_length: int):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if (mnemonic_length % 3) != 0:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`raise ValueError(‘Invalid Mnemonic code length’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`checksum_bit_count = mnemonic_length // 3`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return checksum_bit_count`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def getEntropyBitCount(mnemonic_length: int):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if (mnemonic_length % 3) != 0:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`raise ValueError(‘Invalid Mnemonic code length’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`entropy_bit_count = (mnemonic_length * 32) // 3`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return entropy_bit_count`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Program 9.1:** Program to get checksum bit count and entropy bit count from
+    mnemonic seed length'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following is the code to generate entropy bits:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def getRandomNumberBits(bit_count: int):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`r = random.SystemRandom().randrange(0, 1 << 32)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`r_b = r.to_bytes((r.bit_length() + 7) // 8, ‘big’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`h = hashlib.sha256()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`h.update(r_b)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`h_b = h.digest()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`byte_count = bit_count // 8`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`rand_num_b = h_b[0:byte_count]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return rand_num_b`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Program 9.2:** Program to generate random numbers'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'After this, we append checksum bits to the random number bits. Here’s the code
+    to generate the bits:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def getMSBChecksumBits(checksum: int, checksum_bit_count: int):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`msb_checksum = checksum >> (256 - checksum_bit_count)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return msb_checksum`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def getEntropyWithChecksum(random_number: int,`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`msb_checksum: int,`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`checksum_bit_count: int):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`shifted_random_number = random_number << checksum_bit_count`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`entropy_check_i = shifted_random_number | msb_checksum`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return entropy_check_i`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def convertIntToBytes(num: int, bit_count: int):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`size_bytes = math.ceil(bit_count / 8)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`num_s = (‘%x’ % num).zfill(size_bytes * 2)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`num_b = bytes.fromhex(num_s)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return num_b`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def getChecksum(b: bytes):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return int.from_bytes(hashlib.sha256(b).digest(), byteorder=’big’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def getEntropyCheckBits(mnemonic_length: int):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`entropy_bit_count = getEntropyBitCount(mnemonic_length)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`random_number_b = getRandomNumberBits(entropy_bit_count)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`checksum_bit_count = getChecksumBitCount(mnemonic_length)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`checksum = getChecksum(random_number_b)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`msb_checksum = getMSBChecksumBits(checksum, checksum_bit_count)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`random_number = int.from_bytes(random_number_b, byteorder=’big’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`entropy_check_i = getEntropyWithChecksum(random_number, msb_checksum, checksum_bit_count)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`bit_count = entropy_bit_count + checksum_bit_count`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`entropy_check_b = convertIntToBytes(entropy_check_i, bit_count)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return entropy_check_b`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Program 9.3:** Program to get entropy bits appended with checksum'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'After this, we need to use these bits to select words from the list of 2048
+    mnemonic word lists. This works by breaking the **entropycheck bits** into the
+    11-bit list. Given here is the code that does this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def getMnemonicWordList():`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`word_list = []`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`with open(‘mnemonic_word_list_english.txt’, ‘rt’) as word_file:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`word_list = word_file.read().splitlines()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return word_list`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def entropyCheckBits2List(entropy_check_b: bytes, size: int):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`selector_int = int.from_bytes(entropy_check_b, byteorder=’big’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`selector_list = []`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`while size >= 11:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`selector_list.append(selector_int & 0x07FF)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`selector_int = selector_int >> 11`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`size -= 11`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return selector_list[::-1]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def getMnemonicWordCodeString(mnemonic_length: int):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`entropy_bit_count = getEntropyBitCount(mnemonic_length)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`checksum_bit_count = getChecksumBitCount(mnemonic_length)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`entropy_check_bit_count = entropy_bit_count + checksum_bit_count`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`entropy_check_b = getEntropyCheckBits(mnemonic_length)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`selector_list = entropyCheckBits2List(entropy_check_b,`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`entropy_check_bit_count)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`mnemonic_word_list = getMnemonicWordList()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`word_key_list = []`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`for selector in selector_list:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`word = mnemonic_word_list[selector]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`word_key_list.append(word)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return word_key_list`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Program 9.4:** Program to generate mnemonic word code in list'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In this subtopic, you learned to generate the mnemonic seed. You can use it
+    to generate a mnemonic seed of 12, 18, or 24 words. There is a tradeoff here:
+    a 24-word seed gives more security, but it is more difficult to remember than
+    a 12- or an 18-word code. In the next section, we will discuss private key, public
+    key, and the address format used by Bitcoin.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Format and generation of private key, public key, and address](toc.xhtml#s195a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this subtopic, you will understand the format of private keys and address
+    and learn to generate them.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Private key](toc.xhtml#s196a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Private keys can be almost any 256-bit value. They can be between *0x1* to *0xFFFF
+    FFFF FFFF FFFF FFFF FFFF FFFF FFFE BAAE DCE6 AF48 A03B BFD2 5E8C D036 4140*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Private keys are represented in **Wallet Import Format (WIF)** format. This
+    is the base58 format with a prefix and checksum.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Base58 scheme is defined in the following document:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**[https://tools.ietf.org/id/draft-msporny-base58-01.html](https://tools.ietf.org/id/draft-msporny-base58-01.html)**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Public keys can be compressed or uncompressed. Both compressed and uncompressed
+    public keys lead to different addresses, so the private key must carry the information
+    regarding whether the public key it will generate will be compressed or uncompressed.
+    To generate WIF format for the private key, we need to have information about
+    the coin, network, and compression in the WIF format so that the resulting address
+    belongs to a specific network and is deterministic.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following is the prefix information:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/296.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Table 9.1:** Private key prefixes'
+  prefs: []
+  type: TYPE_NORMAL
+- en: As seen in the preceding table, regtest uses the same private key prefixes as
+    testnet.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To generate WIF format for the compressed public key, we add b’\01’ as a suffix
+    to the generated private key.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Base58 encoding string consists of the following characters:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are 58 characters as the name suggests. To get the encoded string, we
+    iteratively divide the number by 58 and subsequent quotients, convert remainders
+    to base58 characters in each step, and concatenate encoded characters to get the
+    final encoded string.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following illustration shows the logic to get WIF encoded private key for
+    testnet:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-9.2.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 9.2:** Illustration of method of WIF encoding'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following program encodes a number in base58 string:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`g_alphabet=’123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz’`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`g_base_count = len(g_alphabet)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def hash256(bstr: bytes):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return hashlib.sha256(hashlib.sha256(bstr).digest()).digest()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def base58_encode(num: int):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`encode = ‘’`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if (num < 0):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return ‘’`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`while (num >= g_base_count):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`mod = num % g_base_count`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`encode = g_alphabet[mod] + encode`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`num = num // g_base_count`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if (num >= 0):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`encode = g_alphabet[num] + encode`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return encode`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Program 9.5:** Program to encode number into base58 string'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following program postfix four bytes of checksum to the number before base58
+    encoding to generate base58check encoding:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def base58checkEncode(prefix: bytes, b: bytes):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`with_prefix = prefix + b`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`with_checksum = with_prefix + hash256(with_prefix)[0:4]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`val = int.from_bytes(with_checksum, byteorder=’big’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`encode = base58_encode(val)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if prefix == b’\x00’:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`encoded_prefix = base58_encode(0)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`encode = encoded_prefix + encode`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return encode`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Program 9.6:** Program to encode a number into Base-58-Check-Encode'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following program converts private key hex code WIF format. It takes hex
+    code of private key and a Boolean value stating if the key is supposed to be used
+    to generate a compressed public key:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`PRIVKEY_PREFIX_MAINNET=0x80`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`WIF_PREFIX_MAINNET_COMPRESSED=[‘L’, ‘K’]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`WIF_PREFIX_MAINNET_UNCOMPRESSED=[‘5’]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`PRIVKEY_PREFIX_TESTNET=0xEF`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`WIF_PREFIX_TESTNET_COMPRESSED=[‘c’]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`WIF_PREFIX_TESTNET_UNCOMPRESSED=[‘9’]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def encodeWifPrivkey(privkey: int, for_compressed_pubkey: bool):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`prefix_b = bytes.fromhex(‘%02x’ % PRIVKEY_PREFIX_TESTNET)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`privkey_b = bytes.fromhex(‘%064x’ % privkey)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if for_compressed_pubkey == True:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`privkey_b = privkey_b + b’\01’`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`wif_encoded = base58checkEncode(prefix_b, privkey_b)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return wif_encoded`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Program 9.7:** Method to generate WIF encoded private key'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We call this method for compressed public key as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if __name__ == ‘__main__’:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`h = 0x1f4b9c36e4f466464de890a341eba483eb3ed95932d797b0841afa1d8d83c420`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`wif = encodeWifPrivkey(h, True)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(wif)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We get the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-9.3.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 9.3:** Shows the generated WIF encoded private key for compressed
+    public key'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We call it for uncompressed public key as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if __name__ == ‘__main__’:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`h = 0x1f4b9c36e4f466464de890a341eba483eb3ed95932d797b0841afa1d8d83c420`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`wif = encodeWifPrivkey(h, False)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(wif)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We get the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-9.4.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 9.4:** Shows the generate WIF encoded private key for uncompressed
+    public key'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Public key](toc.xhtml#s197a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: A private key is normally represented in WIF encoding. We use the WIF encoded
+    private key to generate the public key and address. To generate public key from
+    WIF encoded private key, we need to convert the private key back to hex code.
+    The reason why we use WIF encoded string and not hex code is the size. Private
+    key is presented as a 64-digit hex code or 53-character string. So, using WIF
+    encode means 11 digits less to type.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'First, we decode the WIF string and, along with the decoded hex-coded private
+    key, we also get whether it is for testnet or mainnet and whether it is for compressed
+    public key or uncompressed public key. Here’s the code to decode the WIF string:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def base58_decode(s: str):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`decoded = 0`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`multi = 1`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`s = s[::-1]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`for char in s:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`decoded += multi * g_alphabet.index(char)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`multi = multi * g_base_count`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return decoded`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def base58checkDecode(s: str):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`with_checksum_int = base58_decode(s)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`with_checksum_b = bytes.fromhex(‘%x’ % with_checksum_int)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`decode_b = with_checksum_b[1:-4]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return decode_b`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def base58checkVerify(wif: str):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`decoded_wif = base58_decode(wif)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`wif_str = ‘%02x’ % decoded_wif`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if len(wif_str) % 2 == 1:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`wif_str = ‘0’ + wif_str`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`postfix = bytes.fromhex(wif_str)[-4:]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`wif_without_postfix = bytes.fromhex(wif_str)[0:-4]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`h = hash256(wif_without_postfix)[0:4]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if h == postfix:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return True`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return False`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def getNetworkNCompression(wif_prefix: str):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if wif_prefix in WIF_PREFIX_MAINNET_COMPRESSED:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return ‘mainnet’, True`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`elif wif_prefix in WIF_PREFIX_MAINNET_UNCOMPRESSED:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return ‘mainnet’, False`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`elif wif_prefix in WIF_PREFIX_TESTNET_COMPRESSED:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return ‘testnet’, True`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`elif wif_prefix in WIF_PREFIX_TESTNET_UNCOMPRESSED:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return ‘testnet’, False`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def privkeyWif2Hex(privkey_wif: str):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`assert base58checkVerify(privkey_wif)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`wif_prefix = privkey_wif[0:1]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`network, compress = getNetworkNCompression(wif_prefix)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`privkey_b = base58checkDecode(privkey_wif)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`privkey_i = int.from_bytes(privkey_b, byteorder=’big’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if compress == True:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`privkey_s = ‘%066x’ % privkey_i`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`else:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`privkey_s = ‘%064x’ % privkey_i`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return privkey_s, network, compress`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Program 9.8:** Program to encode private key into WIF encoding scheme'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Bitcoin private key public key cryptography is based on **Elliptic Curve Digital
+    Signature Algorithm (ECDSA)**. **Elliptic** c**urve** d**igital** s**ignature**
+    a**lgorithm** uses e**lliptic** c**urve** c**ryptography**. As the name suggests,
+    elliptic curve is a geometric representation of the following equation:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*y² = x³+ ax + b*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Elliptic curve cryptography is based on an elliptic curve over a finite field,
+    also called **Galois Fields**. Galois field can be a prime field or a binary field.
+    Bitcoin uses a specific elliptic curve over a finite prime field called ***secp256k1***.
+    Here’s the equation for *secp256k1*:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*y² = x² + ax + b*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here
+  prefs: []
+  type: TYPE_NORMAL
+- en: p = 2^(256) - 2^(32) - 2⁹ - 2⁸ - 2⁷ - 2⁶ - 2⁴-1
+  prefs: []
+  type: TYPE_NORMAL
+- en: p = 0xfffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'There is also a variable called **Generation Point,** and its value is:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`G = (79BE667E F9DCBBAC 55A06295 CE870B07 029BFCDB 2DCE28D9 59F2815B 16F81798,
+    483ADA77 26A3C465 5DA4FBFC 0E1108A8 FD17B448 A6855419 9C47D08F FB10D4B8)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We use the ecdsa package in Python to generate public keys from private key
+    hex code. Once the WIF private key is decoded, we use the ecdsa *package.* The
+    e*cdsa* package uses signing key to denote private key and verifying key to denote
+    public key.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following is the ecdsa package we use in the :'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-9.5.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 9.5:** The pip3 package information about installed ecdsa package'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We also use cryptotools package for secp256k1 related operations. The following
+    program converts WIF encoded private key to public key:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`from ecdsa import SigningKey, SECP256k1`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def compressPubkey(pubkey: bytes):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`x_b = pubkey[1:33]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`y_b = pubkey[33:65]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if (y_b[31] & 0x01) == 0: # even`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`compressed_pubkey = b’\x02’ + x_b`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`else:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`compressed_pubkey = b’\x03’ + x_b`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return compressed_pubkey`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def privkeyHex2pubkey(privkey_s: str, compress: bool):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if compress == True:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`privkey_s = privkey_s[0:64]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`privkey_b = bytes.fromhex(privkey_s)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`sk = SigningKey.from_string(privkey_b, curve=SECP256k1)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`vk = sk.get_verifying_key()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`pubkey_b = b’\x04’ + vk.to_string()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if compress == True:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`pubkey_b = compressPubkey(pubkey_b)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return pubkey_b`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def privkeyWif2pubkey(privkey: str):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`privkey_s, network, compress = privkeyWif2Hex(privkey)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`pubkey = privkeyHex2pubkey(privkey_s, compress)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return pubkey`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Program 9.9:** Program to get public key from WIF encoded private key'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the preceding code, b’\x04’ is a prefix in the uncompressed public key, and
+    b’\x02’ and n’\x03’ are used as a prefix in the compressed public key.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We call the preceding program by executing the following code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if __name__ == ‘__main__’:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`privkey_wif = ‘cNdY2QGfetwijtrqzCK5tAoc78NtGkQJ8smYVaugDW6puLXJvLZG’`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘privkey(WIF) = ‘, privkey_wif)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`privkey_s, network, compress = privkeyWif2Hex(privkey_wif)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`pubkey_b = privkeyWif2pubkey(privkey_wif)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘pubkey = %s’ % pubkey_b.hex())`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘-----------------------------------------------------------’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`privkey_wif = ‘91phZVP8Q5yMLEZbD41vfnGYWwEZuxbjQ5huSxiPUkkTiQw8SL2’`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘privkey(WIF) = ‘, privkey_wif)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`privkey_s, network, compress = privkeyWif2Hex(privkey_wif)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`pubkey_b = privkeyWif2pubkey(privkey_wif)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘pubkey = %s’ % pubkey_b.hex())`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'And we get the following public keys:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-9.6.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 9.6:** Shows public key generated from WIF enconded private keys'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Address](toc.xhtml#s198a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: When a merchant or a trader requests bitcoins against their service or product,
+    they provide their Bitcoin address. We transfer the requested bitcoins to their
+    address, and save any change left to a different address. In this subtopic, we
+    will understand and generate addresses from the public key.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following illustration shows how public-key-hash address is generated:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-9.7.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 9.7:** Illustration of Address Generation mechanism'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The public key to address conversion is a two-step process. In the first step,
+    we calculate the hash of the public key, which is ***PKH*** or **public-key-hash**.
+    In the second step, we encode PKH with the base58check algorithm. One important
+    benefit of using checksum is that it is almost impossible to make a typing mistake
+    and still generate a valid address. This is an important safety feature of Bitcoin.
+    Mnemonic code also uses the base58check algorithm, and it provides the same benefit.
+    Putting wrong order, or a wrong or repeated word will almost never lead to loss
+    of funds.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using hash160 and address instead of the public key provides enhanced security.
+    If, in the future, quantum computers can translate public key to private key,
+    then hashing public key will be still secure. So, unless we have exposed our public
+    key, our bitcoins will be still secure. And this is significant as the breakdown
+    of public key private key encryption will lead to mayhem for almost everything
+    on the internet.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It is possible to have a script instead of a public key. In that case, the public
+    key is replaced by the script in the preceding figure. The public key address
+    is called **Pay-to-Public-Key-Hash** or **P2PKH** address, and the script address
+    is called **Pay-to-Script-Hash** or **P2SH** address.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following table lists the version prefixes related to network and address
+    type:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/306.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Table 9.2:** Table for address prefixes'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the preceding table, we can see that `**testnet**` *and* `**regtest**` use
+    the same version prefix.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following program converts public key to address:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`PKH_MAINNET_PREFIX = 0x00`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`SH_MAINNET_PREFIX = 0x05`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`PKH_TESTNET_PREFIX = 0x6F`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`SH_TESTNET_PREFIX = 0xC4`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`PKH_REGTEST_PREFIX = 0x6F`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`SH_REGTEST_PREFIX = 0xC4`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def hash160(secret: bytes):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`secrethash = hashlib.sha256(secret).digest()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`h = hashlib.new(‘ripemd160’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`h.update(secrethash)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`secret_hash160 = h.digest()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return secret_hash160`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def pkh2address(pkh: bytes):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`prefix = PKH_TESTNET_PREFIX`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`address = base58checkEncode(bytes.fromhex(‘%02x’ % prefix), pkh)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return address`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def sh2address(sh: bytes):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`prefix = SH_TESTNET_PREFIX`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`address = base58checkEncode(bytes.fromhex(‘%02x’ % prefix), pkh)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return address`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def pubkey2address(pubkey: bytes):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`pkh = hash160(pubkey)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`address = pkh2address(pkh)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return address`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Program 9.10:** Program to convert public key into addresses'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We call the preceding method using the following program to get address from
+    compressed as well as uncompressed public keys:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if __name__ == ‘__main__’:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`pubkey = ‘0240bb63da114aa89f4d2cf35d695d3e52e6add7a4bae06f190d947bef5c62b5e0’`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`pubkey_b = bytes.fromhex(pubkey)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘Compressed PubKey = ‘, pubkey_b.hex())`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`address = pubkey2address(pubkey_b)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘Address = ‘, address)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘-----------------------------------------------’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`pubkey = ‘0440bb63da114aa89f4d2cf35d695d3e52e6add7a4bae06f190d947bef5c62b5e0e99601851593a9e54e2059a25d76512698acf60089935dedc015f1bb2bc81eda’`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`pubkey_b = bytes.fromhex(pubkey)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘Uncompressed PubKey = ‘, pubkey_b.hex())`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`address = pubkey2address(pubkey_b)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘Address = ‘, address)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'And we get the following result:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-9.8.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 9.8:** Shows addresses generated from public keys'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Hierarchical Deterministic (HD) wallet](toc.xhtml#s199a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'In the earlier version, a wallet used to be a collection of private key public
+    key pairs stored in a file. The file was required to be backed up multiple times
+    and secured at multiple places. This was cumbersome and has led to the loss of
+    coins for many in the initial years. However, there was one advantage: since these
+    are not generated from a single seed, accidentally exposing the secret will not
+    lead to loss of all the coins in the derived addresses. These were non-deterministic
+    wallets.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The alternative to this is deterministic wallets, which are generated using
+    a single seed and an index. Hierarchical deterministic wallets require a string
+    representing the hierarchical location of keys instead of the index value. This
+    allows the generation of a very large number of keys from a single seed. Additionally,
+    it provides a way to group addresses for different purposes by selecting a different
+    hierarchical location in the hierarchy.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Hierarchical deterministic wallet uses 12-, 18- or 24-word mnemonic code, which
+    makes it easier to remember seed and at the same time, provides similar security
+    as any complex password. It is easier to remember and type 12 words. This is useful
+    if the wallet requires typing them every time or you don’t want to write on paper.
+    A 24-word code is more secure and recommended in most cases.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using the deterministic wallet as defined in BIP32 makes it easier to generate
+    the private key and public key pair or just public keys whenever required. This
+    eliminates the need for the physical form of a wallet. So, while we are traveling
+    and spending or trading, we can generate addresses and private keys as we require.
+    There is still a risk that we can accidentally expose mnemonic code and lose all
+    our savings, but if we always generate keys or addresses offline, we can almost
+    remove this risk. There are specialized devices called hardware wallets that do
+    just that and so, are considered the best way to store bitcoins.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following figure illustrates the keys generation using mnemonic code word
+    list using BIP32 specification for hierarchical deterministic wallet:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-9.9.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 9.9:** Illustration of key generation using Mnemonic Code Word List'
+  prefs: []
+  type: TYPE_NORMAL
+- en: BIP32 specification uses the pbkdf2-hmac algorithm to generate private keys.
+    **pbkdf2** stands for **Password-Based Key Derivation Function 2**. pbkdf2 requires
+    hashing algorithm as an input. We use SHA512 as the hashing algorithm required
+    by pbkdf2\. Additionally, pbkdf2 is an iterative process of key derivation; the
+    higher the number of iterations, the more secure is the derived key against brute
+    force attacks, but a higher number also takes a long time to generate. If we generate
+    a sufficiently large number of private key public key pairs once so that we don’t
+    require to run the program again and again, we can have a much higher iteration
+    count. Bitcoin Core does this and generates 100 private keys, public keys, and
+    addresses in the first run. Once the keys and addresses are generated, wallet
+    file is like a JBOK for the user. It is recommended that the iteration count should
+    be more than 10,000\. Bitcoin Core uses 25,000 iterations, but there are quite
+    popular wallets that use an iteration count of just 2048, which probably means
+    2048 must be ok if we don’t want to create a JBOK wallet file and use it efficiently.
+    We will use 10,000 to balance both time and security.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following figure shows how the seed is generated:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-9.10.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 9.10:** Illustration of the mechanism of generation of seed from Mnemonic
+    Code word list'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To do this in Python code, we require hmac and pbkdf2 packages. We use the
+    pbkdf2 source from the following source code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**[https://github.com/sfstpala/python3-pbkdf2](https://github.com/sfstpala/python3-pbkdf2)**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We also need to use following package for secp256k1 elliptic curve cryptography:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-9.11.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 9.11:** The pip3 package information about installed cryptotools package'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following code generates seed from the mnemonic code word list:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`import pbkdf2`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`import hashlib`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`import hmac`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`import struct`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`from cryptotools.ECDSA.secp256k1 import PublicKey, \`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`PrivateKey, Point, G as secp256k1_G, \`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`N as secp256k1_n, CURVE`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`iterations_g = 10000`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`dklen_g = 64 # derived key length`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def genSeedFromStr(password: str, salt: str):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`password_b = password.encode(‘utf-8’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`salt_b = salt.encode(‘utf-8’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`seed = pbkdf2.pbkdf2(hashlib.sha512, password_b, salt_b, iterations_g, dklen_g)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return seed`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Program 9.11:** Program to generate seed from Mnemonic Code word list and
+    salt string'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We passed a mnemonic code word list and a passcode to the seed generation method,
+    as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if __name__ == ‘__main__’:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`mnemonic_code_l = [‘moral’, ‘submit’, ‘comfort’, ‘cupboard’, ‘organ’,`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`‘expand’, ‘home’, ‘bid’, ‘dawn’, ‘ozone’, ‘omit’, ‘helmet’]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`mnemonic_code = ‘ ‘.join(mnemonic_code_l)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘Mnemonic Code = ‘, mnemonic_code)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`seed = genSeedFromStr(mnemonic_code, ‘mnemonic’ + ‘mycomplexpasscode’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘seed = %s’ % seed.hex())`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'And we get 512-bit seed as a result:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-9.12.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 9.12:** Shows the seed and mnemonic code generated from the program'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Once the seed is derived from mnemonic code using pbkdf2, we use the key to
+    generate the master key pair and then further children’s key pairs. We use the
+    HMAC code to generate these keys. HMAC stands for **Hash-based Message Authentication
+    Code**.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'HMAC : Hash-based message authentication code'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Following figure illustrates hash-based message authentication:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-9.13.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 9.13:** Illustration of HMAC-based authentication mechanism'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Bob shares secret with Alice, so Bob and Alice only know the secret. Bob needs
+    to send a message (m) to Alice. He uses the HMAC-SHA512 hashing algorithm to generate
+    hash (h) and sends it to Alice along with the message. When Alice receives the
+    message, she again generates hash using same HMAC-SHA512 algorithm. If calculated
+    hash is the same as received hash, she is sure that the message has not been tampered
+    with.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We use the HMAC-SHA512 algorithm for the generation of master key pairs and
+    subsequent children’s key pairs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Master key generation](toc.xhtml#s200a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'The following figure illustrates master private key generation and master chaincode
+    generation, which will be required to generate children at the next level in the
+    hierarchy of key pairs:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-9.14.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 9.14:** Illustration of generation of master key address from seed
+    bytes'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here’s the program:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def genMasterKeys(seed: bytes):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`h = hmac.new(bytes(“Bitcoin seed”, ‘utf-8’),`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`seed,`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`hashlib.sha512).digest()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`private_key = int.from_bytes((h[0:32]), byteorder=’big’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`chaincode = h[32:64]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return private_key, chaincode`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Program 9.12:** Program to generate master private key and Chaincode pair'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We call this method as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`privkey, chaincode = genMasterKeys(seed)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`privkey_s = ‘%064x’ % privkey`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘master privkey = %s’ % privkey_s)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘master chaincode = %s’ % chaincode.hex())`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This generates the following master private key and chaincode:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-9.15.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 9.15:** Shows master private key and master chaincode generated from
+    the program'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Key derivation](toc.xhtml#s201a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[Parent private key -> Child private key](toc.xhtml#s202a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Each key pair at a tree location can generate children’s key pairs. For the
+    first children, we have the following child private key derivation mechanisms:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-9.16.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 9.16:** Illustration of child private key derivation mechanism'
+  prefs: []
+  type: TYPE_NORMAL
+- en: To derive child private key and child chaincode, we need parent private key,
+    parent public key, parent chaincode, and index of the child to be derived. This
+    method is used to derive child from index 0 to 2^(31) - 1.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following code implements the child key derivation procedure:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def finiteFieldAddition(a: int, b: int, modulo: int):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return (a + b) % modulo`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def genNormalChildPrivKey(privkey: int, chaincode: bytes, index: int):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`privkey_s = ‘%064x’ % privkey`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`pubkey_b = privkeyHex2pubkey(privkey_s, True)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`index_b = struct.pack(‘>L’, index)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`h = hmac.new(chaincode, pubkey_b + index_b, hashlib.sha512).digest()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`h256 = int.from_bytes(h[0:32], byteorder=’big’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`child_privkey = finiteFieldAddition(h256, privkey, secp256k1_n)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`child_chaincode = h[32:64]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return child_privkey, child_chaincode`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Program 9.13:** Program to generate child’s private key and chaincode from
+    parent’s private key and chaincode'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The preceding code is run as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`child_privkey_i, child_chaincode = genNormalChildPrivKey(privkey, chaincode,
+    1)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`child_privkey_wif = encodeWifPrivkey(child_privkey_i, True)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(“child privkey = %s” % child_privkey_wif)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(“child chaincode = %s” % child_chaincode.hex())`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'It gives us the following results:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-9.17.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 9.17:** Shows child private key and child chaincode generated from
+    the program'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Parent public key -> Child public key](toc.xhtml#s203a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: One of the important reasons why BIP32 is so useful is that we can derive child
+    public keys and addresses without knowing parent private keys. This protects against
+    accidentally exposing private keys; therefore, private keys for all the subsequent
+    children.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This is based on the following logic:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*P[p]: Parent Private Key*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*U[p]: Parent Public Key*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*P[C]: Child Private Key*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*U[C]: Child Public Key*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*H[0-31]: 32 MSB of hmac(sha512) hash obtained from parent chaincode,public
+    key and child index*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*G: Generation point in finite field elliptic curve*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'As we learned in child private key derivation:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ⇒ *P[P]+H[0-31] = P[C] (1)*
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Multiplying both sides by generation point G:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*P[P] G + H[0-31] G = P[C].G*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In the elliptic curve cryptography public key is derived as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ⇒*U[x] = P[x].G (2)*
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*(1), (2)* ⇒ *U[P] + H[0-31] .G = U[C]*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: G is a vector on the x, y coordinate in the finite field. Multiplying G with
+    scalar hash requires elliptic curve finite field point multiplication, and addition
+    of and requires elliptic curve finite field point addition. Plus, if the public
+    key we are using is compressed, then we will require an un-compression algorithm
+    using elliptic curve cryptography.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following figure illustrates this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-9.18.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 9.18:** Illustration of the derivation of child public key from parent
+    public key and chaincode'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following Python implementation generates child public key from parent
+    public key:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`G_p = Point(secp256k1_G[0], secp256k1_G[1])`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def compressPubkey(pubkey_b: bytes):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`pubkey_P = PublicKey.decode(pubkey_b)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`pubkey_b = PublicKey.encode(pubkey_P, compressed=True)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return pubkey_b`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def genNormalChildPubKey(pubkey_b: bytes, chaincode: bytes, index: int):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`index_b = struct.pack(‘>L’, index)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`h = hmac.new(chaincode, pubkey_b + index_b, hashlib.sha512).digest()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`h256 = int.from_bytes(h[0:32], byteorder=’big’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`h256G = CURVE.point_mul(G_p, h256)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`pubkey_b = compressPubkey(pubkey_b)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`pubkey_point = Point.from_compact(pubkey_b[1:])`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`child_pubkey_point = h256G + pubkey_point`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`child_pubkey_b = PublicKey.encode(child_pubkey_point, compressed=True)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`child_chaincode = h[32:64]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return child_pubkey_b, child_chaincode`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Program 9.14:** Program to derive child public key and chaincode from parent
+    public key and chaincode'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We call the preceding code as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`pubkey_b = privkeyHex2pubkey(privkey_s, True)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`child_pubkey_b, child_chaincode = genNormalChildPubKey(pubkey_b,`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`chaincode, 1)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(“child pubkey key = %s” % child_pubkey_b.hex())`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(“child chaincode = %s”% child_chaincode.hex())`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This gives us the following result:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-9.19.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 9.19:** Shows the generated child public key and chaincode'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We can see that the child chaincode derived with the private key is the same
+    as the chaincode derived with the public key.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Child private key -> Parent private key (Wallet private key leak)](toc.xhtml#s204a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: There exists a risk when we use xpub. If we accidentally expose a child’s private
+    key to an attacker who has access to the xpub of the parent, they can find all
+    the private keys in the wallet and drain all the stored bitcoins.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following equation explains how this happens:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*P[p] + H[0-31] = P[C]*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ⇒ *P[C] - H_[0-31] =P[P]*
+  prefs: []
+  type: TYPE_NORMAL
+- en: This shows that by knowing the HMAC-SHA256 hash and private key of the child,
+    we can get the private key of the parent. And since we got the parent’s private
+    key, we can get the private key of the parent’s parent by the same mechanism.
+    Additionally, once the parent private key is known, we can derive the private
+    keys of all its children. This means just by losing one private key and the corresponding
+    xpub of the parent, the whole wallet can be drained of bitcoins.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following figure illustrates the stages of exposure:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-9.20.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 9.20:** Illustration of an attacker deriving all the private keys
+    using a single private key'
+  prefs: []
+  type: TYPE_NORMAL
+- en: When someone has got hold of your private key, they can derive more and more
+    private keys from it, and finally, reach the master key and derive all keys, as
+    we have done with the private key derivation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following program derives the private key of parent from child private
+    key:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def genNormalParentPrivKey(child_privkey_i: int,`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`pubkey_b: bytes,`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`chaincode: bytes,`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`index: int):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`index_b = struct.pack(‘>L’, index)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`h = hmac.new(chaincode, pubkey_b + index_b, hashlib.sha512).digest()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`h256 = int.from_bytes(h[0:32], byteorder=’big’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`privkey = finiteFieldAddition(-h256, child_privkey_i, secp256k1_n)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return privkey`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Program 9.15:** Program to derive Parent Private Key from Child Private Key'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We call the preceding code as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`p_privkey_i = genNormalParentPrivKey(child_privkey_i,`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`pubkey_b, chaincode, 1)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`p_privkey_wif = encodeWifPrivkey(p_privkey_i, True)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘parent privkey = %064x’ % p_privkey_i)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This gives us the following result:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-9.21.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 9.21:** Shows parent private key obtained using child private key,
+    public key and chaincode'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We can see here that we derived the same master private key that we had got
+    from the seed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Deriving hardened child keys](toc.xhtml#s205a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In the previous sections, you learned normal key derivation, and you also learned
+    that we could lose all bitcoin stored in the wallet by an easy-to-make mistake.
+    To avoid this, BIP32 also suggests a modification to child derivation algorithms
+    called hardened derivation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following figure illustrates the procedure of hardened derivation:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-9.22.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 9.22:** Illustration of the derivation of Child Private Key from Hardened
+    Parent Private Key'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We see here that in hardened derivation, parent private key is used with byte
+    0x00 as suffix to it instead of parent public key. The child index for hardened
+    derivation is from 2^31 to 2^32-1:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def genHardenedChildPrivKey(privkey: int, chaincode: bytes, index: int):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`index_b = struct.pack(‘>L’, index)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`privkey_b = bytes.fromhex(‘%064x’ % privkey)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`h = hmac.new(chaincode, b’\x00’ + privkey_b + index_b, hashlib.sha512).digest()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`h256 = int.from_bytes(h[0:32], byteorder=’big’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`child_privkey = finiteFieldAddition(h256, privkey, secp256k1_n)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`child_chaincode = h[32:64]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return child_privkey, child_chaincode`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Program 9.16:** Program to derive child private key from hardened parent
+    private key'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We call the preceding code as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`index = ((1<<31) + 1) # 2^31 + 1`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`child_privkey_i, child_chaincode = genHardenedChildPrivKey(privkey, chaincode,
+    index)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`child_privkey_wif = encodeWifPrivkey(child_privkey_i, True)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(“child privkey = %s” % child_privkey_wif)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(“child chaincode = %s” % child_chaincode.hex())`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We get the following result:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-9.23.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 9.23:** Shows hardened child private key and chaincode'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Unlike normal, child hardened children derivation does not support xpub or extended
+    public keys. Consequently, to watch child addresses, we cannot use xpub; instead,
+    we need to generate public keys and addresses offline and then pass them to the
+    online wallet to watch them. This is a bit inconvenient compared to normal derivation,
+    but as this is much more secure, it is recommended over normal derivation. In
+    the next section, we will see how we can combine both to have a better tradeoff
+    between security and convenience.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Extended keys](toc.xhtml#s206a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: BIP32 also describes xpub and xprv for mainnet and tpub and tprv for testnet.
+    These are used by wallets to generate child keys and addresses. The xpub and tpub
+    are used to generate only public keys, while xprv and tprv are used to generate
+    private keys. The generated xpub or tpub can be given to the wallet to watch generated
+    addresses without exposing private keys or seeds. The generated xprv or tprv can
+    be given to the wallet to generate private keys. This makes HD Wallets convenient
+    to use, and that is the reason BIP32 specification is used by almost all wallet
+    software today, like Bitcoin Core, electrum, and hard wallets like nano or trezor.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following illustration shows xprv derivation:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-9.24.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 9.24:** Illustration of the derivation of extended private key'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following illustration shows xpub derivation:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-9.25.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 9.25:** Illustration of the derivation of extended public key'
+  prefs: []
+  type: TYPE_NORMAL
+- en: For the Master xpub and xprv, depth is zero and parent fingerprint is 4-byte
+    of zeroes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Master extended public and private keys](toc.xhtml#s207a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Master is the root of all keys, and knowing its xpub key will allow generating
+    all subsequent keys. You should never have any reason to generate xpub or xprv
+    for root. However, in this section, you learn to generate xpub and xprv.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following code prepares master xpub and xprv:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`XPUB_VERSION = ‘0488B21E’`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`XPRV_VERSION = ‘0488ADE4’`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`TPUB_VERSION = ‘043587CF’`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`TPRV_VERSION = ‘04358394’`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def getMasterXPrv(chaincode_b: bytes, privkey: int):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`version_b = bytes.fromhex(TPRV_VERSION)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`depth_b = b’\x00’`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`fingerprint_p_b = bytes(4)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`index_b = bytes(4)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`privkey_b = bytes.fromhex(‘%066x’ % privkey)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`raw_xprv = depth_b + fingerprint_p_b + index_b + chaincode_b + privkey_b`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`xprv = base58checkEncode(version_b, raw_xprv)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return xprv`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def getMasterXPub(chaincode_b: bytes, pubkey: str):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`version_b = bytes.fromhex(TPUB_VERSION)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`depth_b = b’\x00’`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`fingerprint_p_b = bytes(4)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`index_b = bytes(4)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`pubkey_b = bytes.fromhex(pubkey)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`raw_xpub = depth_b + fingerprint_p_b + index_b + chaincode_b + pubkey_b`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`xpub = base58checkEncode(version_b, raw_xpub)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return xpub`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Program 9.17:** Program to derive master XPrv and master XPub'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We call the method as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`xprv = getMasterXPrv(chaincode, privkey)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘xprv=%s’ % xprv)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`pubkey_b = privkeyHex2pubkey(privkey_s, True)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`xpub = getMasterXPub(chaincode, pubkey_b.hex())`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘xprv=%s’ % xpub)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We get the following master xpub and xprv:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-9.26.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 9.26:** Shows xprv and xpub for master'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Extended public and private keys](toc.xhtml#s208a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: We can generate xpub and xprv for a depth and index in the key derivation hierarchy
+    if we have the key and chaincode of the root.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In the following code, we generate xprv and xpub for a given depth and index:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def getXPrv(p_pubkey: str,`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`chaincode_b: bytes,`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`privkey: int,`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`depth: int,`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`index: int):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`version_b = bytes.fromhex(TPRV_VERSION)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`p_pubkey_b = bytes.fromhex(p_pubkey)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`privkey_b = bytes.fromhex(‘%066x’ % privkey)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`depth_b = bytes([depth])`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`p_fingerprint_b = hash160(p_pubkey_b)[0:4]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`index_b = struct.pack(‘>L’, index)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`raw_xprv = depth_b + p_fingerprint_b + index_b + chaincode_b + privkey_b`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`xprv = base58checkEncode(version_b, raw_xprv)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return xprv`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def getXPub(p_pubkey: str,`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`chaincode_b: bytes,`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`pubkey: str,`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`depth: int,`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`index: int):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`version_b = bytes.fromhex(TPUB_VERSION)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`p_pubkey_b = bytes.fromhex(p_pubkey)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`pubkey_b = bytes.fromhex(pubkey)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`depth_b = bytes([depth])`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`p_fingerprint_b = hash160(p_pubkey_b)[0:4]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`index_b = struct.pack(‘>L’, index)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`raw_xpub = depth_b + p_fingerprint_b + index_b + chaincode_b + pubkey_b`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`xpub = base58checkEncode(version_b, raw_xpub)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return xpub`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Program 9.18:** Program to generate XPub and XPrv for a given depth and index'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We call the method as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`# We are calculating for index=1 and depth=1`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`child_xprv = getXPrv(pubkey_b.hex(), child_chaincode, child_privkey_i, 1,
+    1)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘child xprv:’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(child_xprv)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`child_xpub = getXPub(pubkey_b.hex(), child_chaincode, child_pubkey_b.hex(),1,
+    1)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘child xpub:’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(child_xpub)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We get the following xprv and xpub for the given keys:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-9.27.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 9.27:** Shows child xprv and child xpub'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We can register xpub with wallets in order to watch transactions in which the
+    generated addresses are involved. BitcoinJ is one of the wallets that accepts
+    xpub for watching addresses. The generated xprv can be used to generate child
+    private key public key pairs for signing transactions. You should never expose
+    or use xprv anywhere and even avoid using xpub. Always generate those addresses
+    privately and register individual addresses with wallets to watch. This will protect
+    against the risk of losing bitcoins.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Key derivation path](toc.xhtml#s209a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: As we know now, the beauty of a hierarchical deterministic wallet is that we
+    can derive keys at any depth and any index deterministically. To be able to locate
+    a key on a hierarchy, HD wallets use a notation called key derivation path.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here’s the notation for the key derivation path:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The master key is denoted by m.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The normal key is denoted by the index number 0 to 2^(31)-1.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The hardened key is denoted by the index numbers 2^(31) to 2^(32)-1.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The depth separator is forward slash /.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'As an example, key derivation path could be as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*m/45/78’/56/9’*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here, 78’ and 9’ are hardened keys, and 45 and 56 are normal keys.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following illustration shows key derivation including hardened keys:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-9.28.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 9.28:** Key derivation with hardened keys'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the previous section, you learned that hardened keys are more secure but
+    also less convenient to use.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Tip: To reduce the risk, we can have bottom level as normal derivations,
+    which means xpub will help generate child indexes. However, we will also have
+    parent as hardened, so if one child private key is exposed, it will expose the
+    keys of other children of the same parent. But since the parent is hardened, it
+    will not allow derivation of private keys of other indexes at the parent’s depth.
+    We can keep the number of children under one parent limited to a small number
+    like 20\. So, on each exposure of private key, we lose 20 addresses. We can further
+    keep only limited bitcoins in each address so that losing them is not a large
+    loss.**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**This may be a convenient compromise, but it is not a good option for Bitcoin,
+    as Bitcoin is a high-value and high-network-fee cryptocurrency. This means storing
+    in very small quantities is quite costly and losing even small denominations is
+    a significant loss. In short, Bitcoin is not suitable for smaller transactions,
+    trading, and having lower security. This strategy might work for other cryptocurrencies
+    where network fees are not high.**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Conclusion](toc.xhtml#s210a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this chapter, you started by learning about the need for a wallet. You then
+    learned the different ways we can classify wallets and focused on implementing
+    a hierarchical deterministic wallet based on the BIP32 specification. In the process
+    of implementation, you learned about private key generation and structure. You
+    learned to derive public key and address and generate P2PKH and P2PSH addresses
+    for `**mainnet**` *and* `**testnet**`. You also learned to generate easy-to-remember,
+    save, and write passwords called mnemonic code word lists. You used the mnemonic
+    code to generate private keys deterministically by using the derivation path.
+    In this chapter, we also discussed how to deal with security and convenience.
+    We did not discuss elliptic curve cryptography as we will look at it in more detail
+    in the upcoming chapters.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the next chapter, you will learn to create the most widely used transaction
+    types. You will learn to sign the transactions and validate a received transaction.
+    The validation process will involve looking at the mempool and utxos stored in
+    the LevelDB database.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Points to remember](toc.xhtml#s211a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: A wallet is a software program that stores the private key, public key, and
+    addresses or has the ability to generate them on request.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A wallet can tell the number of bitcoins a person is holding, and it can also
+    sign a transaction before publishing it on the network.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The mnemonic code word list can be 12/18/24 words. It is easier to remember
+    and type 12 words, but a 24-word code is more secure.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: To generate a secure mnemonic code, we need to generate a good random number.
+    To generate a good random number, we need to find the right source of entropy.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Pbkdf2 is an iterative process of key derivation, the higher is the number of
+    iterations, the more secure is the derived key against brute force attacks.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The recommended number of Pbkdf2 iterations is greater than 10000, but the higher
+    the number, the more is the time taken to generate it.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Extended Keys provide an encoding method, which, if supported, can allow the
+    wallet to generate the required private keys or public keys using given extended
+    keys.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: BIP32 HD wallets supports the derivation of Normal Keys and Hardened Keys.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If the private key of any of the child is exposed along with xpub, then someone
+    can drain bitcoins stored in all the addresses of the wallet.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Hardened keys do not allow the use of xpub, and losing one private key will
+    not expose any other address.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Questions](toc.xhtml#s212a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Why are hardware wallets considered the safest way to store coins?
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: What are the three functions of a wallet program?
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: What are the pros and cons of using deterministic wallets?
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: What are the benefits of using a mnemonic code word list?
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Explain the use of extended keys.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Programming Questions:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'BIP44 is based on BIP32 HD wallet that specifies derivation path for generating
+    keys based on the following derivation path:'
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: m / purpose’ / coin_type’ / account’ / change / address_index
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: purpose = 44’
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: cointype = 0’ for Bitcoin m*ainnet*
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'account: identifier for the user account (Hardened)'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: change = 0 (Normal) is for external address and 1 is for internal (change) address
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'address_index: Addresses are from index 0 (Normal) and upwards in sequence.'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: Write a program to implement HD wallet for BIP44.
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: Write a program to generate 100 child addresses from given xpub.
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Write a program to parse xprv and xpub.
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'True/False:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Hardened derivation makes it harder to derive a child private key from the parent
+    private key.
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Base58Check encoding protects the sender from typing the wrong address and consequently,
+    paying to the wrong address.
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: If I accidentally write a mnemonic code word list in the wrong sequence, I will
+    always generate the wrong keys and the wrong address.
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Fill in the blanks:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: A 24-word mnemonic code consists of ____-bit random number and ___-bit as its
+    checksum.
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The maximum possible depth of the BIP32 HD wallet key is ______.
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The full form of P2PSH is ___________ and that of P2PKH is ____________.
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL

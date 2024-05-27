@@ -1,0 +1,2928 @@
+- en: '[CHAPTER 12](toc.xhtml#c12)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[Segregated Witness](toc.xhtml#c12)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Till now, you have learned about Bitcoin and its building blocks, whitepaper,
+    network protocol, network messaging, database indexing, transaction creation,
+    transaction scripting, and smart contracts. This covers Bitcoin from all aspects
+    of its functionality and implementation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this section, we will look at some of the advanced topics that make Bitcoin
+    even more interesting.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We will start this chapter with segregated witness, also called *SegWit*. Segregated
+    witness is one of the biggest enhancements in the history of Bitcoin, and it is
+    the only enhancement that somewhat modifies the Bitcoin Whitepaper, solves long-standing
+    transaction malleability bug, increases the capacity of a block that Satoshi made
+    limited to 1MB, changes the way miners calculate network fee, and changes the
+    way enhancements were traditionally accepted, opening a new way of looking at
+    feature activation. All this happened in one enhancement, so it requires a chapter
+    dedicated to it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Structure](toc.xhtml#s252a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'In this chapter, we will cover the following topics:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Understanding segregated witness
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Transaction malleability
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Segregated witness
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: User Activated Soft Fork (UASF)
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Transaction structure
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Coinbase transaction
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Other transactions
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Segregated witness as scaling solution
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Transaction fee calculation
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: New standard scripts
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Native SegWit transaction scripts
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Native P2WPKH
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Native P2WSH
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Wrapped SegWit scripts
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Wrapped P2WPKH or P2SH-P2WPKH
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Wrapped P2WSH or P2SH-P2WSH
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Signature verification
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Address format and generation
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Objectives](toc.xhtml#s253a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this chapter, you will learn about the segregated witness enhancement, why
+    it was required, what problems it solved, what its features are, how to identify
+    a SegWit transaction, how to verify and create script types introduced by SegWit,
+    and how to calculate network fees for SegWit transactions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We will go into great depth to understand each aspect of this enhancement by
+    understanding how the bug is resolved and how the change is made to the original
+    whitepaper, understanding the BIP enhancements that were introduced covering each
+    script type in detail, and verifying and creating transactions using them.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Understanding segregated witness](toc.xhtml#s254a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Segregated witness was introduced primarily to fix multiple *transaction malleability*
+    bugs. In this section, you will understand what *transaction malleability* bugs
+    had kept the Bitcoin network vulnerable for several years and how exchanges had
+    to place hacks to avoid the issues arising due to the bugs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Transaction malleability](toc.xhtml#s255a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Transaction malleability is a scenario when the same transaction can have different
+    transaction IDs, which in turn, means two different transactions that represent
+    the same transaction.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Consequently, it was not possible to depend on an unconfirmed transaction even
+    though it was signed by the same person. For instance, someone could just modify
+    a mempool transaction and publish it, which may get mined. This means it is not
+    possible to chain unconfirmed transactions even if they are your own.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It is also possible that a wallet may be waiting for a different transaction
+    ID but receives a different transaction ID and so, it ignores the transaction.
+    This would lead a wallet to believe that it is processing a different transaction,
+    so it may consider your transaction as unconfirmed even though it was confirmed.
+    This may be used by a hacker to misguide a wallet or an exchange.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A transaction malleability bug can be used by the signer (first party), or it
+    can be used by the second or the thi^(rd) party, which receives or knows about
+    the transaction and modifies it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The following are the transaction malleability issues that existed when the
+    Bitcoin network initially came into existence.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Malleability bug used by second or third party:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In the elliptic curve cryptography used by Bitcoin, (R, S) and (R, -S) are both
+    valid points on the curve. Prior to the SegWit enhancement, this was taken care
+    of by considering the smaller of two valid values of S.
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In the initial years, Non-DER encoded signatures were valid. These were made
+    illegal, and the DER format was enforced strictly.
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Leading zeroes in front of signature.
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Several script-related modifications that do not change their intended validity
+    are also sources of malleability. As an example, opcode OP_0 pushes zero bytes
+    to stack, which means doing nothing, so inserting OP_0 doesn’t change script behavior.
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Malleability bug used by first party:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: While signing a message, a signer needs to generate a random number. This random
+    leads to different but valid signatures. This issue is resolved by RFC6979, which
+    specifies deterministic digital signature generation procedure. However, this
+    cannot be verified, so it still causes malleability.
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: It is possible to solve second- and third-party malleability by introducing
+    rules that are enforced on scripting and signature format, but this does not solve
+    the malleability bug misused by the signer themselves to deceive the wallet of
+    exchange. BIP-62 tried to solve the transaction malleability problems arising
+    by second or third party misuse of malleability, but its implementation was quite
+    complicated as it was trying to solve so many issues.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Tip: If you are sending Bitcoins through a pre-SegWit transaction, then you
+    need to be aware that anyone can change your transaction-ID. Additionally, you
+    should not chain transactions that are not confirmed.**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Even though BIP-62 solved most problems, it was not perfect, so unconfirmed
+    transactions could not be chained. This means a dependent transaction could become
+    invalid if a modified parent transaction gets accepted.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following diagram shows how transaction malleability affects dependent
+    unconfirmed transactions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-12.1.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 12.1:** Effect of transaction malleability on unconfirmed transaction'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following sequence explains how this can happen:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Alice creates transaction TxA, which pays Bob.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Alice tells Bob that she had made payment and that the transaction ID is TxA.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The attacker creates transaction TxA’ and publishes it on the Bitcoin network
+    just after receiving TxA.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Alice creates transaction TxB, paying Carol from the change collected in TxA.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: TxA’ gets added to Bitcoin blockchain.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Bob never receives a confirmation for TxA and considers that it failed.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Similarly, Carol never receives payment as TxA’ was not input to TxB.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Alice pays Bob and Carol again, not knowing that her transaction to Bob was
+    successful.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Bob received payment twice and Alice now needs to get it back, provided Bob
+    agrees.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: In 2014, the world’s biggest exchange was hacked, and people lost a massive
+    amount of money. It is considered that the attacker used transaction malleability
+    to hack their exchange. However, we know how these things happened and why they
+    happened, so exchanges and wallet software are aware of these issues, and they
+    have taken steps to not fall into the trap.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Transaction malleability was finally resolved with the implementation of segregated
+    witness enhancement.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Segregated witness](toc.xhtml#s256a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Segregated witness is the solution to the long-lasting transaction malleability
+    issue. It moves the signature out of the transaction ID calculation, solving all
+    forms of transaction malleability issues.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following diagram shows how SegWit changes the whitepaper:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-12.2.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 12.2:** Segwit transaction diagram showing the difference in the whitepaper'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the preceding diagram, you can see that the case of SegWit transaction signature
+    is not part of the transaction anymore. It is sent along with the transaction
+    as an extension.
+  prefs: []
+  type: TYPE_NORMAL
+- en: SegWit allowed transactions to be chained while they are unconfirmed, and we
+    can rely on transaction ID. This allowed two individuals to send offline transactions
+    if both have signed the payment contract. Consequently, Lightning Network became
+    feasible, which changed the way payments can be done across the globe. We will
+    discuss this further in the next chapter.
+  prefs: []
+  type: TYPE_NORMAL
+- en: When SegWit was planned, the 1MB block limit appeared as a scalability issue
+    because blocks were hitting the limit, mempool was getting full, and network fees
+    would spike.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Since SegWit was a softfork, older nodes ignore the signatures in a SegWit transaction,
+    so they are not part of the 1MB block calculation. This allowed the incorporation
+    of the required increase in block size into the enhancement. This increase in
+    block size for SegWit transactions also reduced the transaction fees for those
+    transactions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the modified block size calculation for the upgraded node, the bytes related
+    to the SegWit in a transaction are considered a quarter of a byte. Additionally,
+    with SegWit, new standard scriptPubKey were introduced, which further reduced
+    byte requirements in a transaction. Both these things made SegWit transactions
+    more economical.
+  prefs: []
+  type: TYPE_NORMAL
+- en: SegWit activation had impact the way we look at the value of Bitcoin, network,
+    and enhancements. There existed a thinking that major enhancements should happen
+    through hard fork and that voting on enhancements should be based on hash power.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Since SegWit activation was a major change, it affected everyone in the ecosystem,
+    and everyone had to make a choice, which many tried to delay. SegWit activation
+    followed BIP 9 and entered the *start* phase on 15^(th) November, 2016\. So, timeout
+    was set at 1 year after the start date, before which consensus needed to be reached;
+    otherwise, the activation was to be marked as failed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: By August 2017, a vast majority of nodes were SegWit ready, but consensus was
+    not reached among miners. The Bitcoin developer community saw this as a misalignment
+    between the economic majority and the hash power majority. With the rise of mining
+    pools, the hash power majority did not represent the economic majority as few
+    mining pools owned most of the hash power, and this was evident in user support
+    for new enhancement. To allow other stakeholders to play a role in decision-making,
+    we needed to change the way enhancements get activated. This led to the new activation
+    mechanism called **User-Activated-Soft-Fork** (**UASF**).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[User Activated Soft Fork (UASF)](toc.xhtml#s257a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: User Activated Soft Fork is an activation rule enforced by economic majority
+    instead of hash power majority, as was done by miners. The economic majority is
+    representative of the will of full nodes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: BIP 148 was created to enforce SegWit deployment if the hash power majority
+    does not activate segregated witness-related BIPs, which were BIP 141, BIP 143,
+    and BIP 147.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Transaction structure](toc.xhtml#s258a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Segregated witness moves signature out of the transaction ID calculation and
+    so, modifies transaction structure. You have learned that the integrity of transactions
+    included in a block is verified by adding Merkle –root to the block header. The
+    Merkle –root is calculated using transaction ID for all the block transactions
+    in the order. Since segregated witness moves signature out of transaction-ID calculation,
+    Merkle root also does not verify the integrity of signatures in a block. But why
+    should we care if it does not help the attacker as it cannot change transaction
+    ID? The answer to this is that the attacker can use this as Denial-of-Service
+    attack. An attacker can take a valid block and create millions of valid blocks
+    and broadcast them over the network. This will make the Bitcoin network unable
+    to verify transactions and blocks and will bring the whole network down.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Bitcoin block contains segregated witness Merkle root or witness root in
+    one of the coinbase transaction outputs. This ensures the integrity of the full
+    content of all the transactions, including signatures. The segregated witnessMerkle
+    root is Merkle root of the whole transaction, unlike Merkle root in block header,
+    which uses transaction ID of all the transactions to calculate Merkle root.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We will first understand the structure of normal transaction ID, and then we
+    will calculate *wtxid* and then use it to get witness root.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Coinbase transaction
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'The following diagram shows coinbase transaction with additional information
+    related to SegWit:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-12.3.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 12.3:** Coinbase transaction structure'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In the preceding diagram, there are a few things to remember:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Number of witnesses = Number of inputs
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: SegWit Marker is 0x00
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: For SegWit transaction, SegWit Flag is set to 0x01
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Number of Inputs = 1
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Commitment Hash = hash256 (Witness Root Hash || Witness Reserved Value)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Witness root hash is the Merkle root of the witness transaction ID or hash256
+    of full transaction
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Witness Reserved Value is the 32-byte witness in the coinbase transaction. Since
+    there is real input in a coinbase transaction the witness reserved value could
+    be anything. Since everyone can look at the value in witnessing, the commitment
+    hash can be verified.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Transaction ID** (**txid**) is calculated by taking hash256 of the following
+    sections of a transaction:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`txid = hash256([version][input count][inputs][output count][outputs] [locktime])`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Witness Transaction ID (*wtxid*) is calculated by taking hash256 of the full
+    transaction, as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`wtxid = hash256([version][segwit marker][segwit flag][input count][inputs]
+    [output count][outputs][witness data][locktime])`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following program parses a coinbase translation in a recent block:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def getCoinbaseTransactionInfo(txn_m: mmap):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`tx = {}`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`startloc = txn_m.tell()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`tx[‘version’] = txn_m.read(4)[::-1].hex()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`tx[‘inp_cnt’] = getVarInt(txn_m)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`tx[‘is_segwit’] = False`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if tx[‘inp_cnt’] == 0:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`# check segwit flag`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`tx[‘is_segwit’] = (int.from_bytes(txn_m.read(1), byteorder=’little’) == 1)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if tx[‘is_segwit’] == True:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`tx[‘inp_cnt’] = getVarInt(txn_m)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`inp_l = []`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`for i in range(tx[‘inp_cnt’]):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`inp = {}`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`inp[‘prev_tx_hash’] = txn_m.read(32)[::-1].hex()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`inp[‘prev_tx_out_index’] = txn_m.read(4)[::-1].hex()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`inp[‘bytes_coinbase_data’] = getVarInt(txn_m)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`pos = txn_m.tell()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`inp[‘bytes_height’] = getVarInt(txn_m)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`inp[‘height’] = int.from_bytes(txn_m.read(inp[‘bytes_height’]), byteorder=’little’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`size = txn_m.tell() - pos`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`coinbase_arb_data_size = inp[‘bytes_coinbase_data’] - size`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`inp[‘coinbase_arb_data’] = txn_m.read(coinbase_arb_data_size).hex()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`inp[‘sequence’] = txn_m.read(4)[::-1].hex()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`inp_l.append(inp)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`tx[‘inputs’] = inp_l`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`tx[‘out_cnt’] = getVarInt(txn_m)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`out_l = []`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`for i in range(tx[‘out_cnt’]):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`out = {}`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`out[‘satoshis’] = int.from_bytes(txn_m.read(8), byteorder=’little’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`out[‘bytes_scriptpubkey’] = getVarInt(txn_m)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`out[‘scriptpubkey’] = txn_m.read(out[‘bytes_scriptpubkey’]).hex()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`out_l.append(out)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`tx[‘outs’] = out_l`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`curloc = txn_m.tell()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`txn_m.seek(startloc)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`txid_b = txn_m.read(curloc - startloc)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if tx[‘is_segwit’] == True:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`# if segflag is true than remove segwit marker and flag from txhash calculation`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`txid_b = txid_b[:4] + txid_b[6:]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`for i in range(tx[‘inp_cnt’]):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`tx[‘inputs’][i][‘witness_cnt’] = getVarInt(txn_m)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`witness_cnt = tx[‘inputs’][i][‘witness_cnt’]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`witness_l = []`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`for j in range(witness_cnt):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`witness = {}`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`witness[‘size’] = getVarInt(txn_m)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`witness[‘witness’] = txn_m.read(witness[‘size’]).hex()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`witness_l.append(witness)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`tx[‘inputs’][i][‘witnesses’] = witness_l`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`locktime_b = txn_m.read(4)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`txid_b += locktime_b`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`tx[‘locktime’] = int.from_bytes(locktime_b, byteorder=’little’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`tx[‘txid’] = hash256(txid_b)[::-1].hex()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return tx`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Program 12.1:** Parser for coinbase transaction'
+  prefs: []
+  type: TYPE_NORMAL
+- en: To get the coinbase transaction hex code for a block at height 668000, we first
+    get the transaction hash of the coinbase transaction, which is the first transaction
+    in the list of transactions in a block.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-12.4.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 12.4:** CLI Commands to get coinbase transaction ID'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We then get the coinbase transaction hex-code by using Bitcoin Core CLI as
+    follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-12.5.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 12.5:** CLI Command to get coinbase transaction hex code from its
+    transaction ID'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We call the preceding method using coinbase transaction bytes, as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`txn_b = bytes.fromhex(‘010000000001010000000000000000000000000000000000000000000000000000000000000000ffffffff400360310a040e5012602f706f6f6c696e2e636f6d2f746170726f6f742f626970392f57414aa61d1d79f4d92b134a2172611e120154741700bd36220000000000ffffffff041d066c260000000017a9149837b6ca944b36f71b94d19cf1e1acd179726424870000000000000000266a24b9e11b6db14323c98fb36550f3bf4d5ce2ea5fcb878ec778a849a99add2cc2e76141432b0000000000000000266a24aa21a9ed1cb4ceb5ec7fef10b852514760a409539056be66601f589c5539e443fbbfdcfc00000000000000002b6a2952534b424c4f434b3a68894f43c4cff546f6ee51f9e9475bcd2bfff279283cb6de9fc47c2c002eb263012000000000000000000000000000000000000000000000000000000000000000006b6066c1’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`txn_m = mmap.mmap(-1, len(txn_b) + 1)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`txn_m.write(txn_b)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`txn_m.seek(0)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`tx = getCoinbaseTransactionInfo(txn_m)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(json.dumps(tx))`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'And we get following coinbase transaction information:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-12.6.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 12.6:** Coinbase transaction information obtained from executing the
+    Python program'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Other transactions
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Here’s the illustration of SegWit transaction:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-12.7.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 12.7:** Segregated witness transaction structure'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The preceding transaction diagram shows that witness data contains scriptSig
+    information.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Segregated witness as scaling solution](toc.xhtml#s259a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Segregated witness enhancement also allowed blocks to finally be larger than
+    1 MB. It changed the way we calculate transaction byte size, now called weight.
+    The new block size limit calculated in terms of weight is 4MB. The actual maximum
+    block size is not really 4MB; it is much less. It is somewhere between 2 to 3
+    MB. Here’s how we calculate weight:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`weight = (4 * sizeof ([version][input count][inputs][output count][outputs]
+    [locktime])) + sizeof ([segwit marker][segwit flag] [witness data])`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A miner is in the business of maximizing profit. For them, every byte counts,
+    and they pick up transactions that ultimately lead to maximum accumulated network
+    fees. When the miner sees a SegWit transaction, they know that weight is what
+    matters and so they look for transactions with the highest bitcoin per weight
+    paid.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We use the transaction structure diagram and the learnings about `**txid**`,
+    `**wtxid**`, and `**weight**` to write a program to parse a SegWit transaction
+    and calculate these values:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def getTransactionInfo(txn_m: mmap):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`tx = {}`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`startloc = txn_m.tell()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`tx[‘version’] = txn_m.read(4)[::-1].hex()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`tx[‘inp_cnt’] = getVarInt(txn_m)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`tx[‘is_segwit’] = False`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if tx[‘inp_cnt’] == 0:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`# check segwit flag`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`tx[‘is_segwit’] = (int.from_bytes(txn_m.read(1), byteorder=’little’) == 1)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if tx[‘is_segwit’] == True:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`tx[‘inp_cnt’] = getVarInt(txn_m)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`inp_l = []`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`for i in range(tx[‘inp_cnt’]):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`inp = {}`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`inp[‘prev_tx_hash’] = txn_m.read(32)[::-1].hex()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`inp[‘prev_tx_out_index’] = txn_m.read(4)[::-1].hex()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`inp[‘bytes_scriptsig’] = getVarInt(txn_m)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`inp[‘scriptsig’] = txn_m.read(inp[‘bytes_scriptsig’]).hex()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`inp[‘sequence’] = txn_m.read(4)[::-1].hex()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`inp_l.append(inp)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`tx[‘inputs’] = inp_l`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`tx[‘out_cnt’] = getVarInt(txn_m)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`out_l = []`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`for i in range(tx[‘out_cnt’]):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`out = {}`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`out[‘satoshis’] = int.from_bytes(txn_m.read(8), byteorder=’little’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`out[‘bytes_scriptpubkey’] = getVarInt(txn_m)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`out[‘scriptpubkey’] = txn_m.read(out[‘bytes_scriptpubkey’]).hex()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`out_l.append(out)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`tx[‘outs’] = out_l`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`curloc = txn_m.tell()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`txn_m.seek(startloc)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`txid_b = txn_m.read(curloc - startloc)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if tx[‘is_segwit’] == True:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`# if SegWit flag is true than remove SegWit marker and flag from txhash calculation`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`txid_b = txid_b[:4] + txid_b[6:]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`for i in range(tx[‘inp_cnt’]):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`tx[‘inputs’][i][‘witness_cnt’] = getVarInt(txn_m)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`witness_l = []`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`witness_cnt = tx[‘inputs’][i][‘witness_cnt’]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`for j in range(witness_cnt):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`witness = {}`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`witness[‘size’] = getVarInt(txn_m)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`witness[‘witness’] = txn_m.read(witness[‘size’]).hex()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`witness_l.append(witness)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`tx[‘inputs’][i][‘witnesses’] = witness_l`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`locktime_b = txn_m.read(4)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`txid_b += locktime_b`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`tx[‘locktime’] = int.from_bytes(locktime_b, byteorder=’little’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`tx[‘txid’] = hash256(txid_b)[::-1].hex()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`curloc = txn_m.tell()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`txn_m.seek(startloc)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`wtxid_b = txn_m.read(curloc - startloc)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`tx[‘wtxid’] = hash256(wtxid_b)[::-1].hex()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`tx[‘bytes’] = len(wtxid_b)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`tx[‘weight’] = (len(wtxid_b) - len(txid_b)) + (len(txid_b) * 4)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return tx`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Program 12.2:** Parser for transaction'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The preceding program gives us transaction information of a given SegWit transaction.
+    We are using the program to parse transaction with `**txid**`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`c6176c811328a9fd82a3a71da78e73781bc5c9a6580fdee4cf4392b165b1a072`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We can get `**wtxid**` or transaction hash using Bitcoin Core as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-12.8.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 12.8:** CLI command to get wtxid from txid'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We call the method as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`txn_b = bytes.fromhex(‘02000000000102dc0f4a1601bd6bfec4241fede438bee45958773fe5d95f88ec890e2363983e0c0100000000ffffffff904d74d770c0ef5ce91190750b235d7ffb340b82b392812ba8e6ad5f0a8c4ca70000000000ffffffff02f31f0a00000000001600140c986c1d8ad520c072ee1aa0a151615c891ef71455b8180000000000160014097e656deb55afa3786c600a87d990dcab86fc2d024730440220685234e91eb14e6d1717c543193181700b1cbf5fecddbee79ed9b6b0bbf24077022033dac5cc679dca810327dcac4b84ba2b007a3a4fda6fb2cbc6099ae91c53804f01210277bed123bc0c0f9883b0bc14014f0385d39eac7ac7212d8c9928fa4121a191f4024730440220635eb52780098e3bd1e39a630a23f553ac62b97d0cd0356fa34ceb47cb0195250220599b83d8872ff173781b83b36bf159b59ed7685f73811f449fa1df814fbef15c0121022cd4d498f1ed0ee382eefe4b6e1d8c5aa678d47b693389ccdf77559b3220c5fa00000000’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`txn_m = mmap.mmap(-1, len(txn_b) + 1)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`txn_m.write(txn_b)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`txn_m.seek(0)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`tx = getTransactionInfo(txn_m)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(json.dumps(tx))`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We get following transaction information:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-12.9.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 12.9:** Transaction information obtained by executing the Python program'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In the preceding program, `**vsize**` is calculated as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`vsize = weight / 4`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The preceding program also gives us `**wtxid**`. To ensure the integrity of
+    the whole transaction along with witness data, we calculate commitment hash. This
+    commitment hash is derived using segregated witness –Merkle root, which is calculated
+    by using `**wtxid**` of all the transactions in a block. When the miner is adding
+    commitment hash to coinbase transaction, they cannot know `**wtxid**` of coinbase
+    transaction. This is the reason we don’t calculate `**wtxid**` of the coinbase
+    transaction. Instead, we give it a 32-byte value consisting of all zeroes. Additionally,
+    we need witness reserve value, which is the first witness of the first input.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In the following program, we calculate the commitment hash:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def getWitnessReservedValue(cb_tx: dict):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return cb_tx[‘inputs’][0][‘witnesses’][0][‘witness’]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def getRootHashes(txn_m):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`txcount = getVarInt(txn_m)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`wtxid_l = []`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`txid_l = []`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`cb_tx = getCoinbaseTransactionInfo(txn_m)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`txid_l.append(cb_tx[‘txid’])`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`wtxid_l.append(bytes(32).hex())`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`for txindex in range(txcount - 1):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`tx = getTransactionInfo(txn_m)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`wtxid_l.append(tx[‘wtxid’])`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`txid_l.append(tx[‘txid’])`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`witness_merkle_root_h = buildMerkleRoot(wtxid_l)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`merkle_root_h = buildMerkleRoot(txid_l)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return merkle_root_h, witness_merkle_root_h, cb_tx`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def calculateCommitmentHash(blkhash_b: bytes, block_db):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`jsonobj = getBlockIndex(blkhash_b, block_db)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if ‘data_pos’ in jsonobj:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`txn_filepath = os.path.join(blocks_path_g, ‘blk%05d.dat’ % jsonobj[‘n_file’])`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`start = jsonobj[‘data_pos’]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`elif ‘undo_pos’ in jsonobj:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`txn_filepath = os.path.join(blocks_path_g, ‘rev%05d.dat’ % jsonobj[‘n_file’])`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`start = jsonobj[‘undo_pos’]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`# load file to memory`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`with open(txn_filepath, ‘rb’) as txn_file:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`#File is open read-only`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`with mmap.mmap(txn_file.fileno(), 0, prot = mmap.PROT_READ, flags = mmap.MAP_PRIVATE)
+    as txn_m:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`txn_m.seek(start)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`blkhdr = getBlockHeader(txn_m.read(80))`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`merkle_root_h, witness_merkle_root_h, cb_tx = getRootHashes(txn_m)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘Calculated Witness Merkle Root Hash\t = %s’ % witness_merkle_root_h)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘Calculated Merkle Root Hash\t = %s’ % merkle_root_h)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`witness_reserved_value = getWitnessReservedValue(cb_tx)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘witness_reserved_value = ‘, witness_reserved_value)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`# calculate commitment hash`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`commitment_hb = hashOfJoinedStr(witness_merkle_root_h, witness_reserved_value)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`commitment_h = commitment_hb.hex()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘calculated commitment hash = ‘, commitment_h)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return commitment_h, cb_tx`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Program 12.3:** Calculate commitment hash'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To verify that the calculated transaction hash is correct, we use the output
+    index that has scriptPubKey starting with ‘`**6a24aa21a9ed**`’:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def getCommitmentHashInCbTx(cb_tx: dict):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`for output in cb_tx[‘outs’]:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if output[‘scriptpubkey’][:12] == ‘6a24aa21a9ed’:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`commitment_h = output[‘scriptpubkey’][12:]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘Actual commitment hash = ‘, commitment_h)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return commitment_h`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def verifyCommitmentHash(cb_tx: dict, commitment_h: str):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if getCommitmentHashInCbTx(cb_tx) == commitment_h:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘Commitment hash matches’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`else:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘Invalid commitment hash’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Program 12.4:** Verify commitment hash'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We call the preceding programs as follows to calculate commitment hash and
+    verify its correctness:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if __name__ == ‘__main__’:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`blk_hb = bytes.fromhex(‘00000000000000000000f608724d1e152a875384e5ed06ae4a889c5a6c19c2f1’)[::-1]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`commitment_h, cb_tx = calculateCommitmentHash(blk_hb, block_db_g)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`verifyCommitmentHash(cb_tx, commitment_h)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This gives us the following result:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-12.10.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 12.10:** Commitment hash obtained by executing the Python program'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Transaction fee calculation](toc.xhtml#s260a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Bitcoin Core provides us fee estimates based on factors such as transaction
+    fees collected in each transaction, which are in mempool, mempool size, and mempool
+    clearing.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following Bitcoin Core CLI command gives us a fee estimate:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-12.11.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 12.11:** CLI command to get recommended transaction fee rate'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This shows that to get a transaction included within the next six blocks, we
+    need to pay 0.00075062 per kilo-vbytes. The vbytes here are the same as vsize
+    we get in the Bitcoin Core CLI output.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following program calculates the **Estimated Minimum Fee** required for
+    getting the transaction confirmed:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def calculateTransactionFee(vsize: int, feerate: float):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return feerate * vsize/1000`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Program 12.5:** Program to calculate transaction fee'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We call the preceding method with the fee-rate estimation we got using Bitcoin
+    Core CLI and `**vsize**` we got after dividing weight by 4:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`feerate = 0.00075062`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`vsize = 208`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`fee = calculateTransactionFee(vsize, feerate)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘Estimated Minimum Fee in bitcoin = ‘, fee)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We get following result:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-12.12.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 12.12:** Calculated transaction fee based on recommended fee rate
+    and vsize'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In US Dollars, this comes to $4.75 as current market price of 1![](images/Bitcoin.jpg)
+    is $30425.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[New standard scripts](toc.xhtml#s261a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Segregated witnesses introduced four new standard scripts. The scripts are
+    defined in BIP 143 and can be found at the following URL:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**[https://github.com/bitcoin/bips/blob/master/bip-0143.mediawiki](https://github.com/bitcoin/bips/blob/master/bip-0143.mediawiki)**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the next section, we will understand each of these scripts and build programs
+    to verify the transaction on mainnet blockchain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Native SegWit transaction scripts](toc.xhtml#s262a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: SegWit transaction, in addition to protecting fund transfer from transaction
+    malleability, provides direct monetary benefit in terms of reduced transaction
+    fee.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A native SegWit transaction looks as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`Previous scriptPubKey: <1-byte witness version> <2-40 bytes witness program>`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`ScriptSig: (empty)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`Witness Data: <witness data>`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We can see that the `**previous scriptPubKey**` consists of two parts: witness
+    version and witness program. This suggests that each witness version can have
+    different programs. This is a scalable structure and allows future enhancements.
+    In this chapter, we are discussing the scripts introduced in the first version
+    of Segwit enhancement. The next version is used for Taproot and Schnorr signatures.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Native P2WPKH](toc.xhtml#s263a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: As the name suggests, P2WPKH is the SegWit alternate to the P2PKH script, which
+    we already covered in *[Chapter 10, Create and Validate Transactions](c10.xhtml)*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The P2WPKH transaction is as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`Previous scriptPubKey: 0 <20-byte-PublicKeyHash>`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`ScriptSig: (empty)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`Witness data:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`<Signature>`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`<PublicKey>`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We can see that witness data is the same as `**scriptSig**` in P2PKH. So, we
+    only need to make small modifications in the script execution. We need to do the
+    following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Convert `**previous scriptPubKey**` to P2PKH standard script.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Add witness data to the stack before processing `**previous scriptPubKey**`.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: We modified the program used in P2SH in *[Chapter 10, Create and Validate Transactions](c04.xhtml)*
+    to perform this exact activity to include the verification of P2WPKH transactions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We modify `**verifyScript**` to include a check for P2WPKH by following these
+    steps.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If `**scriptsig_b**` is an empty string, add all elements of witness data corresponding
+    to the required input index:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '`if scriptsig_b == b`**’’**`:`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`# native segwit`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`print(‘native segwit’)`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`witness_l = getWitnessList(tx, inp_index)`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`pushWitnessData(witness_l)`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`else:`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`execScript(scriptsig_b, inp_index, tx)`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'Convert `**Previous scriptPubKey**` to standard P2PKH script:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '`if isP2WPKH(prev_scriptpubkey_b) == **True**:`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`**print**(**‘P2WPKH’**)`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`# convert 0 <20-byte PKH> to OP_DUP OP_HASH160 <PKH> OP_EQUALVERIFY`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`prev_scriptpubkey_b = **bytes**([**0x76**, **0xa9**, **0x14**]) + prev_scriptpubkey_b[**2**:]
+    + **bytes**([**0x88**, **0xac**])`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`is_segwit = **True**`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'The following is the definition of all the methods used in the preceding changes:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def pushWitnessData(witness_l: list):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`for data in witness_l:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`st.append(bytes.fromhex(data[‘witness’]))`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def getWitnessList(tx: dict, inp_index: int):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return tx[‘inputs’][inp_index][‘witnesses’]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def isP2WPKH(prev_scriptpubkey_b: bytes):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`#0014<20 bytes>`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if len(prev_scriptpubkey_b) == 22 and prev_scriptpubkey_b[0:2] == b’\x00\x14’:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return True`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return False`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Program 12.6:** Updates in program to verify P2WPKH script'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here’s the code to call `**verifyScript**` to verify P2WPKH script:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`#txid :: 808767ec8b388a7d6c34b9658e573e39034831fea49f0f22911393d6f8e195fb`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`tx_s = ‘0100000000010240fc776263b1a4104da05cf069c8e7b0aeb7f7e4c686062906df9ab5d384716f0100000000ffffffff86ab7969a4d661aeaf8845f49eb2e5d30f6fb657d7694b8289224658158a62870000000000ffffffff02ea430000000000001976a9145d57c599fd94fce0cec607e15716f46468cb281b88aca47e000000000000160014f57aed6b1c121a10bec610987cbf414fb168778402483045022100eb6c3485c4ff17390dfbe35be9940b442783bd103095219c285331372b18913b02205bcbc7ce889823af020030d075832f314d1cc905269edf295e813dc7238dc37301210359522a87dc9c907d1669811b7254faf96d7ffcb1f22736bfcd0168fb19b9c98602483045022100acefd6d2ad0b56ad5837cd9d75b49c9f36f5deb6b12e290bbdc14076a38017cd02207a1add2928912d900756874e487d49b49defc7fc6f9805e9777afa929de5ffcb012102948374b79fa597475cab313e63d61d3d546288e6b9b3f80bd1ecc1a514dc382a00000000’`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`tx_b = bytes.fromhex(tx_s)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`tx_m = bytes2Mmap(tx_b)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`tx = getTransactionInfo(tx_m)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`verifyScript(tx, 0)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We will cover signature verification later in the chapter. Signature verification
+    is defined in detail in BIP 143\. We execute the preceding program, which verifies
+    script, and we get the following results:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-12.13.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 12.13:** Executing the Python program shows that the signature is
+    valid'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Though the result says signature is valid, we haven’t discussed in this subtopic
+    and should be ignored.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Native P2WSH](toc.xhtml#s264a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'P2WSH is SegWit alternative to P2SH. The P2WSH transaction is as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`Previous scriptPubKey: 0 <32-byte Redeem-Script-Hash>`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`ScriptSig: (empty)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`Witness:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`<Signature 1>`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`<Signature 2>`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`…`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`<redeemScript>`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here, P2SH-P2WSH uses a hash256 hashing algorithm. So, we convert `**previous
+    scriptPubKey**` to the following script:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`OP_SHA256 <32-byte-redeemScriptHash> OP_EQUAL`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We modify `**verifyScript**` to include check for P2WSH:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if isP2WSH(prev_scriptpubkey_b) == True:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘P2WSH’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`prev_scriptpubkey_b = **bytes**([**0xa8**, **0x20**]) + prev_scriptpubkey_b[**2**:]
+    + **bytes**([**0x87**])`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here’s the implementation of `**isP2WSH**`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def isP2WSH(prev_scriptpubkey_b: bytes):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`#0020<32 bytes>`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if len(prev_scriptpubkey_b) == 34 and prev_scriptpubkey_b[0:2] == b’\x00\x20’:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return True`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return False`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We also need to handle OP_SHA256\. We need to add a check to the `**execScript**`
+    method, as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def opSha256():`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`v = st.pop()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`h = hashlib.sha256(v).digest()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`st.append(h)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def execScript(script_b: bytes, inp_index: int, tx: dict):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`l = len(script_b)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`script_m = bytes2Mmap(script_b)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`while script_m.tell() < l:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`v = script_m.read(1)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`b = int.from_bytes(v, byteorder=’big’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if b in g_pushdata:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`script_m.seek(-1, 1)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`b = decodePushdata(script_m)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`d = script_m.read(b)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`pushdata(d)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`elif v == b’\x76’:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`opDup()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`elif v == b’\xa8’:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`opSha256()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`elif v == b’\xa9’:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`opHash160()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`elif b in g_pushnumber:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`opNum(b)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`elif v == b’\x87’:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`opEqual()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`elif v == b’\x88’:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`opEqualVerify()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`elif v == b’\xac’:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`opCheckSig(script_b, inp_index, tx)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`elif v == b’\xae’:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`opCheckMultisig(script_b, inp_index, tx)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Program 12.7:** Updates in program to verify P2WSH script'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We call the program with changes, as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`#txid :: dffe1dc8f36cbc39c0f40b090912c5a00da13e3534f97aec0ef5bfe552019897`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`tx_s = ‘02000000000102c2aa999f988ded79cb8021420a01469212fa67e666c7d4078a2aaba1b13adf5c0100000000000000007d2ac99074ba44aac9afc79449d9aa29ae206136b511b12cbe699137740424f80100000000000000000220f31d01000000001976a9143913ef9cfc2bbf68665d735b89538dfb883b59f488ac48c70f0b000000002200209705cdfcbc459a220e7f39ffe547a31335505c2357f452ae12a22b9ae36ea59d040047304402205ca8ff900fd03ca9cba763eccb0888ec943269257286a852e9ba96cbc7da340a02206b84aff30cc2c7669fa4133a317fd9c04b013c1d1f42a647b400f62c9f61343101473044022041e2797e0a4b63878b03ff68d4fce8d6b31909e940024dcfd1c0eea33b7a5a160220140aca6751de16c377ea972e47cfc238b3d6d56477f348fa193588828e51e0030169522103ac79bbcf0ff2204220fbd0f906a8c0ae35ad0c1863852102f83af40e7af36cba2102cf85157ae613db5b445594e76f971cf21a0e26d0e70a85c447d3506fe678ddc721035f32d7cc9b710d8e5084dd93aa67efe95c6d32ba2a71b833fb035063ee40efd953ae0400473044022054c259d498dd1f32a449d7a53c597be64ed6331b32f9e9b2a96a098333d993660220789c04d6f69af4919ac97a963dbf2920df287fd4b5fb9ce595290acae3a59e6301473044022009f219deb061a83bf9505c3642efbdb3ef1af9dbef873c118d757d336a63ab0802201763f0ede288e3c7e1993263e47da73d3f43fa00a58c58bcc85e72c743076caf0169522102e67ce679d617d674d68eea95ecb166c67b4b5520105c4745adf37ce8a40b92dc21029ff54b8bf26dbddd7bd4336593d2ff17519d5374989f36a6f5f8239675ff79a421039000ee2853c6db4bd956e80b1ecfb8711bf3e0a9a8886d15450c29458b60473153ae00000000’`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`tx_b = bytes.fromhex(tx_s)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`tx_m = bytes2Mmap(tx_b)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`tx = getTransactionInfo(tx_m)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`verifyScript(tx, 0)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'On executing the preceding program, we get the following results:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-12.14.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 12.14:** Executing the Python program shows that P2WSH Script is valid'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Wrapped SegWit scripts](toc.xhtml#s265a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The native SegWit scripts explained in the previous subtopics can also be wrapped
+    inside P2SH. This allows easier migration to a newer format as a wrapped SegWit
+    script still works with exchanges that have not yet upgraded to SegWit. Since
+    SegWit solved the long-standing issue and was in the interest of the Bitcoin developer
+    community to provide Bitcoin users a mechanism to migrate even before exchanges
+    have migrated.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If we want to move bitcoin to a Segwit wallet, then since Wrapped Segwit address
+    is a P2SH address, the current exchange has no problem transferring bitcoin. Instead,
+    if we try to send it to the native SegWit address, the current exchange will not
+    understand the new addressing format, so the transaction will not be carried out.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Wrapped P2WPKH or P2SH-P2WPKH](toc.xhtml#s266a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'P2SH-P2WPKH transaction has the following scripts:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`Previous scriptPubKey: OP_HASH160 <20-byte Redeem-Script-Hash> OP_EQUAL`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`ScriptSig: 0 <20-byte-PublicKeyHash>`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`Witness:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`<Signature>`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`<PublicKey>`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`Redeem Script: scriptSig`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We modify `**verifyScript**` to include a check for wrapped P2WPKH, as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if checkWrappedP2WPKH(st) == True:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`prev_scriptpubkey_b = st[-1]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`st.pop()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`witness_l = getWitnessList(tx, inp_index)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`pushWitnessData(witness_l)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘P2SH_P2WPKH’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This `**checkWrappedP2WPKH**` is implemented as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def checkWrappedP2WPKH(st):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`script_b = st[-1]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if script_b[:2] == b’\x00\x14’ and len(script_b) == 22:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return True`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`else:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return False`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Program 12.8:** Method to check is script is P2SH_P2WPKH'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We call the updated method with transaction containing P2SH-P2WPKH script as
+    follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`#txid :: c137ca3dc53cd1562da3fd5ceea22c8902c3cfd28b5303ecc70675dfff71ec2d`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`tx_s = ‘020000000001027b806bcadab5c41bd3ccab867112fa041b36e0a8aff518296713721e36aed9f10000000017160014a5736b5f1caaf929de80829ec3acc2e13187f2c5feffffff7cbecb8841826bdb493bac6706be865731e414309d3640631f3571090abfdf20000000001716001405a7ef9d2ab852d55c58e42ac2d60202b2b6c9b0feffffff0234553d00000000001976a914265d799ec0fc523faba0ec8f5ee6f0621140a78588ac9cc911000000000017a9144bc6f0e3b0b3a26135ec3e5c6f88edb80881ce2c8702473044022072ddd8d42edee4662e388b8433c15516097d3bdb8a9ccec0acc21a7f7d068132022012f0ecfeb8682236c27fb8a591512102dfd8387a99111dad25a92fe65641841b01210335c4cfa33717ecea14e644ef938c9ecbcb7bd8569e8f407a014d835a8fb94efe02483045022100c038dd6cdf67aee993416e8471664a019f1d3204602e2acf759cf3cf3852d57c022017a84cdbc515de745587d62bb2b10597800c1b20f382a5b116ea8a0424ea242d012102e5692a54cbc71cb19cbc50b886305f0df9f462eae91125b39a85804cfe7a48012b310a00’`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`tx_b = bytes.fromhex(tx_s)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`tx_m = bytes2Mmap(tx_b)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`tx = getTransactionInfo(tx_m)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`verifyScript(tx, 0)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'On executing the preceding program, we get the following result:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-12.15.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 12.15:** Executing the Python program shows that signature is valid'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Wrapped P2WSH or P2SH-P2WSH](toc.xhtml#s267a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'P2SH-P2WSH transaction has the following scripts:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`Previous scriptPubKey: OP_HASH160 <20-byte-P2SH-RedeemScriptHash> OP_EQUAL`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`ScriptSig: 0 <32-byte P2WSH-Redeem-Script-Hash>`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`Witness:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`<witness items>`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`<P2WSH-Redeem-Script>`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`P2SH RedeemScript: scriptSig`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We modify `**verifyScript**` to include check for wrapped P2WSH as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if checkWrappedP2WSH(st) == True:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`prev_scriptpubkey_b = st[-1]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`st.pop()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`witness_l = getWitnessList(tx, inp_index)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`pushWitnessData(witness_l)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘P2SH_P2SH’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The `**checkWrappedP2WSH method**` is implemented as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def checkWrappedP2WSH(st):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`script_b = st[-1]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if script_b[:2] == b’\x00\x20’ and len(script_b) == 34:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return True`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`else:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return False`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Program 12.9:** Method to check is script is P2SH_P2WSH'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The combined changes made in the current and previous subtopics of SegWit transactions
+    gives us the following `**verifyScript**`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def getPrevScriptPubKey(tx: dict, inp_index: int):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`prevtx_rb = bytes.fromhex(tx[‘inputs’][inp_index][‘prev_tx_hash’])[::-1]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`prevtx_outindex = tx[‘inputs’][inp_index][‘prev_tx_out_index’]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`prevtx = findTransaction(prevtx_rb, txindex_db_g)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`prevScriptPubkey = prevtx[‘outs’][prevtx_outindex][‘scriptpubkey’]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`prevScriptPubkey_b = bytes.fromhex(prevScriptPubkey)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return prevScriptPubkey_b`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def verifyScript(tx: dict, inp_index: int):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`scriptsig_b = getScriptSig(tx, inp_index)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if scriptsig_b == b’’:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`# native segwit`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘native segwit’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`witness_l = getWitnessList(tx, inp_index)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`pushWitnessData(witness_l)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`else:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`execScript(scriptsig_b, inp_index, tx)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`prev_scriptpubkey_b = getPrevScriptPubKey(tx, inp_index)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`isP2SH = False`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if checkWrappedP2WPKH(st) == True:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`prev_scriptpubkey_b = st[-1]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`st.pop()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`witness_l = getWitnessList(tx, inp_index)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`pushWitnessData(witness_l)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘P2SH_P2WPKH’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if checkWrappedP2WSH(st) == True:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`prev_scriptpubkey_b = st[-1]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`st.pop()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`witness_l = getWitnessList(tx, inp_index)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`pushWitnessData(witness_l)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘P2SH_P2WSH’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if checkWrappedMultisig(st) == True:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`redeemscript_b = st[-1]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`isP2SH = True`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘P2SH’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if isP2WPKH(prev_scriptpubkey_b) == True:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘P2WPKH’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`prev_scriptpubkey_b = bytes([0x76, 0xa9, 0x14]) + prev_scriptpubkey_b[2:]
+    + bytes([0x88, 0xac])`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if isP2WSH(prev_scriptpubkey_b) == True:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘P2WSH’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`prev_scriptpubkey_b = bytes([0xa8, 0x20]) + prev_scriptpubkey_b[2:] + bytes([0x87])`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘previous scriptpubkey = ‘, prev_scriptpubkey_b.hex())`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`execScript(prev_scriptpubkey_b, inp_index, tx)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`status = st.pop()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if status == b’\x01’:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘1st Script succeeded’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`elif status == b’\x01’:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘1st Script Failed’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`else:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘1st Invalid state’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if isP2SH == True:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`execScript(redeemscript_b, inp_index, tx)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`status = st.pop()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if status == b’\x01’:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘2nd Script succeeded’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`elif status == b’\x01’:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘2nd Script Failed’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`else:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘2nd Invalid state’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Program 12.10:** Updated Program to verify SegWit transaction'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We call the updated method with transaction containing P2SH-P2WSH script as
+    follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`#txid :: c6ab739d8455cd5133e9f93f542f70a2ccef0c7fb05de998db817dd680af3a91`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`tx_s = ‘010000000001024e453d886f11e3af494ce6073956b0de6eaed80865529ab45f778d660459907e2500000023220020ffc74359d1e79a79b94319a1695a68810e439e4c32e4c1be2b0b7c915ca78536ffffffff4e453d886f11e3af494ce6073956b0de6eaed80865529ab45f778d660459907e29000000232200207a21661b84ac4a34a6afc034030faba8ce8344635ebaf34cde31083f186bf871ffffffff02b02a02000000000017a9147b60c1eebfc2c78c9993668dab556344bf1f78d187d9df0500000000002200206f50cccbc64ea3f6cc434d5878bbe45a609e5592026ce6704f586a0e795a6ae40300483045022100d168fa78728fda205eee72ad7b789bc3153adeec982b2588a1526509aa1e2ae8022010443c0652848492dad4904f45258f5452256bfe23d9c715bf052d908154de6e0125512102972c9ea94bfcd5956220f2e99776b3c5ebcca9373a2eccb3fb5fff8bbc9f999451ae03004830450221009691361fa2953e54bc5287306c023fc2d098aa6e85ed1a66d3369e93781260b102201fb639437128d361a12ea385a61bd49247d25c254d1efc03d5272dd368c0acfa01255121027c6cbed24ad235fe147413272ba92cfd61d5ab338c4dabd74cbfb7d11746da5451ae00000000’`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`tx_b = bytes.fromhex(tx_s)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`tx_m = bytes2Mmap(tx_b)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`tx = getTransactionInfo(tx_m)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`verifyScript(tx, 0)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Running the preceding code gives us the following result:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-12.16.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 12.16:** Executing the Python program shows that P2SH_P2WSH Script
+    is valid'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We learned that with simple modifications to the P2PKH/P2SH transaction verification
+    program, we can also verify SegWit transactions. We still haven’t learned to create
+    the right message for signature verification, so we will look at that in the next
+    topic.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Signature verification](toc.xhtml#s268a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this section, we will understand BIP 143 to create the correct signature
+    preimage. All SegWit transactions with the same sighash type have the same method
+    of creating a signature preimage.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A signature preimage has the following structure:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-12.17.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 12.17:** Signature preimage structure for SegWit transaction'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Each part of the preimage is defined as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Considering,
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***TxIDprev: TxID of previous transaction***'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***TxOutIndexprev: Output index of previous transaction in inputs***'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***output:*** *output of the transaction*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***‖:*** *concatenation*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Hash256:*** *double SHA256 hash*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We have the following definition of each part of a signature preimage for sighash
+    type `**SIGHASH_ALL**`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*hashPrevouts = Hash256(‖(TxID_prev∥ TxOutIndex[prev] ))*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*hashSequence = Hash256(‖(nSequence))*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*outpoint = TxID[prev] TxOutIndex[prev]*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*scriptCode = executing script*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*hashOutputs = Hash256(‖(output))*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We use this information to modify the P2SH transaction verification method
+    written in *[Chapter 10, Create and Validate Transactions](c10.xhtml)* in order
+    to include SegWit transactions. This is done as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def setVarInt(n: int):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if n < 0xfd:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`n_h = ‘%02x’ % n`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`elif n > 0xfd and n < 0xffff:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`n_h = ‘fd%04x’ % n`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`elif n > 0xffff and n < 0xFFFFFFFF:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`n_h = ‘fe%08x’ % n`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`else:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`n_h = ‘ff%016x’ % n`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return bytes.fromhex(n_h)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def getAmountFromPrevout(prev_tx_hash_b: bytes, prev_tx_out_index_b: bytes):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`prevtx = findTransaction(prev_tx_hash_b, txindex_db_g)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`prevtx_outindex = int.from_bytes(prev_tx_out_index_b, byteorder = ‘little’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`prevAmount = prevtx[‘outs’][prevtx_outindex][‘satoshis’]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`amount_b = struct.pack(“<Q”, prevAmount)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return amount_b`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def createMsgForSigForSegwit(tx: dict, script_b: bytes, inp_index: int, sighash_type:
+    int):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`version_b = bytes.fromhex(tx[‘version’])[::-1]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`inp_cnt = tx[‘inp_cnt’]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`prevouts_b = b’’`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`sequences_b = b’’`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`for i in range(inp_cnt):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`tx_inp = tx[‘inputs’][i]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`prev_tx_hash_b = bytes.fromhex(tx_inp[‘prev_tx_hash’])[::-1]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`prev_tx_out_index_b = struct.pack(‘<L’, tx_inp[‘prev_tx_out_index’])`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`sequences_b += struct.pack(‘<L’, tx_inp[‘sequence’])`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`prevouts_b += prev_tx_hash_b + prev_tx_out_index_b`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if i == inp_index:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`outpoint_b = prev_tx_hash_b + prev_tx_out_index_b`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘script = ‘, script_b.hex())`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`scriptCode_b = bytes.fromhex(‘%x’ % len(script_b)) + script_b`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`amount_b = getAmountFromPrevout(prev_tx_hash_b, prev_tx_out_index_b)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`sequence_b = struct.pack(‘<L’, tx_inp[‘sequence’])`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`out_cnt = tx[‘out_cnt’]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`outputs_b = b’’`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`for o in range(out_cnt):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`tx_out = tx[‘outs’][o]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`satoshis_b = struct.pack(‘<Q’, tx_out[‘satoshis’])`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`bytes_scriptpubkey_b = setVarInt(tx_out[‘bytes_scriptpubkey’])`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`scriptpubkey_b = bytes.fromhex(tx_out[‘scriptpubkey’])`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`outputs_b += satoshis_b + bytes_scriptpubkey_b + scriptpubkey_b`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`locktime_b = struct.pack(‘<L’, tx[‘locktime’])`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`hashPrevouts_b = hash256(prevouts_b)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`hashSequence_b = hash256(sequences_b)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`hashOutputs_b = hash256(outputs_b)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`hashType_b = struct.pack(‘<L’, sighash_type)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`msg_b = version_b + hashPrevouts_b + hashSequence_b + outpoint_b + scriptCode_b
+    + amount_b + sequence_b + hashOutputs_b + locktime_b + hashType_b`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return msg_b`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Program 12.11:** Create a signature preimage for SegWit transaction'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The method is called from the following `**sigcheck**` method if the transaction
+    has segregated witness:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def uncompressPubkey(pubkey_b: bytes):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`pubkey_P = PublicKey.decode(pubkey_b)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`pubkey_b = PublicKey.encode(pubkey_P, compressed=False)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return pubkey_b`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def sigcheck(sig_b: bytes, pubkey_b: bytes,`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`script_b: bytes, inp_index: int, tx: dict):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`sighash_type = sig_b[-1]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if tx[‘is_segwit’] == True:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`msg_b = createMsgForSigForSegwit(tx, script_b, inp_index, sighash_type)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`else:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`msg_b = createMsgForSig(tx, script_b, inp_index, sighash_type)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘sig = %s’ % sig_b.hex())`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘pubkey = %s’ % pubkey_b.hex())`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘msg = %s’ % msg_b.hex())`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`msg_h = hashlib.sha256(msg_b).digest()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘msg_h = %s’ % msg_h.hex())`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`prefix = pubkey_b[0:1]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if prefix == b”\x02” or prefix == b”\x03”:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`fullpubkey_b = uncompressPubkey(pubkey_b)[1:]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`elif prefix == b”\x04”:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`fullpubkey_b = pubkey_b[1:]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`rs_b = getRandSFromSig(sig_b)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘rs = %s’ % rs_b.hex())`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`vk = ecdsa.VerifyingKey.from_string(fullpubkey_b, curve=ecdsa.SECP256k1)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if vk.verify(rs_b, msg_h, hashlib.sha256) == True:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(“Signature is Valid”)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return b’\x01’`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`else:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(“Signature is not Valid”)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return b’\x00’`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Program 12.12:** Verify signature in SegWit transaction'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For other sighash types, we use the following mathematical expressions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*For sighash type SIGHASH_NONE:*'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*hashPrevouts = Hash256(‖(TxID[prev] TxOutIndex[prev] ))*'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '*hashSequence = 32 byte of zeroes*'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '*hashOutputs = 32 byte of zeroes*'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'For sighash type SIGHASH_SINGLE:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*hashPrevouts = Hash256(‖(TxID[prev] TxOutIndex[prev] ))*'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '*hashSequence = 32 bytes of zeroes*'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '*hashOutputs = Hash256(output[inputindex] )*'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'For sighash type SIGHASH_ALL|SIGHASH_ANYONECANPAY:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*hashPrevouts = 32 bytes of zeroes*'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '*hashSequence = 32 bytes of zeroes*'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '*hashOutputs = Hash256(‖(output))*'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'For sighash type SIGHASH_NONE|SIGHASH_ANYONECANPAY:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*hashPrevouts = 32 bytes of zeroes*'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '*hashSequence = 32 bytes of zeroes*'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '*hashOutputs = 32 bytes of zeroes*'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'For sighash_type SIGHASH_SINGLE|SIGHASH_ANYONECANPAY:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*hashPrevouts=32 bytes of zeroes*'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '*hashSequence=32 bytes of zeroes*'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '*hashOutputs=Hash256(output[inputindex] )*'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: As we have learned to create signature preimage for SIGHASH_ALL, we can similarly
+    build preimage using the preceding information for other sighash types.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Address format and generation](toc.xhtml#s269a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Segregated witnesses introduced a shorter address format based on the bech32
+    algorithm. The BIP 173 provides information about the bech32 format used in Bitcoin
+    SegWit addressing. Listed here are a few advantages of bech32 over the base58check
+    algorithm used in non-SegWit transactions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Base58 needs a lot of space in QR codes, as it cannot use the *alphanumeric
+    mode*.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The mixed case in base58 makes it inconvenient to reliably write down, type
+    on mobile keyboards, or read out loud.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The double SHA256 checksum is slow and has no error-detection guarantees.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Most of the research on error-detecting codes only applies to character-set
+    sizes that are a prime power, which 58 is not.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Base58 decoding is complicated and relatively slow.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'A bech32 string is at most 90 characters long and consists of the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The ***human-readable*** **part** is intended to convey the type of data or
+    anything else that is relevant to the reader. This part MUST contain 1-83 US-ASCII
+    characters, with each character having a value in the range [33-126]. HRP validity
+    may be further restricted by specific applications.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The ***separator*** is always “1”. In case “1” is allowed inside the human-readable
+    part, the last one in the string is the separator.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The ***data part*** is at least 6 characters long and only consists of alphanumeric
+    characters, excluding “1”, “b”, “i”, and “o”.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'We will use the following Python library for bech32 encoding and decoding:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-12.18.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 12.18:** Required PIP package for the new Segwit addresses'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'As we have learned, in the case of native SegWit transaction the `**previous
+    scriptPubKey**` has the following format:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`<1-byte witness version> <2-40 bytes witness program>`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The current version is 0, for P2WPKH, witness program is 20-byte in size, and
+    for P2WSH, witness program is 32-byte in size.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following is the previous scriptPubkey in the native P2WPKH transaction
+    example we discussed in the one of the previous sections:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`Previous scriptPubkey: 0x0014122bf8b77dceee01c0fa1f2b36d155fea2a5b016`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`=> witness version = 0x00`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`=> witness program size = 0x14 = 20-bytes`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`=> witness program = 0x122bf8b77dceee01c0fa1f2b36d155fea2a5b016`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following program encodes witness program and prints address:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`import bech32`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`witprog = bytes.fromhex(‘122bf8b77dceee01c0fa1f2b36d155fea2a5b016’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`witver = 0x00`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`hrp = ‘bc’`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`address = bech32.encode(hrp, witver, witprog)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(address)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Program 12.13:** Generate bech32 address for Native SegWit address'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In the preceding program, `**hrp**` stands for **human-readable-part**. The
+    following are the HRP codes corresponding to the network:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| **HRP codes** | **Network** |'
+  prefs: []
+  type: TYPE_TB
+- en: '| bc | Mainnet |'
+  prefs: []
+  type: TYPE_TB
+- en: '| tb | Testnet |'
+  prefs: []
+  type: TYPE_TB
+- en: '| tb | Regtest |'
+  prefs: []
+  type: TYPE_TB
+- en: '**Table 12.1:** HRP codes for Bitcoin networks'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'On running the program, we get the following address:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-12.19.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 12.19:** Generated bech32 address from the private key'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We can check whether the address is correct by looking at the corresponding
+    transaction in blockchain using Bitcoin Core client. The following is the output
+    index 1 of `**txid 6f7184d3b59adf06290686c6e4f7b7aeb0e7c869f05ca04d10a4b1636277fc40**`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-12.20.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 12.20:** Shows the bech32 address in transaction output'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Now, we will do it for native P2WSH. We are using the P2WSH transaction used
+    in the example in a previous section, where:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`Previous scriptPubkey = 0020d0862d6e40d240ea1711f6d897f5e7b07e974a593704077edffb7b67fd34b091`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: So,
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`witness version = 0x00`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`=> witness program size = 0x20 = 32-bytes`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`=> witness program =`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`0xd0862d6e40d240ea1711f6d897f5e7b07e974a593704077edffb7b67fd34b091`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here’s the program to get bech32 address corresponding to P2WSH:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`witprog = bytes.fromhex(‘d0862d6e40d240ea1711f6d897f5e7b07e974a593704077edffb7b67fd34b091’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`witver = 0x00`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`hrp = ‘bc’`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`address = bech32.encode(hrp, witver, witprog)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(address)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This gives us the following address:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-12.21.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 12.21:** Generated bech32 address from the private key'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the preceding program, we are looking at previous `**txid**` at index 0 of
+    `**txid**`*:*
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`dffe1dc8f36cbc39c0f40b090912c5a00da13e3534f97aec0ef5bfe552019897`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'By looking at `**outindex**` of the previous `**txid**` using Bitcoin Core
+    client, we get the following previous scriptPubkey and the corresponding address:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-12.22.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 12.22:** Shows the bech32 address in transaction output'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following is the code to decrypt bech32 addresses:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`witver, witprog_l = bech32.decode(address[:2], address)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`witprog_b = bytes(witprog_l)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`scriptpubkey_b = bytes([witver]) + bytes([len(witprog_b)]) + witprog_b`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘scriptpubkey = ‘, scriptpubkey_b.hex())`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Program 12.14:** Decode bech32 address to getscriptpubkey'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Using it to decode bech32 address for the P2WPKH in the following execution:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-12.23.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 12.23:** Decoded bech32 address to get scriptpubkey'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'And using it to decode the bech32 address for the P2WSH in the following execution:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-12.24.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 12.24:** Decoded bech32 address to get scriptpubkey'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This brings us to the end of this chapter, wherein we have likely covered all
+    the aspects of segregated witness enhancements.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Conclusion](toc.xhtml#s270a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this chapter, you learned about segregated witness enhancement. You learned
+    why it was important and the impact it has on overall Bitcoin. Additionally, you
+    learned about the several changes that happened along with this enhancement, like
+    we changed the way we see network enhancements. The chapter covered the new address
+    encoding algorithms and taught you to encode and decode addresses. You learned
+    to verify the new standard transaction scripts introduced by SegWit, learned the
+    structure of transactions, and verify them along with signatures.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the next chapter, we will cover the Lightning Network, which is both a part
+    of Bitcoin and still a separate development. It’s a layer-two protocol that can
+    provide Bitcoin speed, which Bitcoin lacks by design. It is an important development
+    in scalability.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Points to remember](toc.xhtml#s271a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Bitcoin originally had multiple transaction malleability bugs.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: BIP62 was the original workaround for the transaction malleability issue, which
+    was cumbersome to implement.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Transaction malleability made unconfirmed transactions unreliable even for the
+    signer of the transaction.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Segregated witness solved all transaction malleability issues by moving signature
+    out of the transaction ID calculation. The section that is not part of the transaction
+    ID calculation is called witness data.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Segregated witness was implemented as a softfork.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: SegWit activation followed BIP 9.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: BIP 148 was created to enforce SegWit deployment if the hash power majority
+    does not activate segregated witness related BIPs, which were BIP 141, BIP 143,
+    and BIP 147\. This was the first time **User Activated Soft Fork** (**UASF**)
+    was used to enforce feature activation.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: UASF is an activation rule enforced by the economic majority instead of the
+    hash power majority.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Segregated witness Merkle oot is calculated by taking the hash of the whole
+    transaction of all the transactions in the block, prepending the hash with 32-byte
+    zeros and calculating Merkle root.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Hash of calculated segregated witness –Merkle oot concatenated with witness-reserve-value
+    (provided by a miner in the first input of coinbase transaction) determines commitment-hash,
+    which is in one of the outputs of coinbase transaction.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: SegWit allowed blocks to be larger than 1 MB as the bytes within witness data
+    are considered one-fourth of their size. So, Bitcoin software changes the way
+    it counts bytes. In this counting, size remains within 1 MB even though it may
+    actually be bigger than 1 MB.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Using segregated witness for creating transactions reduces the amount of required
+    network fees.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'SegWit introduced four new standard scripts: P2WPKH, P2WSH, P2SH-P2WPKH, and
+    P2SH-P2WSH.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Native SegWit script hash and public key hash are encoded using bech32.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: SegWit address has a scalable scheme, contains version, and the current version
+    is 0.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: SegWit transaction signature is generated using a message format different from
+    non-SegWit transactions. This message format is defined in BIP143.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Questions](toc.xhtml#s272a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Calculate the approximate vsize of P2PKH, P2SH-P2WPKH, and P2WPKH transactions
+    with 1 input and 1 output. Compare them and determine percentage saving by using
+    SegWit transactions.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Calculate approximate vsize of 2-2 multisig P2SH, P2SH-P2WSH, and P2WSH transactions
+    with 1 input and 1 output. Compare them and determine percentage saving by using
+    SegWit transactions.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Write programs to create transactions:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Write a program to create a P2WPKH transaction.
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Write a program to create a P2WSH transaction.
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Write a program to create a P2SH-P2WPKH transaction.
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Write a program to create P2SH-P2WSH transactions.
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Fill in the blanks:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: BIP ______ contains details of UASF for enforcing SegWit related BIPs.
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Before SegWit BIP _______ provided a workaround for the transaction malleability
+    bug.
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Transaction malleability bugs originate as for a transaction, _____________
+    can be different but still valid.
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'True/False:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: After SegWit softfork was activated, a non SegWit transaction became invalid
+    and was rejected by the network.
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: BIP 148 replaced BIP 9 activation on the Bitcoin network.
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Bech32 encoding generates alphanumeric characters meaning either capital or
+    small alphabets and/or numbers.
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL

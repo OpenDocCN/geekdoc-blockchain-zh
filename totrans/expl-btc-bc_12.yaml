@@ -1,0 +1,3433 @@
+- en: '[CHAPTER 10](toc.xhtml#c10)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[Create and Validate Transactions](toc.xhtml#c10)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In the previous chapter, you learned about Wallets, Private Keys, Public Keys,
+    and Addresses and understood how to generate them. You learned to create a Hierarchical
+    Deterministic wallet and understood how HD wallets simplify the generation of
+    private keys, public keys, and addresses, and help us secure our wallets and simplify
+    the management of our privacy.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The most fundamental reason why Bitcoin exists is to transfer and store value.
+    This means when you pay bitcoin to another person, bitcoin have to move from your
+    wallet to the other person’s wallet. And if you don’t transfer bitcoin from your
+    wallet to another person’s wallet, it has to sit in your wallet as long as you
+    want. Additionally, when the other person receives bitcoin, they should be able
+    to send a portion of it to yet another person or add additional bitcoin while
+    sending.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We transfer bitcoin by creating transactions and publishing them to the network.
+    Even though we create transactions to pay to the other person, the transaction
+    is not just known to us; it is known to everyone on the network. It’s like making
+    a payment and then shouting so that everyone knows that the transaction is done.
+    So, everyone on the network is a witness to the transaction.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this chapter, our focus will be on transactions. We will parse a real transaction
+    in a block and learn about its format and scripting language and verify the signature.
+    We will then build our own transaction and publish it over the network. We will
+    also look at common transaction types and ways to secure them.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Structure](toc.xhtml#s213a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'In this chapter, we will cover the following topics:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Scripting Bitcoin transactions
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: OPCODES
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Signature verification
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Hash type – SIGHASH_ALL
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Hash type – SIGHASH_NONE, SIGHASH_SINGLE, SIGHASH_ANYONECANPAY
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Standard Bitcoin script – P2PK
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Standard Bitcoin script – P2PKH
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '![](images/ent.jpg) Prepare signature preimage'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: Standard Bitcoin script – P2MS
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Standard Bitcoin script – P2SH
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Building transactions
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Building P2PKH transaction
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Building P2SH transaction
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Objectives](toc.xhtml#s214a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The objective of this chapter is to help readers learn to verify and create
+    a transaction. In this chapter, you will learn about the scripting language used
+    by the blockchain to fund a transaction and secure the fund at the destination
+    address. You will also learn how a transaction is verified by a node. You will
+    then learn to create a transaction and publish it over the Bitcoin network.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You will learn how the Bitcoin script gets executed, and you will also learn
+    about the most used scripts and understand them in detail, both in transaction
+    verification and transaction creation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Scripting Bitcoin transactions](toc.xhtml#s215a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Bitcoin transactions have two sections: inputs and outputs. Input consists
+    of unlocking script called `**scriptSig**`, and output consists of a locking script
+    called `**scriptPubKey**`. Script `**scriptSig**` normally consists of signature
+    required to unlock previously locked transaction and public-key or script to allow
+    verification of the signature. Script `**scriptPubKey**` is based on the name
+    of an earlier script called *P2PK* or *Pay-2-Pubkey*. Now, the *P2PK* script is
+    not recommended and is rarely used. So, `**scriptPubKey**` is a misnomer now.
+    Currently, *P2PKH, P2SH, P2SH-P2WPKH*, and *P2SH-P2WSH* are the most used scripts.
+    Here, *W* denotes witness, which was introduced as part of s*egregated* w*itness*
+    enhancement. We have a separate chapter to cover it in detail, so we will not
+    cover s*egregated* w*itness* in this chapter.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: To verify the script portion of a transaction, `**scriptSig**` is executed first,
+    and then `**scriptPubKey**` is executed in sequence. The script language is a
+    stack-based reverse polish language. Language semantics is like reverse polish
+    notation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Reverse Polish notation](toc.xhtml#s216a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Reverse polish notation is also called *post fix notation*. The following is
+    an example of reverse polish notation:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 7+ 9 in reverse polish notation is 7 9 +
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To solve this, 7 and 9 go into the stack, and + is the operator to perform
+    the operation:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-10.1.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 10.1:** Reverse Polish notation operation execution'
+  prefs: []
+  type: TYPE_NORMAL
+- en: When we create a new transaction, we utilize UTXOs to fund the transaction.
+    Inputs of the new transaction contain an unlocking script that is required to
+    release funds locked by the `**scriptPubKey**` in the UTXOs. Once both scripts
+    are executed, a Boolean value is left on the top of the stack, which denotes whether
+    the script finally succeeded. These scripts are executed just like reverse polish
+    notation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[OPCODES](toc.xhtml#s217a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: A script consists of data and operators. These operators have defined opcodes.
+    An operator has defined functionality. Data is preceded by a `**pushdata**` operator,
+    which denotes the number of bytes in the following data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following are some of the opcodes:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| **Word** | **HEX** |'
+  prefs: []
+  type: TYPE_TB
+- en: '| OP_DUP | 0x76 |'
+  prefs: []
+  type: TYPE_TB
+- en: '| OP_HASH160 | 0xa9 |'
+  prefs: []
+  type: TYPE_TB
+- en: '| OP_EQUALVERIFY | 0x88 |'
+  prefs: []
+  type: TYPE_TB
+- en: '| OP_EQUAL | 0x87 |'
+  prefs: []
+  type: TYPE_TB
+- en: '| OP_CHECKSIG | 0xac |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Pushdata bytelength | 0x01-0x4b |'
+  prefs: []
+  type: TYPE_TB
+- en: '| OP_PUSHDATA1 | 0x4c |'
+  prefs: []
+  type: TYPE_TB
+- en: '| OP_PUSHDATA2 | 0x4d |'
+  prefs: []
+  type: TYPE_TB
+- en: '| OP_PUSHDATA4 | 0x4e |'
+  prefs: []
+  type: TYPE_TB
+- en: '**Table 10.1:** OPCODES'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The full list of opcodes can be found at following URL:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**[https://en.bitcoin.it/wiki/Script](https://en.bitcoin.it/wiki/Script)**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The hex values from 0x01 to 0x4b denote the size of the data. OP_PUSHDATA1
+    denotes the size of data in the next 1 byte, OP_PUSHADATA2 denotes the size of
+    data in the next 2 bytes, and OP_PUSHDATA4 denotes the size of data in the next
+    4 bytes. Here’s the illustration of the `**pushdata**` and the data:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-10.2.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 10.2:** Pushdata size encoding'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We use the preceding table to convert script hex-code to get the readable script:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`op_d = {‘76’: ‘OP_DUP’, ‘a9’: ‘OP_HASH160’, ‘88’: ‘OP_EQUALVERIFY’, ‘87’:
+    ‘OP_EQUAL’, ‘ac’: ‘OP_CHECKSIG’, ‘ae’: ‘OP_CHECKMULTISIG’, ‘00’: ‘OP_0’, ‘51’:
+    ‘OP_1’, ‘52’: ‘OP_2’, ‘53’: ‘OP_3’, ‘54’: ‘OP_4’, ‘55’: ‘OP_5’, ‘56’: ‘OP_6’,
+    ‘57’: ‘OP_7’, ‘58’: ‘OP_8’, ‘59’: ‘OP_9’, ‘5a’: ‘OP_10’, ‘5b’: ‘OP_11’, ‘5c’:
+    ‘OP_12’, ‘5d’: ‘OP_13’, ‘5e’: ‘OP_14’, ‘5f’: ‘OP_15’, ‘60’: ‘OP_16’, ‘6a’: ‘OP_RETURN’,
+    ‘4c’: ‘OP_PUSHDATA1’, ‘4d’: ‘OP_PUSHDATA2’, ‘4e’: ‘OP_PUSHDATA4’}`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`OP_PUSHDATA1 = 0x4c`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`OP_PUSHDATA2 = 0x4d`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`OP_PUSHDATA4 = 0x4e`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`g_pushdata = range(0x01, 0x4c)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def prepare_readable_script(script_b: bytes):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`script_len = len(script_b)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`script_sl = []`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`i = 0`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`while i < script_len:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if script_b[i] in g_pushdata:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`script_sl.append(script_b[i: i + 1].hex())`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`script_sl.append(script_b[i+1: i+script_b[i]+1].hex())`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`i += 1 + script_b[i]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`elif script_b[i] == OP_PUSHDATA1:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`script_sl.append(op_d[script_b[i:i+1].hex()])`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`datasize_b = script_b[i + 1: i + 2]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`script_sl.append(datasize_b.hex())`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`datasize = int.from_bytes(datasize_b, byteorder=’little’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`script_sl.append(script_b[i + 2: i + 2 + datasize].hex())`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`i += 2 + datasize`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`elif script_b[i] == OP_PUSHDATA2:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`script_sl.append(op_d[script_b[i:i+1].hex()])`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`datasize_b = script_b[i + 1: i + 3]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`script_sl.append(datasize_b.hex())`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`datasize = int.from_bytes(datasize_b, byteorder=’little’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`script_sl.append(script_b[i + 3: i + 3 + datasize].hex())`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`i += 3 + datasize`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`elif script_b[i] == OP_PUSHDATA4:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`script_sl.append(op_d[script_b[i:i+1].hex()])`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`datasize_b = script_b[i + 1: i + 5]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`script_sl.append(datasize_b.hex())`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`datasize = int.from_bytes(datasize_b, byteorder=’little’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`script_sl.append(script_b[i + 5: i + 5 + datasize].hex())`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`i += 5 + data_size`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`else:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`op_s = op_d[script_b[i:i+1].hex()]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`script_sl.append(op_s)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`i += 1`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`script_str = ‘ ‘.join(script_sl)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return script_str`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Program 10.1:** Hex code to get the readable script'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the preceding program, the first byte of the script represents the script
+    size in bytes. We have taken a few of the opcodes and mapped them with their hex
+    codes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We convert hex code to readable script by calling the preceding method as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if __name__ == ‘__main__’:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`data_s = ‘76a91461cf5af7bb84348df3fd695672e53c7d5b3f3db988ac’`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘pushdata: ‘, data_s)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`script_b = bytes.fromhex(data_s)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘Decoded Script: ‘, prepare_readable_script(script_b))`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘====================================================’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`data_s = ‘6a4c500029282c0002c5164b82ab2b42044dbe2b8573c969cc10d9e0bd03646ccf1e7497c4bf69678a7b6a99ce4f8dda595a2ed353f27c6195bdfd0528ff229f2619002759d5b9d236d1458d1ad7e7640b5948’`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘PUSHDATA1: ‘, data_s)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`script_b = bytes.fromhex(data_s)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘Decoded Script: ‘, prepare_readable_script(script_b))`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘====================================================’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`data_s = ‘47304402201f46c0a476592d44192773fb0ac385d5ab0fc286882016b220e055314989d70f0220151e45313207ef60d7e91b66f03bbaade27ad0fb0a78ca692ccdb4fa36202a66014d33014d0701434e54525052545903000800157934c4b76dd4598533af398d4600bc62c30e20001de8e1db9ab1622fb8b35eae514f6a2b848dec9000489ad6851b31a59f042593c28f49976ffe17abc6005d3d7d62a84e90b0cfcb455c4f73bc795115a5f2005eac6a674669c6c0de63177ae4b3f8f21579a5e90068430e5056f9b75beb0dbf415a8aa2c65305a89e00687fd8a1bcc5a7f48c540591a4e3521fe7a5d67300a393004b7d01b3ad81276898afb8203c1b631b8a40000085ecef53f53d0000000000000001808000000000000000300c0000000000000006030000000000000000c01000000000000000180e00000000000000030080000000000000006000000000000000000c00752103cff10054cf9cf2dbda64adb01ccfc46c3dee8fcf4a9ba7eb14015ebe97cc31f3ad0075740087’`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘PUSHDATA2: ‘, data_s)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`script_b = bytes.fromhex(data_s)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘Decoded Script: ‘, prepare_readable_script(script_b))`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This gives us the following result:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-10.3.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 10.3:** Shows script parsed by the program'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Signature verification](toc.xhtml#s218a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'When a node gets a transaction, it needs to verify it against consensus rules,
+    which includes verifying the signature and public key against the locking script,
+    which is P2PKH or P2PSH, or any other type of script. You have learned Signature
+    verification in *[Chapter 5, The Whitepaper](c05.xhtml)*, in a note named *Digital
+    Signature.* You have learned that for signature verification, we require two inputs
+    to the given signature: a public key and a message. The message, in this case,
+    consists of version, input count, inputs, locktime, sighash type, output count,
+    and outputs.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here, sighash type indicates the structure of the message being signed by the
+    new transaction.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following are the sighash types that can be used:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| **SIGHASH Types** | **Hex code** | **Meaning** |'
+  prefs: []
+  type: TYPE_TB
+- en: '| SIGHASH_ALL | 0x01 | Signs all inputs and outputs |'
+  prefs: []
+  type: TYPE_TB
+- en: '| SIGHASH_NONE | 0x02 | Signs all inputs and no outputs |'
+  prefs: []
+  type: TYPE_TB
+- en: '| SIGHASH_SINGLE | 0x03 | Signs all inputs and single output |'
+  prefs: []
+  type: TYPE_TB
+- en: '| SIGHASH_ALL&#124;SIGHASH_ANYONECANPAY | 0x81 | Signs one input and all outputs
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| SIGHASH_NONE&#124;SIGHASH_ANYONECANPAY | 0x82 | Signs one input and no outputs
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| SIGHASH_SINGLE&#124;SIGHASH_ANYONECANPAY | 0x83 | Signs one input and one
+    output |'
+  prefs: []
+  type: TYPE_TB
+- en: '**Table 10.2:** Sighash types'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here’s the description of each of the preceding sighash types:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`**SIGHASH_ALL**`: Signing all outputs is needed to make sure someone does
+    not change the output and steals the bitcoins. Consequently, every transaction
+    needs to have at least one input signed with `**SIGHASH_ALL**`*.*'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`**SIGHASH_NONE**`: This is mostly used with `**SIGHASH_ANYONECANPAY**`, but
+    it is valid to use this sighash type without `**SIGHASH_ANYONECANPAY**` when all
+    inputs are known.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`**SIGHASH_SINGLE**`: This is mostly used with `**SIGHASH_ANYONECANPAY*.***`
+    Similar to `**SIGHASH_NONE**`, this sighash type can also be used without `**SIGHASH_ANYONECANPAY*.***`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`**SIGHASH_ALL|SIGHASH_ANYONECANPAY**`: This is useful if each one is contributing
+    to specific purposes, like collectively paying for buying a gift from a gift shop.
+    In this case, everyone knows where the funds are going and in what quantity, and
+    everyone knows how much they need to contribute.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`**SIGHASH_NONE|SIGHASH_ANYONECANPAY**`: This is useful when a coordinator
+    is collecting funds for certain purposes. The collector knows where the funds
+    need to go, so they will sign all inputs and outputs with their private key while
+    creating a signature of one input. Others will not know where funds are to be
+    used, so they will sign by `**SIGHASH_NONE|SIGHASH_ANYONECANPAY**`*.*'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`**SIGHASH_SINGLE|SIGHASH_ANYONECANPAY**`: This is useful for merging independent
+    transactions where each transaction has one input and one output. There needs
+    to be one input that signs all outputs. The biggest issue here is that output
+    value is normally fixed, so excess value needs to be paid as change. This can
+    only be useful if the input and output match or if the input is less than output.
+    We can call a transaction partial if the input is less than the output. In this
+    case, each one makes a partial transaction, and the collector adds the remaining
+    bitcoins in order to complete the transaction. As an example, this can be used
+    if the payment is subsidized by another entity, who finally completes the transaction
+    by signing all outputs.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Hash type – SIGHASH_ALL](toc.xhtml#s219a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'The following illustration shows how signature in scriptSig is created for
+    `**SIGHASH_ALL**`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-10.4.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 10.4:** Transaction creation for SIGHASH_ALL'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The preceding figure shows how the signature is created by using the message
+    and private key. In the case of `**SIGHASH_ALL**`, we create the message by taking
+    all the elements of the new transaction. We then replace scriptSig and scriptSig
+    length with the executing script, which, in the case of P2PKH, is the previous
+    scriptPubKey and scriptPubKey length for the input index to be signed. For the
+    other inputs, scriptSig length is replaced with zero as those inputs are not getting
+    signed. For P2SH script, scriptSig and its length are replaced with redeem script
+    and its length. At the end of the message, we add sighash type.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Hash type – SIGHASH_NONE, SIGHASH_SINGLE, SIGHASH_ANYONECANPAY](toc.xhtml#s220a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'The following illustration shows the message structure to be signed for other
+    sighash types:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-10.5.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 10.5:** Signature preimage for sighash types other than SIGHASH_ALL'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the case of `**SIGHASH_ANYONECANPAY**`, only the signed input is part of
+    the message to be signed, and other inputs are not included. In the case of `**SIGHASH_NONE**`,
+    none of the outputs are included, and in the case of `**SIGHASH_SINGLE**`, only
+    one output is included. We can observe that the output index in the case, `**SIGHASH_SINGLE**`,
+    corresponds to the input that is being signed. This means, if input 0 is signed,
+    then output 0 is included and output 1 is excluded. If input 1 is signed, then
+    output 1 is included and output 0 is excluded. If the excluded output is not the
+    last output of the message, then we need to keep the excluded output as a placeholder
+    by just having `0xFFFFFFFFFFFFFFFF` and `0x00` as is in the figure. In both `**SIGHASH_NONE**`
+    and SIGHASH_SINGLE, the sequences of inputs that are not signed are replaced by
+    `0x00000000`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Standard Bitcoin script - P2PK](toc.xhtml#s221a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: P2PK is not recommended for use. P2PK stands for ***Pay-2-Public-Key***.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In this script, `**scriptsig**` is:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`<Signature>`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'and `**scriptpubkey**` is:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`<Public Key> OP_CHECKSIG`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'It has simple execution: first, `**scriptSig**` gets executed, in which signature
+    is pushed into stack, and then `**scriptPubKey**` gets executed, which pushes
+    public-key to stack, and then `**OP_CHECKSIG**` checks the signature by popping
+    out the signature and the public-key and pushes back the result to the stack.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This script had a few drawbacks:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Compressed Public Keys are 32-bytes long, while the hash used by the P2PKH script
+    is 20-byte long, so its hex is 40-character long, which is much easier to type.
+    An address generated from 20-bytes using base58check encoding is 34-character
+    long.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If quantum computers can utilize a quantum technique called Shor’s algorithm,
+    it is expected that they will be able to derive private keys from public keys.
+    For Bitcoin to remain secure in the future, we should not expose our public keys
+    on the networks that are still holding bitcoins. By having a public key hash,
+    we have multiple levels of security to secure our funds.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Since this script is not recommended, there is no point in going deeper into
+    understanding it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Standard Bitcoin script – P2PKH](toc.xhtml#s222a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: P2PKH is the most widely used Bitcoin script. P2PKH stands for ***Pay-2-Public-Key-Hash***.
+    In the script, the sender locks the transaction output using the hash of the public
+    key, and it requires the receiver to provide the public key when it needs to use
+    the funds locked in transaction output. The hash is 20-byte long, which is smaller
+    than the 32-byte long compressed public key. And it generates a 34-character long
+    address, which includes a checksum. This makes it easier to type, and since it
+    contains a checksum, it is not possible to accidentally type the wrong address.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The `**scriptSig**` in P2PKH is:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`<Signature> <Public Key Hash>`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'and the `**scriptPubKey**` is:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`OP_DUP OP_HASH160 <20-byte pubkey hash> OP_EQUALVERIFY OP_CHECKSIG`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Since `**<Signature>**` and `**<Public Key Hash>**` both are data, both go into
+    the stack. Once `**scriptSig**` is executed, `**scriptPubKey**` is executed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following illustration shows the execution of P2PKH:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-10.6.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 10.6:** Execution of P2PKH'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Prepare signature preimage
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: All messages include sighash type at the end. Once the message is signed, the
+    sighash type is appended to the signature to help the verifying node reconstruct
+    the message before verification.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Now, we are ready to verify a real transaction script. We take following transaction
+    ID:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`83eeaecaf531e5239ffc3ba7ff583c696f7dbe3610f0d672d41e0b9443632c82`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Since the transaction is in the Bitcoin blockchain, we get the raw transaction
+    by calling `**getrawtransaction**` in Bitcoin Core CLI, as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-10.7.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 10.7:** Shows the Bitcoin Core CLI command for getting transaction
+    bytes'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This gives us the following raw transaction:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-10.8.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 10.8:** Shows the hex data of the traansaction-ID'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We can use the transaction and parse it using the `**getTransactionInfo**` method
+    written in *[Chapter 6, Blockchain, Transactions, and Mining](c06.xhtml),* under
+    the topic *Transactions* and the subtopic *Other transaction* in *Program 6.15,*
+    to get scriptSig.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This gives us the following information:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`Transaction = {‘version’: ‘00000001’, ‘inp_cnt’: 2, ‘inputs’: [{‘prev_tx_hash’:
+    ‘15b91bcf8b2b9ea46d0daab60aaa2e99b15a5fb37d9d4568d4c060e515e13130’, ‘prev_tx_out_index’:
+    ‘00000001’, ‘bytes_scriptsig’: 106, ‘scriptsig’: ‘47304402205535a9ac25844514828bff3580120d5add488e09b7a6e62018fc265aabf95fe302200b66d4eb23fc348b31d58729b479ae73db9dfc467edf38f8dfd927c48cb46b5801210219fbee4b9cc12188598f244ff0ee352b124cbf9046180a1b25e020c0258f9d64’,
+    ‘sequence’: ‘ffffffff’}, {‘prev_tx_hash’: ‘840ac7a55498c6746b9d7460a348f79e2f35db4a9696bef762d975e7e1deeff2’,
+    ‘prev_tx_out_index’: ‘0000000c’, ‘bytes_scriptsig’: 106, ‘scriptsig’: ‘47304402203a28d10c786907fcb71c7bf69c507d58884ea9af2e7fa3b413d4e2867eca601502205fb253d82e4daa2672842ec031584ea7a215774422aa7de3cf8928c240e2faa60121030be5aa6d5de8c6dd89d6ac4d0e2a112caf5b12801349ab30fbdf2b205f0b94b8’,
+    ‘sequence’: ‘ffffffff’}], ‘out_cnt’: 2, ‘outs’: [{‘satoshis’: 69302, ‘bytes_scriptpubkey’:
+    25, ‘scriptpubkey’: ‘76a914f133f0339987cd84b6017517de2a93f009728d7e88ac’}, {‘satoshis’:
+    12900349, ‘bytes_scriptpubkey’: 25, ‘scriptpubkey’: ‘76a91406c3bc40cde01312e2b24f8d2c23e68ea7d572f888ac’}],
+    ‘locktime’: 0}`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following program further parses `**scriptSig**` to get signature, `**sighash**`
+    type, and public key:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`OP_PUSHDATA1 = 0x4c`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`OP_PUSHDATA2 = 0x4d`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`OP_PUSHDATA4 = 0x4e`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`SIGHASH_ALL = 0x01`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`SIGHASH_NONE = 0x02`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`SIGHASH_SINGLE = 0x03`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`SIGHASH_ANYONECANPAY = 0x80`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def getHashTypeInWords(hashtype: int):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`hashtype_s = “”`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if hashtype & SIGHASH_SINGLE == 0x03:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`hashtype_s = “SIGHASH_SINGLE”`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`elif hashtype & SIGHASH_NONE == 0x02:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`hashtype_s = “SIGHASH_NONE”`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`elif hashtype & SIGHASH_ALL == 0x01:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`hashtype_s = “SIGHASH_ALL”`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if hashtype & SIGHASH_ANYONECANPAY == 0x80:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`hashtype_s = hashtype_s + “|” + “SIGHASH_ANYONECANPAY”`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return hashtype_s`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def decodePushdata(script_m: mmap):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`length = int.from_bytes(script_m.read(1), byteorder=’little’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if length == OP_PUSHDATA1:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`length = int.from_bytes(script_m.read(1), byteorder=’little’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`elif length == OP_PUSHDATA2:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`length = int.from_bytes(script_m.read(2), byteorder=’little’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`elif length == OP_PUSHDATA4:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`length = int.from_bytes(script_m.read(4), byteorder=’little’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return length`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def parseScriptSig(script_m: mmap):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`scriptsig = {}`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`scriptsig[‘bytes_sig’] = decodePushdata(script_m)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`scriptsig[‘sig’] = script_m.read(scriptsig[‘bytes_sig’] - 1).hex()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`scriptsig[‘hash_type’] = int.from_bytes(script_m.read(1), byteorder=’little’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`scriptsig[‘hash_type_name’] = getHashTypeInWords(scriptsig[‘hash_type’])`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`scriptsig[‘bytes_pubkey’] = decodePushdata(script_m)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`scriptsig[‘pubkey’] = script_m.read(scriptsig[‘bytes_pubkey’]).hex()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return scriptsig`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Program 10.2:** Scriptsig parser'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We call the preceding method as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`script_b = bytes.fromhex(‘47304402203a28d10c786907fcb71c7bf69c507d58884ea9af2e7fa3b413d4e2867eca601502205fb253d82e4daa2672842ec031584ea7a215774422aa7de3cf8928c240e2faa60121030be5aa6d5de8c6dd89d6ac4d0e2a112caf5b12801349ab30fbdf2b205f0b94b8’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`script_m = mmap.mmap(-1, len(script_b) + 1)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`script_m.write(script_b)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`script_m.seek(0)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`scriptsig = parseScriptSig(script_m)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(json.dumps(scriptsig, indent=4))`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This gives us the following results:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-10.9.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 10.9:** Shows the JSON output by running the parseScriptSig program'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We will use the preceding information to verify the transaction. We first implement
+    script operations. Then, we use the list as a stack and use pop and append operations:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`st = []`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def opHash160():`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`v = st.pop()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`h = hash160(v)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`st.append(h)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def opDup():`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`v = st.pop()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`st.append(v)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`st.append(v)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def opEqualVerify():`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`v1 = st.pop()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`v2 = st.pop()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if v1 == v2:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return True`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`else:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return False`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`g_pushdata = range(0x01, 0x4f)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def pushdata(d: bytes):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`st.append(d)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def opCheckSig(script_b: bytes, inp_index: int, tx: dict):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`pubkey_b = st.pop()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`sig_b = st.pop()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`v = sigcheck(sig_b, pubkey_b, script_b, inp_index, tx)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`st.append(v)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Program 10.3:** Bitcoin script operations for P2PKH'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The `**OP_CheckSig**` operation verifies transaction messages using a signature
+    and a public key that is on the stack. To create the signature preimage, we take
+    the transaction bytes and replace the input signature needed to be verified by
+    executing the script. This is shown in *[figures 10.4](#fig10_4)* and *[10.5](#fig10_5)*.
+    This is the reason we pass script bytes and input index as its arguments.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We call the script operators using the following method, which reads script
+    bytes till the whole script is executed:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def execScript(script_b: bytes, inp_index: int, tx: dict):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`l = len(script_b)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`script_m = bytes2Mmap(script_b)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`while script_m.tell() < l:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`v = script_m.read(1)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`b = int.from_bytes(v, byteorder=’little’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if b in g_pushdata:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`script_m.seek(-1, 1)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`b = decodePushdata(script_m)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`d = script_m.read(b)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`pushdata(d)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`elif v == b’\x76’:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`opDup()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`elif v == b’\xa9’:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`opHash160()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`elif v == b’\x88’:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`opEqualVerify()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`elif v == b’\xac’:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`opCheckSig(script_b, inp_index, tx)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Program 10.4:** P2PKH script execution'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The `**opCheckSig**` method calls the `**sigcheck**` method, which performs
+    signature verification using the `**ecdsa**` package. To understand signature
+    verification, we need to understand the format of signature used by Bitcoin transactions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We use the created message and the private key to verify the signature. The
+    signature we get in the transaction is in the *DER encoding*. **DER** stands for
+    **Distinguished Encoding Rules**. Here’s the structure of DER encoding:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-10.10.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 10.10:** DER encoding'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following is the description of the components of DER encoding:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '0x30 byte: Indicates compound structure'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Data Size: Size of data following this byte'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '0x02: Indicates integer'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'R value size: Size of R may include 0x00 prefix'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'R: This may include 0x00 prefix'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'S value size: Size of S may include 0x00 prefix'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'S: This may include 0x00 prefix'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The `**ecdsa**` package we are using requires a signature to be a concatenation
+    of *R* and *S*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The following code returns concatenated *R* and *S:*
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def getRandSFromSig(sig_b: bytes):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`sig_m = bytes2Mmap(sig_b)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`struct = sig_m.read(1)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`size = sig_m.read(1)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`rheader = sig_m.read(1)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`rsize_b = sig_m.read(1)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`rsize = int.from_bytes(rsize_b, byteorder=’little’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if rsize == 33:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`sig_m.read(1)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`r = sig_m.read(32)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`sheader = sig_m.read(1)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`ssize_b = sig_m.read(1)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`ssize = int.from_bytes(ssize_b, byteorder=’little’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if ssize == 33:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`sig_m.read(1)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`s = sig_m.read(32)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return r + s`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Program 10.5:** Get concatenated R and S bytes'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We need to build signature preimage to verify signatures using input index
+    and current executing script. The following code does this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def bytes2Mmap(b: bytes):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`m = mmap.mmap(-1, len(b) + 1)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`m.write(b)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`m.seek(0)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return m`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`# This method returns both value of variable integer and also the variable
+    integer bytes`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def setVarInt(n: int):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if n < 0xfd:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`n_h = ‘%02x’ % n`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`elif n > 0xfd and n < 0xffff:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`n_h = ‘fd%04x’ % n`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`elif n > 0xffff and n < 0xFFFFFFFF:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`n_h = ‘fe%08x’ % n`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`else:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`n_h = ‘ff%016x’ % n`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return bytes.fromhex(n_h)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def createMsgInputsForSig(tx: dict, script_b: bytes,`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`inp_index: int,`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`sighash_type: int,`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`inp_cnt: int):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`msg_b = b’’`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`for i in range(inp_cnt):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`tx_inp = tx[‘inputs’][i]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`inp_b = bytes.fromhex(tx_inp[‘prev_tx_hash’])[::-1]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`inp_b += struct.pack(‘<L’, tx_inp[‘prev_tx_out_index’])`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if i == inp_index:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`inp_b += bytes.fromhex(‘%02x’ % len(script_b))`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`inp_b += script_b`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`inp_b += struct.pack(‘<L’, tx_inp[‘sequence’]) # sequence`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`else:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`inp_b += bytes(1)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`inp_b += struct.pack(‘<L’, tx_inp[‘sequence’]) # sequence`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`msg_b += inp_b`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return msg_b`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def createMsgOutsForSig(tx: dict, inp_index: int, sighash_type: int):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`msg_b = b’’`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`msg_b += setVarInt(tx[‘out_cnt’])`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`for o in range(tx[‘out_cnt’]):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`tx_out = tx[‘outs’][o]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`msg_b += struct.pack(‘<Q’, tx_out[‘satoshis’])`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`msg_b += setVarInt(tx_out[‘bytes_scriptpubkey’])`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`msg_b += bytes.fromhex(tx_out[‘scriptpubkey’])`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return msg_b`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def createMsgForSig(tx: dict, script_b: bytes, inp_index: int, sighash_type:
+    int):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`msg_b = bytes.fromhex(tx[‘version’])[::-1]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`inp_cnt = tx[‘inp_cnt’]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`msg_b += setVarInt(inp_cnt)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`msg_b += createMsgInputsForSig(tx, script_b, inp_index, sighash_type, inp_cnt)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`msg_b += createMsgOutsForSig(tx, inp_index, sighash_type)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`msg_b += struct.pack(‘<L’, tx[‘locktime’])`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`msg_b += struct.pack(‘<L’, sighash_type)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return `msg_b``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`**Program 10.6:** Create signature preimage'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We use the message generated by calling the preceding method and using the
+    public key to verify the signature. We have written the following method to verify
+    the transaction signature at the given input index:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`from cryptotools.ECDSA.secp256k1 import PublicKey`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def uncompressPubkey(pubkey_b: bytes):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`pubkey_P = PublicKey.decode(pubkey_b)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`pubkey_b = PublicKey.encode(pubkey_P, compressed=False)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return pubkey_b`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def sigcheck(sig_b: bytes, pubkey_b: bytes, script_b: bytes, inp_index: int,
+    tx: dict):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`sighash_type = sig_b[-1]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`msg_b = createMsgForSig(tx, script_b, inp_index, sighash_type)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`msg_h = hashlib.sha256(msg_b).digest()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`prefix = pubkey_b[0:1]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if prefix == b”\x02” or prefix == b”\x03”:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`fullpubkey_b = uncompressPubkey(pubkey_b)[1:]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`elif prefix == b”\x04”:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`fullpubkey_b = pubkey_b[1:]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`rs_b = getRandSFromSig(sig_b)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`vk = ecdsa.VerifyingKey.from_string(fullpubkey_b, curve=ecdsa.SECP256k1)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`try:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if vk.verify(rs_b, msg_h, hashlib.sha256) == True:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(“Signature is Valid”)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return b’\x01’`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`else:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(“Signature is not Valid”)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return b’\x00’`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`except ecdsa.keys.BadSignatureError:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(“Signature is not Valid”)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return b’\x00’`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Program 10.7:** Signature verification method'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We can use the preceding program to verify transaction signature related P2PKH
+    address.The following the methods required to verify P2PKH script:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def getScriptSig(tx: dict, inp_index: int):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return bytes.fromhex(tx[‘inputs’][inp_index][‘scriptsig’])`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def getPrevScriptPubKey(tx: dict, inp_index: int):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`prevtx_rb = bytes.fromhex(tx[‘inputs’][inp_index][‘prev_tx_hash’])[::-1]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`prevtx_outindex = tx[‘inputs’][inp_index][‘prev_tx_out_index’]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`prevtx = findTransaction(prevtx_rb, txindex_db_g)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`prevScriptPubkey = prevtx[‘outs’][prevtx_outindex][‘scriptpubkey’]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`prevScriptPubkey_b = bytes.fromhex(prevScriptPubkey)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return prevScriptPubkey_b`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def verifyScript(tx: dict, inp_index: int):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`scriptsig_b = getScriptSig(tx, inp_index)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`execScript(scriptsig_b, inp_index, tx)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`prev_scriptpubkey_b = getPrevScriptPubKey(tx, inp_index)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`execScript(prev_scriptpubkey_b, inp_index, tx)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`status = st.pop()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if status == b’\x01’:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘1st Script succeeded’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`elif status == b’\x01’:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘1st Script Failed’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`else:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘1st Invalid state’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Program 10.8:** Methods to verify P2PKH script'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We call the preceding method as follows to verify a transaction scriptSig:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if __name__ == ‘__main__’:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`txid_s = ‘2df97b379c9ce9e4a60529f555b9742c04f90b922c2fcff846ebae41206b93f9’`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`inp_index = 1`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`txid_b = bytes.fromhex(txid_s)[::-1]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`tx = findTransaction(txid_b, txindex_db_g)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`verifyScript(tx, inp_index)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Standard Bitcoin script – P2MS](toc.xhtml#s223a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: P2MS stands for ***Pay-2-Multisig***. This script allows the use of multiple
+    signatures in order to access the locked bitcoin.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The script looks as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**ScriptPubKey:** `**OP_n <Public Key 1><Public Key 2>…<Public Key m>OP_m<Multisig>**`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**ScriptSig:** `**OP_0 <Signature 1><Signature 2>… <Signature n>**`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In a 2-of-3-multisig, two of the three signatures are required to claim the
+    funds locked by `**scriptPubKey**`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This means when we create a transaction, we need to have multiple public keys
+    in the script. These have the following disadvantages:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Transaction will consume many more bytes than the normal P2PKH script, so the
+    sender will have to pay a higher transaction fee.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: A sender will need to form a complex script by taking multiple public keys even
+    though it is sending it to just one receiver. This is an overhead for the sender.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Public keys may not remain secure if quantum computers are able to utilize Shor’s
+    algorithm to break private key public key cryptography.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: In 2012, P2SH was introduced as a softfork that solved the preceding disadvantages,
+    so we are not going deeper into this script.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Standard Bitcoin script – P2SH](toc.xhtml#s224a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: P2SH stands for ***Pay-2-Script-Hash***. As the name suggests, there is a script
+    embedded in the hash, which must satisfy for payment to be made. This is mostly
+    used to allow the use of multiple signatures in order to access bitcoin. It was
+    introduced as a softfork in 2012.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The P2SH script replaced the multisig script with a script hash, so the sender
+    does not need to pay extra to the miner for including their transaction.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For P2SH, the `**scriptSig**` is:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`<Signatures> <Redeem Scripts>`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'and the `**scriptPubKey**` is:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`OP_HASH160 <20-byte Redeem Script hash> OP_EQUAL`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The Redeem Script for the 2-of-3-multisig is as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`<2><Public Key 1><Public Key 2><Public Key 3><3><Multisig>`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In P2SH, two scripts need to get executed, i.e., the `**scriptPubKey**` and
+    redeem script, along with the given list of signatures. This is a special script
+    and executes a bit differently. In this case, a copy of the stack is maintained,
+    and once `**scriptPubKey**` gets executed, the redeem script starts executing.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As `**scriptPubKey**` in P2SH script contains a 20-byte hash of script, and
+    we can hide complex scripts within the hash. The sender will not know what the
+    rules are for claiming the funds; they will only have a normal-looking address
+    to transfer his coins. This greatly simplifies and, at the same time, imposes
+    complex rules for claiming the locked bitcoin. These complex rules work as a contract
+    between parties. These contracts lead to the origin of the smart contract, which
+    we will learn more about in the next chapter.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following illustration explains the execution of P2SH:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-10.11.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 10.11:** P2SH execution'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To write a program that could verify signature against P2SH transaction output,
+    we need to be able to identify P2SH as it involves three consecutive executions
+    of scripts. Here are the three execution scripts:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: OP_0 <signature 1> <signature 2> … <signature m> <Redeem Script>
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: OP_HASH160 <Redeem Script Hash> OP_EQUAL
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Redeem script: OP_m <Public Key 1> <Public Key 2> … <Public Key n> OP_n OP_MULTISIG'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: For P2SH, the signature preimage remains the same, so we extend the program
+    covered in the previous section on P2PKH to include redeem script handling and
+    to also have handling for `**OP_CHECKMULTISIG**`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`g_pushnumber = range(0x51, 0x61) # excludes 0x61`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def opEqual():`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`v1 = st.pop()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`v2 = st.pop()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if v1 == v2:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`st.append(b’\x01’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`else:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`st.append(b’\x00’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def opNum(b: int):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`num = b - 0x50`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`st.append(bytes([num]))`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def opCheckMultisig(script_b: bytes, inp_index: int, tx: dict):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`pubkey_cnt = int.from_bytes(st.pop(), byteorder=’little’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`pubkey_l = [st.pop() for i in range(pubkey_cnt)][::-1]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`sig_cnt = int.from_bytes(st.pop(), byteorder=’little’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`sig_l = [st.pop() for i in range(sig_cnt)][::-1]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`sig_index = 0`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`for pubkey_b in pubkey_l:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`v = sigcheck(sig_l[sig_index], pubkey_b, script_b, inp_index, tx)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if v == b’\x01’:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`sig_index += 1`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if sig_index == sig_cnt:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`break`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`# convert True/False to b’\x01’ or b’\x00’`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`b = bytes([int(sig_index == sig_cnt and v == b’\x01’)])`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`st.append(b)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Program 10.9:** Bitcoin script operations for P2SH'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following program identifies if we were executing P2SH script. This method
+    is called after `**scriptSig**` is executed:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def checkWrappedMultisig(st):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`script_b = st[-1]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`val = script_b[-2]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if bytes([script_b[-1]]) == b’\xae’ and val in g_pushnumber:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return True`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`else:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return False`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Program 10.10:** Identify P2SH script'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following is the updated `**execScript**` method that handles additional
+    opcodes:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def execScript(script_b: bytes, inp_index: int, tx: dict):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`l = len(script_b)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`script_m = bytes2Mmap(script_b)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`while script_m.tell() < l:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`v = script_m.read(1)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`b = int.from_bytes(v, byteorder=’little’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if b == 0x00:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`pass`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`elif b < 0x4f:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`script_m.seek(-1, 1)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`b = decodePushdata(script_m)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`d = script_m.read(b)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`pushdata(d)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`elif v == b’\x76’:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`opDup()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`elif v == b’\xa9’:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`opHash160()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`elif b in g_pushnumber:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`opNum(b)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`elif v == b’\x87’:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`opEqual()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`elif v == b’\x88’:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`opEqualVerify()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`elif v == b’\xac’:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`opCheckSig(script_b, inp_index, tx)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`elif v == b’\xae’:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`opCheckMultisig(script_b, inp_index, tx)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Program 10.11:** P2SH script execution'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following method performs P2SH script verification:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def verifyScript(tx: dict, inp_index: int):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`isP2SH = False`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`scriptsig_b = getScriptSig(tx, inp_index)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`execScript(scriptsig_b, inp_index, tx)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`prev_scriptpubkey_b = getPrevScriptPubKey(tx, inp_index)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if checkWrappedMultisig(st) == True:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`redeemscript_b = st[-1]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`isP2SH = True`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`execScript(prev_scriptpubkey_b, inp_index, tx)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`status = st.pop()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if status == b’\x01’:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘1st Script succeeded’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`elif status == b’\x01’:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘1st Script Failed’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`else:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘1st Invalid state’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if isP2SH == True:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`execScript(redeemscript_b, inp_index, tx)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`status = st.pop()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if status == b’\x01’:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘2nd Script succeeded’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`elif status == b’\x01’:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘2nd Script Failed’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`else:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘2nd Invalid state’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Program 10.12:** P2SH verification method'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We call the preceding method as follows to verify a transaction scriptSig:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if __name__ == ‘__main__’:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`txid_s = ‘8b3e54e345d0b3e9278a27f1ab2aa2566aba8cbe7cf44b9aa1836c9d0fcc2625’`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`inp_index = 0`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`txid_b = bytes.fromhex(txid_s)[::-1]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`tx = findTransaction(txid_b, txindex_db_g)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`verifyScript(tx, inp_index)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Since you have understood how transactions are verified, we will now create
+    transactions and move the `**regtest**` bitcoin from one address to another.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Building transactions](toc.xhtml#s225a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'We are trying to create a transaction in this subtopic. To build a transaction,
+    we need to fund the transaction from the previous transaction. Since we don’t
+    want to use real bitcoin and want to easily mine a block, we are using a `**regtest**`
+    environment. The transaction output we are using needs to be unspent. If the transaction
+    is already confirmed, we can find the transaction in the *chainstate database*.
+    If the funding transaction is not confirmed, it will be in the mempool. We are
+    using the funding transaction from the chainstate database and not looking at
+    mempool. We have already defined the method to retrieve UTXO from the chainstate
+    database. The following method is used to get unspent output information:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`getUnspentTransactions`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We can look at the method implementation in ***[Chapter 6, Blockchain, Transactions,
+    and Mining](c06.xhtml)****,* **under** the s**ubtopic** ***UTXO***, ***Program
+    6.****20*. We use this method to get `**scriptPubKey**` for P2PKH transactions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following program returns the execution script that is required in the
+    creation of P2SH transaction and in signing preimage for both P2SH and P2PKH.
+    In the following program, the first argument is the transaction structure, which
+    is a `***dict***` containing the information required to build the required transaction.
+    The following method will be used later to get bytes from the hex string of script
+    given in the transaction structure:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def getExecutionScript(txn_struct: dict, inp_index: int):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`inp = txn_struct[‘inputs’][inp_index]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`script_type = inp[‘script_type’]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``if script_type[:4] == ‘P2SH’:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`script_b = bytes.fromhex(inp[‘redeem_script’])`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`elif script_type == ‘P2PKH’:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`script_b = bytes.fromhex(inp[‘script_pubkey’])`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return script_b`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Program 10.13:** Get execution script for substituting Signature in Preimage'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The bytes of script we obtained in the preceding method is an input to the `**createSignaturePreimage**`
+    method*.*
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In the following methods, we will generate script in bytes from given address.
+    We have already taken a look at the structure of P2PKH and P2SH in the preceding
+    sections, where we discussed P2PKH and P2H scripts:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def getScriptPubkeyP2PKH(address: str):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`pkh_b = address2PubkeyHash(address)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`pkhSize_b = encodePushdata(len(pkh_b))`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`scriptPubkey_b = bytes([OP_DUP, OP_HASH160]) \`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`+ pkhSize_b + pkh_b \`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`+ bytes([OP_EQUALVERIFY]) \`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`+ bytes([OP_CHECKSIG])`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return scriptPubkey_b`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def getScriptPubkeyP2SH(address: str):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`sh_b = address2PubkeyHash(address)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`shSize_b = encodePushdata(len(sh_b))`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`scriptPubkey_b = bytes([OP_HASH160]) \`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`+ shSize_b \`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`+ sh_b \`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`+ bytes([OP_EQUAL])`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return scriptPubkey_b`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def getScriptPubkeyFromAddress(address: str):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`pkh_b = address2PubkeyHash(address)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`pkhSize_b = encodePushdata(len(pkh_b))`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`script_type = getScriptTypeFromAddress(address)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if script_type == ‘P2PKH’:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`scriptPubkey_b = getScriptPubkeyP2PKH(address)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`elif script_type == ‘P2SH’:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`scriptPubkey_b = getScriptPubkeyP2SH(address)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return scriptPubkey_b`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Program 10.14:** Prepare Script Pubkey from Address'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following method generates sequence in bytes for transaction inputs based
+    on the `**locktime**` field:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def getSequence(txn_struct: dict):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if txn_struct[‘locktime’] > 0:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`sequence_b = bytes([0xfe, 0xff, 0xff, 0xff])`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`else:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`sequence_b = bytes([0xff, 0xff, 0xff, 0xff])`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return sequence_b`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Program 10.15:** Return sequence using given locktime'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following are the utility methods which are used in the succeeding methods:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def createVarInt(i: int):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if i < 0xfd:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return bytes([i])`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`elif i < 0xffff:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return b’\xfd’ + struct.pack(‘<H’, i)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`elif i < 0xffffffff:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return b’\xfe’ + struct.pack(‘<L’, i)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`elif i < 0xffffffffffffffff:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return b’\xff’ + struct.pack(‘<Q’, i)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def address2PubkeyHash(address: str):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`pkh = base58checkDecode(address)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return pkh`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def encodePushdata(length: int):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if length <= 0x4b:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return bytes([length])`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if length <= 0xff:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return bytes([OP_PUSHDATA1, length])`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if length <= 0xffff:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return bytes([OP_PUSHDATA2]) + struct.pack(‘<H’, length)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if length <= 0xffffffff:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return bytes([OP_PUSHDATA4]) + struct.pack(‘<L’, length)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def getScriptTypeFromAddress(address: str):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if address[0] in [‘m’, ‘n’] or address[0] == ‘1’:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return “P2PKH”`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`elif address[0] == ‘2’ or address[0] == ‘3’:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return “P2SH”`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*[Figure 10.16:](#fig10_16)* Utility methods required for building transactions'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Following are the opcodes used by the methods to create transaction:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`OP_0 = 0x00`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`OP_DUP = 0x76`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`OP_EQUAL = 0x87`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`OP_EQUALVERIFY = 0x88`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`OP_HASH160 = 0xa9`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`OP_CHECKSIG = 0xac`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`OP_CHECKMULTISIG = 0xae`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The signature preimage is the message that is signed using the private key
+    of the sender. The following method generates signature preimage using the preceding
+    methods:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def createSignaturePreimage(txn_struct: dict,`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`script_b: bytes,`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`inp_index: int):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`preimage_b = b’’`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`preimage_b += struct.pack(‘<L’, txn_struct[‘version’])`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`preimage_b += createVarInt(txn_struct[‘input_count’])`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`for i in range(txn_struct[‘input_count’]):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`inp = txn_struct[‘inputs’][i]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`preimage_b += bytes.fromhex(inp[‘prevtxn’])[::-1]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`preimage_b += struct.pack(‘<L’, inp[‘prevtxnindex’])`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if i == inp_index:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`preimage_b += createVarInt(len(script_b))`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`preimage_b += script_b`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`else:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`preimage_b += b’\x00’`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`preimage_b += getSequence(txn_struct)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`preimage_b += createVarInt(txn_struct[‘out_count’])`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`for out in range(txn_struct[‘out_count’]):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`satoshis = txn_struct[‘outputs’][out][‘satoshis’]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`preimage_b += struct.pack(‘<Q’, satoshis)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`address = txn_struct[‘outputs’][out][‘address’]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`scriptPubkey_b = getScriptPubkeyFromAddress(address)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`preimage_b += createVarInt(len(scriptPubkey_b))`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`preimage_b += scriptPubkey_b`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`preimage_b += struct.pack(‘<L’, txn_struct[‘locktime’])`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`hashtype = txn_struct[‘inputs’][inp_index][‘hash_type’]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`preimage_b += struct.pack(‘<L’, hashtype)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘preimage = ‘, preimage_b.hex())`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return preimage_b`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Program 10.17:** Prepare Signature Preimage'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We generate a signature by signing the signature preimage using the private
+    key. The signature is appended with `**hash_type**`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here’s the code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`from ecdsa import SigningKey, SECP256k1`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`from ecdsa.util import sigencode_der_canonize`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def signMessage(preimage_b: bytes,`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`privkey_wif: str,`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`hash_type: int):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`hash_preimage = hash256(preimage_b)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`privkey_s, network, compress = privkeyWif2Hex(privkey_wif)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if privkey_s.__len__() % 2 == 1:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`privkey_s = “0{}”.format(privkey_s)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if compress == True:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘compress is true’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`privkey_b = bytes.fromhex(privkey_s)[:-1]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`else:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`privkey_b = bytes.fromhex(privkey_s)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`sk = SigningKey.from_string(privkey_b, curve=SECP256k1)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`sig_b = sk.sign_digest(hash_preimage,`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`sigencode=sigencode_der_canonize) \`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`+ bytes([hash_type])`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return sig_b`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Program 10.18:** Method for signing message'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In the preceding code, we call the following method in the `**ecdsa**` package:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`sk.sign_digest(hash_preimage,`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`sigencode=sigencode_der_canonize)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This method generates a signature using a hash of preimage and private key.
+    We know that the generated signature consists of R and S. Since Bitcoin uses elliptic
+    curve algorithm `**SECP256k1**`, which is symmetric on the X-axis, it is possible
+    to get the same signature using –S. This means there are two valid signatures
+    for the same private key and message. Since the signature is part of the transaction,
+    it makes two transaction IDs to represent the same transaction, which is a security
+    problem, also called **transaction malleability**. There are other ways in which
+    transaction malleability can occur. To avoid this problem, we use smaller of the
+    S and –S. This is the reason we pass the `**sigencode_der_canonize**` argument
+    to the method, which only generates **low S**.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'As we have seen, `**ScriptSig**` has the following structure:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**P2PKH:** `<Signature> <Public Key>`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**P2SH:** `OP_0 <Signature 1><Signature 2> … <Signature N> <Redeem Script>`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'We create the scriptSig for each funding transaction output:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def getSignaturesAndExecScripts(txn_struct: dict):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`signgrp_l = []`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`script_l = []`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`for inp_index in range(txn_struct[‘input_count’]):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`inp = txn_struct[‘inputs’][inp_index]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`script_b = getExecutionScript(txn_struct, inp_index)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`preimage_b = createSignaturePreimage(txn_struct, script_b, inp_index)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`inp = txn_struct[‘inputs’][inp_index]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`signgrp = []`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`for privkey in inp[‘privkeys’]:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`hashtype = inp[‘hash_type’]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`sign_b = signMessage(preimage_b, privkey, hashtype)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`signgrp.append(sign_b)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`signgrp_l.append(signgrp)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`script_l.append(script_b)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return txn_struct, signgrp_l, script_l`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Program 10.19:** Method for preparing a list of signatures and scripts'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We use the list of `**scriptSig**` and transaction structure to prepare the
+    required transaction, as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def getWithPushdata(data_b: bytes):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`pushdata_b = encodePushdata(len(data_b))`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return pushdata_b + data_b`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def createScriptSigForMultiSig(signgrp: list, script_b: bytes):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`scriptSig_b = bytes([OP_0])`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`for sign_b in signgrp:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`scriptSig_b += getWithPushdata(sign_b)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`scriptSig_b += getWithPushdata(script_b)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return scriptSig_b`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def createScriptSigForP2PKH(txn_input: dict, signgrp: list):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`sign_b = signgrp[0] # it’s not a group.. just one signature`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`scriptSig_b = getWithPushdata(sign_b)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`privkey = txn_input[‘privkeys’][0]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`pubkey_b = privkeyWif2pubkey(privkey)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`scriptSig_b += getWithPushdata(pubkey_b)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return scriptSig_b`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def createSignedInput(txn_input: dict, signgrp, script_b: bytes):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`prevtxn = txn_input[‘prevtxn’]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`prevtx_rb = bytes.fromhex(prevtxn)[::-1]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`prevtxnindex = txn_input[‘prevtxnindex’]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`sgntxnin_b = prevtx_rb + struct.pack(‘<L’, prevtxnindex)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if txn_input[‘script_type’] == ‘P2SH_Multisig’:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`scriptSig_b = createScriptSigForMultiSig(signgrp, script_b)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`elif txn_input[‘script_type’] == ‘P2PKH’:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`scriptSig_b = createScriptSigForP2PKH(txn_input, signgrp)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`sgntxnin_b += createVarInt(len(scriptSig_b)) + scriptSig_b`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return sgntxnin_b`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`# In P2PKH script scriptSig is signature + pubkey`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def scriptSigFromSignNPubkey(sign_b: bytes, pubkey_b: bytes):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`scriptSig_b = getWithPushdata(sign_b)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`scriptSig_b += getWithPushdata(pubkey_b)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return scriptSig_b`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def createSignedTransaction(txn_struct: dict, signgrp_l: list, script_l: list):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`sgntxn_b = b’’`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`sgntxn_b += struct.pack(‘<L’, txn_struct[‘version’])`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`sgntxn_b += createVarInt(txn_struct[‘input_count’])`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`for i in range(txn_struct[‘input_count’]):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`txn_input = txn_struct[‘inputs’][i]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`sgntxn_b += createSignedInput(txn_input, signgrp_l[i], script_l[i])`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`sgntxn_b += getSequence(txn_struct)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`sgntxn_b += createVarInt(txn_struct[‘out_count’])`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`for out in range(txn_struct[‘out_count’]):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`satoshis = txn_struct[‘outputs’][out][‘satoshis’]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`sgntxn_b += struct.pack(‘<Q’, satoshis)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`address = txn_struct[‘outputs’][out][‘address’]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`scriptPubkey_b = getScriptPubkeyFromAddress(address)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`sgntxn_b += createVarInt(len(scriptPubkey_b))`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`sgntxn_b += scriptPubkey_b`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`sgntxn_b += struct.pack(‘<L’, txn_struct[‘locktime’])`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return sgntxn_b`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Program 10.20:** Create signed transaction'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now, we can create a transaction for both P2PKH and P2SH and publish it on the
+    Bitcoin network. For this, we will require private keys, public keys, and addresses.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We generate the keys and addresses using the method described in *[Chapter 9,
+    Wallets and Addresses](c09.xhtml),* **under** the s**ubtopic** *Format and generation
+    of private key, publickey, and address*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We will use the following private key, public key, and addresses:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| **Private Keys** | **Public Keys** | **Addresses** |'
+  prefs: []
+  type: TYPE_TB
+- en: '| KwfxnwxpPG1RmhU8jaU8Ron4m1KZGymLAFNaMnSTonoZ7AQfnV53 | 0281238fc6d981efce6aa1b3ccb8556a1b115a40f8ab3315c003f415ceedc3defe
+    | msMV395AdBAk2SfdDhBLq4uJZRS7doCn5T |'
+  prefs: []
+  type: TYPE_TB
+- en: '| L26JcHRhqEQv8V9DaAmE4bdszwqXS7tHznGYJPp7fxEoEQxxBPcQ | 037fadaea6edf196bf70af16cefb2bd3c830e54c0a6e9a00bf7806b241933547f7
+    | n1WvYkKU9i5RymcHeKFT4UworwqS6BKFSf |'
+  prefs: []
+  type: TYPE_TB
+- en: '| KxR8HHyfAwFPidCw2vXThXqT4vSMNeufirHFapnfCfkzLaohtujG | 02fcb1c7507db15576ab35cd7c9b1ea570141a8b81c9938dae0320392b0f7034d0
+    | miSFmBeKXf5Wp7Luj46XTu3Yh57nAwhZAo |'
+  prefs: []
+  type: TYPE_TB
+- en: '| KyWeQEcM2YdirR2E7JwxSRjfgNuWyt4DR3v4sGtPvmeZqhTxWVrp | 02d50250aa629914e3146a
+    5123a362a516c8aa95e5f0a6f3a078bd31fabe383abc | msV23rBcHAtQWSkWV9ph91DV65VduWi1Vt
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Ky5CYfpeMkfFku7K4FvzeEwRmTJhWqD2eFiMnjLT7uw2oUVMgyg6 | 0319b4b9ab4732e78dab0e48c2c54fd57dd35350a0269f8c041807c3b798aa1872
+    | mnhWcUMqe9J1G4t3NMqNmLUqxfPTgwv7NK |'
+  prefs: []
+  type: TYPE_TB
+- en: '| L1cnATDVZyvuo9m6tprCmbr14vm3JeCbkc4Z2397ZM7P96N3d8GA | 039d5dbb6e052631c46e046c6d11fb95d257eae5093117d2c265aeb784dba4acf6
+    | mtRkMmpT6uhM9LXVPRk4ck9Gcaz9iuQgmZ |'
+  prefs: []
+  type: TYPE_TB
+- en: '| KyP1xynRgwrCUThXATVy5kbKqteAxisDFY74zrHozSGhb75hJ3M6 | 02dfa818542ab4685284f7c222d541e218aed0712fc9e63ca2802b15bb418383c9
+    | n2DfL6uEmPiwJBYjJRzyqUYDSTqxF8XSNS |'
+  prefs: []
+  type: TYPE_TB
+- en: '**Table 10.3:** Few test addresses, public keys, and private keys'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We start the Bitcoin Core daemon for `**regtest**` as shown here:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`bitcoind -regtest -printtoconsole –rpcuser=test –rpcpassword=test -txindex=1`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Building P2PKH transaction](toc.xhtml#s226a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: We then connect the daemon and generate two blocks, sending bitcoin to a particular
+    `**regtest**` address.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To do this, run Bitcoin Core CLI with the `**regtest**` option, giving optional
+    parameters `**rpcuser**` and `**rpcpassword**`. The `**rpcuser**` and `**rpcpassword**`
+    options allow a client to make `**rpc**` connections. This is required for connecting
+    using Python package but not for connecting using CLI.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the following CLI statement, we are generating two blocks, and each newly
+    created block pays 50![](images/Bitcoin.jpg) to the given address. The payment
+    transactions are coinbase transactions that are included in each generated block.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-10.12.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 10.12:** Shows the generated blocks that pay to the given address'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We get the coinbase transactions from the block hashes:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-10.13.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 10.13:** Shows the coinbase transactions of the generated blocks'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'So, we have two transactions now holding 50 regtest bitcoins each:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`5efcf04e32f061b9c4894f5b3a59fb3d8c5c56a6e7340b89b3a1a9ebacca998f`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`53793974d074e57305575d711fd0acd1d39f406264de234e686542ad2d0ddbfb`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We also get `**scriptPubKey**` from the first transaction output as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-10.14.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 10.14:** Shows the scriptPubKey obtained from the first output of
+    funding transaction'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now, we have two blocks in the blockchain each with 50![](images/Bitcoin.jpg).
+    There is a rule that a coinbase transaction cannot be spent for the next 100 blocks.
+    This rule is useful if there is an attack on the network or if there is any critical
+    bug and it becomes necessary to reorg the Bitcoin blockchain. This means we need
+    to invalidate the previous version of the software, which has mined recent blocks,
+    and deploy the new software, which fixes the issue. We may also need to invalidate
+    some blocks that are already mined. The 100 blocks give nearly 16 hours to developers
+    to fix the network. In the past, Bitcoin developers had to perform reorg twice
+    once in 2010 and once in 2013\. This obviously affects the creditability of the
+    network, and we don’t want it to happen again.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We will just mine another 100 blocks, as follows, to be able to use the preceding
+    transactions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-10.15.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 10.15:** Shows the commpand executed to generate 100 blocks'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We will use the locked bitcoins in two transactions and send them to two different
+    addresses and leave 0.0001 regtest bitcoins as network fees. We first create a
+    raw transaction without a signature. The following code defines the structure
+    of the raw transaction:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def createTransactionStruct():`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`txn = {}`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`txn[‘version’] = 1`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`txn[‘input_count’] = 2`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`txn[‘inputs’] = []`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`input0 = {}`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`input0[‘prevtxn’] = \`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`‘5efcf04e32f061b9c4894f5b3a59fb3d8c5c56a6e7340b89b3a1a9ebacca998f’`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`input0[‘prevtxnindex’] = 0`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`input0[‘script_type’] = ‘P2PKH’`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`input0[‘privkeys’] = [‘KwfxnwxpPG1RmhU8jaU8Ron4m1KZGymLAFNaMnSTonoZ7AQfnV53’]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`input0[‘script_pubkey’] = ‘76a91481d7033c19dcec645cb3f86ce41678756850ba4d88ac’`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`input0[‘hash_type’] = SIGHASH_ALL`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`txn[‘inputs’].append(input0)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`input1 = {}`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`input1[‘prevtxn’] = ‘53793974d074e57305575d711fd0acd1d39f406264de234e686542ad2d0ddbfb’`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`input1[‘prevtxnindex’] = 0`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`input1[‘script_type’] = ‘P2PKH’`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`input1[‘privkeys’] = [‘KwfxnwxpPG1RmhU8jaU8Ron4m1KZGymLAFNaMnSTonoZ7AQfnV53’]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`input1[‘script_pubkey’] = ‘76a91481d7033c19dcec645cb3f86ce41678756850ba4d88ac’`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`input1[‘hash_type’] = SIGHASH_ALL`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`txn[‘inputs’].append(input1)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`txn[‘out_count’] = 2`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`txn[‘outputs’] = []`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`output0 = {}`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`output0[‘satoshis’] = 40*(10**8)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`output0[‘script_type’] = ‘P2PKH’`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`output0[‘address’] = ‘mxzmMmVycLDgAA48VtHDeh389eDAwiJqwQ’`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`txn[‘outputs’].append(output0)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`output1 = {}`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`output1[‘satoshis’] = 599999*(10**4)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`output1[‘script_type’] = ‘P2PKH’`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`output1[‘address’] = ‘miSFmBeKXf5Wp7Luj46XTu3Yh57nAwhZAo’`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`txn[‘outputs’].append(output1)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`txn[‘locktime’] = 110 # block height`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return txn`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Program 10.21:** Method creating transaction structure to be used as input
+    for P2PKH transaction creation'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We call the methods to get signed transaction using the following code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if __name__ == ‘__main__’:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`txn_struct = createTransactionStruct()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`txn_struct, signgrp_l, script_l = getSignaturesAndExecScripts(txn_struct)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`signed_txn_b = createSignedTransaction(txn_struct, signgrp_l, script_l)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(signed_txn_b.hex())`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here’s the signed transaction:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-10.16.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 10.16:** Shows the signed transaction created by the program'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We start the Bitcoin Core daemon for `**regtest**` by using the *–*`**regtest**`
+    option. We execute the client as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-10.17.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 10.17:** Shows the transaction failed to publish'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We got an error message non-final because locktime is higher than the current
+    block count:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-10.18.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 10.18:** Shows the command to get latest block height'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We create 8 more blocks and then publish the transaction again:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-10.19.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 10.19:** Shows the transaction is published once the locktime condition
+    is fulfilled'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This time, the transaction was successfully published, and we got the transaction
+    ID:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`efc4b90d71ff1e726924a5719fdbe9a548910aae20988c3dfa398575992100d6`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We can see the transaction that was published by executing the following command:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-10.20.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 10.20:** Shows transaction hex data in mempool using Bitcoin Core
+    CLI command'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To get this transaction into the block, we generate another block, as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-10.21.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 10.21:** Shows the next block is mined'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Now, we can see that the published transaction is added to the new block:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-10.22.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 10.22:** Shows the transaction in mined in the next block'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We can see that on generating a block, the new transaction we created is added
+    to the newly generated block. Now, the transaction is confirmed, and its depth
+    is 1.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The next section will explain the creation and publishing of P2PKH transactions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Building P2SH transaction](toc.xhtml#s227a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this section, we will create a transaction and publish it. To do that, we
+    need to generate a block that pays to a P2SH address. The P2SH address is generated
+    by generating hash160 of redeem script.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We use the following method to generate redeem script:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`OP_CHECKMULTISIG = 0xae`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def createRedeemScript(pubkey_l: list, sigcount: int):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`redeem_script_b = bytes([0x50 + sigcount])`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`for pubkey in pubkey_l:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`pubkey_b = bytes.fromhex(pubkey)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`redeem_script_b += encodePushdata(len(pubkey_b)) + pubkey_b`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`redeem_script_b += bytes([0x50 + len(pubkey_l), OP_CHECKMULTISIG])`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return redeem_script_b`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Program 10.22:** Method to create redeem scripts for multisig'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We are creating redeem script, which requires two signatures using private keys
+    related to the three public keys. So, we are going to use 2-of-3 `**multisig**`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We pass three public keys, and the required count of signature is 2 in the
+    following code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if __name__ == ‘__main__’:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`pubkey_l = [‘037fadaea6edf196bf70af16cefb2bd3c830e54c0a6e9a00bf7806b241933547f7’,
+    ‘02fcb1c7507db15576ab35cd7c9b1ea570141a8b81c9938dae0320392b0f7034d0’, ‘02d50250aa629914e3146a5123a362a516c8aa95e5f0a6f3a078bd31fabe383abc’]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`redeem_script_b = createRedeemScript(pubkey_l, 2)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘redeem script = %s’ % redeem_script_b.hex())`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`sh = hash160(redeem_script_b)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`address = sh2address(sh)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘P2SH address = %s’ % address)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'On executing the preceding lines of code, we get the following result:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-10.23.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 10.23:** Shows the P2SH address generated using redeem script'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We use the preceding address to generate a block and receive bitcoin, as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-10.24.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 10.24:** Shows the generated block that pays to the P2SH address'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Next, we use the blockhash in the preceding Bitcoin Core CLI command to get
+    the transaction-ID of the coinbase transaction:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-10.25.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 10.25:** Shows the coinbase transaction that will pay to the P2SH
+    transaction'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We need to get the structure of the generated transaction since we need to use
+    the transaction output in a transaction.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We get raw transaction by executing the following command:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-10.26.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 10.26:** Shows the hex data of the coinbase transaction that pays
+    to the P2SH address'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'By executing the following command, we get transaction structure from the raw
+    transaction:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-10.27.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 10.27:** Shows the command to get content in the transaction hex data'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following is the structure of the raw transaction generated from the preceding
+    command:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-10.28.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 10.28:** Shows the decoded transaction data'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We create a transaction structure using the transaction IDs of generated transaction
+    for P2SH transaction, as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def createTransactionStruct():`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`txn = {}`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`txn[‘version’] = 1`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`txn[‘input_count’] = 1`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`txn[‘inputs’] = []`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`input0 = {}`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`input0[‘prevtxn’] = \`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`‘de32b06aeb0103381df84d2cc5ea80a35b60bce0c6393bd9436cb395e3f47a5d’`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`input0[‘prevtxnindex’] = 0`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`input0[‘script_type’] = ‘P2SH_Multisig’`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`input0[‘privkeys’] = \`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`[‘L26JcHRhqEQv8V9DaAmE4bdszwqXS7tHznGYJPp7fxEoEQxxBPcQ’,`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`‘KxR8HHyfAwFPidCw2vXThXqT4vSMNeufirHFapnfCfkzLaohtujG’]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`input0[‘redeem_script’] = ‘5221037fadaea6edf196bf70af16cefb2bd3c830e54c0a6e9a00bf7806b241933547f72102fcb1c7507db15576ab35cd7c9b1ea570141a8b81c9938dae0320392b0f7034d02102d50250aa629914e3146a5123a362a516c8aa95e5f0a6f3a078bd31fabe383abc53ae’`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`input0[‘hash_type’] = SIGHASH_ALL`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`txn[‘inputs’].append(input0)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`txn[‘out_count’] = 2`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`txn[‘outputs’] = []`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`output0 = {}`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`output0[‘satoshis’] = 10*(10**8)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`output0[‘script_type’] = ‘P2PKH’`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`output0[‘address’] = ‘mxzmMmVycLDgAA48VtHDeh389eDAwiJqwQ’`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`txn[‘outputs’].append(output0)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`output1 = {}`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`output1[‘satoshis’] = 399999*(10**4)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`output1[‘script_type’] = ‘P2PKH’`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`output1[‘address’] = ‘miSFmBeKXf5Wp7Luj46XTu3Yh57nAwhZAo’`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`txn[‘outputs’].append(output1)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`txn[‘locktime’] = 0 # block height`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return txn`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if __name__ == ‘__main__’:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`txn_struct = createTransactionStruct()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`txn_struct, signgrp_l, script_l = getSignaturesAndExecScripts(txn_struct)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`signed_txn_b = createSignedTransaction(txn_struct, signgrp_l, script_l)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(signed_txn_b.hex())`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Program 10.23:** Method creating transaction structure to be used as input
+    for P2SH transaction creation'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This gives the following signed transaction:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-10.29.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 10.29:** Shows the signed transaction moving bitcoin from P2SH address'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We need to mine 100 blocks before we can fund a transaction from coinbase transaction
+    output, so we will again execute CLI command `**generatetoaddress**`. Before publishing
+    a transaction, we can test whether a transaction is valid. We can do it by running
+    the following Bitcoin CLI command:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-10.30.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 10.30:** Shows if the transaction is valid and is acceptable to mempool'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We can see that the transaction is valid, and if sent, will be accepted by the
+    mempool. If we were working on real bitcoin, this command could save us by verifying
+    that everything is just fine.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Now, we can publish the transaction as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-10.31.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 10.31:** Shows the transaction moving bitcoin from P2SH address is
+    published'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We got `**66ce54d909c9309d8bee5035b261c639ee8e274947b15a6ea2d540a12beea5d2**`
+    as the transaction ID. So, we were able to successfully build and publish P2SH
+    transaction.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this section, you learned to build and publish transaction using information
+    provided in a transaction structure.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This brings us to the end of the chapter.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Conclusion](toc.xhtml#s228a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this chapter, you learned about the Bitcoin scripting language, its features,
+    and its execution. You learned how the scripting language is used in transaction
+    verification. You learned about the different types of Scripts used by Bitcoin
+    and understood the why and how of Bitcoin scripting. Additionally, you learned
+    to create a transaction and publish it to the Bitcoin network. The chapter involved
+    quite a bit of coding.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the next chapter, you will learn and create smart contracts and other useful
+    transactions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Points to remember](toc.xhtml#s229a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Bitcoin transactions are secured by locking scripts that contain a hash, and
+    if we want to use the transaction to fund the newly created transaction, then
+    we need to present the corresponding script or public key.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: To create a new transaction, we also need to provide a signature by signing
+    a message based on the format required by the script type and hash-type.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Bitcoin scripting language is based on R*everse Posix* n*otation*.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: When a node receives a newly created transaction, it needs to verify it against
+    consensus rules and needs to verify that the `**scriptSig**` used to unlock funds
+    locked by `**scriptPubKey**`.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: For the P2PKH script, `**scriptSig**` gets executed first, and then the same
+    stack is used to execute the `**scriptPubKey**` from the previous transaction
+    output. The result is at the top of the stack.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: For the P2SH script in the first pass, `**scriptSig**` is executed, and then
+    `**scriptPubKey**` is executed. In the third pass, the signatures are first pushed
+    to the stack, and then redeem script is executed.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The newly created transaction can be published to the Bitcoin network by using
+    the Bitcoin Core command `**sendrawtransaction**`.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If you don’t want to maintain a full node, you can still publish the newly created
+    transaction using SPV software. Additionally, several online sites can push the
+    new transactions.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Before sending the transaction, we can decode it using the Bitcoin Core command
+    `**decoderawtransaction**`, allowing us to manually verify the transaction we
+    created.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: We can also check that the created transaction is valid by using the Bitcoin
+    Core command `**testmempoolaccept**`.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: P2PKH and P2SH scripts hide public keys till the locked funds are used in a
+    transaction.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Scripting language provides a large number of operations that can be used to
+    write complex smart contracts, but P2SH hides those complexities from the sender.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Questions](toc.xhtml#s230a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Write programs to create transactions:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Create a P2PKH transaction with three inputs and three outputs; all of them
+    have sighash type as SIGHASH_ALL|SIGHASH_ANYONECANPAY.
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Create a P2PKH transaction with three inputs and three outputs. Two inputs have
+    sighash type as SIGHASH_NONE|SIGHASH_ANYONECANPAY, and the third input has sighash
+    type SIGHASH_ALL.
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Create a P2PKH transaction with three inputs and three outputs. Two inputs have
+    sighash type as SIGHASH_SINGLE|SIGHASH_ANYONECANPAY, and the third input has sighash
+    type SIGHASH_ALL
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Write a generic program to convert the hex code of any Bitcoin transaction script
+    to a readable script.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Why should all transactions have at least one input signed with SIGHASH_ALL?
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Calculate the transaction fees for a transaction that unlocks two P2PKH outputs
+    from the previous transactions and locks output to two P2PKH scripts if the transaction
+    fee per byte is 10 satoshi per byte.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Choose the right sighash type:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: SIGHASH_NONE|SIGHASH_ANYONECANPAY
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: SIGHASH_SINGLE|SIGHASH_ANYONECANPAY
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: SIGHASH_ALL|SIGHASH_ANYONECANPAY
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Renuka got a job in a different country. Her friends planned and jointly bought
+    a watch from a shop that accepts bitcoin as payment.
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: A social service organization is buying clothes and food for earthquake victims.
+    It requires people to contribute to them by giving signed transaction inputs.
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: A school wants to send its bright student to participate in a national academic
+    conference. The participation fees are high, and the school wants to help the
+    parents by subsidizing the cost of participation.
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'True/False:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: P2SH script of 1-of-1 multisig is not valid.
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: P2PKH does not allow the use of an uncompressed public key.
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: When creating a signature, we get two values of S, of which we select the smaller
+    value of S.
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Fill in the blanks:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: An exchange platform works as an escrow between buyers and sellers of bitcoin.
+    A seller locks their bitcoin such that if any two among buyer, seller, and escrow
+    agrees that the seller has received money then the bitcoin is released to the
+    buyer. The platform implements _____ of _____ multisig.
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: An address is related to P2PKH or P2SH script can be determined by looking at
+    __________ of address which is _____ for mainnet P2PKH and _______ for mainnet
+    P2SH script.
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: A P2SH script is verified after executing ___________ script in addition to
+    scriptSig and scriptPubKey.``
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL

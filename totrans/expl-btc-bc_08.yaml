@@ -1,0 +1,4325 @@
+- en: '[CHAPTER 6](toc.xhtml#c06)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[Blockchain, Transactions, and Mining](toc.xhtml#c06)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In the previous chapter, we tried to understand the content of the Bitcoin Whitepaper
+    in detail. The Bitcoin Whitepaper was released on October 31, 2008\. It provided
+    a conceptual design of internet money that could work like cash. As we saw, the
+    design was quite detailed but did not provide specifics like block reward or block
+    time or details about transaction messages, hashing, or signature algorithms.
+    The whitepaper is more like a template for cryptocurrency design. So, the paper
+    we call Bitcoin Whitepaper should ideally be called cryptocurrency whitepaper.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this chapter, we will analyze Bitcoin protocol implementation. The Bitcoin
+    software we will use is written in a quite complicated C++ program. For an average
+    programmer who is trying to understand Bitcoin, looking at and understanding the
+    Bitcoin software code is a daunting task. Even for a very good C++ programmer,
+    understanding the Bitcoin program is a very difficult task. In today’s age of
+    the internet, going through websites and blogs simplifies this task. And Python
+    comes in handy in trying to understand and verify our learnings. The purpose of
+    this chapter is to learn by coding and not try to build the most efficient solution.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Before diving deeper into the actual implementation of the Bitcoin protocol,
+    we need to have software installed and blockchain and indexes synchronized with
+    the network.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Structure](toc.xhtml#s97a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'We will cover the following topics in this chapter:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Bitcoin software
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Bitcoin Core installation
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Running the Bitcoin Core server
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Bitcoin Core client
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Querying indexes in Python
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Blockchain
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Genesis block
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Blocks and indexes
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Block header
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Block version
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Previous block hash
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Timestamp
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Merkle root
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Bits and nonce
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Serialized block
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Magic number
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Block file
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Block traversal using block indexes
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Transactions
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: UTXO
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Mining
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Mining profitability
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Block reward
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Transaction fee
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Coinbase transaction amount verification
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Mining cost
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Mempool
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Objectives](toc.xhtml#s98a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The objectives of this chapter are to help you understand the structure of Bitcoin
+    blockchain, how Bitcoin software store and organize the blockchain, how blocks
+    and transactions are indexed, and the structure of mempool data, and how to use
+    them and UTXO to perform mining.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The chapter uses Python programming to understand Bitcoin blockchain, blockfile,
+    indexes, UTXO, and mining.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Bitcoin software](toc.xhtml#s99a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'There are mainly three software that provide full verification: Armory, Bitcoin
+    Core, and Bitcoin Knots. Of these, Bitcoin Core is the most widely used software,
+    and it is also the most updated. Satoshi Nakamoto created this software and after
+    him, it has been managed by the Bitcoin Core team. It is also called Satoshi client.
+    According to some estimates, as much as 95% of the full nodes run this software.
+    So, we will use this for our development and learning.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Bitcoin Core installation](toc.xhtml#s100a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Installation instruction for Bitcoin Core can be found under the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**[https://bitcoin.org/en/full-node](https://bitcoin.org/en/full-node)**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: On the left-hand side, you can find the instructions for the installation of
+    Linux, Mac OS and Windows. Additionally, the Bitcoin Core can be installed on
+    Linux using Snap Store. Bitcoin Core can also be installed on Docker. It is important
+    to always use authentic software because if you use the software for generating
+    private keys or receive bitcoins those private keys will be known to the attacker
+    or attacking software who will use it to steal your bitcoins protected by the
+    private keys. Downloading software from an authentic site and validating hash
+    at multiple unrelated websites are the best ways to be secure.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Running the Bitcoin Core server](toc.xhtml#s101a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The Bitcoin Core server can run from GUI or command line. For the GUI version,
+    we can run `**bitcoin-qt –daemon**`, and for the command line, we can run `**bitcoind**`.
+    We will use the command line for running daemon and client. It may take one or
+    more days to sync all the blocks along with all the indexes. A greater memory,
+    better internet, and faster disk can speed up download and index generation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following is the sample command to start the daemon:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`bitcoind -printtoconsole -txindex=1 -dbcache=8392`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`**dbcache**` is the database cache size in memory. It improves block verification
+    time and reduces the time to download the blockchain.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`**txindex=1**` means transaction indexes will be created in addition to the
+    necessary ones.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Bitcoin Core client](toc.xhtml#s102a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'We can connect to the daemon using the following command:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`bitcoin-cli [options] <command> [params]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We can also connect to the daemon using `**bitcoinrpc**` for Python. The following
+    is the pip package information:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-6.1.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 6.1:** Python pip package to create Python client for Bitcoin Core
+    Daemon'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Querying indexes in Python](toc.xhtml#s103a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Bitcoin Core uses LevelDB to store its indexes. LevelDB is an on-disk key-value
+    store that uses a binary file to store key-value pairs. It facilitates fast iteration
+    over stored keys and fast access to value using keys. Even though LevelDB provides
+    a very fast query, it has limited use as it provides no pattern search and no
+    filtering. To query the database, we need the following pip package to be installed:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-6.2.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 6.2:** Python package for LevelDB'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following are the keys and values stored in LevelDB databases:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/121.jpg)![](images/122.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Table 6.1:** Bitcoin blockchain LevelDB indexes'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We will use the `**plyvel**` package in `**Python 3.6**` to explore these values.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Blockchain](toc.xhtml#s104a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Blockchain is the trail of blocks where each block is a collection of transactions.
+    The blockchain contains all the transactions that took place since the beginning
+    of the Bitcoin network.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Genesis block](toc.xhtml#s105a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'A genesis block is defined as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*The first block in any blockchain is called the genesis block.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: On 3^(rd) January 2009, the Bitcoin network came to life. Satoshi mined blocks
+    for several months. There were few other developers who also mined blocks during
+    that time, but the first block in the Bitcoin blockchain is different. It is not
+    mined; it is hardcoded in Bitcoin software. The blockchain, after traversing using
+    the previous block hash, ends in this block, which means we can create a different
+    chain and so, a new coin, by changing this block. The block carries a special
+    message to the world to justify Bitcoin’s existence.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following is the hex code of the genesis block:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-6.3.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 6.3:** Shows block hex-dump of the genesis block'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This hex code, when printed as byte dump, gives the following output:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-6.4.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 6.4:** Shows binary form of genesis block hash dump'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We can see the message with date and origin:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-6.5.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 6.5:** Displays message stored in the genesis block'
+  prefs: []
+  type: TYPE_NORMAL
+- en: On 3^(rd) January 2009, a cover story was run in *The Times* in London with
+    the title, Chancellor on brink of second bailout for banks. The message was an
+    attempt by Satoshi to justify the launch of Bitcoin. It pointed out to the world
+    that the current financial system does not have a strong foundation; it requires
+    interventions to sustain, and these interventions are acts of manipulation to
+    benefit certain businesses, such as big banks, but there is no intervention from
+    bankers or the government that provides relief to the common man, many of whom
+    also lost jobs as a result of the great recession in 2008\. Satoshi envisioned
+    Bitcoin as an alternative as it provides an intervention-free monetary system
+    that is driven by a set of rules that cannot be modified by the will of a group
+    of people.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Blocks and indexes](toc.xhtml#s106a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Bitcoin Core daemon, while running, creates several directories and files under
+    the default directory `**~/.bitcoin**`. Here is the list of files and directories
+    and their functions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/124.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Table 6.2:** List of files and directories used by Bitcoin Core and their
+    functions'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The blockchain is quite large, which makes it necessary to maintain indexes
+    to improve the efficiency of the verification of new blocks and transactions and
+    certain other operations required by consensus rules.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Block header](toc.xhtml#s107a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Bitcoin blocks are generated every 10 minutes on an average. The following
+    is the Block Header structure:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-6.6.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 6.6:** Structure of block header'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'At the time of writing, the block height is `**726556**`. Bitcoin-cli gives
+    the latest verified block height using the following command:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-6.7.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 6.7:** Current block height in Bitcoin blockchain'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We can use the block height information to get block hash:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-6.8.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 6.8:** Getting block hash from block height'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Since we know that the block header is 80 bytes long, we can get block header
+    using block hash. The following is the block header we got by reading the first
+    80 bytes of block content:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-6.9.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 6.9:** Block header content from block hash using Bitcoin Core CLI'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If we take hash of the content of Block header by applying the sha256 algorithm
+    twice, we get block hash. The following program does this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`import hashlib`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`**blk_b = bytes.fromhex(‘040020200a377a6ce7bfbd5efdbe087801fbef9a8a7b6815c3eb08000000000000000000ead1c751f9b4fedd1ff1ab37f7dccec13fc4cdfd6df4406fdd72cd44655fd2fa9389286273370a1739264fbc’)**`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`**h1 = hashlib.sha256(blk_b).digest()**`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`**h2 = hashlib.sha256(h1).digest()**`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(h2[::-1].hex())`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Program 6.1:** Program to get block hash from the block header'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Running this gets us the following hash value, which, as we saw, is the same
+    as the block hash that gave us the block header:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-6.10.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 6.10:** Shows calculated block hash'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Block elements are stored in little-endian, so to be able to use the values,
+    we need to reverse byte-order. The following is the small program that takes the
+    hex code of block header and annotates header elements:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`*def getBlockHeader**(blk:* *bytes**):*`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`*block = {}*`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`*block[**‘version’**] = blk[**0**:**4**][::-**1**].hex()*`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`*blk =* *blk[**4**:]*`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`*block[**‘prev_blockhash’**] = blk[**0**:**32**][::-**1**].hex()*`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`*blk =* *blk[**32**:]*`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`*block[**‘merkle_root’**] = blk[**0**:**32**][::-**1**].hex()*`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`*blk =* *blk[**32**:]*`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`*block[**‘time’**] =**int**.from_bytes(blk[**0**:**4**], byteorder=**’little’**)*`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`*blk =* *blk[**4**:]*`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`*block[**‘bits’**] = blk[**0**:**4**][::-**1**].hex()*`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`*blk =* *blk[**4**:]*`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`*block[**‘nonce’**] = blk[**0**:**4**][::-**1**].hex()*`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`*return* *block*`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Program 6.2:** Program to get block header structure from block header bytes'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We call the method as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`*blkhdr = bytes.fromhex(“*040020200a377a6ce7bfbd5efdbe087801fbef9a8a7b6815c3eb08000000000000000000ead1c751f9b4fedd1ff1ab37f7dccec13fc4cdfd6df4406fdd72cd44655fd2fa9389286273370a1739264fbc”*)*`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`jsonobj = getBlockHeader(blkhdr)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(json.dumps(jsonobj, indent = 4))`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This gives the following result:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-6.11.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 6.11:** Shows block header structure from executed program'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We can use the collected information for further analysis.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Block version](toc.xhtml#s108a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The *version* field indicates miner support for an enhancement. In Bitcoin,
+    protocol enhancements that affect consensus rules of verification of blocks or
+    transactions and are backward compatible (does not cause chain split) are called
+    softforks. Bitcoin block consensus mechanism has changed from `**IsSuperMajority()**`
+    or ISM to Version Bits.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Version 1 to 4 was called `**IsSuperMajority()**` softfork. In this consensus
+    system, a new version is activated for 950 out of 1,000 consecutive blocks. Once
+    this activation has happened, blocks with older versions are rejected.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The introduction of Segregated witness Bitcoin network has upgraded to a newer
+    consensus mechanism that uses version bits. This mechanism was proposed in Bitcoin
+    Improvement Proposal BIP-9\. A list of all the Bitcoin Improvement Proposals can
+    be found at **[https://github.com/bitcoin/bips](https://github.com/bitcoin/bips)**.
+    Version bits allow multiple softforks to wait for acceptance and finally deploy.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this mechanism, a softfork goes through a workflow. The following flowchart
+    shows the lifecycle of a softfork. (Source **[https://github.com/bitcoin/bips/blob/master/bip-0009.mediawiki](https://github.com/bitcoin/bips/blob/master/bip-0009.mediawiki)**)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-6.12.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 6.12:** Image is taken from BIP 9 showing the soft-fork workflow'
+  prefs: []
+  type: TYPE_NORMAL
+- en: When a developer proposes a softfork, it is debated in developer forums and
+    drafted in a BIP. As the BIP implementation is defined and is ready for deployment,
+    the softfork moves to the Defined state. After this, the miner who supports the
+    upgrade readies themselves for the upgrade. The ready miners signal their readiness
+    by setting the corresponding version bit. At that time, softfork reaches the Started
+    state and needs to achieve 95% support in the last 2016 blocks within the next
+    1 year. If the softfork does not reach 95% acceptance in 1 year, it is considered
+    failed and is withdrawn, which means the blocks supporting it will be rejected.
+    If the softfork achieves 95% acceptance, it reaches a *locked_in* state and will
+    become a rule after 2016 blocks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If an enhancement is important and the miner community does not reach a consensus,
+    the developer community can enforce the change in a particular block by enabling
+    BIP148.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A version bit has a `0x20000000` set, and any other set bit denotes readiness
+    for a softfork proposal. If Alice proposes an upgrade and 0x1 bit denotes his
+    softfork, then the miner supporting and ready for the upgrade creates a block
+    with version `0x20000001.` If Bob also proposes an upgrade and `0x4` bit denotes
+    his softfork, then a miner can vote by setting 0x4 bit, i.e., `0x20000100`. If
+    the miner votes for both upgrades, they will set both bits, so the version will
+    be `0x20000101.`
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Previous block hash](toc.xhtml#s109a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'In the preceding program, we got a block header structure in which one field
+    was the previous block hash. We can get the same block hash by querying Bitcoin
+    Core software for block hash using one less block height, as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-6.13.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 6.13:** Shows Block hash of the previous block obtained by block header
+    and block height and compared'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Timestamp](toc.xhtml#s110a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Using time, we can get the timestamp of the block using the following bash
+    shell command:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-6.14.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 6.14:** Shows date time obtained from the time field in the block
+    header'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Merkle root](toc.xhtml#s111a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'To calculate Merkle Root, we need a list of transactions in a block. We get
+    the list of transactions from the block structure of a block using the following
+    CLI command:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-6.15.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 6.15:** Block structure as shown by Bitcoin Core CLI command'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'As you learned in *[Chapter 5, The Whitepaper](c05.xhtml), [figure 5.22](c05.xhtml#fig5_22)*,
+    Hash of Merkle Root is calculated by repeatedly hashing and concatenating consecutive
+    pairs of transactions. The following Python program does the same:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def hashOfJoinedStr(a:str, b:str):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`# Reverse inputs before and after hashing due to big-endian / little-endian
+    nonsense`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`a١ = bytes.fromhex(a)[::-1]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`b١ = bytes.fromhex(b)[::-1]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`h = hashlib.sha256(hashlib.sha256(a1 + b1).digest()).digest()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return h`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def buildMerkleRoot(hash_list: list):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if len(hash_list) < 2:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return hash_list[0]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`new_hash_list = []`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`# Process pairs. For odd length, the last is skipped`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`for i in range(0, len(hash_list) - 1, 2):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`new_hash_list.append(hashOfJoinedStr(hash_list[i], hash_list[i + 1])[::-1].hex())`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``# odd, hash last item twice`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if len(hash_list) % 2 == 1:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`new_hash_list.append(hashOfJoinedStr(hash_list[-1], hash_list[-1])[::-1].hex())`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``return buildMerkleRoot(new_hash_list)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Program 6.3:** Program to build Merkle Root from Transaction hashes'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We include the following lines in the code to make RPC calls to Bitcoin Core
+    Server:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`from bitcoinrpc.authproxy import AuthServiceProxy, JSONRPCException`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`rpc_connection = AuthServiceProxy(“http://%s:%s@127.0.0.1:8332”%(<username>,
+    <password>))We call the above-mentioned method as follows:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if __name__ == ‘__main__’:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`block_hash = rpc_connection.getblockhash(715735)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`block = rpc_connection.getblock(block_hash)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘Merkle Root from RPC call\t = %s’ % block[‘merkleroot’])`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`hash_merkle_root = buildMerkleRoot(block[‘tx’])`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘Calculated Merkle Root\t = %s’ % hash_merkle_root)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This gives us the following result:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-6.16.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 6.16:** Program execution showing the calculated value of Merkle Root
+    as equal to the value in the header'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Bits and nonce](toc.xhtml#s112a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The next field to understand is Bits. Bits are a compressed representation of
+    the Target Threshold. Block hash needs to be less than Target Threshold to be
+    accepted as a valid block.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following is the un-compression equation:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*b[1] b[2] b[3] b[4]: Four bytes of Bits*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Target Threshold T= b[2] b[3] b[4].256^(b1-3))*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let us see if the next Block, which has a block height of `**715735**`, has
+    a block hash less than the target threshold.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*h: Block Hash*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*T: Target Threshold*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*h= 0000000000000000004db407202aff54e9ace0efb72588bb73a2beebb248c28*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*b[1] b[2] b[3] b[4] = 170b98ab*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*b[1]=0x17,b[2] = 0x0b,b[3] = 0x98,b[4] = 0xab*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*T=0x0b98ab.256^(0x17-0x03)*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ⇒*T=0x0b98ab.256^(0x14)*
+  prefs: []
+  type: TYPE_NORMAL
+- en: Block is valid if *T* `>` *h*
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following program converts bits to get the target threshold:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def getTargetThreshold(bits: bytes):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`shift = bits[3]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`value = int.from_bytes(bits[0:3], byteorder=’little’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`target_threshold = value * 2 ** (8 * (shift - 3))`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return target_threshold`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Program 6.4:** Program to convert bits in block header into Target Threshold'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following code calls this method and verifies that block hash has the needed
+    proof-of-work:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`bits = bytes.fromhex(“170b98ab”)[::-1]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`target_threshold = getTargetThreshold(bits)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘Target Threshold = %x’ % target_threshold)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`block_hash = 0x00000000000000000004db407202aff54e9ace0efb72588bb73a2beebb248c28`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘Block Hash = %x’ % block_hash)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘Valid’ if target_threshold > block_hash else ‘Invalid’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This gives us the following result:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-6.17.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 6.17:** Shows calculated value of Target Threshold from bits in the
+    block header'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Serialized block](toc.xhtml#s113a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Bitcoin serialized block also contains fields other than block header and transactions.
+    These are the following fields:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Magic Number
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Block Size
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'The following is the illustration of a serialized block:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-6.18.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 6.18:** Figure shows the structure of serialized block'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Magic number](toc.xhtml#s114a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Block hash is the hash of the block header. The magic number is the identifier
+    of the network. If a node is connected to the same peer for multiple different
+    coin networks, a block magic number can act as an identifier, and the node will
+    not have to verify block consensus rules for multiple networks. This improves
+    efficiency.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The public Bitcoin network on which bitcoin is transferred is also called *m*`***ainnet***`.
+    There is also the testnet and regtest network, which is used for testing. Each
+    of these networks has defined magic numbers and different port numbers to connect
+    to peers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/133.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Table 6.3:** Table showing magic numbers and TCP Port assigned for different
+    Bitcoin networks'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Block file](toc.xhtml#s115a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Bitcoin Core stores blockchain in a directory in the form of block files, and
+    each block file contains multiple blocks in binary format. Block files are represented
+    as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-6.19.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 6.19:** Illustration of block file structure'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We can parse all the blocks in a block file by using block size from a serialized
+    block. This helps in skipping any junk characters that may exist between two blocks.
+    A block file will always start with the start of a serialized block, so we know
+    that the first 4 bytes represent a magic number. From the block index, we can
+    get the block count for a block file.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To access values using keys from the LevelDB indexes, we need to understand
+    their structure. As we have learned, LevelDB is a binary key-value database that
+    stores data in the filesystem. Bitcoin utilizes LevelDB to store multiple values
+    and sometimes, multiple keys. To store variable length keys and values, Bitcoin
+    uses a variable length integer format encoding. In this encoding, if the most
+    significant bit in a byte is set, then the next byte is also included.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To encode, 7-bit is stored in a byte array, removed from the number, and then
+    reduced by 1\. This process is repeated till the bit becomes zero. The most significant
+    bits of all bytes are set, except the last one.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-6.20.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 6.20:** Illustration showing b128 varint encoding mechanism'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following is the implementation of the encoder:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def b128_varint_encode(n: int):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`l = 0`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`b = []`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`while True:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`# Take 7 bits and set MSB if not last byte`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`b.append((n & 0x7F)| (0x80 if l != 0 else 0x00))`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if n <= 0x7F:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`break`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`n = (n >> 7) - 1`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`l += 1`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return bytes(bytearray(b[::-1]))`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Program 6.5:** Program to encode a number into b128 varint'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following code decodes variable length integer:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def b128_varint_decode(b: bytes, pos = 0):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`n = 0`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`while True:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`data = b[pos]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`pos += 1`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`# unset MSB bit`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`n = (n << 7) | (data & 0x7f)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if data & 0x80 == 0:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return (n, pos)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`n += 1`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Program 6.6:** Program to decode b128 varint into an integer'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'By running the preceding code, we get the following encoded and decoded integer
+    pairs:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/136.jpg)![](images/137.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Table 6.4:** Sample b128 varint encoded numbers'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To parse blocks in block files, we need to get block file information from
+    the block index. Block file index contains the following information:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`**count**`: Number of blocks stored in the block file'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`**filesize**`: Size of block file in bytes'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`**undofilesize**`: Size of undo file in bytes'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`**lowest**`: Contains blocks from this block height'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`**highest**`: Contains blocks till this block height'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`**Lowest_timestamp**`: Contains blocks from this block timestamp'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`**highest_timestamp**`: Contains blocks till this block timestamp'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'The following code gets block-file information from block index:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`block_db_g = plyvel.DB(os.getenv(‘BLOCK_INDEX_DB’), compression=None)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`blocks_path_g = os.getenv(‘BLOCKS_PATH’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def getBlockFileIndex(n_file: int, block_db):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`key = b’f’ + (n_file).to_bytes(4, byteorder=’little’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`value = block_db.get(key)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`jsonobj = {}`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`jsonobj[‘count’], pos = b128_varint_decode(value)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`jsonobj[‘filesize’], pos = b128_varint_decode(value, pos)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`jsonobj[‘undofilesize’], pos = b128_varint_decode(value, pos)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`jsonobj[‘lowest’], pos = b128_varint_decode(value, pos)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`jsonobj[‘highest’], pos = b128_varint_decode(value, pos)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`jsonobj[‘lowest_timestamp’], pos = b128_varint_decode(value, pos)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`jsonobj[‘highest_timestamp’], pos = b128_varint_decode(value, pos)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return jsonobj`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Program 6.7:** Program to query Block DB to get block file index'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We call this method with the following parameters:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`blk_index = getBlockFileIndex(138, block_db_g)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Before executing the preceding program, we need to setup following environment
+    variables:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`BITCOIN_HOME: Path of Bitcoin working directory.`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`BLOCK_INDEX_DB: This by default is $BITCOIN_HOME/blocks/index`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`BLOCKS_PATH: This by default is $BITCOIN_HOME/blocks/`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``CHAINSTATE_DB: This by default is $BITCOIN_HOME/chainstate``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``TX_INDEX_DB: This by default is $BITCOIN_HOME/indexes/txindex``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This gives the following result:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-6.21.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 6.21:** Shows block file index structure obtained by running the program'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Now, using the above-mentioned information, we have written the following code
+    to parse the block file:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def parseSerialisedBlock(block_f):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`serialized_blk = {}`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`serialized_blk[‘magic_num’] = block_f.read(4)[::-1].hex()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`serialized_blk[‘blk_size’] = int.from_bytes(block_f.read(4), byteorder=’little’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`serialized_blk[‘version’] = block_f.read(4)[::-1].hex()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`prev_blkhash_b = block_f.read(32)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`serialized_blk[‘prev_blkhash’] = prev_blkhash_b[::-1].hex()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`serialized_blk[‘merkle_root_hash’] = block_f.read(32)[::-1].hex()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`serialized_blk[‘time’] = int.from_bytes(block_f.read(4), byteorder=’little’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`serialized_blk[‘bits’] = block_f.read(4)[::-1].hex()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`serialized_blk[‘nonce’] = block_f.read(4)[::-1].hex()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return serialized_blk`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Program 6.8:** Program to get block header along with the magic number and
+    block size'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We iterate over the blockfile, finding all the blocks inside the file using
+    the block information we get from the preceding method:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if __name__ == ‘__main__’:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`n_file = 138`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`block_filepath = os.path.join(blocks_path_g, ‘blk%05d.dat’ % n_file)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`block_f = open(block_filepath, ‘rb’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`blk_index = getBlockFileIndex(n_file, block_db_g)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(blk_index)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`for i in range(blk_index[‘count’]):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`# moves file pointer to the end of block header`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`serialized_blk = parseSerialisedBlock(block_f)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`next_blk_loc = block_f.tell() - 80 + serialized_blk[‘blk_size’]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`block_f.seek(next_blk_loc)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘serialized_blk = %s’ % serialized_blk)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here is the information of the first two blocks in the block file:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-6.22.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 6.22:** Shows the first two blocks in a block file and other information
+    of the file'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This method of parsing is useful in rescanning blocks for indexes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Block traversal using block indexes](toc.xhtml#s116a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: LevelDB indexes are helpful in several ways. They are helpful in the faster
+    verification of blocks and transactions. We can use them to traverse blockchain,
+    which is useful in case a fixed number of blocks need to be parsed, as in softfork
+    deployment. Traversing blockchain using block file numbers and block file index
+    is a more efficient method in other cases.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following figure shows the block traversal steps:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-6.23.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 6.23:** Illustration of method of traversing block file using LevelDB
+    indexes'
+  prefs: []
+  type: TYPE_NORMAL
+- en: One thing we need to keep in mind is that blocks in a block file are not always
+    in order, which means we always need to use previous block hash in a block header
+    to get the location of the previous block.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chainstate database is encoded, unlike other databases. This is because in the
+    past, character sequence in the chainstate database had triggered anti-virus software.
+    In this encoding method, each byte is XORed with bytes in obfuscate-key. Obfuscate
+    key is stored in chainstate database under the b’\x0e\x00’ key.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following code applies to obfuscate key to all the bytes and returns decoded
+    chainstate values:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def getObfuscationKey(chainstate_db):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`value = chainstate_db.get(b’\x0e\x00’ + b’obfuscate_key’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘obfuscation key = %s’ % value)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`obfuscation_key = value[1:]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return obfuscation_key`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def applyObfuscationKey(data: bytes, chainstate_db):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`obfuscation_key = getObfuscationKey(chainstate_db)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`new_val = bytes(data[index] ^ obfuscation_key[index % len(obfuscation_key)]
+    for index in range(len(data)))`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return new_val`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Program 6.9:** Program to decode LevelDB for chainstate using Obfuscation
+    key'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Now, we have enough understanding to traverse blockchain. Let us see how we
+    can do that:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Step 1:** Query last block hash from chainstate database.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Step 2:** Query block hash in block index database to get block index.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Step 3:** Block index has information on the location of the block. Using
+    that, we read the correct block file or undo file and read data from the offset
+    location to get block data.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Step 4** From the block data, we get the block hash of the previous block
+    and then repeat steps 2-4.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following is the block index information obtained from the Block index
+    database:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`**version**`: The version number of the client (Not the block).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`**height**`: Height of the block.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`**status**`: Indicates the kind of data it contains. It may be BLOCK_HAVE_DATA
+    or BLOCK_HAVE_UNDO, indicating whether it forward patches or reverse patches chainstate
+    data.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`**txcount**`: Transaction count in the block.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`**n_file**`: File number of the block file containing the block.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`**data_pos**`: Byte position of the data block.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`**undo_pos**`: Byte position of the undo block.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`**header**`: Block header content.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In the above-mentioned information, we come across reverse patching via the
+    undo block. To understand this, we need to understand that blocks in Bitcoin blockchain
+    may be competing to get the next spot. This happens because miners may mine a
+    block almost at the same time, and one of the blocks will be accepted later as
+    one of the competing chains will become longer. When this happens, undo blocks
+    are used to reverse chainstate indexes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here’s the code to traverse the blockchain using LevelDB indexes:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Get LevelDB databases:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '`block_db_g = plyvel.DB(os.getenv(‘BLOCK_INDEX_DB’), compression=None)`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`chainstate_db_g = plyvel.DB(os.getenv(‘CHAINSTATE_DB’), compression=None)`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'Get last block hash from chainstate database:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '`def getRecentBlockHash(chainstate_db):`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`key = b’B’`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`block_hash_b = chainstate_db.get(key)`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`block_hash_b = applyObfuscationKey(block_hash_b, chainstate_db)`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`return block_hash_b`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '**Program 6.10:** Program to get recent block from Chainstate DB'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'Get block index from Block index database:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '`BLOCK_HAVE_DATA = 8`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`BLOCK_HAVE_UNDO = 16`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`def getBlockIndex(block_hash_b: bytes, block_db):`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`key = b’b’ + block_hash_b`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`value = block_db.get(key)`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`jsonobj = {}`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`jsonobj[‘version’], pos = b128_varint_decode(value)`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`jsonobj[‘height’], pos = b128_varint_decode(value, pos)`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`jsonobj[‘status’], pos = b128_varint_decode(value, pos)`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`jsonobj[‘tx_count’], pos = b128_varint_decode(value, pos)`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`if jsonobj[‘status’] & (BLOCK_HAVE_DATA | BLOCK_HAVE_UNDO):`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`jsonobj[‘n_file’], pos = b128_varint_decode(value, pos)`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`if jsonobj[‘status’] & BLOCK_HAVE_DATA:`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`jsonobj[‘data_pos’], pos = b128_varint_decode(value, pos)`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`if jsonobj[‘status’] & BLOCK_HAVE_UNDO:`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`jsonobj[‘undo_pos’], pos = b128_varint_decode(value, pos)`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`jsonobj[‘header’] = {}`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`jsonobj[‘header’][‘version’] = value[pos:pos+4][::-1].hex()`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`jsonobj[‘header’][‘prevblockhash’] = value[pos+4:pos+36][::-1].hex()`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`jsonobj[‘header’][‘merkleroot’] = value[pos+36:pos+68][::-1].hex()`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`jsonobj[‘header’][‘time’] = value[pos+68:pos+72][::-1].hex()`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`jsonobj[‘header’][‘bits’] = value[pos+72:pos+76][::-1].hex()`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`jsonobj[‘header’][‘nonce’] = value[pos+76:pos+80][::-1].hex()`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`return jsonobj`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '**Program 6.11:** Program to get block index structure from Block DB'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'The following program parses block bytes to get block header information:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '`def getTransactionCount(mptr: mmap):`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`prefix = int.from_bytes(mptr.read(1), byteorder=’little’)`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`b_cnt_m = {‘fd’: 2, ‘fe’: 4, ‘ff’: 8}`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`if prefix < 0xFD:`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`tx_cnt = prefix`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`else:`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`b_cnt = b_cnt_m[‘%x’ % prefix]`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`tx_cnt = int.from_bytes(mptr.read(b_cnt), byteorder=’little’)`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`return tx_cnt`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`def parseBlockHeader(mptr: mmap, start: int, height: int):`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`seek = start-8`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`mptr.seek(seek)`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '``block_header = {}``'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`block_header[‘magic_number’] = int.from_bytes(mptr.read(4), byteorder=’little’)`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`block_header[‘block_size’] = int.from_bytes(mptr.read(4), byteorder=’little’)`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`block_header[‘version’] = int.from_bytes(mptr.read(4), byteorder=’little’)`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`prev_block_header_hash = mptr.read(32)`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`block_header[‘prev_block_hash’] = prev_block_header_hash[::-1].hex()`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`block_header[‘merkle_tree_root’] = mptr.read(32)[::-1].hex()`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`block_header[‘timestamp’] = int.from_bytes(mptr.read(4), byteorder=’little’)`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`block_header[‘date_time’] = datetime.datetime.fromtimestamp(block_header[‘timestamp’]).strftime(‘%Y-%m-%d
+    %H:%M:%S’)`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`block_header[‘bits’] = int.from_bytes(mptr.read(4), byteorder=’little’)`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`block_header[‘nonce’] = int.from_bytes(mptr.read(4), byteorder=’little’)`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`txcount = getTransactionCount(mptr)`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`return block_header, prev_block_header_hash`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '**Program 6.12:** Program to get block header information'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'The following program uses the block index information to get block content
+    and then finds the previous block using its block hash and the block index:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def traverseBlockChain():`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`df = pd.DataFrame()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`prev_blockhash_bigendian_b = getRecentBlockHash(chainstate_db_g)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`blockheader_list = []`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`while True:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`jsonobj = getBlockIndex(prev_blockhash_bigendian_b, block_db_g)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(jsonobj[‘n_file’])`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if ‘data_pos’ in jsonobj:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`block_filepath = os.path.join(blocks_path_g, ‘blk%05d.dat’ % jsonobj[‘n_file’])`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`start = jsonobj[‘data_pos’]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘height = %d’ % jsonobj[‘height’])`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`elif ‘undo_pos’ in jsonobj:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`block_filepath = os.path.join(blocks_path_g, ‘rev%05d.dat’ % jsonobj[‘n_file’])`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`start = jsonobj[‘undo_pos’]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`# load file to memory`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`with open(block_filepath, ‘rb’) as block_file:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`with mmap.mmap(block_file.fileno(), 0, prot = mmap.PROT_READ, flags = mmap.MAP_PRIVATE)
+    as mptr: #File is open read-only`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`blockheader, prev_blockhash_bigendian_b = parseBlockHeader(mptr, start, jsonobj[‘height’])`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`blockheader[‘height’] = jsonobj[‘height’]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`blockheader[‘tx_count’] = jsonobj[‘tx_count’]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`blockheader_list.append(blockheader)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if jsonobj[‘height’] == 1:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`break`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`df = pd.DataFrame(blockheader_list)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`df.to_csv(‘out.csv’, index=False)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Program 6.13:** Program to traverse Bitcoin blockchain'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We call the preceding program as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if __name__ == ‘__main__’:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`traverseBlockChain()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We get `**out.csv**`, which contains a portion of the following few rows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-6.24.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 6.24:** Shows the first few traversed block information'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This completes the blockchain section. You understood the structure of blockchain,
+    how these blocks are stored and how these blocks can be read, traversed, and parsed
+    to get header and preheader fields.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Transactions](toc.xhtml#s117a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: When one party pays another in bitcoin, the sender creates a transaction and
+    publishes it to the Bitcoin network. We discussed this in *[Chapter 5, The Whitepaper](c05.xhtml),*
+    in detail.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this section, we will look at how transactions are stored, their format,
+    how they are verified, and other related information.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Transactions are stored one after the other in the block after transaction count.
+    Block has its own variable length integer format. This is different from the LevelDB
+    variable integer format we learned about in the previous section. This is a bit
+    simpler. A prefix indicates the length of the integer.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-6.25.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 6.25:** Variable integer format used by LevelDB index value structure'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the preceding subtopic ***Block traversal using block indexes*** we used
+    a method name `**getTransactionCount**`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To call `**getTransactionCount**`, we pass bytes of trimmed block with block
+    hash. The following is the calling code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`blk_h = ‘00e0ff376a2079af63073c47184cd091819d506f12cb6b68887c040000000000000000001036e0b1059b1ec79cb36897ccf8bc5aef4c7996897b83754ab590bb2774bc2726c0475fea0710178ffaf153fda4090100000000010100000000000000000000’`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`blk_b = bytes.fromhex(blk_h)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`blk_m = mmap.mmap(-1, len(blk_b) + 1)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`blk_m.write(blk_b)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`blk_m.seek(80)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`tx_count = getTransactionCount(blk_m)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘Transaction Count = %d’ % tx_count)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'On running this, we get the following result:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-6.26.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 6.26:** Shows transaction count in a block from the preceding program'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the list of transactions, the first transaction is the coinbase transaction.
+    This is a special transaction because it is created by a miner to pay itself block
+    reward and transaction fees collected from transactions in the block. This transaction
+    also adds bitcoin to the supply of coins. The transaction has no input txouts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The structure of this transaction is as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-6.27.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 6.27:** Coinbase transaction structure'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following program parses coinbase transaction:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`import mmap`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`import json`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def getVarInt(blk_m: mmap):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`b_cnt_d = {‘fd’: 2, ‘fe’: 4, ‘ff’: 8}`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`prefix = int.from_bytes(blk_m.read(1), byteorder=’little’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if prefix < 0xFD:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return prefix`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`else:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`b_cnt = b_cnt_d[‘%x’ % prefix]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`size = int.from_bytes(blk_m.read(b_cnt), byteorder=’little’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return size`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def getCoinbaseTransactionInfo(blk_m: mmap):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`tx = {}`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`tx[‘version’] = blk_m.read(4)[::-1].hex()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`tx[‘inp_cnt’] = getVarInt(blk_m)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`inp_l = []`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`for i in range(tx[‘inp_cnt’]):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`inp = {}`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`inp[‘prev_tx_hash’] = blk_m.read(32)[::-1].hex()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`inp[‘prev_tx_out_index’] = int.from_bytes(blk_m.read(4), byteorder = ‘little’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`inp[‘bytes_coinbase_data’] = getVarInt(blk_m)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`pos = blk_m.tell()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`inp[‘bytes_height’] = getVarInt(blk_m)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`inp[‘height’] = int.from_bytes(blk_m.read(inp[‘bytes_height’]), byteorder=’little’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`size = blk_m.tell() - pos`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`coinbase_arb_data_size = inp[‘bytes_coinbase_data’] - size`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`inp[‘coinbase_arb_data’] = blk_m.read(coinbase_arb_data_size).hex()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`inp[‘sequence’] = int.from_bytes(blk_m.read(4), byteorder = ‘little’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`inp_l.append(inp)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`tx[‘inputs’] = inp_l`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`tx[‘out_cnt’] = getVarInt(blk_m)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`out_l = []`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`for i in range(tx[‘out_cnt’]):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`out = {}`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`out[‘satoshis’] = int.from_bytes(blk_m.read(8), byteorder=’little’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`out[‘bytes_scriptpubkey’] = getVarInt(blk_m)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`out[‘scriptpubkey’] = blk_m.read(out[‘bytes_scriptpubkey’]).hex()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`out_l.append(out)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`tx[‘outs’] = out_l`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`tx[‘locktime’] = int.from_bytes(blk_m.read(4), byteorder=’little’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return tx`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Program 6.14:** Program to get transaction structure from block bytes'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To get the transaction information, we use a trimmed block byte, create a memory-mapped
+    file object, and pass the object to `**getCoinbaseTransactionInfo**` as a parameter.
+    Here’s the calling code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if __name__ == ‘__main__’:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`# trimmed block for block hash 000000000000000004ec466ce4732fe6f1ed1cddc2ed4b328fff5224276e3f6f`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`blk_b = bytes.fromhex(‘0400000039fa821848781f027a2e6dfabbf6bda920d9ae61b63400030000000000000000ecae536a304042e3154be0e3e9a8220e5568c3433a9ab49ac4cbb74f8df8e8b0cc2acf569fb9061806652c27fd7c0601000000010000000000000000000000000000000000000000000000000000000000000000ffffffff3f03801a060004cc2acf560433c30f37085d4a39ad543b0c000a425720537570706f727420384d200a666973686572206a696e78696e092f425720506f6f6c2fffffffff012fd8ff96000000001976a914721afdf638d570285d02d3076d8be6a03ee0794d88ac00000000’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`blk_m = mmap.mmap(-1, len(blk_b) + 1)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`blk_m.write(blk_b)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`blk_m.seek(0)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`blkhdr = blk_m.read(80)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`blk_size = getVarInt(blk_m)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`tx = getCoinbaseTransactionInfo(blk_m)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(json.dumps(tx, indent = 4))`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'On running the code, we get the following transaction structure:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-6.28.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 6.28:** Shows coinbase transaction structure obtained using the program'
+  prefs: []
+  type: TYPE_NORMAL
+- en: As we can see, the version of the transaction is 1\. The Bitcoin network, as
+    of today, allows both version 1 and version 2\. Version 2 must be used if the
+    BIP-68 feature is used in the transaction script; otherwise, there is no difference
+    in both versions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The transaction has 1 input and 1 output. Since it is a coinbase transaction,
+    there is no input transaction, and the input contains transaction hash as zeroes
+    and index as 0xffffffff. This indicates that this is a coinbase transaction.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Next is the size of `**coinbase_data**`. This includes the height of the block
+    since block version 2.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The `**coinbase_arb_data field in the coinbase transaction is an arbitrary
+    sequence of bytes which**` can be anything that the miner wants to put. Sometimes,
+    miners add a message to show their support for certain enhancements. If we convert
+    the hex code to bytes, we can see the hidden message:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-6.29.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 6.29:** Shows content on coinbase arbitrary data'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We can see the message `**BW Support 8M fisher jinxin /BW Pool/**`. The block
+    is mined by BW Pool, and they support an 8 MB block size.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In the outputs, the first 8 bytes are bitcoin paid by the miner to its Bitcoin
+    addresses. This value is represented as satoshi, which is the smallest denomination
+    in bitcoin:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 1 bitcoin=10⁸ satoshi
+  prefs: []
+  type: TYPE_NORMAL
+- en: 1 bitcoin=10⁶ μ₿
+  prefs: []
+  type: TYPE_NORMAL
+- en: 1 bitcoin=10³ m₿
+  prefs: []
+  type: TYPE_NORMAL
+- en: So, the combined value of all the `satoshis` in outputs is equal to the sum
+    of block reward and transaction fees collected by adding transactions in the block.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The payment to the Bitcoin address is done through a script called `**scriptPubKey**`.
+    We will understand the scripting that Bitcoin transaction uses in the upcoming
+    chapters.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Other transactions are illustrated as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-6.30.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 6.30:** Structure of other transactions in a block'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Locktime locks the transaction till the specified time or block height. This
+    means the transaction will remain in mempool and not be included in the blockchain.
+    Specified time is median time past instead of block time. It is recommended that
+    this field be set. For locktime to be used, at least one Sequence field among
+    Inputs should not be equal to 0xffffffff.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The inputs contain the previous transaction hash, also called Transaction ID,
+    and its unspent output from which value needs to be taken to pay the outputs.
+    The transaction hash is obtained by applying SHA256 twice, so it is 32 bytes in
+    length. ScriptSig is the script containing a signature to prove that the bitcoin
+    held in the previous transaction output belongs to the person who created the
+    transaction input in this transaction.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following code parses the other transactions of the block:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def getTransactionInfo(blk_m: mmap):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`tx = {}`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`tx[‘version’] = blk_m.read(4)[::-1].hex()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`tx[‘inp_cnt’] = getVarInt(blk_m)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`inp_l = []`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`for i in range(tx[‘inp_cnt’]):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`inp = {}`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`inp[‘prev_tx_hash’] = blk_m.read(32)[::-1].hex()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`inp[‘prev_tx_out_index’] = int.from_bytes(blk_m.read(4), byteorder=’little’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`inp[‘bytes_scriptsig’] = getVarInt(blk_m)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`inp[‘scriptsig’] = blk_m.read(inp[‘bytes_scriptsig’]).hex()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`inp[‘sequence’] = int.from_bytes(blk_m.read(4), byteorder=’little’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`inp_l.append(inp)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`tx[‘inputs’] = inp_l`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`tx[‘out_cnt’] = getVarInt(blk_m)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`out_l = []`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`for i in range(tx[‘out_cnt’]):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`out = {}`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`out[‘satoshis’] = int.from_bytes(blk_m.read(8), byteorder=’little’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`out[‘bytes_scriptpubkey’] = getVarInt(blk_m)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`out[‘scriptpubkey’] = blk_m.read(out[‘bytes_scriptpubkey’]).hex()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`out_l.append(out)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`tx[‘outs’] = out_l`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`tx[‘locktime’] = int.from_bytes(blk_m.read(4), byteorder=’little’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return tx`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Program 6.15:** Program to parse transactions'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To call the method, we need to provide a `**getTransactionInfo**` memory map
+    of bytes of `**bblock**`. The following is the code to call the method:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if __name__ == ‘__main__’:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`# trimmed block for block hash 000000000000000082ccf8f1557c5d40b21edabb18d2d691cfbf87118bac7254`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`blk_b = bytes.fromhex(‘020000007ef055e1674d2e6551dba41cd214debbee34ae b544c7ec670000000000000000d3998963f80c5bab43fe8c26228e98d030edf4dcbe48a666f5c39e2d7a885c9102c86d536c890019593a470ded01000000010000000000000000000000000000000000000000000000000000000000000000ffffffff4803e09304062f503253482f0403c86d53087ceca141295a00002e522cfabe6d6d7561cf262313da1144026c8f7a43e3899c44f6145f39a36507d36679a8b7006104000000000000000000000001c8704095000000001976a91480ad90d403581fa3bf46086a91b2d9d4125db6c188ac0000000001000000014dff4050dcee16672e48d755c6dd25d324492b5ea306f85a3ab23b4df26e16e9000000008c493046022100cb6dc911ef0bae0ab0e6265a45f25e081fc7ea4975517c9f848f82bc2b80a909022100e30fb6bb4fb64f414c351ed3abaed7491b8f0b1b9bcd75286036df8bfabc3ea5014104b70574006425b61867d2cbb8de7c26095fbc00ba4041b061cf75b85699cb2b449c6758741f640adffa356406632610efb267cb1efa0442c207059dd7fd652eeaffffffff020049d971020000001976a91461cf5af7bb84348df3fd695672e53c7d5b3f3db988ac30601c0c060000001976a914fd4ed114ef85d350d6d40ed3f6dc23743f8f99c488ac00000000’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`blk_m = mmap.mmap(-1, len(blk_b) + 1)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`blk_m.write(blk_b)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`blk_m.seek(80)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`tx_cnt = getVarInt(blk_m)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`coinbase_tx = getCoinbaseTransactionInfo(blk_m)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`tx = getTransactionInfo(blk_m)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘Transaction:’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(json.dumps(tx, indent=4))`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This gives out the following content of the first transaction after coinbase
+    transaction:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-6.31.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 6.31:** Shows a transaction structure'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To calculate transaction hash, we need to get the transaction bytes and hash
+    by applying SHA256 twice and reverse byte order. The following method calculates
+    transaction hash from transaction bytes:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def getTransactionHash(start: int, end: int, blk_b: bytes):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`b = blk_b[start: end]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`h١ = hashlib.sha256(b).digest()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`h٢ = hashlib.sha256(h1).digest()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`tx_hash = h2[::-1].hex()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return tx_hash`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Program 6.16:** Program to get Transaction ID from transaction bytes'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following code calls the method:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if __name__ == ‘__main__’:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`# trimmed block for block hash 000000000000000082ccf8f1557c5d40b21edabb18d2d691cfbf87118bac7254`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`blk_b = bytes.fromhex(‘020000007ef055e1674d2e6551dba41cd214debbee34ae b544c7ec670000000000000000d3998963f80c5bab43fe8c26228e98d030edf4dcbe48a666f5c39e2d7a885c9102c86d536c890019593a470ded01000000010000000000000000000000000000000000000000000000000000000000000000ffffffff4803e09304062f503253482f0403c86d53087ceca141295a00002e522cfabe6d6d7561cf262313da1144026c8f7a43e3899c44f6145f39a36507d36679a8b7006104000000000000000000000001c8704095000000001976a91480ad90d403581fa3bf46086a91b2d9d4125db6c188ac0000000001000000014dff4050dcee16672e48d755c6dd25d324492b5ea306f85a3ab23b4df26e16e9000000008c493046022100cb6dc911ef0bae0ab0e6265a45f25e081fc7ea4975517c9f848f82bc2b80a909022100e30fb6bb4fb64f414c351ed3abaed7491b8f0b1b9bcd75286036df8bfabc3ea5014104b70574006425b61867d2cbb8de7c26095fbc00ba4041b061cf75b85699cb2b449c6758741f640adffa356406632610efb267cb1efa0442c207059dd7fd652eeaffffffff020049d971020000001976a91461cf5af7bb84348df3fd695672e53c7d5b3f3db988ac30601c0c060000001976a914fd4ed114ef85d350d6d40ed3f6dc23743f8f99c488ac00000000’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`blk_m = mmap.mmap(-1, len(blk_b) + 1)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`blk_m.write(blk_b)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`blk_m.seek(80)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`tx_cnt = getVarInt(blk_m)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`coinbase_tx = getCoinbaseTransactionInfo(blk_m)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`stb = blk_m.tell()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`tx = getTransactionInfo(blk_m)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``endb = blk_m.tell()``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '``tx_hash = getTransactionHash(stb, endb, blk_b)``'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘Transaction Hash = %s’ % tx_hash)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This gives us the following result:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-6.32.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 6.32:** Shows transaction hash obtained from transaction bytes using
+    the program'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We can search this transaction in `**txindex**` by using the following code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`txindex_db_g = plyvel.DB(os.getenv(‘TX_INDEX_DB’), compression=None)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`BLOCK_HEADER_SIZE = 80`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def getTransactionIndex(tx_hash: bytes, txindex_db):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`key = b’t’ + tx_hash`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`value = txindex_db.get(key)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`jsonobj = {}`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`jsonobj[‘n_file’], pos = b128_varint_decode(value)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`jsonobj[‘block_offset’], pos = b128_varint_decode(value, pos)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`jsonobj[‘file_offset’], pos = b128_varint_decode(value, pos)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(jsonobj)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return jsonobj`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def findTransaction(tx_hash: bytes, txindex_db):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`jsonobj = getTransactionIndex(tx_hash, txindex_db)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘Transaction Index:’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(json.dumps(jsonobj, indent=4))`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`block_filepath = os.path.join(blocks_path_g, ‘blk%05d.dat’ % jsonobj[‘n_file’])`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`with open(block_filepath, ‘r+b’) as blk_f:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`blk_m = mmap.mmap(blk_f.fileno(), 0) # map whole file`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`blk_m.seek(jsonobj[‘block_offset’] + BLOCK_HEADER_SIZE + jsonobj[‘file_offset’])`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`tx = getTransactionInfo(blk_m)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`blk_m.close()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return tx`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Program 6.17:** Program to find transaction using transaction index in DB'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The `**findTransaction**` method takes transaction hash in the little-endian
+    format and chainstate database for querying the index. The following is the example
+    code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if __name__ == ‘__main__’:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`tx_hash = bytes.fromhex(‘7301b595279ece985f0c415e420e425451fcf7f684fcce087ba14d10ffec1121’)[::-1]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`tx = findTransaction(tx_hash, txindex_db_g)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(“Transaction Info:\n”, json.dumps(tx, indent = 4))`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Running this code gives us the following information about the location of
+    the transaction in the block file and also a portion of a parsed transaction:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-6.33.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 6.33:** Shows information required to read transaction in a block
+    file and shows a portion of a parsed transaction'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[UTXO](toc.xhtml#s118a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: UTXO stands for **Unspent Transaction Output**. The primary purpose of the chainstate
+    database is to store this information so that a new transaction can be efficiently
+    verified.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To parse UTXO information from the chainstate database, we need to understand
+    a few more things. Transaction output has an amount field that is encoded to compress
+    its value. The following is the compression program:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def amount_compress(n: int):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if n == 0:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return 0;`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`e = 0`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`while ((n % 10) == 0) and e < 9:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`n //= 10`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`e += 1`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if e < 9:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`d = n ٪ 10`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`assert d >= 1 and d <= 9`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`n //= 10`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return 1 + (n*9 + d - 1)*10 + e`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`else:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return 1 + (n - 1)*10 + 9`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Program 6.18:** Program to compress amount in UTXO'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'And here’s the program to decompress value:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def amount_decompress(x):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if x == 0:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return 0`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`x -= 1`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`e = x ٪ 10`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`x //= 10`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if e < 9:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`d = (x ٪ 9) + 1`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`x //= 9`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`n = x * 10 + d`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`else:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`n = x + 1`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`while e > 0:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`n *= 10`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`e -= 1`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return n`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Program 6.19:** Program to decompress amount in UTXO'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*[Table 6.1](#tab6_1)* gives information about transaction output available
+    in the chainstate database. To concatenate transaction ID without index, we need
+    to encode it using b128 encoding. Additionally, the script field is not encoded
+    in b128 encoding as it is a fixed-size field.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following program gets stored values related to UTXO:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def getUnspentTransactions(tx_hash: bytes, out_index: int,chainstate_db):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`key = b’C’ + tx_hash + b128_varint_encode(out_index)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`value_obf_b = chainstate_db.get(key)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`value_obf_b = applyObfuscationKey(value_obf_b, chainstate_db)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`jsonobj = {}`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`code, pos = b١٢٨_varint_decode(value_obf_b)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`jsonobj[‘is_coinbase’] = code & 0x01`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`jsonobj[‘block_height’] = code >> 1`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`compressed_amount, pos = b128_varint_decode(value_obf_b, pos)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`jsonobj[‘unspent_amount’] = amount_decompress(compressed_amount)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`jsonobj[‘script_type’], pos = b128_varint_decode(value_obf_b, pos)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`jsonobj[‘scriptPubKey’]= value_obf_b[pos:].hex()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return jsonobj`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Program 6.20:** Program to get the structure of UTXO'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The preceding method, `**getUnspentTransactions**`, takes transaction hash,
+    output index that is unspent, and chainstate database. The following is the example
+    of a calling statement:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if __name__ == ‘__main__’:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`tx = bytes.fromhex(‘a23203c053852755c97b87e354d1e9053a6d1a20d32892e8ee45dfa2c3105f94’)[::-1]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`jsonobj = getUnspentTransactions(tx, 0, chainstate_db_g)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(jsonobj)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This is the result:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-6.34.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 6.34:** Shows information stored in Chainstate DB for a UTXO'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In the preceding result, `**scriptPubKey**` is not a full script; it needs
+    script type to get the full script. The following code prints full `**scriptPubKey**`
+    for script type 0:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def uncompressScriptType0(script_data: bytes):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`script = bytes([`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`0x76, # OP_DUP`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`0xa9, # OP_HASH160`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`20 # size`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`]) + script_data + bytes([`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`0x88, # OP_EQUALVERIFY`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`0xac # OP_CHECKSIG`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`])`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return script`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Program 6.21:** Program to get scriptPubKey using script types and script
+    data'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We have not covered other scripts as the transaction scripting is left for the
+    upcoming chapters.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following is the code for calling the preceding method:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if __name__ == ‘__main__’:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`script_data = bytes.fromhex(‘3eba92179cd0b4caff74e3e81a14399e3c1b7ca3’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`script = uncompressScriptType٠(script_data)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘script = %s’ % script.hex())`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This gives us the following script:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-6.35.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 6.35:** Shows the scriptPubKey obtained by uncompressing script data'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This concludes this section on transactions. In this section, we were primarily
+    focused on transaction format and transaction indexes in databases. Scripting
+    has been left for the upcoming chapters.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Mining](toc.xhtml#s119a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Mining is the process of finding nonce and creating a block. We have learned
+    a few things in previous sections and chapters that will be useful in understanding
+    the mining process.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Mining involves the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Spending energy to find nonce, which is required to create block hash that has
+    value less than the target threshold.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Knowledge of block reward.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Selecting transactions from mempool to maximize transaction reward within the
+    block size limit.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Creation of coinbase transaction using block reward, transaction fee, block
+    height, and scriptPubKey for paying the rewards to own address.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Finding Merkle Root.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Finding Target threshold for the next block.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Readying and supporting softforks.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Creating other fields in the block header.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In this section, we will investigate each of these.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Mining profitability](toc.xhtml#s120a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: To calculate mining profitability, we need to understand how much energy is
+    required to find nonce using popular mining devices and how much is the block
+    reward and total transaction fee earned in each transaction.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Block reward](toc.xhtml#s121a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Block reward is a mechanism by which bitcoin are created. Block reward is decreasing
+    with time. When the Bitcoin network was created, block reward was 50![](images/Bitcoin.jpg)
+    in each block. Currently, it is 6.25![](images/Bitcoin.jpg). After every 210,000
+    blocks, the block reward becomes half. This reduces the supply of newly minted
+    bitcoin.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following program gives block reward for given block height:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def getBlockReward(block_height):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`halving_count = block_height // 210000`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`block_reward = 50/(2**halving_count)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return block_reward`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Program 6.22:** Program to get block reward for a given block height'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We call this method for given block height, as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if __name__ == ‘__main__’:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`block_reward = getBlockReward(645675)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(block_reward)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This gives us the following result:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-6.36.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 6.36:** Shows block reward obtained by running the preceding program'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This means the block reward for the block that has a height of `***645675***`
+    is `***6.25₿***`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Transaction fee](toc.xhtml#s122a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'We can calculate the transaction fee of a transaction with the following equation:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*f : Transaction Fee*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*i[n]: n^(th) input*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*o[n]: n^(th) output*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*f = ∑[n]i[n] - ∑[n]o[n] (1)*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: To write a program to calculate the transaction fee for a transaction, we need
+    to look up the previous transaction in txindex. A node always verifies transactions
+    against previously unspent transaction output that is stored in chainstate database
+    or is in mempool. All transactions in a block are already verified. A node only
+    needs to verify the block header and Merkle root hash from the list of transactions
+    included in the block. Since we are trying to look for previous transaction output
+    of already verified and confirmed transactions, we need txindex to look for the
+    transaction.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following method returns the value of bitcoin locked in a transaction output:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def getTransactionOutAmount(tx_hash: bytes, out_index: int, txindex_db):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`tx = findTransaction(tx_hash, txindex_db)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return tx[‘outs’][out_index][‘satoshis’]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Program 6.23:** Program gets UTXO amount from txindex'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The method calls `**findTransaction**` defined in *program 6.17*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following method uses the value locked in a transaction input from the
+    preceding method and returns the transaction fee associated with the transaction:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def getTransactionFee(tx: dict):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`inp_val = 0`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`for inp in tx[‘inputs’]:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`prev_tx_hash = bytes.fromhex(inp[‘prev_tx_hash’])[::-1]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`inp_val += getTransactionOutAmount(prev_tx_hash, inp[‘prev_tx_out_index’],
+    txindex_db_g)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`out_val = 0`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`for out in tx[‘outs’]:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`out_val += out[‘satoshis’]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`tx_fee = inp_val - out_val`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return tx_fee`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Program 6.24:** Program gets transaction fee collected by a miner for the
+    given transaction'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Now, we can add all the transaction fees collected from the transaction list
+    in a block. The following is the program that calculates the fee reward collected
+    by a block miner:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def getBlockFeeReward(block_hash: bytes, block_db):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`block_index = getBlockIndex(block_hash, block_db)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if ‘data_pos’ in block_index:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`block_filepath = os.path.join(blocks_path_g, ‘blk%05d.dat’ % block_index[‘n_file’])`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`start = block_index[‘data_pos’]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`elif ‘undo_pos’ in block_index:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`block_filepath = os.path.join(blocks_path_g, ‘rev%05d.dat’ % block_index[‘n_file’])`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`start = block_index[‘undo_pos’]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`with open(block_filepath, ‘r+b’) as block_f:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`blk_m = mmap.mmap(block_f.fileno(), 0)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`blk_m.seek(start + BLOCK_HEADER_SIZE)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`tx_cnt = getVarInt(blk_m)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(tx_cnt)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`coinbase_tx = getCoinbaseTransactionInfo(blk_m)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(coinbase_tx)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`fee_reward = 0`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`for i in range(1, tx_cnt):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(i)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`start = blk_m.tell()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`tx = getTransactionInfo(blk_m)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`end = blk_m.tell()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`tx_fee = getTransactionFee(tx)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(tx_fee)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`fee_reward += tx_fee`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return fee_reward`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Program 6.25:** Program to calculate transaction fee collected by a miner
+    for mining a block'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the preceding code, `**getCoinbaseTransactionInfo**` and `**getTransactionInfo**`
+    are defined in *program 6.14* and *program 6.15*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We call the method by executing the following code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if __name__ == ‘__main__’:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`block_hash_b = bytes.fromhex(‘000000000000000004ec466ce4732fe6f1ed1cddc2ed4b328fff5224276e3f6f’)[::-1]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`total_tx_fee = getBlockFeeReward(block_hash_b, block_db_g)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(‘Fee Reward = %d’ % total_tx_fee)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'On running the code, we get the following result:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-6.37.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 6.37:** Shows transaction fee collected by a miner for mining the
+    given block'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The block hash we used is of the block with block height `400000`, which had
+    a mining reward of `2500000000` satoshi.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Coinbase transaction amount verification](toc.xhtml#s123a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Using block reward and the sum of transaction fees, we can verify that the
+    total bitcoin collected by the miner is correct, and they have not paid themselves
+    extra. The sum of satoshi of outputs of coinbase transaction gives us the amount
+    that the miner paid to themselves. The following is the total reward the miner
+    paid to themselves:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-6.38.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 6.38:** Shows coinbase transaction output value paid to the miner'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We can see that the miner paid themselves `2533349423 satoshi`, which is equal
+    to the sum of the block reward and fee reward we calculated.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Mining cost](toc.xhtml#s124a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Miners find nonce by continuously trying new values, which requires a lot of
+    CPU processing and, consequently, energy. Mining equipment also produces a lot
+    of noise and heat, which a miner needs to manage. The high-energy equipment also
+    requires sufficient electricity load, fire safety, and maintenance. Additionally,
+    as interest in mining has historically gone up and better mining equipment has
+    been produced, mining profitability has gone down. Depending on the cost of electricity
+    consumed and bitcoin mined by the equipment, there is a possibility that older
+    equipment starts leading to losses and so, upgradation of equipment might become
+    a necessity.
+  prefs: []
+  type: TYPE_NORMAL
+- en: So, anyone getting into mining must ensure that the cost of electricity is low,
+    and apart from spending on maintenance and security, they also should spend a
+    significant portion of the profit on mining equipment upgradation and expansion.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To calculate electricity cost, we need to understand the network hash power
+    needed to find the required nonce. Network hash power needed to find the nonce
+    is the consequence of the difficulty in finding the nonce, so it depends on the
+    probability that the block hash will fall below the target threshold. Since hashing
+    generates a random 256-bit code, there are possible outcomes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Possible values of nonce less than 1 are only 0, so the probability of finding
+    them is .
+  prefs: []
+  type: TYPE_NORMAL
+- en: Possible values of nonce less than 2 are 0 and 1, so the probability of finding
+    them is .
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This gives us:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*p: probability of finding nonce*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*T: Target Threshold*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*p=T/2*^(256) (1)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Mining equipment tries to find the hashes at an extremely fast rate.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The hash rate of 1 TH/s is hashes per second. The following calculation finds
+    the hash rate of the Bitcoin network:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*t[b]: Block time in seconds*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*H[network]: Hash rate of network*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*(1)* ⇒ *Number of trials required = H[network] t[b]=2^(256)/T*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ⇒*H[network] = 2^(256) / Tt[b]*
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Using the preceding equation, we can find the current hash rate of network:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Target threshold of block with block height *645675* is
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*T = 0x1007ea0000000000000000000000000000000000000000*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*H[network] = 2256/(600*T)=125,686,927,612,715,270,144*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'As we can see, the value is 125 exa-hashes per second. This has grown exponentially
+    over time. The following is the chart showing the rise in network hashrate over
+    time:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-6.39.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 6.39:** Bitcoin network hashrate over the years'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Even though network hashrate has gone up exponentially, there have been short
+    durations when the hashrate has fallen. This has happened when miners started
+    losing money and had to stop mining. This is a crucial difference between Bitcoin
+    mining and commodity mining. The cost of mining in bitcoin is quite elastic and
+    adjusts based on mining profitability, while in regular mining, a fall in profit
+    does not lead to a fall in the cost of mining. Additionally, commodity miners
+    need to continue mining as shutting the mines and reopening is costly and sometimes
+    difficult. So, regular commodity mining always runs a risk that if no further
+    cheap reserves are found, then mining would need to be abandoned or prices must
+    rise. Thus, price rise leads to more supply. In contrast, in bitcoin, inflation
+    is fixed by the algorithm, so mining profitability and network hashrate do not
+    cause changes in bitcoin production. This secures bitcoin inflation from any external
+    influence like bans or restrictions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The mining equipment cost thousands of dollars. The equipment with the highest
+    hash power has crossed 100 Tera hashes per second (TH/s). For a miner to mine
+    a block using equipment with 100 Tera hashes, they will need:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/c06eq-1.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: As we can see, even 100 TH/s is not sufficient to mine a block. For this reason,
+    mining is almost never done solo. To perform mining as a business, a miner needs
+    to join a mining pool. Mining pools operate by trying to find nonce collectively.
+    Each participant contributes to the pool their CPU power to find nonce. It makes
+    no difference who in the pool successfully finds nonce. The pool uses the nonce
+    to prepare a block and then shares the profit with all the participants in the
+    pool according to their contribution of mining hash power. This is a very democratic
+    system, but it makes mining more centralized. Since profits are only shared when
+    the nonce is found, every miner prefers to join a mining pool that has the highest
+    accumulated hash power as this increases the probability of finding a nonce and
+    more frequent sharing of profit. Consequently, the Bitcoin network has some big
+    mining pools, and if only they join hands to dominate the consensus rules, then
+    the developers and other stakeholders may lose their value, and the network will
+    be taken over by only a few players.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'At the time of authoring this book, the following are the few top mining pools:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Foundry USA
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: AntPool
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Fool
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Poolin
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Binance Pool
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: VIABLE
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: BTC.com
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: SlushPool
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Bitcoin mining is done using ASIC miners, which are specifically designed to
+    perform SHA256 operations at an extremely fast rate. Choosing the right miner
+    depends on several factors, such as input cost, power consumption, the amount
+    of heat and noise produced, efficiency, the source of electricity, and time to
+    breakeven.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A new miner may be more power efficient but may cost an exorbitant amount of
+    money, which can push time to breakeven farther. A cheap or free power source
+    can make low-efficiency equipment more economical.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Plus, the following two popular pooled mining protocols can be used for mining:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Stratum
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Stratum V2
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: As the name suggests, Stratum V2 is the newer version of Stratum protocol. These
+    are open protocols and are widely used for pooled mining. Stratum V2 is two to
+    three times more efficient than version 1\. Version 2 also gives better control
+    to individual miners in terms of customization of block template, which can allow
+    miners to individually decide the enhancements it intends to support or not support.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'There are also the popular pool mining software:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Nice Hash
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Better Hash
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Cuddle Miner
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Each of the above-mentioned software have advantages and disadvantages and will
+    depend on individual requirements.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Most mining pools leave their signature in the arbitrary data of coinbase transactions
+    when they create a block. Using these signatures, we can figure out the percentage
+    of blocks mined by each mining pool.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using the cost of electricity, we can calculate the average monthly profit of
+    mining equipment.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'First, we need to define mining hash rate, electricity expense and current
+    sell price of bitcoin:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`MINER_HASH_RATE = 96 * 10**12`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`MINER_POWER_WATT = 2832`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`electricity_rates = {“rate_slabs”: [{“min”: 1, “max”: 30, “unit_price”: 4},
+    {“min”: 31, “max”: 100, “unit_price”: 5.45}, {“min”: 101, “max”: 200, “unit_price”:
+    7}, {“min”: 201, “unit_price”: 8.05}]}`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`CURRENT_SELL_PRICE = 3070000`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def getPriceFromUnit(unit: float):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`rate_slabs = electricity_rates[‘rate_slabs’]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`price = 0`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`for slab in rate_slabs:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if slab[‘min’] > unit:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`countinue`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`elif (‘max’ in slab and slab[‘max’]) > unit or ‘max’ not in slab:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`price += (unit - slab[‘min’]) * slab[‘unit_price’]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`else:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`price += (slab[‘max’] - slab[‘min’]) * slab[‘unit_price’]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return price`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Program 6.26:** Program to define miner hashrate, electricity expense and
+    price of bitcoin'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We also need to calculate network hash rate:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def getTargetThreshold(bits: bytes):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`shift = bits[3]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`value = int.from_bytes(bits[0:3], byteorder=’little’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`target_threshold = value * 2 ** (8 * (shift - 3))`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return target_threshold`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def getNetworkHashRate(target_threshold: int):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`network_hashrate = (1<<256)/(600*target_threshold)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return network_hashrate`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Program 6.27:** Program to calculate network hashrate'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Using hash rate of mining equipment, we can get number of blocks the miner
+    mines in 10 minutes:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def getBlockMiningRatePer10Min(hashrate: int, target_threshold: int):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`network_hashrate = getNetworkHashRate(target_threshold)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`block_mining_rate = hashrate/network_hashrate`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return block_mining_rate`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Program 6.28:** Program to calculate the number of blocks mined per 10 minutes'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'As we know the number of bitcoin created in each block, we can calculate bitcoin
+    mined in 10 minutes:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def getBitcoinMiningRate(hashrate: int, bits: bytes, blk_reward: int):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`tgt_threshold = getTargetThreshold(bits)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`block_mining_rate = getBlockMiningRatePer10Min(hashrate, tgt_threshold)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`bitcoin_mining_rate = block_mining_rate * blk_reward`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return bitcoin_mining_rate`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Program 6.29:** Program to calculate bitcoin mined per 10 minutes by a mining
+    equipment'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This can be used to calculate bitcoin mined in a month:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def getBitcoinMinedPerMonth(hashrate: int, bits: bytes, blk_reward: int):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`btc_mined_per_month = getBitcoinMiningRate(hashrate, bits, blk_reward) * 6
+    * 24 * 30`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return btc_mined_per_month`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Program 6.30:** Program to calculate bitcoin mined per month using the mining
+    equipment'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Now, to calculate mining expense, we need to know miner’s power consumption
+    in Watt:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def getUnitFromPower(power: float):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`unit = power * 24 * 30 / 1000`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return unit`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def getMiningPowerExpense(power: float):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`unit = getUnitFromPower(power)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`expense = getPriceFromUnit(unit)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return expense`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Program 6.31:** Program to calculate expense electric power'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Using the number of bitcoin mined in a month and mining expense, we can get
+    the profit made by a miner in a month:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def miningReturn(power: float, hashrate: int, bits: bytes, blk_reward: int):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`expense = getMiningPowerExpense(power)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`btc_mined_per_month = getBitcoinMinedPerMonth(hashrate, bits, blk_reward)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`revenue = btc_mined_per_month * CURRENT_SELL_PRICE`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`profit = revenue - expense`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return profit`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Program 6.32:** Program to calculate monthly mining profit for a single miner'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following is the code to call the `**miningReturn**` method to get mining
+    profit:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def getBlockHeaderBytes(blk_hash: bytes):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`jsonobj = getBlockIndex(blk_hash, block_db_g)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if ‘data_pos’ in jsonobj:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`block_filepath = os.path.join(blocks_path_g, ‘blk%05d.dat’ % jsonobj[‘n_file’])`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`start = jsonobj[‘data_pos’]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`elif ‘undo_pos’ in jsonobj:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`block_filepath = os.path.join(blocks_path_g, ‘rev%05d.dat’ % jsonobj[‘n_file’])`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`start = jsonobj[‘undo_pos’]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`# load file to memory`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`with open(block_filepath, ‘rb’) as blk_f:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`blk_f.seek(start)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return blk_f.read(80)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if __name__ == ‘__main__’:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`blk_hash = bytes.fromhex(‘000000000000000000079dc864537510659e14439ff5f4a208231bcf276358ba’)[::-1]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`blk_index = getBlockIndex(blk_hash, block_db_g)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`blk_hdr_b = getBlockHeaderBytes(blk_hash)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`jsonobj = getBlockHeader(blk_hdr_b)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`blk_reward = getBlockReward(blk_index[‘height’])`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`bits_b = bytes.fromhex(jsonobj[‘bits’])[::-1]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`mining_return = miningReturn(MINER_POWER_WATT, MINER_HASH_RATE, bits_b, blk_reward)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`print(“Mining Return Per Month = %s” % (mining_return))`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This gives us the following mining return per month:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-6.40.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 6.40:** Shows current monthly mining profit calculated for mining
+    in Bengaluru for the equipment'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Mempool](toc.xhtml#s125a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The transactions broadcasted on the Bitcoin network are verified by each node
+    and stored in memory in a data structure called mempool. To create a block, the
+    miner selects transactions from mempool. The transaction count needs to remain
+    within a limit such that block size does not cross the block size limit of 1MB.
+    So, the miner selects the transactions from mempool that give them the greatest
+    profit.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We need to use the following Bitcoin client APIs to access mempool data:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-6.41.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 6.41:** Shows a portion of the list of mempool transactions'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following is the part of the output of API getrawmempool:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](images/Figure-6.42.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 6.42:** Shows detailed information of a single mempool transaction'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here, we want to write a program that selects mempool transactions to maximize
+    the fee reward for the miner. To achieve that, we need to select transactions
+    that have the highest satoshi per byte fees because we have limited space of 1
+    MB, and if a transaction is taking more bytes, it needs to pay more to get accommodated
+    in the limited block size. Sometimes, transaction inputs are themselves in mempool.
+    We can’t have transactions added to a block that depends on bitcoin that are still
+    in mempool. So, we need to ensure that if a transaction is added to blocks, then
+    all its ancestors are also added to the block that is in mempool.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the mempool json, `**ancestorcount**` includes current transactions, and
+    so does `**descendantcount**`. Additionally, depends is the list of ancestors,
+    and `**spentby**` is a list of descendants.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To write a program that selects transactions to maximize returns, we can use
+    the following algorithm:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Calculate satoshi/byte for all transactions in mempool by including the amount
+    and bytes of its ancestors.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Sort them in descending order of satoshi/byte.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Exclude transactions if total size becomes more than 1MB, and exclude ancestors
+    of transactions that are already included in 1MB.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Add ancestor transactions to the list.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'The following program lists the transaction hashes that provide the highest
+    bitcoin per byte to the miner and whose combined size is less than 1MB:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We need to import the following packages:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '`from bitcoinrpc.authproxy import AuthServiceProxy, JSONRPCException`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`import json`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`import pandas as pd`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`from pandas import DataFrame`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`import numpy as np`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`import copy`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`import hashlib`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'As a first step, we need to get all transactions from mempool and calculate
+    Satoshi/byte:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '`def findAllDependentTx(mempool: dict, k: str):`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`tx_l = [k]`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`vsize = mempool[k][‘vsize’]`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`fee = mempool[k][‘fees’][‘base’]`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`if len(mempool[k][‘depends’]) == 0:`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`return tx_l, vsize, fee`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`for dependent in mempool[k][‘depends’]:`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`dep_tx_l, dep_vsize, dep_fee = findAllDependentTx(mempool, dependent)`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`tx_l.extend(dep_tx_l)`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`vsize += dep_vsize`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`fee += dep_fee`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`return tx_l, vsize, fee`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`def getMempoolTxList():`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`mempool = rpc_connection.getrawmempool(True)`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`tx_l = []`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`for k, v in mempool.items():`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`dep_l, vsize, fee = findAllDependentTx(mempool, k)`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`dep_l.remove(k) # remove itself from list of dependents`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`sats_per_byte = fee*10**8/vsize`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`tx_l.append({‘txid’: k, ‘sats_per_byte’: sats_per_byte, ‘vsize’: vsize, ‘depends’:
+    dep_l})`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`return tx_l, mempool`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '**Program 6.33:** Program to transaction list with vsize and Satoshi/byte'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'The following is the method sorting them in descending order of satoshi/byte:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '`def getSortedDF(tx_l: list):`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`df = pd.DataFrame(tx_l)`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`df = df.sort_values(by=[‘sats_per_byte’], ascending = False)`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`df = df.reset_index(drop=True)`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`return df`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '**Program 6.34:** Program to sort transaction list based on Satoshi/byte'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'Exclude transactions if the total size becomes more than 1MB, and exclude ancestors
+    of transactions that are already included in 1MB. The following method does this:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '`def pruneDF(df):`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`vsize = 0`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`mb = 1 << 20`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`inc_l = []`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`for index, row in df.iterrows():`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`if row[‘vsize’] + vsize > mb:`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`df.drop(index, inplace=True)`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`else:`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`if row[‘txid’] in inc_l:`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`df.drop(index, inplace=True)`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`continue`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`inc_l.extend(row[‘depends’])`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`vsize += row[‘vsize’]`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`return df, inc_l`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '**Program 6.35:** Program to remove transactions from a list based on Satoshi/byte
+    and vsize'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'The following program adds ancestor transactions to the list of transactions
+    to be included:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '`def updateWithDepends(df, depend_l: list, mempool):`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`tx_l = []`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`for dep in depend_l:`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`vsize = mempool[dep][‘vsize’]`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`fee = mempool[dep][‘fees’][‘base’]`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`sats_per_byte = fee*10**8/vsize`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`tx_l.append({‘txid’: dep,`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`‘sats_per_byte’: sats_per_byte,`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`‘vsize’: vsize,`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`‘depends’: []}) # ignore dependents`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`df٢ = pd.DataFrame(tx_l)`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`df.append(df2, ignore_index = True)`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`return df`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '**Program 6.36:** Program to add dependent transactions to the list'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'The following program is the main method that joins all the previous steps:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '`def getMempoolTx():`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`tx_l, mempool = getMempoolTxList()`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`df = getSortedDF(tx_l)`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`df, depend_l = pruneDF(df)`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`df = updateWithDepends(df, depend_l, mempool)`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`final_tx_l = df[‘txid’].tolist()`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`sum_vsize = 0`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`for tx in final_tx_l:`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`sum_vsize += mempool[tx][‘vsize’]`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`print(‘sum_vsize = ‘, sum_vsize)`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`print(‘tx count = ‘, len(final_tx_l))`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`return(final_tx_l)`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '**Program 6.37:** Program to get final transaction list to be included in a
+    new block'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'From the list of transaction hashes, we can get transaction content by using
+    the following method:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def getRawTransaction(txid: str):`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`rawtx = rpc_connection.getrawtransaction(txid)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return rawtx`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Program 6.38:** Program to get raw transactions from transaction-id'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Now, we can use the information to mine bitcoin. This has an infinitesimally
+    low probability of success. We need to fill each field in the block header and
+    then find nonce. So, let’s do this as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Version:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '`def getVersionBytes(supported_softfork_bits: int):`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`version = 0x20000000 | supported_softfork_bits`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`v_bytes = bytes.fromhex(hex(version))[::-1]`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`return v_bytes`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '**Program 6.39:** Program to get version bytes using supported softfork bits'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'Time:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '`def getTimeBytes():`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`t = time.time()`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`time_b = bytes.fromhex(hex(t))[::-1]`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`return time_b`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '**Program 6.40:** Program to get time in bytes for block field'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: Next is `**bits**`. `**Bits**` are updated only when block height is a multiple
+    of 2016\. To calculate `**bits**`, we need to calculate the target threshold.
+    We take the block time of the last 2016 blocks and then adjust the target threshold.
+    In the form of a mathematical equation:![](images/c06eq-2.jpg)
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Using this equation in code:'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`def calculateNextTargetThreshold():`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`block_hash = rpc_connection.getblockhash(height)`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`block = rpc_connection.getblock(block_hash, 0)`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`blkhdr = getBlockHeader(bytes.fromhex(block))`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`bits = bytes.fromhex(blkhdr[‘bits’])[::-1]`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`tt_old = getTargetThreshold(bits)`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`block_hash_٢٠١٥ = rpc_connection.getblockhash(height-2015)`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`block_٢٠١٥ = rpc_connection.getblock(block_hash_2015, 0)`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`blkhdr_٢٠١٥ = getBlockHeader(bytes.fromhex(block_2015))`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`delta_t = blkhdr[‘time’] - blkhdr_2015[‘time’]`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`tt_new = tt_old * (blkhdr[‘time’] - blkhdr_2015[‘time’])//(2016 * 600)`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`return tt_new`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '**Program 6.41:** Program to calculate next target threshold'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'To convert the target threshold to bits, we need to use the following compression
+    logic:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Convert Target Threshold to bytes, which is a base 256 number.
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: If the most significant bit is greater than 0x7F, then prepend the bytes with
+    b’\x00’.
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The first byte is the length of the bytes.
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The next 3 bytes are the three most significant numbers in the base 256 number.![](images/Figure-6.43.jpg)
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Figure 6.43:** Illustration of conversion of target threshold to bits'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`def targetThreshold2bits(tt: int):`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`tt_b = tt.to_bytes((tt.bit_length() + 7) // 8, ‘big’)`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`print(tt_b.hex())`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`prepend = b”0” if tt_b[0] > 0x7f else b””`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`tt_b = prepend + tt_b`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`b١ = bytes([len(tt_b)])`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`tt_b = tt_b + bytes(2)`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`tt_b = tt_b[0:3]`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`bits = b١ + tt_b`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`return bits`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '**Program 6.42:** Program to convert target threshold to bits'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'Bits are only updated when block height is in multiples of 2016\. The following
+    code returns bits based on block height:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`def getBits():`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`if height % 2016 != 0:`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`block_hash = rpc_connection.getblockhash(height)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`blkhdr = getBlockHeader(bytes.fromhex(block))`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return bytes.fromhex(blkhdr[‘bits’])[::-1]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`tt = calculateNextTargetThreshold()`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`bits = targetThreshold٢bits(tt)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`return bits`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Program 6.43:** Program to return bits if next block height in multiples
+    of 2016'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now, we can use the above-mentioned header elements to find nonce and build
+    blocks. We also need to update transactions and Merkle root. We can calculate
+    the Merkle root of the new block by using the transaction list we already got
+    in *program 6.37*. We will leave this for you to implement the final mining code.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This brings us to the end of this chapter.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Conclusion](toc.xhtml#s126a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this chapter, we started with setting up Bitcoin software and syncing of
+    blockchain. You learned to use the Bitcoin Core CLI and Python RPC client. You
+    also investigated the structure of blocks and indexes. You learned how to query
+    data from indexes. We wrote short programs to understand the structure of block
+    files, and you also learned about content in mempool, its role, and how it is
+    used to mine blocks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Bitcoin is transformational as it eliminates the need for intermediaries in
+    any transaction. Consequently, we have a cryptocurrency that behaves like cash.
+    This was the goal that many cryptographic experts aimed at for decades. Most of
+    us know this is deterrence. It feels like we are into rocket science. But as we
+    saw in this chapter, the thinking is just a deterrence. The Bitcoin protocol is
+    amazingly simple. This chapter is the first chapter that dives into programming.
+    We only used Bitcoin software client, block files, indexes, and a bit of basic
+    knowledge of protocol to enhance your understanding of the existing implementation
+    of the Bitcoin protocol. We have left certain important topics, such as transaction
+    scripting and segregated witness, for the upcoming chapters.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Knowing that such an impactful technology can be learned with ease allows us
+    to build confidence in our ability. It allows us to trust ourselves to understand
+    things. It removes the need for experts and allows us to find an expert within
+    ourselves. It changes the way we look at the world at a fundamental level.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the next chapter, you will understand the Bitcoin protocol messaging. You
+    will understand how Bitcoin nodes find other nodes, connect with them, synchronize
+    their blockchain, and broadcast blocks and transactions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Points to remember](toc.xhtml#s127a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Bitcoin Core is the most popular Bitcoin software maintained by the Bitcoin
+    Core team, and it was originally created by Satoshi Nakamoto.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Blocks are mined every 10 minutes on average.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Every block in the Bitcoin blockchain contains hashed block header of the previous
+    block. This makes the blockchain more like a stack.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Block header contains Merkle Root Hash, which, along with proof-of-work algorithm,
+    secures the integrity of transactions included in the block.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Proof-of-work also protects the integrity of other block header fields, such
+    as time, version, previous block hash, and target threshold.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Block version indicates miner support and readiness of a protocol enhancement,
+    also called a softfork. Such types of softforks are also called Miner Initiated
+    Softforks.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If an enhancement is important for the future of Bitcoin, the Bitcoin developer
+    community can initiate BIP 148 and enforce miners to move to the softfork.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Hash of Block header should be less than target threshold calculated from bits
+    field in the block header.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Target Threshold is adjusted only at every 2016^(th) block in the blockchain.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The new target threshold is calculated by modifying the existing target threshold
+    by taking block time of previous 2016 blocks such that the next 2016 blocks are
+    mined on an average of 10 minutes.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Blocks are stored in block files, and the information related to block files
+    and blocks are stored in the block index.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Chainstate database stores unspent transaction outputs (UTXOs).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Block indexes and UTXO indexes both help in the quick verification of blocks.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: There is another index called transaction index or txindex, which is not used
+    by the Bitcoin software. It is optional and stores indexes related to transactions
+    stored in blocks.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Mining is the process of finding nonce so that the newly created block header
+    hash is less than the target threshold.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Bitcoin mining is a costly process, and like in commodity mining where miners
+    need to invest in exploration, in Bitcoin mining, miners need to continuously
+    invest in equipment to remain viable.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Solo mining is only for developers who are learning Bitcoin or who want to reduce
+    mining centralization by adding their hashrate to the overall network hashrate.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: For-profit mining can only be done in a pool. Miners would join one of the few
+    famous pools.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Mining pools use a combined hashrate of miners to find nonce. Once the nonce
+    is found, the pool pays miners according to their hashrate contribution.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Questions](toc.xhtml#s128a)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Calculate the current bitcoin supply. Additionally, calculate the current bitcoin
+    supply as the percentage of maximum supply.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Find the expected year, month, and date of the next Bitcoin halving (when block
+    reward becomes half of the current reward).
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Create a table of Bitcoin mining equipment, their cost, and the profixt per
+    month.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Create a table of the average annual transaction count per block.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Complete the solo mining program that has been left incomplete.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'True/False:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Softforks are enhancements that are not backward compatible, which is why miners
+    need to vote for its support.
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Network hashrate can only go up in the long run even if the bitcoin price continues
+    to fall.
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Mempool stores unconfirmed transactions in memory.
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Fill in the blanks:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: After _______ blocks, a miner can use bitcoin locked in coinbase transaction.
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Compressed form of transaction count 2,597 is __________.
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Compressed form of 0.25 BTC is _______.
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Bits value 0x1715a35c means target threshold of ______________.
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Block size limit is ____________ MB.``
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
