@@ -1,0 +1,3151 @@
+- en: Part 4\.
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[Part 4](#part04) is aimed at readers who are eager to build their own Dapp
+    and are planning to deploy it onto MAINNET, the production Ethereum network. [Chapter
+    13](kindle_split_027.xhtml#ch13) covers important operational aspects, such as
+    event logging and contract upgradeability. You’ll go through different techniques
+    that allow you to amend a deployed contract after discovering a bug or security
+    vulnerability. [Chapter 14](kindle_split_028.xhtml#ch14) is entirely focused on
+    security and describes common vulnerabilities and typical forms of smart contract
+    attack. [Chapter 15](kindle_split_029.xhtml#ch15) is for all readers who want
+    to keep learning about Ethereum and blockchain technology in general. It gives
+    an overview of alternative Ethereum implementations aimed at enterprise use. It
+    also briefly presents other blockchain and distributed ledger platforms. You’ll
+    have plenty of options to consider if you want to continue your journey beyond
+    Ethereum.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chapter 13\. Making a Dapp production ready
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '|  |'
+  prefs: []
+  type: TYPE_TB
+- en: '**This chapter covers**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to generate event logs
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: How to upgrade your libraries after deploying them
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: How to upgrade your contracts after deploying them
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '|  |'
+  prefs: []
+  type: TYPE_TB
+- en: In the previous chapter, you built an end-to-end Dapp from scratch for the first
+    time, using most of the knowledge you’d acquired throughout the book and most
+    of the available Ethereum development tools. Although it was a good exercise that
+    helped you to consolidate your Ethereum development skills, you might not be ready
+    to deploy your first Dapp into the public production network. Before doing so,
+    you might want to consider strengthening your Dapp so it can cope with real-world
+    operational requirements, such as being able to generate, store (on the blockchain),
+    and query (from the blockchain) event logs; upgrade your libraries after deploying
+    them; and upgrade your contracts after deploying them.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I’ve already touched on some of these topics briefly, but in this chapter, I’ll
+    revisit them in more detail. I’ll keep my usual pragmatic approach, and I’ll walk
+    you through examples and code. Designing an upgradeable library or contract, though,
+    requires advanced techniques whose implementation touches Solidity syntax that’s
+    outside the scope of this book. But I still believe you should be aware of the
+    concepts, which I’ll try to explain by sketching some contract or sequence diagrams.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You might be surprised I haven’t included security in the list. I consider it
+    such an important topic that I’m dedicating the entire next chapter to it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 13.1\. Event logging
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Let’s start with event logging. You already know how to declare and raise events
+    on smart contracts. In the previous chapter, you saw how to handle contract events
+    from a web UI.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, you refreshed the workflow status description at the top of both
+    admin and voter pages every time you moved to a new step of the voting process.
+    Also, you refreshed the proposals table at the top of the voter page every time
+    a voter registered a new proposal. The entire workflow of the proposal registration,
+    with related event handling, is illustrated in [figure 13.1](#ch13fig01), which,
+    if you remember, is similar to [figure 1.8](kindle_split_012.xhtml#ch01fig08)
+    from [chapter 1](kindle_split_012.xhtml#ch01). If you didn’t fully get it in [chapter
+    1](kindle_split_012.xhtml#ch01), it should definitely click now.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If you’ve done any event-driven or reactive programming before, you might think
+    there’s nothing unusual about how contracts publish events and how a client subscribed
+    to them, such as a web page, can handle them. But contracts differ in an important
+    way: whereas in most languages, events are transient objects that disappear from
+    the system after being handled, Ethereum events are logged permanently on the
+    blockchain. As a result, you can also retrieve events that happened before starting
+    up the UI client, if you want. Curious to see how? Keep reading!'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 13.1.1\. Retrieving past events
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: 'You’ve already seen how to register listeners of contract events on your JavaScript
+    with `eventFilter.watch`. For example, you wrote this code at the top of SimpleVoting.js
+    (though I’m slightly simplifying it here) for registering a callback to a workflow
+    status change event:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: '***1*** **Sets an event filter listening to events of type WorkflowStatusChangeEvent**'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '***2*** **Registers a callback to the event filter**'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Figure 13.1\. Event handling on the voter page. A new proposal is submitted
+    from the web page to the voting contract. The contract then fires a `ProposalRegisteredEvent`
+    event on registration completion. The event is propagated throughout the network
+    until it reaches the node the web page is communicating with. Finally, the webpage
+    handles the event, and a new item is added on the proposal table.
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: '![](Images/fig13-01_alt.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: The variable `workflowStatusChangeEvent` is known as an *event filter* because
+    it defines the set of events to listen to—in our case, all events of type `WorkflowStatusChangeEvent`.
+    As you’ll see later, you can define the filter in a more restrictive way.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'When you register a callback to an event filter through `eventFilter.watch`,
+    you’ll handle events that take place from the moment the web page is opened. If
+    you want to access past events—for example, to verify that all the workflow status
+    changes took place in the correct sequence—you can do so through `eventFilter.get`,
+    which accepts a similar callback as `watch`. First of all, you must define the
+    filter in a slightly different way, by specifying the starting block and final
+    block of your event search:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: '***1*** **Only gets the events from block 5000 onwards**'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Then you register the callback to the event filter with `get` rather than `watch`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: '***1*** **Retrieves the past events**'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '***2*** **Displays the past event arguments to the console**'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'If you want to retrieve *all* past events the contract has broadcast, not only
+    the `WorkflowStatusChangeEvent` events, you can create the event filter using
+    the `allEvents` function, as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: '***1*** **Filter on all event logs raised by the contract since block 1000000**'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Then you can register a callback on them through `get`, as before:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: If you want to retrieve only a subset of past events—for example, only the proposals
+    that a certain voter registered—you can perform the search more efficiently by
+    indexing some of the parameters of the event in question. You’ll see how in a
+    moment.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 13.1.2\. Event indexing
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: When declaring an event on a contract, you can index up to three of its parameters.
+    Event filters associated with these parameters will perform much better. For example,
+    in the case of SimpleCoin, you might remember from [section 3.5.1](kindle_split_014.xhtml#ch03lev2sec17)
+    that the `Transfer` event was defined as
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This allows you to efficiently filter transfer events against specific source
+    and destination addresses when retrieving event logs:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: In the case of `SimpleVoting`, you might remember that the `ProposalRegisteredEvent`
+    event was defined as
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'As it stands, you can’t use this event in a meaningful way as a log. How would
+    you modify its definition so that you could query it to provide useful information?
+    Think about it for a few seconds.... You could amend it like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'As an exercise, here’s a question for you: How would you index this event to
+    efficiently retrieve all the proposals that have been registered from a specific
+    address? Take your time... Yes, you’re right! Obviously, you’d index the author
+    parameter as'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Let’s now move to a completely different topic, also important from an operational
+    point of view: What do you do when something goes wrong in your contract? Is it
+    possible to fix it and redeploy it as you would for a conventional software component,
+    such as a library or a microservice? I’ll discuss the answer to that question
+    in the next few sections.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 13.2\. Designing an upgradeable library
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'When developing a new contract, some of your requirements might be similar
+    to those of other contracts that other developers have already deployed on the
+    blockchain. You saw in [chapter 7](kindle_split_019.xhtml#ch07) how you can place
+    common functionality into libraries and reference it from various contracts, therefore
+    avoiding wasted reimplementation effort and code duplication. For example, you
+    practiced how to perform safe arithmetic operations with a copy of the OpenZeppelin
+    SafeMath library. What you did, though, is still not ideal: your deployment of
+    OpenZeppelin libraries may be only one of the many instances present on the blockchain.
+    Other developers, like you, may have included a copy of such libraries in their
+    solution and may have performed their own private deployment, as shown in [figure
+    13.2](#ch13fig02).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 13.2\. Duplicated deployment of an OpenZeppelin library. Only one client
+    contract uses each privately deployed instance.
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: '![](Images/fig13-02_alt.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'You can imagine how many instances of OpenZeppelin libraries are out there
+    on TESTNET and MAINNET! The drawbacks of this approach include the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Unnecessary costs*—Each separate deployment of the same library has to pay
+    for its own deployment transaction gas fees.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Unnecessary bytecode duplication*—The same bytecode is associated on the blockchain
+    with different deployment addresses (although nodes in fact deduplicate identical
+    bytecode).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Uncoordinated maintenance*—If a problem in the library is detected, you can’t
+    fix it centrally; the owner of each contract instance has to patch it independently,
+    with obvious consequences.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'The most obvious solution to these issues is to have one official *golden instance*
+    of the library on the blockchain and expect all its clients to reference it at
+    that single address, as you saw briefly in [chapter 7](kindle_split_019.xhtml#ch07),
+    [section 7.5.2](kindle_split_019.xhtml#ch07lev2sec13). This solution has one major
+    drawback: once you’ve deployed a library, you can’t patch it. If you find a problem,
+    a new deployment is necessary, with the consequence that all its client contracts
+    must also be repointed to the new library address and redeployed, as shown in
+    [figure 13.3](#ch13fig03). This is far from an ideal solution!'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 13.3\. Fixing a shared library means redeploying it at a new address,
+    which requires client contracts to be modified and redeployed.
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: '![](Images/fig13-03_alt.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: An elegant solution that Manuel Araoz, CTO of Zeppelin, presented in an article
+    on Medium^([[1](#ch13fn01)]) is to create a proxy to the library. His solution
+    is a library proxy contract that acts as a layer of indirection between a client
+    contract using the library and the library itself, as illustrated in [figure 13.4](#ch13fig04).
+  prefs: []
+  type: TYPE_NORMAL
+- en: ¹
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: See “Proxy Libraries in Solidity,” March 6, 2017, [http://mng.bz/Xgd1](http://mng.bz/Xgd1).
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Figure 13.4\. When you introduce a proxy to the library, client contracts no
+    longer directly reference an instance of the library; they communicate with the
+    proxy (or library dispatcher), which gets from another contract the latest valid
+    address of the library and then forwards calls to the valid instance.
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: '![](Images/fig13-04_alt.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'These are the components of the proxy library solution:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A client contract references the address of a library proxy (or dispatcher)
+    contract (`SafeMathProxy`) rather than directly referencing an instance of the
+    library.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The *library proxy* (`SafeMathProxy`) is a contract that retrieves the address
+    of the latest valid deployed library instance from a library proxy registry contract
+    (`SafeMathProxyRegistry`) and then forwards the call to the latest deployed library
+    instance.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The *library proxy registry contract* (`SafeMathProxyRegistry`) is a contract
+    containing a list of addresses for different versions of the library. It also
+    possibly contains a state variable holding the default address, which is typically
+    the latest address that has been added to the list. The library owner updates
+    the address list and the default address at each new deployment of the library.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: When a client contract invokes a library function, it performs a corresponding
+    `delegatecall` on the library proxy instead. This retrieves the correct library
+    address for the client contract to use from the library proxy registry and then
+    performs a `delegatecall` on the relevant instance of the library. From the point
+    of view of the client contract, the whole call chain behaves exactly like a normal
+    library function invocation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|  |'
+  prefs: []
+  type: TYPE_TB
+- en: Note
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: Library functions are implicitly invoked through the `delegatecall` EVM opcode,
+    which executes in the context of the caller, as explained in [section 3.2.5](kindle_split_014.xhtml#ch03lev2sec7),
+    and as I’ll further explain in [chapter 14](kindle_split_028.xhtml#ch14) on security.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|  |'
+  prefs: []
+  type: TYPE_TB
+- en: In summary, if you find that a library you’d like to use provides a proxy, use
+    it rather than hardwiring to a specific deployed instance. You’ll gain maintainability.
+    The catch, though, is that you must trust the contract owner won’t maliciously
+    forward your calls to a new implementation of the library that has nothing to
+    do with the original one.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you find the idea of designing an upgradeable library interesting and want
+    to learn further, I encourage you to review Araoz’s Medium article, where you
+    can find code samples.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|  |'
+  prefs: []
+  type: TYPE_TB
+- en: Warning
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: 'You should thoroughly understand the proxy library technique before you attempt
+    to implement it; weak implementations have been found subject to malicious attacks.
+    I recommend reading the Medium post “Malicious backdoors in Ethereum Proxies,”
+    by Patricio Palladino, to make sure you’re aware of the weak spots: [http://mng.bz/vNz1](http://mng.bz/vNz1).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|  |'
+  prefs: []
+  type: TYPE_TB
+- en: 13.3\. Designing an upgradeable contract
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'As you might have already guessed, contracts suffer from the same limitation
+    as libraries: once you deploy a contract, you’re stuck with it. If you discover
+    a bug or security vulnerability after deployment, you can at most freeze it or
+    destroy it—if you included this kind of panic button functionality. The best bet
+    is to plan for the worst-case scenario beforehand and design your contract with
+    built-in upgradeability.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: As in the case of proxy libraries, although this solution makes the contract
+    safer from your side, from the point of view of the users, you’re introducing
+    a layer of obfuscation. The most security-conscious users might not trust your
+    good intentions and might fear the possibility that, all of a sudden, you could
+    start redirecting client calls to a malicious contract.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'I’ll illustrate for you these two main techniques for making a contract upgradeable:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Use the same proxy technique I’ve shown you for libraries
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Separate state and logic into two contracts, both inherited from an abstract
+    `Upgradeable` contract
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 13.3.1\. Connecting to the upgraded contract through a proxy
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Imagine various contracts, among which `SimpleCrowdsale`, from [chapters 6](kindle_split_018.xhtml#ch06)
+    and [7](kindle_split_019.xhtml#ch07), would like to use your marvelous `SimpleCoin`
+    contract. You decide to make `SimpleCoin` upgradeable through a `SimpleCoinProxy`
+    contract to avoid headaches not only to you, but also to all of your clients.
+    As you can see in [figure 13.5](#ch13fig05), the solution is identical to what
+    you saw for SafeMath.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 13.5\. If you decide to make `SimpleCoin` upgradeable through `SimpleCoinProxy`,
+    client contracts such as `SimpleCrowdsale` will call functions on `SimpleCoinProxy`,
+    which will dispatch them to a specific deployed version of `SimpleCoin`, generally
+    the latest one.
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: '![](Images/fig13-05_alt.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: 13.3.2\. Inheriting from an abstract Upgradeable contract
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Nick Johnson, the author of ENS, has taken a slightly different approach to
+    making a contract upgradeable.^([[2](#ch13fn02)]) He has proposed to split the
+    state (storage and Ether) and the
+  prefs: []
+  type: TYPE_NORMAL
+- en: ²
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'See “Mad blockchain science: A 100% upgradeable contract,” Reddit+r/ethereum,
+    May 24, 2016, [http://mng.bz/y1Yo](http://mng.bz/y1Yo).'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'logic of a contract into two separate contracts, both inherited from a common
+    abstract contract called `Upgradeable`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*A dispatcher*—This would hold the state and would dispatch all the calls to
+    a target contract through the Solidity `delegatecall()` function (which explicitly
+    executes the EVM `delegatecall` opcode). Consequently, the function would execute
+    in the context of the dispatcher. You’ll see more about `delegatecall()` in [chapter
+    14](kindle_split_028.xhtml#ch14) on security.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*A target* *contract*—You would delegate the entire functionality to this contract,
+    which you could upgrade later on. This contract would also control the upgrade
+    process.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: With this design, illustrated in [figure 13.6](#ch13fig06), when the target
+    contract got upgraded, the dispatcher would still keep an unaltered state while
+    it transferred all the calls to the latest version of the target contract.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Figure 13.6\. Upgradeability by splitting a contract into two contracts, both
+    inherited from the same abstract `Upgradeable` contract: a dispatcher holding
+    the state and a target contract holding the functionality. The dispatcher forwards
+    all calls to the target contract. If an upgrade occurs, the dispatcher keeps holding
+    the same unaltered state and forwards the calls to the latest version of the target.'
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: '![](Images/fig13-06_alt.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'If you’re eager to try out this approach, I encourage you to look at Nick’s
+    code at [http://mng.bz/4OZD](http://mng.bz/4OZD). If you’re interested in learning
+    more about solutions around library or contract upgradeability, I recommend the
+    Medium article “Summary of Ethereum Upgradeable Smart Contract R&D,” by Jack Tanner,
+    based on his research across all the currently known techniques: [http://mng.bz/QQmR](http://mng.bz/QQmR).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|  |'
+  prefs: []
+  type: TYPE_TB
+- en: Warning
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: Designing an upgradeable contract using Nick’s technique requires a thorough
+    understanding of the inner workings of EVM and EVM assembly, which is outside
+    the scope of this book. Also, using an upgradeable contract poses risks, as I
+    explained earlier.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|  |'
+  prefs: []
+  type: TYPE_TB
+- en: Summary
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Whereas in most languages events are transient objects that disappear from the
+    system after being handled, Ethereum events are logged permanently on the blockchain.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: You can replay and query past events by registering a handler on the event filter
+    with `get` rather than `watch`.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: You can improve the performance of past-event retrieval by indexing some of
+    the event parameters when defining the event.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: You can make a library upgradeable by introducing a proxy to it. Client contracts
+    no longer directly reference an instance of the library, but rather communicate
+    with the proxy (or library dispatcher), which gets the latest valid address of
+    the library from a registry contract and then forwards calls to the valid instance.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: You can make a contract upgradeable by using a proxy contract (as for libraries)
+    or by separating state and logic into two contracts, both inherited from an abstract
+    `Upgradeable` contract.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Making a contract upgradeable makes it safer on one hand; for example, if you
+    discover a problem after deployment, you can fix the contract and route the calls
+    to the new amended version. But it might introduce security risks if you don’t
+    implement it correctly.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Using an upgradeable library raises security concerns from the point of view
+    of the contract user, who might worry about being routed to unintended functionality.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Chapter 14\. Security considerations
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '|  |'
+  prefs: []
+  type: TYPE_TB
+- en: '**This chapter covers**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Understanding Solidity weak spots and risks associated with external calls
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Performing safe external calls
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Avoiding known security attacks
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: General security guidelines
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '|  |'
+  prefs: []
+  type: TYPE_TB
+- en: In the previous chapter, I gave you some advice on areas you should look at
+    before deploying your Dapp on the production network. I believe security is such
+    an important topic that it should be presented separately, so I’ve decided to
+    dedicate this entire chapter to it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I’ll start by reminding you of some limitations in the Solidity language that,
+    if you overlook them, can become security vulnerabilities. Among these limitations,
+    I’ll particularly focus on external calls and explain various risks you might
+    face when executing them, but I’ll also try to give you some tips for avoiding
+    or minimizing such risks. Finally, I’ll present classic attacks that might be
+    launched against Ethereum Dapps so that you can avoid costly mistakes, especially
+    when Ether is at stake.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 14.1\. Understanding general security weak spots
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'You should pay attention to certain limitations in the Solidity language because
+    they’re generally exploited as the first line of attack by malicious participants
+    against unaware developers:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Data privacy*—If privacy is a requirement, you should store data in encrypted
+    form rather than clear form.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Randomness*—Some Dapps, for example, betting games, occasionally need to randomize.
+    You must ensure equal processing on all nodes without exposing the application
+    to manipulation that takes advantage of the predictability of pseudo-random generators,
+    and that can be tricky.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*View functions*—You should be aware that functions defined as `view` might
+    modify state variables, as mentioned in [chapter 5](kindle_split_017.xhtml#ch05),
+    [section 5.3.5](kindle_split_017.xhtml#ch05lev2sec8).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Gas limits*—You should be careful when setting the gas limits of your transactions,
+    whether they’re low or high, because attackers might try to exploit them to their
+    advantage.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Some of these vulnerabilities, such as those around randomness, might have more
+    severe consequences, such as losing Ether. Other vulnerabilities, such as those
+    around gas limits, have less severe consequences; for example, they can be exploited
+    for denial of service attacks that can only cause temporary malfunctions. Whether
+    they seem severe or not, you shouldn’t underestimate *any* of these vulnerabilities.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 14.1.1\. Private information
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: As you already know, data stored on the blockchain is always public, regardless
+    of the level of access of the contract state variables it has been stored against.
+    For example, everybody can still see the value of a contract state variable declared
+    as private.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If you need privacy, you need to implement a *hash commit–reveal* scheme like
+    the one that the MAINNET ENS domain registration uses, as described in [chapter
+    9](kindle_split_022.xhtml#ch09), [section 9.3.2](kindle_split_022.xhtml#ch09lev2sec2).
+    For example, to conceal a bid in an auction, the original value must not be submitted.
+    Instead, the bid should be structured in two phases, as shown in [figure 14.1](#ch14fig01):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Hash commit*—You should initially *commit* the hash of the original value,
+    and possibly of some unique data identifying the sender.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '*Reveal*—You’ll *reveal* the original value in a second stage, when the auction
+    closes and the winner must be determined.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Figure 14.1\. A hash commit–reveal scheme used for auction bid privacy. 1\.
+    During the commit phase, you commit a hash of a document containing the sender
+    address, the bid value, and a secret instead of the bid value in clear. 2\. During
+    the reveal phase you reveal the bid values together with their secrets. 3\. The
+    winner is determined by finding the highest revealed bid. You then verify the
+    results by calculating the hash from its sender address, bid value, and password
+    and comparing it against the previously submitted hash.
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: '![](Images/fig14-01_alt.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: 14.1.2\. Randomness
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: If you want the state of your decentralized application to depend on randomness,
+    you’ll face the same challenges associated with concealing private information
+    that you saw in the previous section. The main concern is preventing miners from
+    manipulating randomness to their advantage while also making sure the logic of
+    your contract is executed exactly in the same way on all nodes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Consequently, the way you should handle randomness in a Dapp should be similar
+    to the commit–reveal scheme for private data. For example, as you can see in [figure
+    14.2](#ch14fig02), in a decentralized roulette game the following should happen:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: All players submit their bets (specific number, color, odd, or pair).
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: A random value provider is requested to supply a random number and, so as to
+    keep the number secret until the last moment, the provider initially returns (commits)
+    the number encoded using a one-way hash algorithm.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The completed transaction, including bets and the generated random number, is
+    processed identically by all nodes, which will query the randomness provider for
+    the original number associated with the hash. The provider reveals the original
+    random number, and the winners are determined. If the randomness provider supplies
+    a random number incompatible with the hash, the roulette spinning transaction
+    fails.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Figure 14.2\. A hash commit–reveal scheme used for providing reproducible randomness.
+    1\. All players submit their bets. 2\. A randomness provider commits the hash
+    of a generated random number, emulating a roulette spin. 3\. A transaction, including
+    bets and a random number hash, is processed. All nodes query the provider, which
+    reveals the random number so that winners and losers can be determined.
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: '![](Images/fig14-02_alt.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: 14.1.3\. Calling view functions
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Defining a function as a `view` doesn’t guarantee that nothing can modify the
+    contract state while you’re running it. The compiler doesn’t perform such a check
+    (but version 0.5.0 or higher of the Solidity compiler will perform this check),
+    nor does the EVM. The compiler will only return a warning. For example, if you
+    define the `authorize()` function of SimpleCoin as
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'you’ll get the following warning, because the state of the allowance mapping
+    is being modified:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: If the contract state gets modified, a transaction is executed (rather than
+    a simple call), and this consumes gas. An attacker might take advantage of the
+    fact that the contract owner didn’t foresee gas expenditure for this function
+    and might cause consequences, ranging from a few transaction failures to sustained
+    DoS attacks. To avoid
+  prefs: []
+  type: TYPE_NORMAL
+- en: this mistake, you should pay attention to compiler warnings and make sure you
+    rectify the code accordingly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 14.1.4\. Gas limits
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: As you know, to be processed successfully, a transaction must not exceed the
+    block gas limit that the sender set. If a transaction fails because it hits the
+    gas limit, the state of the contract is reverted, but the sender must pay transaction
+    costs, and they don’t get refunded.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The gas limit that the transaction sender sets can be favorable or detrimental
+    to security, depending on how it’s used. Here are the two extreme cases, as illustrated
+    in [figure 14.3](#ch14fig03):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*High gas limit*—This makes it more likely that a transaction completes without
+    running out of gas, and it’s safer against attacks trying to fail the transaction
+    by blowing the gas limit. On the other hand, a high gas limit allows a malicious
+    attacker to manipulate the transaction more easily, because they can use more
+    costly resources and computation to alter the expected course of the transaction.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Low gas limit*—This makes it more likely that a transaction can fail to complete
+    because it runs out of gas, especially if something unexpected happens. Consequently,
+    a transaction would be more exposed to attacks trying to fail it by blowing the
+    gas limit. On the other hand, a low gas limit restricts how a malicious attacker
+    can manipulate a transaction.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Figure 14.3\. Pros and cons of high and low gas limits
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: '![](Images/fig14-03_alt.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: In general, the best advice is to set the lowest possible gas limit that allows
+    all genuine transactions to be completed against the expected logic. But it’s
+    hard to nail a reasonable gas estimate that’s safe for both completion and security.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, if the logic executing a transaction includes loops, the transaction
+    sender might decide to set a relatively high gas limit to cover the eventuality
+    of a high number of loops. But it would be difficult to figure out in advance
+    whether the gas limit would be hit, especially if the number of loops was determined
+    dynamically and depended on state variables. If any of the state variables were
+    subject to user input, an attacker could manipulate them so that the number of
+    loops became very big, and the transaction would be more likely to run out of
+    gas. Trying to bypass this problem by setting a very high gas limit defeats the
+    purpose of the limit itself and isn’t the right solution. In the next few sections,
+    we’ll explore correct solutions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 14.2\. Understanding risks associated with external calls
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Calls to external contracts introduce several potential threats to your application.
+    This section will help you avoid or minimize them.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The first word of advice is to avoid calling external contracts if you can use
+    alternative solutions. External calls transfer the flow of your logic to untrusted
+    parties that might be malicious, even if only indirectly. For example, even if
+    the external contract you’re calling isn’t malicious, its functions might in turn
+    call a malicious contract, as shown in [figure 14.4](#ch14fig04).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 14.4\. Your contract might get manipulated by an external malicious contract,
+    even when you’re confident the contract it directly interacts with is legit.
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: '![](Images/fig14-04_alt.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: Because you lose direct control of the execution of your logic, you’re exposed
+    to attacks based on *race conditions* and *reentrancy*, which we’ll examine later.
+    Also, after the external call is complete, you must be careful about how to handle
+    return values, especially in case of exceptions. But often, even if it might feel
+    risky, you have no choice but to interact with external contracts, for example,
+    at the beginning of a new project, when you want to make quick progress by taking
+    advantage of tried and tested components. In that case, the safest approach is
+    to learn about the related potential pitfalls and write your code to prevent them—read
+    on!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 14.2.1\. Understanding external call execution types
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: You can perform external calls to invoke a function on an external contract
+    or to send Ether to an external contract. It’s also possible to invoke the execution
+    of code while simultaneously transferring Ether. [Table 14.1](#ch14table01) summarizes
+    the characteristics of each way of performing an external call.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|  |'
+  prefs: []
+  type: TYPE_TB
+- en: Warning
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: Both `send()` and `call()` are becoming obsolete starting with version 0.5 of
+    the Solidity compiler.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|  |'
+  prefs: []
+  type: TYPE_TB
+- en: Table 14.1\. Characteristics of each external call execution type
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: '| Call execution type | Purpose | External function called | Throws exception
+    | Execution context | Message object | Gas limit |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- | --- | --- | --- | --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| externalContractAddress .send(etherAmount) | Raw Ether transfer | Fallback
+    | No | N/A | N/A | 2,300 |'
+  prefs: []
+  type: TYPE_TB
+- en: '| externalContractAddress .transfer(etherAmount) | Safe Ether transfer | Fallback
+    | Yes | N/A | N/A | 2,300 |'
+  prefs: []
+  type: TYPE_TB
+- en: '| externalContractAddress .call.(bytes4(sha3( "externalFunction()"))) | Raw
+    function call in context of external contract | Specified function | No | External
+    contract | Original msg. | Gas limit of orig. call |'
+  prefs: []
+  type: TYPE_TB
+- en: '| externalContractAddress .callcode.(bytes4(sha3( "externalFunction()"))) |
+    Raw function call in context of caller | Specified function | No | Calling contract
+    | New msg. created by caller | Gas limit of orig. call |'
+  prefs: []
+  type: TYPE_TB
+- en: '| externalContractAddress .delegatecall.(bytes4(sha3("externalFunction()")))
+    | Raw function call in context of caller | Specified function | No | Calling contract
+    | Original msg. | Gas limit of orig. call |'
+  prefs: []
+  type: TYPE_TB
+- en: '| ExternalContract(external ContractAddress).externalFunction() | Safe function
+    call | Specified function | Yes | External contract | Original msg. | Gas limit
+    of orig. call |'
+  prefs: []
+  type: TYPE_TB
+- en: 'When using `call()`, `callcode()`, and `delegatecall()`, you can transfer Ether
+    simultaneously with the call invocation by specifying the Ether amount with the
+    `value` keyword, as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'It’s also possible to transfer Ether without calling any function, in this
+    way:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This way of sending Ether has advantages and disadvantages: it allows the recipient
+    to have a more complex fallback function, but for the same reason, it exposes
+    the sender to malicious manipulation. As you can understand from [table 14.1](#ch14table01),
+    various aspects of external calls might affect security when performing an external
+    call:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: What external function can you call?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Is an exception thrown if the external call fails?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In which context is the external call executed?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: What’s the message object received?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: What’s the gas limit?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Let’s examine them one by one.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 14.2.2\. What external function can you call?
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: 'It’s possible to group call execution types into two sets: those only allowing
+    you to transfer Ether and those allowing you to call any function.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Pure Ether transfer
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: 'The `send()` and `transfer()` calls can only call (implicitly) the `fallback()`
+    function of the external contract, as shown here:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: '***1*** **This is the fallback function, which send() calls implicitly, as
+    explained in [section 5.3.2](kindle_split_017.xhtml#ch05lev2sec5).**'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In general, a fallback function can contain logic of any complexity. But `send()`
+    and `transfer()`impose a gas limit of 2,300 on the execution of the fallback function
+    by transferring only a budget of 2,300 to the external function. This is such
+    a low gas limit that, aside from transferring Ether, the fallback function can
+    only perform a logging operation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The low limit reassures the sender against potential *reentrancy* attacks (which
+    I’ll describe shortly). It does so because when the control flow is transferred
+    to the fallback function, the external contract isn’t able to perform any operations
+    other than accepting the Ether transfer. On the other hand, this means you can’t
+    use `send()` and `transfer()`if you need to execute any substantial logic around
+    the Ether payment. If you haven’t fully understood this point yet, don’t worry:
+    it’ll become clear when you learn about reentrancy attacks in the pages that follow.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Invocation of custom functions
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: All other execution types can invoke custom external functions while transferring
+    Ether to the external contract. The downside of such flexibility is that although
+    you can associate logic of any complexity with an Ether transfer (thanks to a
+    gas limit that can be as high as the sender wishes), the risk of a malicious manipulation
+    of the external call, and consequently of diversion of Ether, is also higher.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'As I explained earlier, it’s possible to also purely transfer Ether without
+    calling any function, as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: This way of sending Ether has the advantages and disadvantages associated with
+    external calls through `call()`. The unrestricted gas limit on `call()` allows
+    the recipient to have a more complex fallback function that can also access contract
+    state, but for the same reason, it exposes the sender to potential malicious external
+    manipulation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|  |'
+  prefs: []
+  type: TYPE_TB
+- en: Tip
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: The safest way to make an Ether transfer is to execute it through `send()` or
+    `transfer()` and consequently to have it completely decoupled from any business
+    logic.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|  |'
+  prefs: []
+  type: TYPE_TB
+- en: 14.2.3\. Is an exception thrown if the external call fails?
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: From the point of view of the behavior when errors occur in external calls,
+    you can divide call execution types into raw and safe. I’ll discuss those types
+    here and then move on to discuss the different contexts that you can execute calls
+    in.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Raw calls
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: 'Most call execution types are considered *raw* because if the external function
+    throws an exception, they return a Boolean `false` result but don’t revert the
+    contract state automatically. Consequently, if no action is taken after the unsuccessful
+    call, the state of the calling contract may be incorrect, and any Ether you sent
+    will be lost without having produced the expected economic benefit. Here are some
+    examples of unhandled external calls:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: '***1*** **If send() fails and isn’t handled, etherAmount is lost; the 2,300
+    gas budget transferred to the external fallback function is lost.**'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '***2*** **If call() fails and isn’t handled, etherAmount is lost; all the gas
+    is transferred to the external fallback function and is lost.**'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '***3*** **If externalFunction fails, the etherAmount sent isn’t returned and
+    is lost; all the gas transferred to externalFunction is also lost.**'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Following the external call, you have two ways to revert the contract state
+    if the call fails. You can use `require` or `revert()`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The first way to manually revert the state if errors occur is to introduce
+    `require()` conditions on some of the state variables. You must design the `require()`
+    condition to fail if the external call fails, so the contract state gets reverted
+    automatically, as shown in this snippet:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: '***1*** **Something wrong happens here, and externalFunction throws an exception.**'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '***2*** **An external function is called and following its failure, a Boolean
+    false value is returned.**'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '***3*** **Two require () conditions are set against the Ether balance and the
+    state of the contract. If any condition isn’t met, both the Ether balance and
+    the contract state are reverted.**'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'The second way is to perform explicit checks followed by a call to `revert()`
+    if the checks are unsuccessful, as shown in this code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: '***1*** **Something wrong happens here, and externalFunction throws an exception.**'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Safe calls
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: Two types of external calls are considered *safe* in that the failure of the
+    external call propagates the exception to the calling code, and this reverts the
+    contract state and Ether balance. The first type of safe call is
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: '***1*** **If transfer() fails, the external failure triggers a local exception,
+    which reverts the state and balance of the calling contract.**'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'The second type of safe call is a high-level call to the external contract:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE
+- en: '***1*** **If externalFunction fails, this triggers a local exception, which
+    reverts the state and balance of the calling contract.**'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '|  |'
+  prefs: []
+  type: TYPE_TB
+- en: Tip
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: Favor safe calls through `transfer()`, for transferring Ether, or through direct
+    high-level custom contract functions, for executing logic. Avoid unsafe calls
+    such as `send()` for sending Ether and `call()` for executing logic. If a safe
+    call fails, the contract state will be reverted cleanly, whereas if an unsafe
+    call fails, you’re responsible for handling the error and reverting the state.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|  |'
+  prefs: []
+  type: TYPE_TB
+- en: 14.2.4\. Which context is the external call executed in?
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: You can execute a call in the *context of the calling contract*, which means
+    it affects (and uses) the state of the calling contract. You can also execute
+    it in the *context of the external contract*, which means it affects (and uses)
+    the state of the external contract.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Execution in the context of the external contract
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: If you scan through the values in the execution context column of [table 14.1](#ch14table01),
+    you’ll realize that most call execution types involve execution in the context
+    of the external contract. The code in the following listing shows an external
+    call taking place in the context of the external contract.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Listing 14.1\. Example of execution in the context of an external contract
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: '[PRE21]'
+  prefs: []
+  type: TYPE_PRE
+- en: '***1*** **State variables**'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '***2*** **External call performed on ExternalContract.setValue ()**'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '***3*** **State variables defined on contract A**'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '***4*** **Modifies ExternalContract.value and sets it to _value**'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '***5*** **Modifies ExternalContract.msgSender and sets it to the original msg.sender
+    sent to contract A**'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Through the example illustrated in [figure 14.5](#ch14fig05), I’ll show you
+    how the state of `ContractA` and `ExternalContract` change following the external
+    call implemented in [listing 14.1](#ch14ex01).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 14.5\. Example illustrating execution in the context of an external contract
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: '![](Images/fig14-05_alt.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: The addresses of the user and contract accounts used in the example are summarized
+    in [table 14.2](#ch14table02).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Table 14.2\. User and contract account addresses
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: '| Account | Address |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| user1 | 0x1 |'
+  prefs: []
+  type: TYPE_TB
+- en: '| user2 | 0x2 |'
+  prefs: []
+  type: TYPE_TB
+- en: '| ContractA | 0x3 |'
+  prefs: []
+  type: TYPE_TB
+- en: '| ContractB | 0x4 |'
+  prefs: []
+  type: TYPE_TB
+- en: '| ExternalContract | 0x5 |'
+  prefs: []
+  type: TYPE_TB
+- en: The initial state of the contracts before the external call takes place is summarized
+    in [table 14.3](#ch14table03). The state of the contracts will change to that
+    shown in [table 14.4](#ch14table04).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Table 14.3\. Initial state of the contracts
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: '|  | ContractA | ExternalContract |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Value | 16 | 24 |'
+  prefs: []
+  type: TYPE_TB
+- en: 'Now imagine user1 performs the following call on `ContractA`; for example,
+    from a web UI, through Web3.js, as you saw in [chapter 12](kindle_split_025.xhtml#ch12):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE22]'
+  prefs: []
+  type: TYPE_PRE
+- en: Table 14.4\. State of the contracts and `msg` object following an external call
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: '|  | ContractA | ExternalContract |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Value | 16 | **33** |'
+  prefs: []
+  type: TYPE_TB
+- en: '| msg sender | 0x1 | **0x1** |'
+  prefs: []
+  type: TYPE_TB
+- en: In summary, the state of `ContractA` hasn’t changed, whereas the state of `ExternalContract`
+    has been modified, as shown in [table 14.4](#ch14table04). The `msg` object that
+    `ExternalContract` handles is the original `msg` object that user1 generated while
+    calling `ContractA`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Execution in the context of the calling contract with delegatecall
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: Execution through `delegatecall` takes place in context of the calling contract.
+    The code in the following listing shows an external call taking place in the context
+    of the external contract.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Listing 14.2\. Example of `delegatecall` execution in the context of a calling
+    contract
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: '[PRE23]'
+  prefs: []
+  type: TYPE_PRE
+- en: '***1*** **External call performed on ExternalContract.setValue ()**'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '***2*** **External call performed on ExternalContract.setValue ()**'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '***3*** **State variables defined as in ContractA**'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '***4*** **Modifies ContractA.value and sets it to _value**'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '***5*** **Modifies ContractA.msgSender and sets it to the original msg.Sender
+    sent to ContractA**'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: As I did earlier, through the example illustrated in [figure 14.6](#ch14fig06),
+    I’ll show you how the state of `ContractA` and `ExternalContract` change following
+    the external call implemented in [listing 14.2](#ch14ex02).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 14.6\. Example illustrating `delegatecall` execution in the context of
+    the calling contract
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: '![](Images/fig14-06_alt.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: The initial state of the contracts before the external call takes place is summarized
+    in [table 14.5](#ch14table05).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Table 14.5\. Initial state of the contracts
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: '|  | ContractA | ExternalContract |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Value | 16 | 24 |'
+  prefs: []
+  type: TYPE_TB
+- en: 'Now imagine user1 performs the following call on `ContractA`, for example,
+    from a web UI:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE24]'
+  prefs: []
+  type: TYPE_PRE
+- en: In summary, the state of `ContractA` has been modified, whereas the state of
+    `External-Contract` hasn’t changed, as shown in [table 14.6](#ch14table06). The
+    `msg` object that `External-Contract` handles is still the original `msg` object
+    that user1 generated while calling `ContractA`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Table 14.6\. State of the contracts and `msg` object following an external call
+    through `delegatecall`
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: '|  | ContractA | ExternalContract |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Value | 33 | 24 |'
+  prefs: []
+  type: TYPE_TB
+- en: '| msg sender | 0x1 | 0x1 |'
+  prefs: []
+  type: TYPE_TB
+- en: Execution in the context of the calling contract with callcode
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: 'The last case to examine is when the implementation of `ContractA.setValue()`
+    uses `callcode` rather than `delegatecall`, as shown here:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE25]'
+  prefs: []
+  type: TYPE_PRE
+- en: Assuming the same initial state as before, after user1’s call, illustrated in
+    [figure 14.7](#ch14fig07), the state of the contracts will be that shown in [table
+    14.7](#ch14table07).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 14.7\. Example illustrating `callcode` execution in the context of the
+    calling contract
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: '![](Images/fig14-07_alt.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: Table 14.7\. State of the contracts following an external call through `callcode`
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: '|  | ContractA | ExternalContract |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Value | 33 | 24 |'
+  prefs: []
+  type: TYPE_TB
+- en: '| msg sender | 0x1 | 0x3 |'
+  prefs: []
+  type: TYPE_TB
+- en: As you can see, an external function that `callcode` calls is still executed
+    in the context of the caller, as when the call was performed through `delegatecall`.
+    But `ContractA` generates a new `msg` object when the external call takes place,
+    and the message sender is `ContractA`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: From a security point of view, execution in the context of the external contract
+    is clearly safer than in the context of the calling contract. When execution takes
+    place in the context of the calling contract, such as when calling external functions
+    through `callcode` or `delegatecall`, the caller is allowing the external contract
+    read/write access to its state variables. As you can imagine, it’s safe to do
+    so only in limited circumstances-, mainly when the external contract is under
+    your direct control (for example, you’re the contract owner). You can find a summary
+    of the context and the `msg` object used for each call type in [table 14.8](#ch14table08).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Table 14.8\. Summary of execution context and `msg` object in each call type
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: '| Call type | Execution context | msg object |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| call | External contract | Original msg object |'
+  prefs: []
+  type: TYPE_TB
+- en: '| delegatecall | Caller contract | Original msg object |'
+  prefs: []
+  type: TYPE_TB
+- en: '| callcode | Caller contract | Caller contract-generated msg object |'
+  prefs: []
+  type: TYPE_TB
+- en: '|  |'
+  prefs: []
+  type: TYPE_TB
+- en: Tip
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: If you need to use `call()`, favor calls through `call()`, in the context of
+    the external contract rather than in the context of the calling contract. Bear
+    in mind, though, that `call()` will become obsolete starting with version 0.5
+    of Solidity.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|  |'
+  prefs: []
+  type: TYPE_TB
+- en: 14.2.5\. What’s the msg object received?
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: In general, a message object is supposed to flow from its point of creation
+    up to the last contract of an external-call chain, which might span several contracts.
+    This is true when invoking external calls through all external call types, apart
+    from `callcode`, which generates a new message instead, as you saw when comparing
+    the external call execution under `callcode` and `delegatecall`. The `delegatecall`
+    opcode was introduced as a bug fix for the unwanted message-creating behavior
+    of `callcode`. Consequently, you should avoid using `callcode` if possible.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|  |'
+  prefs: []
+  type: TYPE_TB
+- en: Tip
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: Avoid `callcode` if possible and choose `delegatecall` instead.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|  |'
+  prefs: []
+  type: TYPE_TB
+- en: 14.2.6\. What’s the gas limit?
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Apart from `send()` and `transfer()`, which impose a gas limit of 2,300 gas
+    on the external call that’s only sufficient to perform an Ether transfer and a
+    log operation, all the other external call types transfer to the external call
+    the full gas limit present in the original call. As I explained previously, both
+    low and high gas limits have security implications, but when it comes to transferring
+    Ether, a lower limit is preferable because it prevents external manipulation when
+    Ether is at stake.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|  |'
+  prefs: []
+  type: TYPE_TB
+- en: Tip
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: Favor a lower gas limit over a higher gas limit.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|  |'
+  prefs: []
+  type: TYPE_TB
+- en: 14.3\. How to perform external calls more safely
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: You should now have a better idea of the characteristics and tradeoffs associated
+    with each external call type, and you might be able to choose the most appropriate
+    one for your requirements. But even if you pick the correct call type, you might
+    end up in trouble if you don’t use it correctly. In this section, I’ll show you
+    some techniques for performing external calls safely. You’ll see how even performing
+    an Ether transfer through the apparently safe and inoffensive `transfer()` can
+    end up in a costly mistake if you don’t think through all the scenarios that could
+    lead your call to fail.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 14.3.1\. Implementing pull payments
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Imagine you’ve developed an auction Dapp and you’ve implemented an `Auction`
+    contract like the one shown in the open source *Ethereum Smart Contract Best Practices*
+    guide coordinated by ConsenSys,^([[1](#ch14fn01)]) which I’ve provided in the
+    following listing. Have a good look at this listing, because I’ll reference it
+    a few times in this chapter.
+  prefs: []
+  type: TYPE_NORMAL
+- en: ¹
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: See “Recommendations for Smart Contract Security in Solidity,” [http://mng.bz/MxXD](http://mng.bz/MxXD),
+    licensed under Apache License, Version 2.0.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Listing 14.3\. Incorrect implementation of an `Auction` contract
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: '[PRE26]'
+  prefs: []
+  type: TYPE_PRE
+- en: '***1*** **Reverts the transaction if the current bid isn’t the highest one**'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '***2*** **If the current bid is the highest, refunds the previous highest bidder**'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '***3*** **Updates the details of the highest bid and bidder**'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: What happens if one of the bidders has implemented a fallback, as shown in the
+    following listing, and then they submit a bid higher than the highest one?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Listing 14.4\. A malicious contract calling the `Auction` contract
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: '[PRE27]'
+  prefs: []
+  type: TYPE_PRE
+- en: '***1*** **This contract will revert its state and throw an exception every
+    time it receives an Ether payment.**'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: As soon as the `MaliciousBidder` contract submits the highest bid through `submitBid()`,
+    `Auction.bid()` refunds the previous highest bidder then sets the address and
+    value of the highest bid to those of the `MaliciousBidder`. So far, so good. What
+    happens next?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A new bidder now makes the highest bid. `Auction.bid()` will consequently try
+    to refund `MaliciousBidder`, but the following line of code fails, even if the
+    new bidder has done nothing wrong and the logic of the `bid()` function seems
+    correct:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE28]'
+  prefs: []
+  type: TYPE_PRE
+- en: This line fails because the current `highestBidder` is still the address of
+    `MaliciousBidder`, and its fallback, which `highestBidder.transfer()` calls, throws
+    an exception.If you think about it, no new bidder will ever be able to pass this
+    line, because a refund to `MaliciousBidder` will be attempted on every occasion.
+    Also, the call to `highestBidder.transfer()` will keep failing before the address
+    and value of a new highest bid can ever be updated, as illustrated in [figure
+    14.8](#ch14fig08). That’s why `MaliciousBidder` is . . . malicious!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'What about replacing `transfer()` with `send()`? An exception will be thrown
+    in the `bid()` function following a failure in `send()`. As a result, using `send()`
+    instead of `transfer()` in the recommended way, as shown in the following line
+    of code, doesn’t solve the problem:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE29]'
+  prefs: []
+  type: TYPE_PRE
+- en: Figure 14.8\. After the malicious contract has become the highest bidder, the
+    `Auction` contract becomes unusable because it will unsuccessfully try to refund
+    the malicious contract at every new higher bid and will never be able to set the
+    new highest bidder.
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: '![](Images/fig14-08_alt.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'With your current `bid()` implementation, you don’t even need a malicious external
+    bidder contract to end up in trouble. Also, unintentional exceptions that are
+    thrown by any external bidding contract that has a faulty `fallback()` can rock
+    the boat. For example, a sloppy developer of a bidder contract, unaware of the
+    gas limitations associated with `transfer()` (or `send()`) might have decided
+    to implement a complex fallback function, such as the one shown in the code that
+    follows, that accepts the refund and processes it by modifying its own contract
+    state. That would consequently blow the `transfer()` 2,300 gas stipend and almost
+    immediately throw a “ran out of gas” exception:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE30]'
+  prefs: []
+  type: TYPE_PRE
+- en: '***1*** **As soon as the state variable refund is updated, the function execution
+    runs out of the 2,300 gas stipend imposed by transfer() and fails.**'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: As you can see, the current implementation of `bid()` relies heavily on the
+    assumption that you’re dealing with honest and competent external contract developers.
+    That might not always be the case.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A safer way to accept a bid is to separate the logic that updates the highest
+    bidder from the execution of the refund to the previous highest bidder. The refund
+    will no longer be pushed automatically to the previous highest bidder but should
+    now be pulled with a separate request by them, as shown in the following listing.
+    (This solution also comes from the ConsenSys guide I mentioned earlier.)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Listing 14.5\. Correct implementation of an `Auction` contract
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: '[PRE31]'
+  prefs: []
+  type: TYPE_PRE
+- en: '***1*** **Now this function only stores the amount to refund because of a new
+    higher bidder in the refund mapping. No Ether transfer takes place.**'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '***2*** **The update of the new highest bid and bidder will now succeed because
+    bid() no longer contains external operations that might get hijacked, such as
+    the previous transfer() call.**'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '***3*** **If this transfer fails—for example, when paying MaliciousBidder—the
+    state of the Auction contract is now unaffected.**'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Pull payments also come in handy in case the function that makes a payment performs
+    a number of payments in a loop. An example would be a function that refunds all
+    the accounts of the investors in an unsuccessful crowdsale, as shown in the following
+    listing.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Listing 14.6\. Incorrect implementation of a function making several payments
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: '[PRE32]'
+  prefs: []
+  type: TYPE_PRE
+- en: If an attacker makes very small investments from a very high number of accounts,
+    the number of items in the investors array might become so big that the `for`
+    loop will run out of gas before completing, because each step of the loop has
+    a fixed gas cost. This is a form of DoS attack exploiting gas limits. A safer
+    implementation is to keep only the refund assignment in `refundAllInvestors()`
+    and to move the Ether transfer operation into a separate pull payment function
+    called `withdrawalRefund()`. This is similar to the one you saw earlier in the
+    `Auction` contract, as you can see in the following listing.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Listing 14.7\. Improved `refundAllInvestors()` implementation
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: '[PRE33]'
+  prefs: []
+  type: TYPE_PRE
+- en: 14.3.2\. Implementing a minimal fallback function
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: 'Although pull payments are a good solution from the point of view of the contract
+    that’s transferring Ether out, now put yourself in the shoes of the bidder. If
+    you’re expecting Ether from an external contract, such as the `Auction` contract,
+    don’t assume the external contract is implementing safe pull-payment functionality,
+    as shown in [listing 14.7](#ch14ex07). Assume instead that the external contract
+    has been implemented in a suboptimal way, as in [listing 14.6](#ch14ex06), the
+    initial implementation you looked at. In this case, if you want to make sure the
+    refund operation executed with `transfer()` (or `send()`) succeeds, you must provide
+    a minimal fallback function: empty or at most with a single log operation, as
+    shown here:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE34]'
+  prefs: []
+  type: TYPE_PRE
+- en: 14.3.3\. Beware of Ether coming to you through selfdestruct()
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: 'Unfortunately, you can’t make sure your contract doesn’t receive Ether from
+    unknown sources. You might think that having a fallback that always throws an
+    exception or reverts the state of your contract when called, as shown here, should
+    be sufficient to stop this undesired inflow of Ether:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE35]'
+  prefs: []
+  type: TYPE_PRE
+- en: But I’m afraid there’s a way to transfer Ether to any address that doesn’t require
+    any payable function on the receiving side—not even a fallback function. This
+    can be achieved by calling
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE36]'
+  prefs: []
+  type: TYPE_PRE
+- en: The `selfdestruct()` function was introduced to provide a way to destroy a contract
+    in case of emergency, and with the same operation, to transfer all the Ether associated
+    with the contract account to a specified address. Typically, this would be executed
+    when a critical bug was discovered or when a contract was being hacked.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Unfortunately, `selfdestruct()` also lends itself to misuse. If an external
+    contract contains at least 1 Wei and self-destructs, targeting the address of
+    your contract, there isn’t much you can do. You might think receiving unwanted
+    Ether wouldn’t be a serious issue, but if the logic of your contract depends on
+    checks and reconciliations performed on the Ether balance, for example, through
+    `require()`, you might be in trouble.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 14.4\. Avoiding known security attacks
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Now that we’ve reviewed Solidity’s known security weak spots associated with
+    external calls, it’s time to analyze known attacks that have taken place exploiting
+    such weaknesses. You can group attacks on Solidity contracts into three broad
+    categories, depending on the high-level objective of the attacker. The objective
+    can be to
+  prefs: []
+  type: TYPE_NORMAL
+- en: manipulate the outcome of an individual transaction
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: favor one transaction over other transactions
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: make a contract unusable
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Table 14.9](#ch14table09) summarizes manipulation techniques associated with
+    each attack category. The next few sections will define and present in detail
+    each attack technique included in the table.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Table 14.9\. Security attacks, strategies, and techniques
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: '| Attack objective | Attack strategy | Attack technique |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Individual transaction manipulation | Race condition | Reentrancy, cross-function
+    race condition |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Favoring one transaction over others | Front-running | Front-running |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Making contract unusable | Denial of service | Fallback calling revert(),
+    exploiting gas limits |'
+  prefs: []
+  type: TYPE_TB
+- en: '|  |'
+  prefs: []
+  type: TYPE_TB
+- en: Warning
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: This section only covers the most common attacks, mainly to give you an idea
+    of how malicious participants can manipulate a contract. Also, new security attacks
+    are continuously discovered, so you must learn about and constantly keep up to
+    date with the latest security breaches by consulting the official Solidity documentation
+    and the many other websites and blogs that cover the topic. I’ll point you to
+    some resources in [section 14.5](#ch14lev1sec5).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|  |'
+  prefs: []
+  type: TYPE_TB
+- en: 14.4.1\. Reentrancy
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Reentrancy attacks target functions containing an external call and exploit
+    a race condition between simultaneous calls to this function caused by the possible
+    time lag that takes place during the external call. The objective of the attack
+    is generally to manipulate the state of the contract, often having to do with
+    an Ether or custom cryptocurrency balance, by calling back the targeted function
+    many times simultaneously while the attacker hijacks the execution of the external
+    call. If we go back to the example of the auction Dapp I showed you earlier, an
+    attacker could launch a reentrancy attack on an incorrect implementation of `withdrawRefund()`
+    by requesting a refund many times in parallel while hijacking each refund call,
+    as illustrated in [figure 14.9](#ch14fig09).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 14.9\. If you were to implement `Auction.withdrawRefund()` incorrectly,
+    for example, by clearing the balance of the caller only after the Ether transfer
+    has been completed, an attacker could attempt to call it many times in parallel
+    while hijacking each call, by slowing down the execution of the receiving `fallback()`
+    function. Various of these simultaneous Ether transfers are allowed and can complete
+    successfully until one of them finally completes and the balance of the caller
+    is cleared. Before this happens, many illegitimate refunds might take place.
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: '![](Images/fig14-09_alt.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'The following code shows an incorrect implementation of `withdrawRefund()`
+    (also from the ConsenSys guide) that will put your contract in danger:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE37]'
+  prefs: []
+  type: TYPE_PRE
+- en: '***1*** **Calls to an external contract fallback function, which might take
+    a relatively long time**'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '***2*** **Executes only after the previous external call is complete**'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'As I mentioned, an attacker contract might call `withdrawRefund()` several
+    times while hijacking each external call to the fallback function that enables
+    the payment, as shown here:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE38]'
+  prefs: []
+  type: TYPE_PRE
+- en: '***1*** **The fallback contains only code to delay its completion. Before this
+    completes, the attacker calls withdrawRefund() several times.**'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Such a slow execution of the Ether transfer would prevent `withdrawRefund()`
+    from reaching the code line that clears the caller balance for a long time:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE39]'
+  prefs: []
+  type: TYPE_PRE
+- en: Until this line is reached, various Ether transfers might take place, each equal
+    to the amount owed to the caller. As a result, the caller could receive more Ether
+    than they’re owed, as shown in the sequence diagram in [figure 14.10](#ch14fig10).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|  |'
+  prefs: []
+  type: TYPE_TB
+- en: Note
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: The reason why I wanted to include in this chapter the auction Dapp from the
+    ConsenSys guide, and particularly its incorrect implementation of the `withdrawRefund()`
+    function, is that this code shows one of the vulnerabilities that contributed
+    to the initial success of the DAO attack.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|  |'
+  prefs: []
+  type: TYPE_TB
+- en: Figure 14.10\. Sequence diagram of parallel invocations of an incorrect implementation
+    of `withdrawRefund()` by an attacker
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: '![](Images/fig14-10_alt.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'You can prevent this attack using a couple of methods:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you can, use `transfer()` or `send()` instead of `call.value()()`, so the
+    attacker will have a gas limit of 2,300 and be prevented from implementing any
+    transfer-delaying code in their `fallback()` function.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Place the external call performing the Ether transfer as the last operation,
+    so the Ether balance can be cleared before the call takes place rather than after,
+    as shown in [listing 14.8](#ch14ex08). If the attacker tried to call `withdrawRefund()`
+    again, the value of `refunds[msg.sender]` would be zero, and consequently the
+    refund would be set to zero. Therefore, the new Ether payment wouldn’t have any
+    effect.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Listing 14.8\. Correct `withdrawRefund` implementation
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: '[PRE40]'
+  prefs: []
+  type: TYPE_PRE
+- en: '***1*** **Now the transfer takes place after the balance has been cleared,
+    so subsequent calls to withdraw-Refund() have no effect.**'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 14.4.2\. Cross-function race conditions
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: You’ve learned that reentrancy attacks exploit a race condition between simultaneous
+    calls to the same function. But an attacker can also exploit race conditions between
+    simultaneous calls on separate functions that try to modify the same contract
+    state—for example, the Ether balance of a specific account.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A cross-race condition also could happen on `SimpleCoin`. Recall `SimpleCoin`’s
+    `transfer()` function:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE41]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Now, imagine you decided to provide a `withdrawFullBalance()` function, which
+    closed the SimpleCoin account of the caller and sent them back the equivalent
+    amount in Ether. If you implemented this function as follows, you’d expose the
+    contract to a potential cross-function race condition:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE42]'
+  prefs: []
+  type: TYPE_PRE
+- en: '***1*** **The attacker contract calls transfer() at this point of the execution
+    of withdrawFullBalance().**'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'A cross-function race condition attack works in a similar way to the reentrancy
+    attack shown earlier. An attacker would first call `withdrawFullBalance()` and,
+    while they were hijacking the external call from their fallback function, as shown
+    in the following code, they’d call `transfer()` to move the full SimpleCoin balance
+    to another address they own before the execution of `withdrawBalance()`cleared
+    this balance. In this way, they’d both keep the full SimpleCoin balance and get
+    the equivalent Ether amount:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE43]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The solution is, as was the case for the reentrancy attack, to replace `call.value()()`
+    with `send()` or `transfer()`. You would also need to make sure the external call
+    that performs the balance withdrawal takes place in the last line of the function,
+    after the caller balance has already been set to 0:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE44]'
+  prefs: []
+  type: TYPE_PRE
+- en: '***1*** **The external call is now performed after the caller balance has been
+    cleared.**'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: More complex cases of reentrancy involve call chains spanning several contracts.
+    The general recommendation is always to place external calls or calls to functions
+    containing external calls at the end of the function body.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 14.4.3\. Front-running attacks
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: The attacks based on race conditions you’ve seen so far try to manipulate the
+    outcome of a transaction by altering its expected execution flow, generally by
+    hijacking the part of the execution that takes place externally.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Other attack strategies work at a higher level and target decentralized applications
+    for which the ordering of the execution of the transactions is important. Attackers
+    try to influence the timing or ordering of transaction executions by favoring
+    and prioritizing certain transactions over others. For example, a malicious miner
+    might manipulate a decentralized stock market-making application by creating new
+    buy order transactions when detecting in the memory pool many buy orders for a
+    certain stock. The miner would then include only their own buy order transactions
+    on the new block, so their transactions would get executed before any other similar
+    order present in the memory pool, as illustrated in [figure 14.11](#ch14fig11).
+    If the miner’s PoW was successful, their buy order would become official. Subsequently,
+    the stock price would rise because of the many buy orders that have been submitted
+    but not executed yet. This would generate an instant profit for the miner.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 14.11\. An example of a front-running attack. A malicious miner could
+    detect big buy or sell orders being sent to a stock market-making Dapp and still
+    in the memory pool. They could then decide to front run them by ignoring these
+    big orders and including their own orders in the new block they would try to create,
+    therefore making an unfair profit if the block got mined.
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: '![](Images/fig14-11_alt.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: This manipulation is an example of *front running*, which is the practice of
+    malicious stock brokers who place the execution of their own orders ahead of those
+    of their clients. A way to avoid this attack is to design the order clearing logic
+    on *batch execution* rather than individual execution, with an implementation
+    similar to batch auctions. With this setup, the auction contract collects all
+    bids and then determines the winner with a single operation. Another solution
+    is to implement a commit–reveal scheme similar to that described earlier in this
+    chapter to disguise order information.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 14.4.4\. Denial of service based on revert() in fallback
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Some attacks aim to bring down a contract completely. These are known as denial
+    of service (DoS) attacks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'As I’ve already shown you in the `Auction` contract, at the beginning of this
+    chapter, an attacker could make a contract unusable by implementing the following
+    fallback and then calling the targeted contract in such a way that it triggers
+    an incoming payment:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE45]'
+  prefs: []
+  type: TYPE_PRE
+- en: '***1*** **This contract will revert its state and throw an exception every
+    time it receives an Ether payment.**'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'If the targeted contract implements a function as shown here, it will become
+    unusable as soon as it tries to send Ether to the attacker:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE46]'
+  prefs: []
+  type: TYPE_PRE
+- en: '***1*** **Checks if the current bid is higher than the current highest bid**'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '***2*** **The previous highest bidder is refunded, but when the previous highest
+    bidder is the malicious contract, the transfer fails, and a new higher bidder
+    and bid value can no longer be set.**'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '***3*** **Sets new higher bidder and bid values**'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: As you already know, you can avoid this attack by implementing a pull payment
+    facility rather than an automated push payment. (See [section 14.3.1](#ch14lev2sec11)
+    for more details.)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 14.4.5\. Denial of service based on gas limits
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: 'In the section on pull payments, you saw the example of an incorrectly implemented
+    function that refunds all the accounts of the investors in an unsuccessful crowdsale:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE47]'
+  prefs: []
+  type: TYPE_PRE
+- en: I already warned you that this implementation lends itself to manipulation by
+    an attacker who makes very small investments from a very high number of accounts.
+    The high number of `for` loops required by the large investments array will damage
+    the contract permanently, because any invocation of the function will blow the
+    gas limit. This is a form of DoS attack exploiting gas limits. Refunds based on
+    pull payment functionality also prevent this attack.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You’ve learned about the pitfalls associated with external calls and how to
+    avoid the most common forms of attack. Now I’ll close the chapter by sharing with
+    you some security recommendations I’ve been collecting over time from various
+    sources.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 14.5\. General security guidelines
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The official Solidity documentation has an entire section dedicated to security
+    considerations and recommendations,^([[2](#ch14fn02)]) which I invite you to consult
+    before deploying your contract on public networks. Other excellent resources are
+    available, such as the open source *Ethereum Smart Contract Best Practices* guide
+    ([http://mng.bz/dP4g](http://mng.bz/dP4g)), initiated and maintained by the Diligence
+    ([https://consensys.net/diligence/](https://consensys.net/diligence/)) division
+    of ConsenSys, which focuses on security and aims at raising awareness around best
+    practices in this field. This guide, which I’ve referenced in various places in
+    this chapter, is widely considered to be the main reference on Ethereum security.
+    I’ve decided to adopt its terminology to make sure you can look up concepts easily,
+    if you decide you want to learn more about anything I’ve covered here.
+  prefs: []
+  type: TYPE_NORMAL
+- en: ²
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: See “Security Considerations” at [http://mng.bz/a7o9](http://mng.bz/a7o9).
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: In [table 14.10](#ch14table10), I’ve listed an additional set of useful free
+    resources on Ethereum security that ConsenSys Diligence has created. Presentations
+    and posts by Christian Reitwiessner,^([[3](#ch14fn03)]) the head of Solidity at
+    Ethereum, are also a must-read.
+  prefs: []
+  type: TYPE_NORMAL
+- en: ³
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: See “Smart Contract Security,” June 10,2016, [http://mng.bz/GWxA](http://mng.bz/GWxA),
+    and “How to Write Safe Smart Contracts,” November 10, 2015, [http://mng.bz/zMx6](http://mng.bz/zMx6).
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Table 14.10\. Ethereum security resources ConsenSys Diligence has distributed
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: '| Resource | Description |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Secure smart contract philosophy¹ | Series of *Medium* articles written by
+    ConsenSys Diligence on how to approach smart contract security |'
+  prefs: []
+  type: TYPE_TB
+- en: '| EIP 1470: SWC² | Standardized weakness classification for smart contracts,
+    so tool vendors and security practitioners can classify weaknesses in a more consistent
+    way |'
+  prefs: []
+  type: TYPE_TB
+- en: '| 0x security audit report³ | Full security audit of ConsenSys 0x smart contract
+    system, carried out by ConsenSys Diligence. This gives a good idea of the weaknesses
+    assessed during a thorough security audit. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Audit readiness guide⁴ | Guidelines on how to prepare for a smart contract
+    security audit |'
+  prefs: []
+  type: TYPE_TB
+- en: '| 1\. See “Building a Philosophy of Secure Smart Contracts,” [http://mng.bz/ed5G](http://mng.bz/ed5G).
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| 2\. See these GitHub pages: [https://github.com/ethereum/EIPs/issues/1469andhttp://mng.bz/pgVR](https://github.com/ethereum/EIPs/issues/1469andhttp://mng.bz/pgVR).
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| 3\. See http://mng.bz/O2Ej. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| 4\. See Maurelian’s “Preparing for a Smart Contract Code Audit,” September
+    6, 2017, at [http://mng.bz/YPqj](http://mng.bz/YPqj). |'
+  prefs: []
+  type: TYPE_TB
+- en: 'I’ll summarize in a short list the most important points all the resources
+    I’ve mentioned tend to agree on. I reiterate, though, that it’s important to constantly
+    keep up to date with the latest security exploits and discovered vulnerabilities
+    on sites such as [http://hackingdistributed.com](http://hackingdistributed.com),
+    [https://cryptonews.com](https://cryptonews.com), or [https://cryptoslate.com](https://cryptoslate.com).
+    Here’s the list:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Favor a simple contract design*. The same design recommendations that generally
+    apply to object-oriented classes are also valid for smart contracts. Aim for small
+    contracts, focused on only one piece of functionality, with a small number of
+    state variables and with short functions. This will help you avoid mistakes and
+    will help fellow developers understand your code correctly.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Amend code that raises compiler warnings*. Understand any compiler warnings
+    and amend your code accordingly. Aim to remove all the warnings you get, if possible,
+    especially those related to deprecated functionality. Solidity syntax has been
+    amended often because of security concerns, so take the advice from warnings seriously.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Call external contracts as late as possible*. As you’ve learned in the sections
+    dedicated to reentrancy, you should avoid changing the state of your contract
+    after returning from an external call. This call might get hijacked, and you might
+    not be able to return from it safely. The recommended pattern to adopt is called
+    *check–effects–interaction*, according to which you structure a function on the
+    following ordered steps:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Check*—Validate that the message sender is authorized, function input parameters
+    are valid, Ether being transferred is available, and so on. You generally do this
+    directly through `require` statements or indirectly through function modifiers.'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Effects*—Change the state of your contract based on the validated function
+    input.'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Interaction*—Call external contracts or libraries using the new contract state.'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Plan for disaster*. As you learned in the previous chapter, once a contract
+    has been deployed, you can’t modify it. If you discover a bug or, even worse,
+    a security flaw, and Ether is at risk, you can’t apply a hot-fix as you’d do on
+    a conventional centralized application. You should plan for this eventuality beforehand
+    and provide the contract owner with an emergency function, such as `freeze()`
+    or `selfDestruct()`, as I mentioned in [chapters 6](kindle_split_018.xhtml#ch06)
+    and [7](kindle_split_019.xhtml#ch07) when presenting `Simple-Crowdsale`. Such
+    functions can disable the contract temporarily, until you understand the defect,
+    or even permanently. Some developers have taken a more proactive approach and
+    have implemented auto-freezing (or fail-safe) functionality based on contract
+    state pre- or postcondition checks on each contract function. If the condition
+    isn’t met, the contract moves into a fail-safe mode in which all or most of its
+    functionality is disabled. Regardless of whether you decided to fit your contract
+    with an interactive or automated emergency stop, ideally you should also plan
+    for an upgrade strategy, as I discussed in [chapter 13](kindle_split_027.xhtml#ch13).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Use linters*. A linter is a static code analysis tool that aims at catching
+    breaches against recommended style, efficient implementation, or known security
+    vulnerabilities. The two most well-known Solidity linters are Solium (now Ethlint)
+    ([https://github.com/duaraghav8/Solium](https://github.com/duaraghav8/Solium))
+    and Solint ([https://github.com/SilentCicero/solint](https://github.com/SilentCicero/solint)).
+    They both provide integration plugins for most common general code editors, such
+    as Atom, Sublime, VS Code, and JetBrains IDEA. Apart from highlighting security
+    vulnerabilities, these tools give feedback on coding style and best practices
+    in general, so they can help you learn Solidity quickly.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Use security analysis frameworks*. If you want to go the extra mile, don’t
+    stop at linters. Instead, aim at integrating security analysis into your development
+    cycle with frameworks such as the Mythril Platform,^([[4](#ch14fn04)]) which combines
+    a variety of static and dynamic analyzers.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: ⁴
+  prefs:
+  - PREF_IND
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_IND
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: See Bernhard Mueller, “MythX Is Upping the Smart Contract Security Game,” [http://mng.bz/0WmE](http://mng.bz/0WmE),
+    for an introduction to Mythril.
+  prefs:
+  - PREF_IND
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '*Follow the wisdom of the crowds*. If you’re not sure about the safety of smart
+    contracts you’d like to connect to, you could look up their ratings in Panvala,^([[5](#ch14fn05)])
+    a system that attempts to gather the level of security of smart contracts from
+    their users.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: ⁵
+  prefs:
+  - PREF_IND
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_IND
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: See “Introducing Panvala,” [http://mng.bz/K1Mg](http://mng.bz/K1Mg), for an
+    introduction to Panvala.
+  prefs:
+  - PREF_IND
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '*Commission a formal security audit*. If your smart contract handles anything
+    valuable, such as cryptocurrency or tokens, before going into production you should
+    consider commissioning a formal security audit from one of the many consultancies
+    that are starting to specialize in this area.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Attackers generally exploit limitations in the Solidity language, the EVM, and
+    the blockchain as the first line of attack against unaware developers, especially
+    around data privacy, random numbers, integer overflows, and gas limits.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If not well understood, external calls can expose a contract to manipulation
+    by malicious participants. For example, some external calls throw exceptions,
+    whereas others don’t, or some execute in the context of the caller contract, and
+    others in the context of the called contract. You must understand the risks of
+    each type and handle returned value and contract state accordingly.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Various techniques are available to perform safer external calls and reduce
+    the chance of external manipulation. Examples include pull payment (rather than
+    automated payment) functionality and Ether transfer based on `transfer()` and
+    `send()`, which restrict the gas limit on an external fallback function.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The minimum line of defense is to prepare at least against well-known attacks,
+    such as reentrancy, front-running attacks, and denial of service (DoS) attacks.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The official Solidity documentation and various online security guides, sites,
+    and blogs provide up-to-date information on the latest attacks and guidelines
+    for avoiding them.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Chapter 15\. Conclusions
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '|  |'
+  prefs: []
+  type: TYPE_TB
+- en: '**This chapter covers**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The evolution of Ethereum
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Alternative Ethereum implementations
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Capabilities beyond the Ethereum blockchain
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '|  |'
+  prefs: []
+  type: TYPE_TB
+- en: You’ve finally reached the end of this book. I’m sure you’ve learned a lot,
+    and you should now feel equipped to continue the journey by yourself. Don’t rest
+    on your laurels, though. Both Ethereum and the landscape around it are constantly
+    changing.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Before I say goodbye, I’d like to give you a heads-up on topics you should particularly
+    keep an eye on if you’re considering building your own Dapp. I’d also like to
+    briefly present you with some alternative forks of mainstream Ethereum, in case
+    you have needs the mainstream implementation can’t fulfill. Finally, I’ll give
+    you a quick view of the current blockchain landscape, in case you want to explore
+    alternative blockchain offerings.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Before I start, I’d like to be clear on one thing: this chapter is only meant
+    to give you ideas for further learning, so I’m not aiming to cover any topic in
+    depth. I’ll only try to stimulate your mind and enthusiasm.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 15.1\. Evolution of Ethereum
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: As I’ve repeated various times throughout the book, Ethereum is continuously
+    evolving, and at this stage many of its building blocks are still in flux, such
+    as the EVM, the Solidity language, the Web3.js library, the consensus algorithm,
+    and some elements of the ecosystem. I’ll give you an idea of how these elements
+    are likely to evolve, but I strongly recommend you keep updated through online
+    resources.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 15.1.1\. Evolution of EVM
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: The current implementation of the EVM supports dynamic jumps (which means the
+    address is supplied as an argument on the stack), but they make control-flow and
+    data-flow analysis complicated and slow. Ethereum Improvement Proposal 615^([[1](#ch15fn01)])
+    aims at a partial redesign of the EVM (version 1.5) targeted at introducing subroutines
+    (through static jumps and `return`) and disallowing dynamic jumps and other misuses
+    of the stack. This would bring several benefits, including better compilation
+    from Solidity, faster interpretation, improved optimization to native code, and
+    better static analysis and formal verification tools. It would also allow better
+    compilation from and to eWASM.
+  prefs: []
+  type: TYPE_NORMAL
+- en: ¹
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: See EIPs/eip-615.md on GitHub at [http://mng.bz/9OMq](http://mng.bz/9OMq).
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: If you’re wondering what eWASM is, WASM stands for WebAssembly ([https://webassembly.org/](https://webassembly.org/)),
+    and it’s a new binary instruction format that W3C is designing as an open standard.
+    This standard specifies an instruction set, an intermediate source format (WAST),
+    and a binary encoded format (WASM). Most mainstream JavaScript engines, including
+    those behind Node.js, Chrome, Edge, and Firefox, will provide native support for
+    WebAssembly. eWASM ([https://github.com/ewasm](https://github.com/ewasm)) is a
+    subset of WASM designed to support Ethereum smart contracts. The ultimate objective
+    is, among other benefits, to provide a library and instructions to write Ethereum
+    contracts in C and in Rust.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 15.1.2\. Evolution of Solidity
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: If you’re among the MEAP readers of this book, you might have noticed Solidity
+    has been changing frequently since you started playing with it. The developers
+    of Solidity have often introduced new keywords and deprecated others. This continuous
+    evolution is making Solidity a more robust language, especially from a security
+    point of view. The biggest change that’s taking place, and you should be aware
+    of, is the deprecation of `send()` and `call()`, so I strongly encourage you to
+    use `transfer()` instead.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 15.1.3\. Evolution of Web3.js
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Although throughout the book I’ve been referencing Web3.js version 0.24 because
+    it works reliably with all the current tools, you should try to move to version
+    1.0 as soon as you can. This is still in beta at the time of writing, but the
+    candidate release is coming soon.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 15.1.4\. Evolution of the consensus algorithm
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: MAINNET, the public production network, is still based on the Proof of Work
+    (PoW) consensus algorithm. As you might recall, the PoW algorithm is designed
+    so that many miners are competing to append a new block to the blockchain by simultaneously
+    trying to solve a cryptographic puzzle. They keep re-hashing the proposed new
+    block until they find a *nonce* that generates a correct hash (for example, a
+    hash with many leading zeros). The hashing process is CPU-intensive and therefore
+    energy-intensive. The simultaneous re-hashing of a new block performed trillions
+    of times per second throughout the Ethereum network has been widely blamed for
+    being energy-wasteful. Developers are experimenting with a couple of alternative
+    consensus algorithms to overcome this issue, namely *Proof of Stake* (PoS) and
+    *Proof of Authority* (PoA).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Proof of Stake
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: 'The *Proof of Stake* algorithm^([[2](#ch15fn02)]) is designed so that only
+    one miner has the right to append a new block during a certain time slot. A new
+    block is consequently processed only once every few seconds throughout the network,
+    rather than trillions of times per second, which eliminates the problem of electricity
+    consumption. As you can imagine, the term “miner” no longer applies under this
+    algorithm: candidates for appending blocks are called *validators* instead, as
+    shown in [figure 15.1](#ch15fig01).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ²
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: See “Proof of Stake FAQs” on the Ethereum wiki on GitHub at [http://mng.bz/jO48](http://mng.bz/jO48).
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Figure 15.1\. PoS versus PoW. Whereas under PoW, many miners perform work (and
+    consume electricity) simultaneously to append a block, under PoS only one node,
+    called a validator, proposes a new block during a time slot.
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: '![](Images/fig15-01_alt.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Validators submit a deposit in Ether, which represents their stake in the infrastructure.
+    The chosen validator, selected through a randomizer or round-robin function weighted
+    on the stake, proposes a new block. Then, depending on the specific implementation
+    of the PoS algorithm, the validator submits the proposed block to several secondary
+    validators for approval. They vote on the block (the vote might be weighted on
+    their stake) and, if the outcome is positive, the block is appended to the blockchain
+    and the validator is rewarded in Ether. On the other hand, if the block is found
+    to be incorrect, the initial (main) validator might get blacklisted and lose their
+    deposit. Also, secondary validators are encouraged to be honest: if their vote
+    diverges too much from that of their peers, they might get penalized and lose
+    some of their deposit, as you can see in [figure 15.2](#ch15fig02).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The PoS algorithm, with its incentives and disincentives, might provide various
+    benefits, such as reductions in dependency of the network on advanced hardware,
+    risk of centralized processing by a few miners, and likelihood of a 51% attack
+    (which would become much costlier). The project name for the PoS algorithm is
+    called Casper, and the project released a test network in January 2018.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 15.2\. PoS algorithm. First, validators submit a deposit. Then the selected
+    validator proposes a new block and submits it to secondary validators for approval.
+    If they score the block as correct, it’s appended to the blockchain. The main
+    validator or secondary validators might get penalized in Ether if they’re found
+    to be dishonest.
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: '![](Images/fig15-02_alt.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: Proof of Authority
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: Many practitioners and researchers have criticized the nature of PoS’s incentives
+    for being potentially unbalanced because they don’t take into account the total
+    holdings of each validator. A state-sponsored validator, for example, might have
+    committed an amount of Ether considered large by the designers of the algorithm.
+    But if that amount is relatively small with respect to the value of their total
+    assets (including cryptocurrency and conventional assets), they might not be discouraged
+    from acting dishonestly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Proof of Authority*^([[3](#ch15fn03)]) is an alternative form of consensus
+    algorithm that is still based on a pool of validators, but in this case each validator
+    puts at stake their reputation rather than their Ether. Nodes that want to take
+    part in the validators pool apply through a formal identification process: they
+    disclose their real identity, which is verified through the same checks a conventional
+    notary would perform. Once a node has been approved as a validator, it becomes
+    an *Authority* (hence the name of the algorithm). The idea is that linking the
+    block verification process to the node’s reputation rather than to the perceived
+    value of their deposit is more robust, as shown in [figure 15.3](#ch15fig03).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ³
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: See the Wikipedia “Proof-of-Authority” page at [https://en.wikipedia.org/wiki/Proof-of-authority](https://en.wikipedia.org/wiki/Proof-of-authority).
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Figure 15.3\. PoA versus PoS. When a malicious node loses their Ether deposit
+    under PoS, their sponsor can set up a new node and continue with malicious behavior.
+    Under PoA, once an authority has been detected as malicious, their sponsor (and
+    all associated identities) is prevented from reentering the network.
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: '![](Images/fig15-03_alt.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Currently, two public test networks support different implementations of PoA:
+    Rinkeby and Kovan. In August 2018, Microsoft released Ethereum PoA on Azure, targeting
+    private and consortium permissioned networks. (See [section 15.2](#ch15lev1sec2)
+    for more details on permissioned networks.)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 15.1.5\. Evolution of the ecosystem
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Many of the components of the Ethereum ecosystem I presented in [chapter 9](kindle_split_022.xhtml#ch09)
+    are evolving. For example, on the ENS website ([https://ens.domains/](https://ens.domains/)),
+    you can find a roadmap that indicates the production ENS registrar, currently
+    based on a commit–reveal auction, will be replaced in the next few months with
+    a simplified version. Also, the Swarm team has published a roadmap^([[4](#ch15fn04)])
+    for the future development of the decentralized file system. A more dramatic evolution
+    is that of Zeppelin. What started as an open source Ethereum smart contract library
+    is becoming ZeppelinOS ([https://zeppelinos.org/](https://zeppelinos.org/)), a
+    full-blown operating system for smart contracts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: ⁴
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: See the Swarm “Roadmap” on GitHub at [https://github.com/ethersphere/swarm/wiki/roadmap](https://github.com/ethersphere/swarm/wiki/roadmap).
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 15.2\. Alternative Ethereum implementations
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Although you might have been fascinated by the technology, if you work in an
+    enterprise, you might think Ethereum would be difficult to adopt. One good reason
+    is that it doesn’t offer out of the box three features most enterprise applications
+    require: scalability, permissioning, and data privacy. The Enterprise Ethereum
+    Alliance is an organization trying to extend the public Ethereum implementation
+    with such features.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 15.2.1\. Enterprise Ethereum Alliance
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: The Enterprise Ethereum Alliance (EEA) ([https://entethalliance.org/](https://entethalliance.org/))
+    is a nonprofit consortium of around 500 companies that formed in March 2017 from
+    a core of 30 founding members, including technology corporations (Microsoft, INTEL),
+    research institutes (Toyota Research Institute), consultancies (Deloitte, Accenture,
+    Samsung SDS), and financial institutions (Banco Santander, ING). The mission of
+    the consortium is to propose and drive a roadmap for enterprise features and requirements;
+    to shape a governance model for licensing around the open source technology; and
+    to provide businesses with resources to help them learn Ethereum and address industry
+    use cases that can take advantage of the technology.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The EEA has published the Enterprise Ethereum Architecture Stack (EEAS), which
+    presents a standardized view of the Enterprise Ethereum ecosystem, from the network
+    layer to the application layer. This is illustrated in [table 15.1](#ch15table01),
+    which compares the public Ethereum building blocks with the corresponding Enterprise
+    Ethereum ones. (A more comprehensive view is available in the official documentation.)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Table 15.1\. Public Ethereum versus Enterprise Ethereum building blocks
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: '| Level | Public Ethereum | Enterprise Ethereum |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Permissioning and credentials | Key management | Permissioning and authentication
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Integration and deployment tools | Integration libraries | Enterprise management
+    systems |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Privacy | On-chain | Private transactions and off-chain transactions |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Storage | On-chain public state and storage; off-chain storage | On-chain
+    private state |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Execution | EVM | Trusted execution |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Consensus | Public consensus | Private consensus |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Network | DevP2P | Enterprise P2P |'
+  prefs: []
+  type: TYPE_TB
+- en: The first version of the Enterprise Ethereum Client Specification (EECS), detailing
+    extensions to the public Ethereum blockchain to support permissioning, privacy,
+    and scalability required for enterprise deployments, was published in May 2018,
+    and you can download it from the EEA website. The objective of this specification,
+    whose broad requirements are summarized in [table 15.2](#ch15table02), is to serve
+    as a flexible standard that can allow different vendor implementations. For example,
+    the specification defines various levels of privacy, identified with A, B, and
+    C, that depend on the requirements for connectivity between nodes, permissioning,
+    and transaction privacy. The vendor can decide which level to target and gets
+    certified accordingly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Table 15.2\. Broad requirements of EECS
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: '| Requirement | Description |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Permissioning | A blockchain system is defined as permissioned when its network
+    isn’t public, but its nodes are owned by a restricted group of known participants.
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Privacy | The content of a transaction should be visible only to the parties
+    involved in the transaction. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Scalability | The performance of the blockchain infrastructure shouldn’t
+    degrade with an increasing number of transactions, and it should ideally be equivalent
+    to that of major enterprise systems, such as those handling credit card transactions.
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: 15.2.2\. Quorum
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: One of the first Enterprise Ethereum implementations is Quorum ([www.jpmorgan.com/global/Quorum](http://www.jpmorgan.com/global/Quorum)).
+    This is a fork of Ethereum that two members of the EEA—AMIS (a joint venture of
+    Taiwanese financial institutions) and the bank JP Morgan—created in 2016\. Quorum
+    extends a shared private Ethereum network with a *constellation network* that
+    handles permissioning and data privacy, as you can see in [figure 15.4](#ch15fig04).
+    When a transaction takes place between two or more participants, the constellation
+    network deploys the relevant smart contract only across the members of the transaction.
+    The content of the transaction is encrypted and stored off-chain by a transaction
+    manager, and a hash is stored on the shared Ethereum blockchain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 15.4\. A constellation network allows Quorum to handle permissioning
+    and privacy. A smart contract is deployed only across the parties involved in
+    a transaction; the transaction is encrypted and stored off-chain, and its hash
+    is stored on the shared Ethereum blockchain.
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: '![](Images/fig15-04_alt.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: Quorum has been one of the first Ethereum-based platforms to
+  prefs: []
+  type: TYPE_NORMAL
+- en: take advantage of geth’s pluggable consensus interface to allow a *configurable
+    consensus algorithm*.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: use *zk-SNARKs’* cryptographic privacy technology to provide zero-knowledge
+    verification of smart contract transactions, which means verification of the correctness
+    of the execution of a transaction without learning what has been computed. The
+    project’s participants have used this technology to build the *zero-knowledge
+    security layer* (ZSL), which provides Quorum the ability to transfer digital assets
+    on the blockchain without revealing any information about the sender and recipient
+    assets themselves, therefore guaranteeing complete privacy.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '|  |'
+  prefs: []
+  type: TYPE_TB
+- en: Note
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: zk-SNARKs is the technology that makes ZCash a truly anonymous cryptocurrency,
+    contrary to Bitcoin, whose transactions can be traced to their owner.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|  |'
+  prefs: []
+  type: TYPE_TB
+- en: 15.3\. Beyond the Ethereum blockchain
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'As you know, blockchain technology is well suited to solving problems related
+    to proving ownership and traceability of assets. But as you learned earlier, public
+    blockchains like Ethereum might not be suitable for enterprise applications designed
+    to solve these problems because of their lack of focus on enterprise needs, such
+    as those listed in [table 15.2](#ch15table02): permissioning, privacy, and scalability.
+    Although the EEA is trying to fit the Ethereum blockchain to such requirements
+    with various extensions (Quorum is one such example), other organizations have
+    decided to take a completely different approach. Vendors agree that a decentralized
+    database would be the core component of any solution, but they disagree on many
+    implementation aspects of an architecture:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Decentralized database technology*—This isn’t necessarily based on a blockchain
+    structure, so the industry has come up with the more general term of *distributed
+    ledger technology* (DLT).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Permissioning*—Vendors agree that a distributed ledger can be accessed securely
+    and with acceptable scalability only through a restricted network of known participants.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Consensus*—Consensus in the blockchain space has evolved from PoW, based on
+    a large group of anonymous miners processing the same transactions simultaneously,
+    to PoS, based on a smaller group of participants that have submitted a deposit
+    and process different sets of transactions in a coordinated fashion, to PoA, based
+    on a limited set of known participants. The commonality among these approaches
+    is they involve fundamentally two network roles: transaction submitters (any node)
+    and validators (or miners). Consensus in a distributed ledger, on the other hand,
+    might involve a more complex interaction among many roles to provide better scalability
+    without compromising the integrity of the stored data.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Cryptocurrency*—The consensus algorithm of distributed ledgers not based on
+    a blockchain structure isn’t based on PoW or PoS, so cryptocurrency isn’t needed,
+    but some platforms still allow the generation of cryptocurrency or tokens to facilitate
+    the exchange of monetary value, when needed.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Two distributed ledger initiatives that have gathered considerable traction
+    are Hyperledger and Corda. I’ll briefly sketch what they offer so you can get
+    a better idea of what’s happening with alternative blockchain-based distributed
+    ledgers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 15.3.1\. Hyperledger
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Around December 2015, the Linux foundation started a project called Hyperledger,
+    whose strategic objective is to stimulate cross-industry collaboration through
+    the development of distributed ledgers. Various distributed ledger frameworks
+    have been tested under this successful project, sponsored by around 250 member
+    organizations that provide funding and technical expertise. Two examples are Hyperledger
+    Burrow, which includes its own implementation of the Ethereum Virtual Machine,
+    and Hyperledger Iroha, whose focus is on mobile applications.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Hyperledger Fabric ([www.hyperledger.org/projects/fabric](http://www.hyperledger.org/projects/fabric)),
+    probably the most popular among the Hyperledger projects, was started with the
+    objective of building a framework for enterprise blockchain applications. Its
+    codebase was seeded with code developed by IBM, Digital Asset, and Blockstream
+    during a hackathon that had taken place a few months earlier. Hyperledger Fabric
+    is based on blockchain technology, but it’s designed on an open plug-and-play
+    framework that allows you to change and customize many components of the architecture
+    and adapt the platform to many industry use cases. For example, the consensus
+    algorithm is pluggable by design, and you can write smart contracts in a variety
+    of mainstream languages, such as Java, Java-Script, and Go. If you have time,
+    the official documentation ([https://hyperledger-fabric.readthedocs.io](https://hyperledger-fabric.readthedocs.io))
+    provides comprehensive information, from the high-level architecture to low-level
+    implementation details of the platform.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here are the main characteristics of Hyperledger Fabric that differ from traditional
+    blockchain systems, such as Ethereum:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Up to four roles could take part in a transaction and contribute to the consensus:^([[5](#ch15fn05)])
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: ⁵
+  prefs:
+  - PREF_IND
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_IND
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: See “Transaction Flow” in the Hyperledger Fabric documentation at [http://mng.bz/Wadl](http://mng.bz/Wadl).
+  prefs:
+  - PREF_IND
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '*A submitting client* is a node that submits a transaction.'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*An endorser* (or endorsing peer) is a node that verifies the electronic signature
+    and endorses a transaction through an endorsing policy before it gets committed
+    on the ledger; endorsers are generally all the parties that have to approve the
+    transaction.'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*An orderer* is a node that runs the messaging service that provides ordering
+    and delivery guarantees, when the transaction requires it.'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*A committer* (or peer) is a node that commits a transaction and holds a copy
+    of the ledger.'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The details of a transaction are private to only the interested participants.
+    This is achieved through *channels*, subnetworks that provide isolated and confidential
+    communication only among a number of authorized participants—a little bit like
+    a WhatsApp group.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Another interesting blockchain framework that the Hyperledger project has developed
+    under its umbrella is Hyperledger Sawtooth,^([[6](#ch15fn06)]) which introduces
+    the following innovative features:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ⁶
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: See “Hyperledger Releases Hyperledger Sawtooth 1.0,” January 30, 2018, [http://mng.bz/Ee2X](http://mng.bz/Ee2X).
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '*Parallel transaction execution*—Most blockchain systems can only process transactions
+    sequentially.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*On-chain governance*—Participants can actively configure their network through
+    smart-contract–based voting.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Ethereum support*—As Hyperledger Burrow does, Sawtooth offers a compliant
+    EVM capable of running Solidity contracts.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Dynamic consensus*—This goes beyond Fabric’s plug-in consensus design, as
+    you can change consensus algorithms on the fly.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Wider smart-contract language* *choice*—On top of the languages that Fabric
+    supports, Sawtooth also supports Python.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The Hyperledger initiative has also coordinated the development of blockchain
+    tools such as Hyperledger Composer, focused on helping users create smart contracts,
+    and Hyperledger Explorer, which allows users to view and analyze block and transaction
+    information.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 15.3.2\. Corda
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: R3 is a consortium of companies formed in 2015 that has grown to around 200
+    members, initially mainly from the financial sector but increasingly from other
+    industries. They started Corda in 2016 as an open source project.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The approach they took for creating Corda was different from that taken in the
+    EEA and Hyperledger initiatives. In the first place, the technical stack is made
+    of standard off-the-shelf parts, such as the Java Virtual Machine, relational
+    databases, and message queues. Second, Corda achieves privacy by sharing data
+    not among a group of participants, such as those interacting in a Hyperledger
+    channel, but only at the level of individual transactions. Specifically, two or
+    more nodes can share one or more facts, and each node maintains its own local
+    copy of such facts. There’s no central database containing all facts, as illustrated
+    in [figure 15.5](#ch15fig05) and described more extensively in the official documentation.^([[7](#ch15fn07)])
+    This fine level of data sharing is provided through a *notary*, a network role
+    that provides transaction ordering and timestamping.
+  prefs: []
+  type: TYPE_NORMAL
+- en: ⁷
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: See “The ledger” in the Corda documentation at [https://docs.corda.net/key-concepts-ledger.html](https://docs.corda.net/key-concepts-ledger.html).
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Figure 15.5\. How facts are shared in the Corda network. Each node maintains
+    its own copy of its own facts, but it can share some facts with other nodes. For
+    example, facts 1 and 5 are shared between nodes A and B; fact 4 is only visible
+    to nodes C, D, and E, but not A and B.
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+- en: '![](Images/fig15-05_alt.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: As you can see, this is a domain that’s constantly evolving, and there are many
+    different ways to solve problems. Hold tight and expect further innovation!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The EVM is being upgraded to a more general version supporting eWASM that ultimately
+    will be able to execute code compiled from Rust and C.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Continuous improvements in Solidity syntax are resulting in changes such as
+    the deprecation of `send()` and `call()` in favor of `transfer()`.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Web3.js version 1.0, which is in beta at the time of writing, is about to become
+    the official version to be used across the Ethereum ecosystem. I strongly advise
+    you to reference it as soon as it’s released.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Some alternative Ethereum networks are based on consensus algorithms different
+    from Proof of Work: Kovan and Rinkeby support Proof of Authority, whereas the
+    Casper project is introducing Proof of Stake.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: An Enterprise Ethereum platform, such as Quorum, supports enterprise Dapp requirements
+    such as scalability, permissioning, and privacy.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Other distributed ledger platforms, such as Hyperledger or Corda, offer alternatives
+    to Enterprise Ethereum.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
