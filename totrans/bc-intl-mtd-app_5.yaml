@@ -949,11 +949,13 @@
   id: totrans-103
   prefs: []
   type: TYPE_NORMAL
+  zh: 尽管通过观察操作码的词云图来判断智能合约的类型几乎是不可能的，但两个合约的词云图仍然明显不同。直观上，至少有两个显著的区别：Rubixi的操作码集中包含更多的判断，而LooneyLottery的操作码集中包含更多的随机性。实际上，第一个区别是明显的，因为Rubixi合约包含更多的JUMPI（7.8%），而LooneyLottery合约包含更多的JUMP（2.6%）。这些指令之间的区别是前者是后者的条件版本。发现第二个区别需要更多的观察。LooneyLottery合约包含4个TIMESTAMPs，而Rubixi一个也没有。这个差异的原因是操作码TIMESTAMP用于获取区块的时间戳，这是在系统中获取随机值的常用指令。上述分析表明，操作码特征可能有助于检测庞氏合约。
 - en: 5.3.3.4 Classification Model
   id: totrans-104
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 5.3.3.4 分类模型
 - en: In order to use the above extracted features to distinguish Ponzi scheme contracts
     from non-Ponzi scheme contracts with high accuracy and low false positives, we
     use a commonly used machine learning algorithm XGBoost, which is proved to perform
@@ -962,6 +964,8 @@
   id: totrans-105
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了利用上述提取的特征，以高准确度、低误报率区分庞氏合约与非庞氏合约，我们使用了广泛应用于机器学习领域的算法XGBoost，该算法已在许多问题中表现出良好的性能（Chen和Guestrin
+    [2016a](#CR12)）。本节提供了XGBoost的简单介绍及其参数。
 - en: 'XGBoost is short for “Extreme Gradient Boosting” and is an improved version
     of gradient tree boosting (Friedman [2001](#CR28)).^([8](#Fn8)) Unlike GBM, XGBoost
     introduced two important improvements: regularization and tree pruning. Basically,
@@ -971,6 +975,7 @@
   id: totrans-106
   prefs: []
   type: TYPE_NORMAL
+  zh: XGBoost是“Extreme Gradient Boosting”的缩写，是梯度提升树（Friedman [2001](#CR28)）的改进版本。与GBM不同，XGBoost引入了两项重要的改进：正则化和树剪枝。基本来说，XGBoost在目标函数中提供了正则化，用于避免基于树的模型过拟合。同时，它将树剪枝方法从遇到负损失时停止更改为后剪枝。
 - en: Specifically, suppose there are *N* smart contracts in the dataset {(*x* [*i*],
     *y* [*i*]) | *i* = 1, 2, …, *N*}, where *x* [*i*] ∈ *R* ^(*d*) is the extracted
     features associated with the *i*th smart contract, *y* [*i*] ∈{0, 1} is the classification
@@ -980,21 +985,27 @@
   id: totrans-107
   prefs: []
   type: TYPE_NORMAL
+  zh: 具体来说，假设数据集中有*N*个智能合约 {(*x* [*i*], *y* [*i*]) | *i* = 1, 2, …, *N*}，其中*x* [*i*] ∈ *R*
+    ^(*d*)是与第*i*个智能合约相关的提取特征，*y* [*i*] ∈{0, 1}是分类标签，当且仅当智能合约是一个经过验证的庞氏合约时，*y* [*i*] = 1。我们使用XGBoost旨在最小化以下目标函数：![
 - en: $$\displaystyle \begin{aligned} Obj(\theta) = L(\theta) + \Omega(\theta), \end{aligned}
     $$
   id: totrans-108
   prefs: []
   type: TYPE_NORMAL
+  zh: $$\displaystyle \begin{aligned} Obj(\theta) = L(\theta) + \Omega(\theta), \end{aligned}
+    $$
 - en: '](../images/506524_1_En_5_Chapter/506524_1_En_5_Chapter_TeX_Equ1.png)(5.1)'
   id: totrans-109
   prefs: []
   type: TYPE_NORMAL
+  zh: '](../images/506524_1_En_5_Chapter/506524_1_En_5_Chapter_TeX_Equ1.png)(5.1)'
 - en: where *L* is the training loss function and Ω is the regulation term. The training
     loss function measures how predictive the model is on the training data and the
     regulation term penalizes the complexity of the model, which helps to avoid overfitting.
   id: totrans-110
   prefs: []
   type: TYPE_NORMAL
+  zh: 其中*L*是训练损失函数，Ω是正则化项。训练损失函数衡量模型在训练数据上的预测能力，正则化项惩罚模型的复杂度，有助于避免过拟合。
 - en: Unlike traditional classification model which directly returns the class label,
     we train a logistic regression model for binary classification, which outputs
     a probability. Any contract with the predicted probability larger than 0.5 is
