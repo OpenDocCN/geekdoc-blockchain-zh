@@ -1,18 +1,26 @@
 - en: © Elad Elrom 2019Elad ElromThe Blockchain Developer[https://doi.org/10.1007/978-1-4842-4847-8_4](https://doi.org/10.1007/978-1-4842-4847-8_4)
+  id: totrans-0
   prefs: []
   type: TYPE_NORMAL
+  zh: © 埃拉德·埃尔罗姆 2019埃拉德·埃尔罗姆区块链开发者[https://doi.org/10.1007/978-1-4842-4847-8_4](https://doi.org/10.1007/978-1-4842-4847-8_4)
 - en: 4. Bitcoin Wallets and Transactions
+  id: totrans-1
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 4. 比特币钱包和交易
 - en: Elad Elrom^([1](#Aff2) )(1)New York, NY, USA
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: 埃拉德·埃尔罗姆^([1](#Aff2) )(1)纽约，纽约州，美国
 - en: In this chapter, you will be diving deep into bitcoin’s core RPC and learn about
     wallets and transactions. You will learn how to utilize legacy and SegWit’s bitcoin
     wallets. You will extract a wallet’s public and private keys.
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本章中，你将深入研究比特币的核心RPC，并学习关于钱包和交易的知识。你将了解如何使用旧版和SegWit的比特币钱包。你将提取钱包的公钥和私钥。
 - en: The majority of this chapter will deal with transactions, from sending funds
     in a simple way utilizing bitcoin’s testing blockchain to more complex transactions.
     Additionally, you will learn how to send coins via bitcoin’s core wallet GUI,
@@ -21,75 +29,101 @@
     transaction with one output as well as how to create transactions with multiple
     users signing them. Additionally, you will replace your transaction and set a
     lock time. You will also learn the difference between pay options and fees.
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: 本章的大部分内容将涉及交易，从利用比特币的测试区块链以简单的方式发送资金到更复杂的交易。此外，你还将学习如何通过比特币的核心钱包GUI发送硬币，以及如何在外部区块浏览器中查看交易并理解确认。你将研究原始交易，并学习如何创建具有一个输出的原始交易以及如何创建多个用户签名的事务。此外，你可以替换你的交易并设置锁定时间。你还将了解支付选项和费用之间的区别。
 - en: Lastly, I will cover how to pass data in a raw transaction. By the end of this
     chapter, you will have a much better understanding of transactions, wallets, fees,
     payment options, and bitcoin’s core RPC.
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后，我将介绍如何在原始交易中传递数据。在本章结束时，你将对交易、钱包、费用、支付选项和比特币的核心RPC有更深入的了解。
 - en: Bitcoin Core RPC Resources
+  id: totrans-6
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 比特币核心RPC资源
 - en: You learned how to interact with bitcoin core utilizing the bitcoin daemon and
     bitcoin core function as an HTTP JSON-RPC server, and you are now able to make
     calls and receive JSON responses. In this section, you will build on these skills
     to understand wallets and transactions.
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 你已经学会了如何利用比特币守护进程和比特币核心作为HTTP JSON-RPC服务器与比特币核心进行交互，并且你现在能够进行调用并接收JSON响应。在本节中，你将在此基础上了解钱包和交易。
 - en: The first step is to initialize and run the bitcoin daemon.> bitcoind –printtoconsoleThen
     in a different Terminal window, you can view the available RPC commands by running
     the help command.> bitcoin-cli helpYou can also request help on any command you
     run by adding help before the command. For instance, add help before the getnewaddress
     command like this:> bitcoin-cli help getnewaddress
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 第一步是初始化并运行比特币守护进程。> bitcoind –printtoconsole
 - en: At the time of writing, the latest RPC version is bitcoin core version v0.18.99.0-56376f336
     (release build); as new versions of bitcoin core are released, the commands in
     this chapter may change, so it’s useful to check [https://bitcoincore.org/en/doc/](https://bitcoincore.org/en/doc/)
     for the latest RPC commands.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 在撰写本文档时，最新的RPC版本是比特币核心版本v0.18.99.0-56376f336（发布版本）；随着比特币核心的新版本的发布，本章中的命令可能会发生变化，因此检查[https://bitcoincore.org/en/doc/](https://bitcoincore.org/en/doc/)上的最新RPC命令很有用。
 - en: Note that documentation for v0.18 is not live at the time of writing; v0.17
     is the latest doc ( [https://bitcoincore.org/en/doc/0.17.0/](https://bitcoincore.org/en/doc/0.17.0/)
     ). In the menu on the right, select RAWTRANSACTIONS and WALLET for a list of RPC
     commands relevant to this chapter.
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 请注意，v0.18的文档在撰写本文档时尚未上线；v0.17是最新文档([https://bitcoincore.org/en/doc/0.17.0/](https://bitcoincore.org/en/doc/0.17.0/)）。在右侧菜单中，选择RAWTRANSACTIONS和WALLET以获取与本章相关的RPC命令列表。
 - en: Note
+  id: totrans-11
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 注意
 - en: In addition to bitcoin core documentation, there are two free web resources
     that can help you better understand the bitcoin RPC command line beyond what is
     covered in this chapter. They are [https://github.com/ChristopherA/Learning-bitcoin-from-the-Command-Line](https://github.com/ChristopherA/Learning-bitcoin-from-the-Command-Line)
     and [http://learnmeabitcoin.com/guide/transactions](http://learnmeabitcoin.com/guide/transactions)
     .
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 除了比特币核心文档外，还有两个免费的网络资源可以帮助你更好地理解本章未涵盖的比特币RPC命令行。它们是[https://github.com/ChristopherA/Learning-bitcoin-from-the-Command-Line](https://github.com/ChristopherA/Learning-bitcoin-from-the-Command-Line)和[http://learnmeabitcoin.com/guide/transactions](http://learnmeabitcoin.com/guide/transactions)。
 - en: Bitcoin Wallet
+  id: totrans-13
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 比特币钱包
 - en: In Chapter [2](475651_1_En_2_Chapter.xhtml), you queried a wallet’s available
     funds via the getbalance command, and you created a new bitcoin wallet utilizing
     the getnewaddress command.
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 在第[2](475651_1_En_2_Chapter.xhtml)章中，你使用getbalance命令查询了钱包的可用资金，并使用getnewaddress命令创建了一个新的比特币钱包。
 - en: In Chapter [3](475651_1_En_3_Chapter.xhtml), you created your very own blockchain
     wallet for your blockchain; you did so by creating a wallet.js file utilizing
     the Elliptic Curve Cryptography Node.js library and generating a private-public
     key combo that you then were able to expose using a CLI. In this section, I will
     expand on this knowledge by looking at bitcoin’s core and how wallets and transactions
     are generated.
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: 在第[3](475651_1_En_3_Chapter.xhtml)章中，你为你自己的区块链创建了一个区块链钱包；你是通过创建一个钱包.js文件并利用椭圆曲线加密Node.js库生成一个私钥-公钥组合，然后你通过命令行界面(CLI)暴露了这个组合。在本节中，我将在此基础上进一步探讨比特币的核心以及钱包和交易是如何生成的。
 - en: Bitcoin allows users to send and receive coins. A user can generate a wallet,
     which holds a public key, and the sender will send the coins to the receiver’s
     wallet’s public key address.
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 比特币允许用户发送和接收币。用户可以生成一个钱包，其中包含一个公钥，发送者会将币发送到接收者钱包的公钥地址。
 - en: Sending coins follows the same process but in reverse. The receiver provides
     the sender with a wallet’s public key address where they expect to be paid, and
     the sender sends coins to that public key address. The wallet address is the public
@@ -100,78 +134,112 @@
     each transaction, as well as set many private keys that correspond with many public
     keys. The private keys are stored in a wallet, and each public key represents
     a wallet address.
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 发送币的过程遵循相同的步骤，但顺序相反。接收者向发送者提供一个钱包的公钥地址，他们在该地址期待收到付款，发送者将币发送到该公钥地址。钱包地址是公钥，由公钥/私钥散列算法生成。接收者可以在用户期待付款的任何时候生成一个新的公钥。不需要匿名性的用户可以对多个交易使用一个公钥；然而，比特币的原始愿景鼓励用户为每个交易提供一个不同的公钥，以及设置许多与许多公钥对应的私钥。私钥存储在钱包中，每个公钥代表一个钱包地址。
 - en: Create a Legacy Wallet Address and Retrieve Private Keys
+  id: totrans-18
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 创建遗留钱包地址和检索私钥
 - en: The most common bitcoin address and the type you generated in Chapter [2](475651_1_En_2_Chapter.xhtml)
     is called a Pay to PubKey Hash (P2PKH)  address. P2PKH is the public key, and
     the public key address gets hashed by an algorithm.
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 最常见的比特币地址，也是你在第[2](475651_1_En_2_Chapter.xhtml)章中生成的地址，称为支付到公钥哈希（P2PKH）地址。P2PKH是公钥，公钥地址由算法进行哈希。
 - en: Bitcoin also supports the P2SH-SEGWIT protocol, which I will discuss later in
     this chapter.
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: 比特币还支持P2SH-SEGWIT协议，我将在本章后面讨论此协议。
 - en: Note
+  id: totrans-21
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 注意
 - en: Segregated Witness (SegWit) was an addition to bitcoin core code via a soft
     fork that increased bitcoin’s block size limit by removing the signature data
     that unlocks the transaction. When the unlocking code is removed, the additional
     space is used to include more transactions in the chain.
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 分隔见证（SegWit）是通过一次软分叉对比特币核心代码进行的扩展，它通过移除解锁交易的签名数据来增加比特币的区块大小限制。当解锁代码被移除时，额外空间可用于在链中包含更多交易。
 - en: To generate an address with P2SH-SEGWIT and P2PKH support, just run the following:>
     bitcoin-cli getnewaddress2N96AMUEX4VMNTApPAbUaA6wzP4V9QrbveKTo generate the P2PKH
     address, you will be using the legacy flag.> bitcoin-cli getnewaddress "" legacy13oWKiVQ7C5Ewwjv6KRpP3Xm5YstzqFixTAs
     you can see, the commands return the public keys. The wallet’s private keys can
     be viewed via dumping the keys into a file, as you did previously, or just by
     using the dumpprivkey command.> bitcoin-cli dumpprivkey "13oWKiVQ7C5Ewwjv6KRpP3Xm5YstzqFixT"L5gDpFvfEkUSFeMSQb92kueD1BuX4JeZLAhQkXoEtjcZMog3uXB4
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 要生成支持P2SH-SEGWIT和P2PKH的地址，只需运行以下命令：> bitcoin-cli getnewaddress2N96AMUEX4VMNTApPAbUaA6wzP4V9QrbveK生成P2PKH地址时，你将使用传统标志。>
+    bitcoin-cli getnewaddress "" legacy13oWKiVQ7C5Ewwjv6KRpP3Xm5YstzqFixT正如你所见，这些命令返回了公钥。通过将密钥转存到一个文件中，或者像你之前所做的那样，直接使用dumpprivkey命令，都可以查看钱包的私钥。>
+    bitcoin-cli dumpprivkey "13oWKiVQ7C5Ewwjv6KRpP3Xm5YstzqFixT"L5gDpFvfEkUSFeMSQb92kueD1BuX4JeZLAhQkXoEtjcZMog3uXB4
 - en: Private keys should not be shared with anyone, as they unlock the funds associated
     with the public address. With that said, I am sharing this one with you here as
     a learning example.
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: 私钥不应该和任何人分享，因为它们可以解锁与公地址关联的资金。话虽如此，我在此处与你分享这个例子是为了教学目的。
 - en: Note
+  id: totrans-25
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 注意
 - en: Protect your private keys. If your private keys are lost, you lose your coins/funds.
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: 保护你的私钥。如果你的私钥丢失了，你将失去你的硬币/资金。
 - en: 'As you know, you are able to dump the private keys into a text file.> bitcoin-cli
     dumpwallet ~/mywallet.txt{  "filename": "/Users/Eli/mywallet.txt"}Then, you can
     get the location of the wallet and can view your keys.> vim /Users/[location]/mywallet.txt'
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: '正如你所知，你可以将私钥转存到一个文本文件中。> bitcoin-cli dumpwallet ~/mywallet.txt{  "filename":
+    "/Users/Eli/mywallet.txt"}然后，你可以获取钱包的位置，并查看你的密钥。> vim /Users/[location]/mywallet.txt'
 - en: The data file you saved contains not only the public and private keys but also
     transactions related to your wallet.
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 你保存的数据文件不仅包含公钥和私钥，还包含与你的钱包相关的交易。
 - en: Another useful RPC feature, as you might recall, is that you can query the bitcoin
     daemon for a specific wallet’s funds.> bitcoin-cli getbalance 1Mr2G632PfQuq4uJXRBNWLoRKH71Qwor51To
     get the available funds in your wallet, you just run the getbalance command, which
     returns a 0 balance because you have not deposited any funds yet.> bitcoin-cli
     getbalance0.00000000
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可能还记得，另一个有用的RPC特性是你可以查询比特币守护进程关于特定钱包的资金。> bitcoin-cli getbalance 1Mr2G632PfQuq4uJXRBNWLoRKH71Qwor51要获取钱包中的可用资金，你只需运行getbalance命令，该命令返回0余额，因为你还没有存入任何资金。>
+    bitcoin-cli getbalance0.00000000
 - en: 'Pay to Witness a Public Key Hash (P2WPKH): SegWit Soft Fork'
+  id: totrans-30
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 支付给见证公钥哈希（P2WPKH）：SegWit软分叉
 - en: Bitcoin (BTC) and bitcoin cash (BCH) have hard-forked mainly over a disagreement
     of the block size, meaning how much data can be included in each block  . In 2017,
     bitcoin core code was hard-forked into bitcoin cash and allowed to increase the
     block’s size limit. In 2019, bitcoin cash forked once again because of a dispute
     over several new features for each fork.
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 比特币（BTC）和比特币现金（BCH）主要因为区块大小的问题而进行了硬分叉，也就是说每个区块可以包含的数据量。2017年，比特币核心代码硬分叉成了比特币现金，并允许增加区块的大小限制。2019年，比特币现金再次因为对每个分叉的新特性存在争议而分叉。
 - en: The block size limitation in bitcoin means transactions sometimes have to wait
     to be included in a block; however, because of the 1 MB limitation, they might
     not be included in the next block, causing slow transaction times when there too
@@ -181,44 +249,62 @@
     signature data that unlocks the transaction. When the unlocking code is removed,
     the additional space can be used to include more transactions in the chain. This
     method increases the block size to 4 MB.
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: 比特币的区块大小限制意味着交易有时必须等待被包含在一个区块中；然而，由于1MB的限制，它们可能不会被包含在下一个区块中，导致网络中交易过多时交易速度变慢，从而增加了矿工费用。为了解决这个问题，比特币开源开发者创建了一个软分叉，并包含了隔离见证（SegWit）。SegWit通过移除解锁交易的签名数据来增加比特币的区块大小限制。当解锁代码被移除时，额外空间可以用来在链中包含更多交易。这种方法将区块大小增加到4MB。
 - en: Note
+  id: totrans-33
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 注意
 - en: SegWit is a process where the block size limit on a blockchain is increased
     by removing the signature data from bitcoin transactions. This process frees up
     space and allows you to add more transactions. SegWit uses a Bech32 address defined
     in BIP173\. It is 90 characters and consists of a human-readable part, separator,
     and data.
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: SegWit是一个过程，通过从比特币交易中移除签名数据来增加区块链的区块大小限制。这个过程释放了空间，允许您添加更多的交易。SegWit使用在BIP173中定义的Bech32地址。它有90个字符，由人类可读部分、分隔符和数据组成。
 - en: The unlocking validation code is the *witness* data. You can say that the new
     code “segregated the witness.” That’s where the name came from.
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 解锁验证代码是*见证*数据。您可以说新代码“隔离了见证”。这个名字就是这么来的。
 - en: In the build we are using, v17.0, there is a Witness Public Key Hash option
     in a wallet and transaction to replace the scriptSig parameters and check the
     transaction validity. The old legacy code still works, as this is a soft fork.
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: 在我们使用的构建中，v17.0，钱包和交易有一个见证公钥哈希选项，以替换`scriptSig`参数并检查交易的有效性。旧的代码仍然有效，因为这是一个软分叉。
 - en: You have seen this in the getaddressinfo command, which includes both scriptPubKey
     to support the legacy addresses as well as iswitness. You can run the getaddressinfo
     command and see these parameters.> bitcoin-cli getaddressinfo $address1
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 您在`getaddressinfo`命令中已经看到了这一点，该命令包含了支持旧地址的`scriptPubKey`以及`iswitness`。您可以运行`getaddressinfo`命令并查看这些参数。>
+    bitcoin-cli getaddressinfo $address1
 - en: Prior to bitcoin core v0.16, you would have had to use the addwitnessaddress
     command to turn a legacy address into a P2WPKH. Since bitcoin core v0.16.0, an
     address accommodates both P2SH and P2WPKH. Thus, the wallet is a P2SH-P2WPKH.
     If you are using v0.18, you can see that getaddressinfo addresses have both parameters
     for legacy scriptSig and for SegWit.
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: 在`bitcoin core` v0.16之前，您需要使用`addwitnessaddress`命令将旧地址转换为`P2WPKH`。自`bitcoin
+    core` v0.16.0以来，一个地址同时支持`P2SH`和`P2WPKH`。因此，钱包是`P2SH-P2WPKH`。如果您使用的是v0.18，您可以看到`getaddressinfo`地址具有旧`scriptSig`参数和SegWit的参数。
 - en: Elliptic Curve Digital Signature Algorithm
+  id: totrans-39
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 椭圆曲线数字签名算法
 - en: Bitcoin core allows you to create a signature by utilizing the Elliptic Curve
     Digital Signature Algorithm (ECDSA)  . This can be achieved by utilizing the signmessage
     command. Adding a signature allows you to prove that you own the private keys
@@ -229,57 +315,86 @@
     "13oWKiVQ7C5Ewwjv6KRpP3Xm5YstzqFixT" "HzicuTXMl1COVh7Xw9ky9A/cl7ZjMSWNH10Y/invAgHWa74gS8EOvio3FJkofpH0nunIA7pJoGwWLRa0UdD7dc8="
     "John Doe"The verify command will output a true or false response. In this case,
     it will respond with this:true
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: '`Bitcoin core`允许您利用椭圆曲线数字签名算法（ECDSA）创建签名。这可以通过使用`signmessage`命令来实现。添加签名允许您证明拥有钱包的私钥，从而为发送方增加了一个安全层，以确保他们正在将资金发送到正确的地址。>
+    bitcoin-cli signmessage "13oWKiVQ7C5Ewwjv6KRpP3Xm5YstzqFixT" "John Doe"此命令输出一个哈希:HzicuTXMl1COVh7Xw9ky9A/cl7ZjMSWNH10Y/invAgHWa74gS8EOvio3FJkofpH0nunIA7pJoGwWLRa0UdD7dc8=发送方可以在发送资金前验证钱包。>
+    bitcoin-cli verifymessage "13oWKiVQ7C5Ewwjv6KRpP3Xm5YstzqFixT" "HzicuTXMl1COVh7Xw9ky9A/cl7ZjMSWNH10Y/invAgHWa74gS8EOvio3FJkofpH0nunIA7pJoGwWLRa0UdD7dc8="
+    "John Doe"验证命令将输出一个真或假响应。在这种情况下，它会回应如下：true'
 - en: This allows users to confirm they actually own a wallet. This is useful, for
     instance, on the code level, because the P2PKH address will be utilizing the private
     key to generate a signature. A P2PKH address is a hash of the public key corresponding
     to the private key that made the signature.
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: 这允许用户确认他们实际上拥有一个钱包。这在代码层面上很有用，因为`P2PKH`地址将利用私钥生成签名。`P2PKH`地址是对应于生成签名的私钥的公钥的哈希。
 - en: Note
+  id: totrans-42
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 注意
 - en: ECDSA is the cryptographic algorithm utilized by bitcoin to ensure ownership
     of funds. It is used to generate the public/private keys and can also include
     the signature in the algorithm.
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: ECDSA是比特币用来确保资金所有权的加密算法。它用于生成公/私钥，也可以将签名包含在算法中。
 - en: The ECDSA signature can be checked against up to four possible ECDSA public
     keys. These public keys will be reconstructed from the signature hash; each key
     is hashed and compared against the P2PKH wallet address provided for a match.
     The result is either true or false. As you saw earlier, the example received a
     true once you ran the verifymessage command.
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: ECDSA签名可以与多达四个可能的ECDSA公钥进行核对。这些公钥将从签名哈希中重建；每个密钥进行哈希并与提供的P2PKH钱包地址进行比较以匹配。结果要么是真，要么是假。正如您之前看到的，示例在运行verifymessage命令后获得了真。
 - en: Note
+  id: totrans-45
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 注意
 - en: QR code is an image representation of a string. QR readers are used for things
     such as reading URLs or encoding a wallet’s public key address.
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: 二维码是字符串的图像表示。二维码阅读器用于读取URL或编码钱包的公钥地址等事物。
 - en: 'You can generate QR code via the Chart Google API: [https://chart.googleapis.com](https://chart.googleapis.com)
     . For instance to generate a QR code for address: 13oWKiVQ7C5Ewwjv6KRpP3Xm5YstzqFixT
     in the amount of 0.00016 BTC you would generate the following URL:'
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: 您可以使用Chart Google API生成二维码： [https://chart.googleapis.com](https://chart.googleapis.com)
+    。例如，要为地址：13oWKiVQ7C5Ewwjv6KRpP3Xm5YstzqFixT生成0.00016 BTC的二维码，您将生成以下URL：
 - en: '[https://chart.googleapis.com/chart?chs=250x250&cht=qr&chl=bitcoin:13oWKiVQ7C5Ewwjv6KRpP3Xm5YstzqFixT?&amount=0.00016](https://chart.googleapis.com/chart%253Fchs%253D250x250%2526cht%253Dqr%2526chl%253Dbitcoin:13oWKiVQ7C5Ewwjv6KRpP3Xm5YstzqFixT%253F%2526amount%253D0.00016)
     . See Figure [4-1](#Fig1).![../images/475651_1_En_4_Chapter/475651_1_En_4_Fig1_HTML.jpg](../images/475651_1_En_4_Chapter/475651_1_En_4_Fig1_HTML.jpg)'
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: '[通过Chart Google API生成二维码](https://chart.googleapis.com/chart%253Fchs%253D250x250%2526cht%253Dqr%2526chl%253Dbitcoin:13oWKiVQ7C5Ewwjv6KRpP3Xm5YstzqFixT%253F%2526amount%253D0.00016)
+    。见图 [4-1](#Fig1) ！[../images/475651_1_En_4_Chapter/475651_1_En_4_Fig1_HTML.jpg](../images/475651_1_En_4_Chapter/475651_1_En_4_Fig1_HTML.jpg)'
 - en: Figure 4-1
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: 图 4-1
 - en: Bitcoin QR code via Chart.googleapi.com
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过Chart.googleapi.com的比特币二维码
 - en: Transactions
+  id: totrans-51
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 交易
 - en: In this section, I will cover transactions. You will learn how to send coins
     with bitcoin’s daemon on a testnet utilizing both the command line and the bitcoin
     core wallet GUI. You will learn how to use the bitcoin explorer to view your transactions.
@@ -291,19 +406,25 @@
     will learn the difference between P2PKH and P2SH-SEGWIT. Lastly, you will learn
     how to attach other data than just coins with bitcoin using OP_RETURN params.
     Let’s get started.
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本节中，我将介绍交易。您将学习如何使用比特币守护进程在测试网上发送硬币，同时使用命令行和比特币核心钱包GUI。您将学习如何使用比特币浏览器查看您的交易。然后，我将通过展示如何创建一个带有单个输出的原始交易以及利用多重签名（multisig）创建更复杂交易的方法来介绍更高级的交易创建，这需要超过一个单一密钥来授权交易。此外，我还将介绍如何更改其他选项，例如为更改费用替换交易以及设置锁时间。您将了解P2PKH和P2SH-SEGWIT之间的区别。最后，您将学习如何使用OP_RETURN参数附加非硬币数据。让我们开始吧。
 - en: Simple Command
+  id: totrans-53
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 简单命令
 - en: The first transaction in a block is called the *coinbase* transaction  ; this
     transaction consists of the transaction fees paid by transactions included in
     the block. To send a transaction, you need to pay a transaction fee to the miners.
     If there is a low fee or no fee is paid, the transaction may get stuck for a long
     period of time or even forever in the P2P network until the fee is changed.
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个区块中的第一个交易被称为 *coinbase* 交易；这个交易由包含在区块中的交易的交易费用组成。要发送交易，您需要向矿工支付交易费用。如果费用过低或没有支付费用，交易可能会在P2P网络中长时间或永久地卡住，直到费用被更改。
 - en: To set the transaction fee, you can add a parameter to the bitcoin.conf file
     with a default fee. First, you need to find the file location. To do so, right
     after you run the daemon, you can track down the location of the file.> bitcoind
@@ -312,75 +433,110 @@
     file. Then you can open the file and modify it by adding the default fee. In this
     case, it was nested inside the Application Support folder./Users/[my user]/Library/Application
     Support/Bitcoin/bitcoin.conf
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了设置交易费用，你可以在比特币.conf文件中添加一个参数并设定默认费用。首先，你需要找到文件的位置。为此，在运行守护进程之后，你可以追踪到文件的所在位置。>
+    `bitcoind –printtoconsole`几秒钟后，通过按Ctrl+C停止此服务。该命令显示了比特币.conf文件的位置。它返回了配置文件的位置。然后你可以打开文件并添加默认费用进行修改。在这个例子中，它在应用程序支持文件夹内嵌套./Users/[我的用户]/Library/Application
+    Support/Bitcoin/bitcoin.conf
 - en: When you open the file, you can see that the default transaction fee is set
     to 0.00000020 (mintxfee=0.00000020).
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: 当你打开文件时，你可以看到默认交易费用被设定为0.00000020（`mintxfee=0.00000020`）。
 - en: Note
+  id: totrans-57
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 注意
 - en: 'There are other fees and settings in bitcoind. You can modify transactions
     you send (paytxfee), maximum total fees (maxtxfee), fallback fees, and so on.
     Visit this bitcoin page for all the available options: [https://en.bitcoin.it/wiki/Running_Bitcoin](https://en.bitcoin.it/wiki/Running_Bitcoin)
     .'
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: 比特币中还有其他费用和设置。你可以修改你发送的交易（`paytxfee`）、最大总费用（`maxtxfee`）、回退费用等等。访问这个比特币页面查看所有可用的选项：[运行比特币](https://en.bitcoin.it/wiki/Running_Bitcoin)。
 - en: 'Monitor and updating the bitcoin transaction fee can ensure the funds being
     sent get changed by market forces. There are web sites, apps, and forms that can
     try to predict the fee that needs to be paid. There are many sites that help calculate
     transaction fee prediction, such as this API, that you can call from your code:'
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: 监控和更新比特币交易费用可以确保发送的资金受到市场力量的改变。有一些网站、应用程序和表格试图预测需要支付的费用。有许多网站帮助计算交易费用预测，比如这个API，你可以在你的代码中调用它：
 - en: '[https://bitcoinfees.earn.com/api/v1/fees/recommended](https://bitcoinfees.earn.com/api/v1/fees/recommended)'
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: '[https://bitcoinfees.earn.com/api/v1/fees/recommended](https://bitcoinfees.earn.com/api/v1/fees/recommended)'
 - en: The API returned at the time of writing a fee of 20 satoshis.{"fastestFee":20,"halfHourFee":20,"hourFee":18}
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: 在撰写时，API返回了20 Satoshis的费用。{"fastestFee":20,"halfHourFee":20,"hourFee":18}
 - en: Another example is [https://bitcoinfees.net/](https://bitcoinfees.net/) . This
     site shows a majority of transactions are at five to six satoshis at less than
     six hours, or 49 to 50 satoshis for less than 20 minutes at the time of writing.
+  id: totrans-62
   prefs: []
   type: TYPE_NORMAL
+  zh: 另一个例子是 [https://bitcoinfees.net/](https://bitcoinfees.net/)。这个网站显示，大多数交易在不到六小时内为五个到六个
+    Satoshis，或者在撰写时不到20分钟为49到50 Satoshis。
 - en: Note
+  id: totrans-63
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 注意
 - en: 'A satoshi is a hundredth of a millionth BTC and is named after Satoshi Nakamoto.
     It’s the smallest fraction of a bitcoin that can be sent: 0.00000001 BTC. A faster
     fee would be 50 satoshi at the time of writing.'
+  id: totrans-64
   prefs: []
   type: TYPE_NORMAL
+  zh: Satoshi 是一个比特币的一百万分之一，以 Satoshi Nakamoto 命名。这是可以发送的最小比特币份额：0.00000001 比特币。撰写时，更快的费用是20
+    Satoshi。
 - en: Now that you know the fee, you can modify the config file with the minimum fee
     to a higher fee such as 50 satoshis.> vim '/[location]/bitcoin/bitcoin.conf'mintxfee=0.00000050txconfirmtarget=3
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在你知道了费用，你可以将配置文件中的最小费用修改为更高的费用，比如50 Satoshis。> 使用 `vim` 修改 '/[位置]/bitcoin/bitcoin.conf'
+    文件mintxfee=0.00000050txconfirmtarget=3
 - en: The mintxfee value sets a minimum transaction fee of 50 satoshis, or 0.00000050
     ฿. That will set a 20 satoshis/byte of data in your transaction. This means the
     floating fee needs to figure out a good amount to get the transaction into the
     next three blocks. As you recall, each block takes about 10 minutes to hash, so
     it will aim at 30 minutes to include your transaction.
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
+  zh: 参数`mintxfee`设定了50个 Satoshis 的最小交易费用，即0.00000050 比特币。这将设定你的交易中每字节数据为20 Satoshis。这意味着浮动费用需要确定一个合适的金额，以便将交易纳入下一个三个区块中。正如你所回忆的，每个区块需要大约10分钟来计算，所以它将目标定为30分钟以包含你的交易。
 - en: Once you have modified the config file, remember to restart bitcoind.> bitcoind
     –printtoconsole
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
+  zh: 一旦你修改了配置文件，记得重新启动 bitcoind。> `bitcoind –printtoconsole`
 - en: Testnet
+  id: totrans-68
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 测试网络
 - en: In this section, you will learn more about transactions, and to understand transactions
     better, you will need to send and receive bitcoins. To get bitcoins on mainnet
     (the actual production chain), you would need to either mine coins or trade them.
     However, you don’t want to handle actual coins as you learn, because you would
     have to pay fees as well as risk losing coins if you make mistakes. Also, the
     price of the bitcoin may go down.
+  id: totrans-69
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本节中，你将了解更多关于交易的信息，为了更好地理解交易，你需要发送和接收比特币。要在主网络（实际的生成链）上获取比特币，你需要挖掘硬币或交易它们。然而，在学习过程中你不想处理实际的硬币，因为你需要支付费用，如果你犯错误还可能丢失硬币。此外，比特币的价格可能下跌。
 - en: Luckily, bitcoin offers an alternative blockchain that is used for testing;
     it’s called *testnet* . This alternative blockchain enables you to experiment
     without using real bitcoins or abusing the bitcoin chain. You can start a bitcoin
@@ -388,23 +544,34 @@
     the pretend coins. You connect to the testnet blockchain instead of the main blockchain
     by stopping the bitcoin core demon and restarting it with the testnet flag.> bitcoind
     –testnet
+  id: totrans-70
   prefs: []
   type: TYPE_NORMAL
+  zh: 幸运的是，比特币提供了用于测试的替代区块链，它被称为 *测试网络* 。这个替代的区块链让你可以在不使用真实比特币或滥用比特币链的情况下进行实验。你可以用
+    -testnet 标志启动比特币核心实例。在测试网络上，这是通过 *水龙头* 完成的，假装的硬币。通过停止比特币核心守护进程并带有 testnet 标志重新启动它，你连接到测试网络区块链而不是主区块链。`bitcoind
+    –testnet`
 - en: Keep in mind that just as with bitcoin’s mainnet chain, the syncing and indexing
     portions may take hours, depending on your Internet connection. Run the command
     and take a long coffee break if you want to start working with blocks.
+  id: totrans-71
   prefs: []
   type: TYPE_NORMAL
+  zh: 请记住，与比特币主网络链一样，同步和索引部分可能需要数小时，这取决于你的互联网连接速度。如果你想要开始处理区块，运行该命令并喝杯长咖啡。
 - en: The BTC testnet offers you free faucet bitcoins that you can use for testing.
     Testnet requests that you return these coins once you complete testing as this
     service is free, and returning these coins will benefit the next developer who
     needs them.
+  id: totrans-72
   prefs: []
   type: TYPE_NORMAL
+  zh: 测试网络比特币水龙头为你提供用于测试的自由硬币。测试网络请求你在完成测试后将这些硬币归还，因为这项服务是免费的，归还这些硬币将有助于需要它们的下一个开发者。
 - en: 'You can read more about testnet here: [https://en.bitcoin.it/wiki/Testnet](https://en.bitcoin.it/wiki/Testnet)
     . At the time of writing, testnet3 is the latest blockchain used for testing.'
+  id: totrans-73
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可以在以下链接中了解更多关于测试网络的信息：[测试网络](https://en.bitcoin.it/wiki/Testnet)。在撰写本文时，testnet3
+    是用于测试的最新区块链。
 - en: You will be using coinfaucet.eu, which can be found at [https://coinfaucet.eu/en/btc-testnet/](https://coinfaucet.eu/en/btc-testnet/)
     . However, there are other faucets in case this one ceases to exist. The first
     step is to send coins to your wallet. First generate a new P2PKH wallet address
@@ -413,87 +580,132 @@
     funds. Next, paste that address into [https://coinfaucet.eu](https://coinfaucet.eu)
     , choose “Bitcoin testnet,” verify you are not a robot, and click the “Get bitcoins!”
     button, as shown in Figure [4-2](#Fig2).![../images/475651_1_En_4_Chapter/475651_1_En_4_Fig2_HTML.jpg](../images/475651_1_En_4_Chapter/475651_1_En_4_Fig2_HTML.jpg)
+  id: totrans-74
   prefs: []
   type: TYPE_NORMAL
+  zh: 你将使用 coinfaucet.eu，该网站可在此处找到：[https://coinfaucet.eu/en/btc-testnet/](https://coinfaucet.eu/en/btc-testnet/)。然而，还有其他水龙头以防这个网站不再存在。第一步是将硬币发送到你的钱包。首先，使用以下命令生成一个新的
+    P2PKH 钱包地址：`bitcoin-cli getnewaddress "" legacymnMs77edsGV8VKwtB3d7fsnvrNuZ8ECKfh`。正如你所见，你收到的输出是你可以用来接收资金的公钥。接下来，将该地址粘贴到
+    [https://coinfaucet.eu](https://coinfaucet.eu) 上，选择“比特币测试网络”，验证你不是机器人，然后点击“获取比特币！”按钮，如图
+    [4-2](#Fig2) 所示。![../images/475651_1_En_4_Chapter/475651_1_En_4_Fig2_HTML.jpg](../images/475651_1_En_4_Chapter/475651_1_En_4_Fig2_HTML.jpg)
 - en: Figure 4-2
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
+  zh: 图 4-2
 - en: Coin testnet faucet, requesting funds for testing
+  id: totrans-76
   prefs: []
   type: TYPE_NORMAL
+  zh: 测试网络硬币水龙头，请求用于测试的资金
 - en: Once the coins have been sent to your wallet, you receive a confirmation with
     the tx number, as shown in Figure [4-3](#Fig3).![../images/475651_1_En_4_Chapter/475651_1_En_4_Fig3_HTML.jpg](../images/475651_1_En_4_Chapter/475651_1_En_4_Fig3_HTML.jpg)
+  id: totrans-77
   prefs: []
   type: TYPE_NORMAL
+  zh: 一旦硬币被发送到你的钱包，你就会收到带有交易编号的确认信息，如图 [4-3](#Fig3) 所示。![../images/475651_1_En_4_Chapter/475651_1_En_4_Fig3_HTML.jpg](../images/475651_1_En_4_Chapter/475651_1_En_4_Fig3_HTML.jpg)
 - en: Figure 4-3
+  id: totrans-78
   prefs: []
   type: TYPE_NORMAL
+  zh: 图 4-3
 - en: Coin testnet faucet, bitcoins have been sent
+  id: totrans-79
   prefs: []
   type: TYPE_NORMAL
+  zh: 测试网络硬币水龙头，比特币已发送
 - en: Note
+  id: totrans-80
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 注意
 - en: 'Keep in mind that these faucet testnet sites often go offline, and you may
     need to find a new faucet testnet site. For your convenience, here is another
     one that is working at the time of writing: [https://testnet-faucet.mempool.co/](https://testnet-faucet.mempool.co/)
     .'
+  id: totrans-81
   prefs: []
   type: TYPE_NORMAL
+  zh: 请注意，这些水龙头测试网站点经常会下线，你可能需要找到一个新的水龙头测试网站点。为了方便起见，这里有一个在撰写本文时仍在工作的站点：[https://testnet-faucet.mempool.co/](https://testnet-faucet.mempool.co/)
+    。
 - en: Viewing Transactions on Block Explorer
+  id: totrans-82
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 在区块浏览器上查看交易
 - en: On the testnet faucet, you can monitor the bitcoins that have been sent just
     as can be done on the maintest production bitcoin’s blockchain. This is done in
     the testnet Blockchain Explorer; see the “tx” link, as shown in Figure [4-3](#Fig3).
     As you recall, “tx ID” stands for the transaction ID. Alternatively, you can paste
     that transaction ID directly into the Block Explorer at [https://live.blockcypher.com/btc-testnet/](https://live.blockcypher.com/btc-testnet/)
     . See Figure [4-4](#Fig4).![../images/475651_1_En_4_Chapter/475651_1_En_4_Fig4_HTML.jpg](../images/475651_1_En_4_Chapter/475651_1_En_4_Fig4_HTML.jpg)
+  id: totrans-83
   prefs: []
   type: TYPE_NORMAL
+  zh: 在测试网水龙头上，你可以像在主测试生产比特币的区块链上一样监控已发送的比特币。这是在测试网区块链浏览器中完成的；请查看“tx”链接，如图 [4-3](#Fig3)
+    所示。正如你所回忆的，“tx ID”代表交易ID。或者，你可以直接将该交易ID粘贴到 [https://live.blockcypher.com/btc-testnet/](https://live.blockcypher.com/btc-testnet/)
+    的区块浏览器中。见图 [4-4](#Fig4) ！[../images/475651_1_En_4_Chapter/475651_1_En_4_Fig4_HTML.jpg](../images/475651_1_En_4_Chapter/475651_1_En_4_Fig4_HTML.jpg)
 - en: Figure 4-4
+  id: totrans-84
   prefs: []
   type: TYPE_NORMAL
+  zh: 图 4-4
 - en: Viewing transaction information on live.blockcypher.com
+  id: totrans-85
   prefs: []
   type: TYPE_NORMAL
+  zh: 在 live.blockcypher.com 上查看交易信息
 - en: In fact, every transaction that ever occurs on the blockchain is publicly available
     to view by anyone in the Blockchain Explorer; that includes all the transaction
     data except for the users’ private keys. Although the transaction data is publicly
     available, the identifying information about the owner is not public information
     and is not needed to perform transactions. What connects the user to the coins
     you send is the private key associated with the public key.
+  id: totrans-86
   prefs: []
   type: TYPE_NORMAL
+  zh: 实际上，区块链上发生的每一笔交易都可以公开地供任何人查看，包括所有交易数据，除了用户的私钥。尽管交易数据是公开的，但关于所有者的识别信息不是公开信息，也不需要进行交易。连接用户与您发送的硬币的是与公钥关联的私钥。
 - en: Similarly, you can do the same check of information via the RPC command line.
     You already know how to check your wallet’s balance, as shown here:> bitcoin-cli
     getbalance0.0000000
+  id: totrans-87
   prefs: []
   type: TYPE_NORMAL
+  zh: 同样，你也可以通过 RPC 命令行进行同样的信息检查。你已经知道如何检查你的钱包余额，如图所示：> bitcoin-cli getbalance0.0000000
 - en: When coins have been received, they will not be available to spend until the
     transaction has been confirmed by the mined blocks’ confirmations. That’s why
     if you check your balance right away, it will still show 0.
+  id: totrans-88
   prefs: []
   type: TYPE_NORMAL
+  zh: 当收到硬币时，它们将在交易被挖出的块的确认后才能用于支出。这就是为什么如果您立即检查您的余额，它仍然会显示 0 的原因。
 - en: You will be able to see the coins as unconfirmed via the getunconfirmedbalance
     command right after your transaction is included in the next block. To check,
     run the getunconfirmedbalance command.> bitcoin-cli getunconfirmedbalance0.10413028
+  id: totrans-89
   prefs: []
   type: TYPE_NORMAL
+  zh: 你将能够通过运行 getunconfirmedbalance 命令看到你的交易在下一次区块中被包含后的下一个区块中作为未确认的硬币。进行检查，运行 getunconfirmedbalance
+    命令。> bitcoin-cli getunconfirmedbalance0.10413028
 - en: Once you have enough confirmations, the getbalance command will show your new
     balance, and getunconfirmedbalance will show 0.
+  id: totrans-90
   prefs: []
   type: TYPE_NORMAL
+  zh: 一旦您有足够的确认，getbalance 命令将显示您的新余额，而 getunconfirmedbalance 将显示 0。
 - en: Similarly, you can be more specific and request the minimum confirmations to
     be 2.> bitcoin-cli getbalance "*" 2
+  id: totrans-91
   prefs: []
   type: TYPE_NORMAL
+  zh: 同样，你可以更具体地请求最小确认数为2。> bitcoin-cli getbalance "*" 2
 - en: Note
+  id: totrans-92
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 注意
 - en: A transaction stays “unconfirmed” until the next new block is created. Once
     the new block is created, the new transaction is verified and included in that
     block. Now, the transaction will have one confirmation. About ten minutes pass,
@@ -502,8 +714,10 @@
     reversed decrease. The norm on exchanges is that four to six confirmations are
     required to allow you to use the coins; it may be wise to wait for even sixty
     confirmations for large amounts of coins, which takes about ten hours.
+  id: totrans-93
   prefs: []
   type: TYPE_NORMAL
+  zh: 交易保持“未确认”状态，直到创建下一个新块。一旦创建了新块，新交易将被验证并包含在该块中。现在，该交易将有一个确认。大约十分钟后，创建了一个新块，交易得到了确认。每次确认都会增加交易的安全性，交易被撤销的可能性也会降低。交易所的常规做法是，需要四到六个确认才能让您使用硬币；对于大量硬币，等待六十个确认可能是明智的，这需要大约十个小时。
 - en: 'Another useful command is the listtransactions command; it provides the full
     list of transaction data related to your wallet.> bitcoin-cli listtransactions[  {    "address":
     "mnMs77edsGV8VKwtB3d7fsnvrNuZ8ECKfh",    "category": "receive",    "amount": 0.10413028,    "label":
@@ -511,9 +725,11 @@
     4,    "blocktime": 1541783585,    "txid": "645a34a5cbdd66b126e6f81560dc79957c6e1a175a68f8ad23ca7fd38046df85",    "walletconflicts":
     [    ],    "time": 1541783585,    "timereceived": 1541890511,    "bip125-replaceable":
     "no"  }]'
+  id: totrans-94
   prefs: []
   type: TYPE_NORMAL
 - en: Sending Testnet Coins via the Bitcoin Core Wallet GUI
+  id: totrans-95
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
@@ -527,12 +743,15 @@
     before, if you did not complete a testnet sync, it may take hours, depending on
     your Internet connection, as shown in Figure [4-5](#Fig5). However, at the wallet
     GUI, you will see an estimated time for how long the sync will take.![../images/475651_1_En_4_Chapter/475651_1_En_4_Fig5_HTML.jpg](../images/475651_1_En_4_Chapter/475651_1_En_4_Fig5_HTML.jpg)
+  id: totrans-96
   prefs: []
   type: TYPE_NORMAL
 - en: Figure 4-5
+  id: totrans-97
   prefs: []
   type: TYPE_NORMAL
 - en: Bitcoin wallet testnet GUI sync with testnet network
+  id: totrans-98
   prefs: []
   type: TYPE_NORMAL
 - en: As before, you need to wait for the sync to complete; only then can you retrieve
@@ -540,72 +759,99 @@
     will see the balances, including the confirmed (Available) funds and the unconfirmed
     (Pending) funds. You can also get a list of transactions by clicking the Transactions
     button at the top. See Figure [4-6](#Fig6).![../images/475651_1_En_4_Chapter/475651_1_En_4_Fig6_HTML.jpg](../images/475651_1_En_4_Chapter/475651_1_En_4_Fig6_HTML.jpg)
+  id: totrans-99
   prefs: []
   type: TYPE_NORMAL
 - en: Figure 4-6
+  id: totrans-100
   prefs: []
   type: TYPE_NORMAL
 - en: Bitcoin core wallet overview screen
+  id: totrans-101
   prefs: []
   type: TYPE_NORMAL
 - en: To create a new wallet’s public key address, click Receive at the top and then
     click the Request Payment button. This will generate an address for your wallet,
     as shown in Figure [4-7](#Fig7).![../images/475651_1_En_4_Chapter/475651_1_En_4_Fig7_HTML.jpg](../images/475651_1_En_4_Chapter/475651_1_En_4_Fig7_HTML.jpg)
+  id: totrans-102
   prefs: []
   type: TYPE_NORMAL
 - en: Figure 4-7
+  id: totrans-103
   prefs: []
   type: TYPE_NORMAL
 - en: Bitcoin core wallet, receive coins screen
+  id: totrans-104
   prefs: []
   type: TYPE_NORMAL
 - en: As you can see, the GUI created a QR code for your convenience. You can scan
     it when you send coins, where this feature is supported. Now, let’s go ahead and
     send some more coins to your wallet via the testnet faucet at [https://live.blockcypher.com/btc-testnet/](https://live.blockcypher.com/btc-testnet/)
     *.*
+  id: totrans-105
   prefs: []
   type: TYPE_NORMAL
 - en: As you can see, you can then receive coins just as you did via the command line.
     Next, you will send some coins.
+  id: totrans-106
   prefs: []
   type: TYPE_NORMAL
+  zh: 正如你所看到的，你随后也可以像通过命令行一样收到硬币。接下来，你会发送一些硬币。
 - en: You will be sending 0.01 BTC back to the testnet faucet for other developers
     to use. To do so, click the Send button at the top of the GUI and paste in the
     testnet faucet wallet address that was provided to you when you sent coins to
     your wallet.
+  id: totrans-107
   prefs: []
   type: TYPE_NORMAL
+  zh: 你将向测试网络水龙头发送0.01 BTC，供其他开发者使用。为此，点击GUI顶部的发送按钮，并粘贴在向你的钱包发送硬币时提供给你的测试网络水龙头钱包地址。
 - en: Notice that there is a Choose button next to Transaction Fee in the bitcoin
     core wallet GUI. This allows you to select the fee, as well as the number of confirmations.
     It also includes a way to enable a “replace by” fee. This feature allows you to
     change the fee in case the fee is too low and the transaction is not getting included
     in the block. See Figure [4-8](#Fig8).![../images/475651_1_En_4_Chapter/475651_1_En_4_Fig8_HTML.jpg](../images/475651_1_En_4_Chapter/475651_1_En_4_Fig8_HTML.jpg)
+  id: totrans-108
   prefs: []
   type: TYPE_NORMAL
+  zh: 请注意，在比特币核心钱包GUI中，Transaction Fee旁边有一个选择按钮。这让你可以选择费用以及确认次数。它还包括启用“替换 by”费用的方法。这个功能让你在费用太低且交易不包括在区块中时改变费用。见图
+    [4-8](#Fig8)。![../images/475651_1_En_4_Chapter/475651_1_En_4_Fig8_HTML.jpg](../images/475651_1_En_4_Chapter/475651_1_En_4_Fig8_HTML.jpg)
 - en: Figure 4-8
+  id: totrans-109
   prefs: []
   type: TYPE_NORMAL
+  zh: 图 4-8
 - en: Bitcoin core wallet send screen
+  id: totrans-110
   prefs: []
   type: TYPE_NORMAL
+  zh: 比特币核心钱包发送屏幕
 - en: The testnet faucet sends coins to the wallet address you provided. When you
     send and receive coins, you get a notification pop-up from the GUI and an updated
     balance on the overview screen. Click the Transactions button to see the transaction’s
     information. You can also click each transaction to see the actual transaction
     data. This is similar to what you saw with the listtransactions command. See Figure
     [4-9](#Fig9).![../images/475651_1_En_4_Chapter/475651_1_En_4_Fig9_HTML.jpg](../images/475651_1_En_4_Chapter/475651_1_En_4_Fig9_HTML.jpg)
+  id: totrans-111
   prefs: []
   type: TYPE_NORMAL
+  zh: 测试网络水龙头将硬币发送到您提供的钱包地址。当你发送和接收硬币时，GUI会弹出一个通知窗口，并在概览屏幕上更新余额。点击交易按钮查看交易信息。您还可以点击每个交易以查看实际交易数据。这与您看到的listtransactions命令类似。见图
+    [4-9](#Fig9)。![../images/475651_1_En_4_Chapter/475651_1_En_4_Fig9_HTML.jpg](../images/475651_1_En_4_Chapter/475651_1_En_4_Fig9_HTML.jpg)
 - en: Figure 4-9
+  id: totrans-112
   prefs: []
   type: TYPE_NORMAL
+  zh: 图 4-9
 - en: Bitcoin core wallet transaction
+  id: totrans-113
   prefs: []
   type: TYPE_NORMAL
+  zh: 比特币核心钱包交易
 - en: Raw Transaction
+  id: totrans-114
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 原始交易
 - en: So far you have received one transaction into your wallet via the command line
     as well as coins using the bitcoin core GUI. You also were able to view confirmations,
     the fees balance, and transactions. If you send funds back to the testnet faucet
@@ -616,45 +862,61 @@
     inputs and multiple outputs. Bitcoin core provides you with sets of commands to
     access a raw transaction (RawTransaction) so you can have more granular control
     over your transaction.
+  id: totrans-115
   prefs: []
   type: TYPE_NORMAL
+  zh: 到目前为止，你通过命令行收到了一个交易，以及使用比特币核心GUI得到的硬币。你还能够查看确认、费用余额和交易。如果你向测试网络水龙头发送资金并收到硬币，事情就很简单。这称为单输入单输出交易，因为你有一个发送者和一个接收者，你花费的金额与你收到的金额相同（减去费用）。在现实生活中，随着交易变得更加复杂，存在许多用例，在这些用例中，有一个输入和多个输出或多个输入和多个输出。比特币核心提供了几组命令来访问原始交易（RawTransaction），以便你可以对自己的交易有更细粒度的控制。
 - en: You will start with the simple one-input, one-output transaction via the RPC
     command line.
+  id: totrans-116
   prefs: []
   type: TYPE_NORMAL
+  zh: 你将从通过RPC命令行进行简单的单输入单输出交易开始。
 - en: Note
+  id: totrans-117
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 注意
 - en: Creating and understanding RawTransaction is useful for building software, as
     you have full granular control over your transaction. However, making mistakes
     can result in a catastrophic outcome and loss of coins, so use caution and double-check
     everything before sending any funds.
+  id: totrans-118
   prefs: []
   type: TYPE_NORMAL
+  zh: 创建和使用RawTransaction对于构建软件是有用的，因为你对自己的交易有完全细粒度的控制。然而，犯错误可能会导致灾难性的后果和硬币的丢失，所以在发送任何资金之前要小心并仔细检查一切。
 - en: When you receive a transaction, the transaction stays in a state called *unspent
     transaction output* (UTXO)  in your wallet. To send a one-input, one-output transaction,
     you need your amount to be equal to the funds you want to send. You can then generate
     a new UTXO for the receiver you are sending the coins to. The receiver can use
     these UTXOs to send transactions to a new receiver or receivers, and this process
     can continue endlessly.
+  id: totrans-119
   prefs: []
   type: TYPE_NORMAL
+  zh: 当你收到一个交易时，这笔交易会存在于你的钱包中的一个称为*未花费交易输出*（UTXO）的状态。要发送一个单输入单输出的交易，你需要你的金额等于你想要发送的基金。然后，你可以为接收你硬币的人生成一个新的UTXO。接收者可以使用这些UTXOs向新的接收者发送交易，这个过程可以无限继续。
 - en: Note
+  id: totrans-120
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 注意
 - en: A UTXO is an individual incoming coin transaction in your wallet. When you receive
     multiple transactions to one or multiple wallets’ addresses, each stays as a UTXO,
     so you will have multiple UTXOs. To create a new outgoing transaction, you collect
     one or more UTXOs as needed depending on how much you are trying to send.
+  id: totrans-121
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个UTXO是你钱包中的一个单独的 incoming coin transaction。当你向一个或多个钱包地址接收多个交易时，每个都会作为一个UTXO存在，所以你将会有多个UTXO。要创建一个新的传出交易，你需要根据你试图发送的金额收集一个或多个UTXO。
 - en: Now, what if your UTXO includes a larger amount than you would like to spend?
     Then you would need to send the remaining of the coins back to your wallet. To
     get a list of unspent coins, you can use the listunspent command.
+  id: totrans-122
   prefs: []
   type: TYPE_NORMAL
+  zh: 那么，如果你的UTXO包含比你想要花费的金额更大的金额怎么办？那么你需要将剩余的硬币发送回你的钱包。为了获取未花费硬币的列表，你可以使用listunspent命令。
 - en: Close the bitcoin core GUI wallet via Control+C and start the daemon again with
     the testnet flag.> bitcoind -testnetWhen you run the getbalance command, you get
     your wallet’s balance, which includes the two transactions you received from [https://live.blockcypher.com/btc-testnet/](https://live.blockcypher.com/btc-testnet/)
@@ -663,23 +925,33 @@
     using order arguments. The named argument is useful to ensure you are not making
     mistakes when working with mainnet. For instance, a getbalance command with the
     named argument would look as follows:> bitcoin-cli -named getbalance minconf=20.18505841
+  id: totrans-123
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过Ctrl+C关闭比特币核心GUI钱包，并用testnet标志重新启动守护进程。> bitcoind -testnet当你运行getbalance命令时，你会得到你的钱包余额，这包括从[https://live.blockcypher.com/btc-testnet/](https://live.blockcypher.com/btc-testnet/)接收到的两个交易，减去你发送回测试网络水龙头的那笔交易。>
+    bitcoin-cli getbalance0.18505841我想指出的是，任何时候你都可以使用-named标志而不是使用顺序参数。命名参数有助于确保你在使用主网络时不会犯错误。例如，带有命名参数的getbalance命令如下所示：>
+    bitcoin-cli -named getbalance minconf=20.18505841
 - en: Next, let’s take a look at the listunspent command. As the name suggests, it
     returns JSON with transactions for coins you did not spend, in other words, your
     UTXOs. The listunspent command also returns JSON with a variable called vout ,
     which represents the index number of the output in a transaction.
+  id: totrans-124
   prefs: []
   type: TYPE_NORMAL
+  zh: 接下来，我们来看看listunspent命令。正如其名所示，它返回一个包含你未花费的硬币的交易信息的JSON，换言之，即你的未花费交易输出（UTXO）。listunspent命令还返回一个名为vout的变量的JSON，代表交易中的输出索引号。
 - en: Note
+  id: totrans-125
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 注意
 - en: The vout value represents the index number of the output of a transaction. You
     will be using a txid and a vout to select the existing output as the input of
     a new transaction.
+  id: totrans-126
   prefs: []
   type: TYPE_NORMAL
+  zh: vout值代表交易的输出索引号。你将使用txid和vout来选择现有输出作为新交易的输入。
 - en: 'bitcoin-cli listunspent[  {    "txid": "50e91c9b73a90bd883f4a9a8a51be729770df20fae0445a9090b80a8621f4538",    "vout":
     0,    "address": "2N67MKgL5rYcbuySDFUdypU5DvKjmwZoYEb",    "label": "",    "redeemScript":
     "0014c27b4e6bd8eb821ee80a239e0edd59070f57233d",    "scriptPubKey": "a9148d1c6e108c60cfdfa61565ac328be6624591404b87",    "amount":
@@ -688,25 +960,36 @@
     1,    "address": "2MveVhMe6PTzuhsJHx5zXAjDBwQvzdyqGjM",    "redeemScript": "00142e29123ba343c577ab9517ede9b74f047d2c2ea3",    "scriptPubKey":
     "a914254f0e95fb26c0f29975f866e69543519bf565e787",    "amount": 0.09413028,    "confirmations":
     16,    "spendable": true,    "solvable": true,    "safe": true  }]'
+  id: totrans-127
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: bitcoin-cli listunspent[
 - en: These UTXOs show you a property called txid, which is included in bitcoin’s
     blocks. The txid property allows you to track transactions, as you saw via the
     Blockchain Explorer.
+  id: totrans-128
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些未使用的交易输出（UTXO）显示了一个名为 txid 的属性，该属性包含在比特币块中。txid 属性允许你跟踪交易，正如你通过区块链浏览器所看到的那样。
 - en: Notice that the index starts at 0, and because you have two transactions, it
     is now 0 and then 1\. If you had more transactions, this index would continue.
     Figure [4-10](#Fig10) illustrates the listunspent result if you have two UTXOs.![../images/475651_1_En_4_Chapter/475651_1_En_4_Fig10_HTML.jpg](../images/475651_1_En_4_Chapter/475651_1_En_4_Fig10_HTML.jpg)
+  id: totrans-129
   prefs: []
   type: TYPE_NORMAL
+  zh: 注意，索引从 0 开始，因为你有两个交易，现在是 0 然后是 1。如果你有更多的交易，这个索引会继续增加。图 [4-10](#Fig10) 说明了当你有两个
+    UTXO 时 listunspent 的结果。![../images/475651_1_En_4_Chapter/475651_1_En_4_Fig10_HTML.jpg](../images/475651_1_En_4_Chapter/475651_1_En_4_Fig10_HTML.jpg)
 - en: Figure 4-10
+  id: totrans-130
   prefs: []
   type: TYPE_NORMAL
+  zh: 图 4-10
 - en: vout index illustration
+  id: totrans-131
   prefs: []
   type: TYPE_NORMAL
+  zh: vout index illustration
 - en: 'You can get all the data regarding the transaction via the getrawtransaction
     command. Here I picked the first tx property  from the UTXO you received, and
     then I added the 1 flag to decode the hex-encoded transaction data; take a look
@@ -727,13 +1010,16 @@
     "0200000000010107b528625672a50bec9e36a2cb8b528e2ea46eaeee07720a649481d628c1452600000000171600143bfa0326c076fa6cab0d23aea170bac38ac9a164feffffff02cdbe8a000000000017a9148d1c6e108c60cfdfa61565ac328be6624591404b8747e059d82100000017a914f4eb3fe1578076853a774d36f193684f86f71d5f8702483045022100fb7f0fc2cf99c8174eb3d14169e1c206157d434d8290b2efbefa5a37d0773923022065f0b671c0596816c062b9bdc7b30931edfd99a846a0f1633d301bfb7c03db3c012102d208ff6da0583b99392d30e33c5a12da61b9d9de4c35bb0d20c33ba3bfc4930229051600",  "blockhash":
     "00000000000000321b56aece3932b187927ac3e7dc4532f8811aa612bcfa639a",  "confirmations":
     17,  "time": 1542029870,  "blocktime": 1542029870}'
+  id: totrans-132
   prefs: []
   type: TYPE_NORMAL
 - en: Notice that you have information about the block, confirmation, in, out, and
     much more.
+  id: totrans-133
   prefs: []
   type: TYPE_NORMAL
 - en: Generating Raw Transactions with One Output
+  id: totrans-134
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
@@ -742,14 +1028,18 @@
     unspent coins back to your wallet, as well as send coins to multiple addresses,
     it starts to get complicated. Using RawTransaction, you get full access to where
     the coins go and are able to achieve complex transactions.
+  id: totrans-135
   prefs: []
   type: TYPE_NORMAL
+  zh: 交易很容易变得复杂，因为通常需要不止一个输入或输出。例如，如果你想将未使用的币发送回你的钱包，同时发送币到多个地址，这就开始变得复杂了。使用原始交易，你可以完全控制币的流向并实现复杂的交易。
 - en: You will start by creating a simple RawTransaction by sending one UTXO from
     one wallet to another. Previously, you sent coins back to the testnet faucet via
     the bitcoin core wallet GUI. Let’s do the same thing but with the RawTransaction
     command.
+  id: totrans-136
   prefs: []
   type: TYPE_NORMAL
+  zh: 你将开始通过将一个未使用的交易输出（UTXO）从一个钱包发送到另一个钱包来创建一个简单的原始交易。在此之前，你是通过比特币核心钱包图形用户界面（GUI）将币发送回测试网络水龙头。我们现在用原始交易命令来做同样的事情。
 - en: To get started, let’s confirm your wallet’s balance prior to sending coins.>
     bitcoin-cli getbalance0.18505841Next, let’s pick the UTXO you will be using to
     fund the transaction. As you recall, you can get a list of UTXOs, via the listunspent
@@ -760,14 +1050,20 @@
     In this example, I will be pointing to a vout and generating a new transaction.
     The new transaction can include multiple other vouts, as illustrated in Figure
     [4-11](#Fig11).![../images/475651_1_En_4_Chapter/475651_1_En_4_Fig11_HTML.jpg](../images/475651_1_En_4_Chapter/475651_1_En_4_Fig11_HTML.jpg)
+  id: totrans-137
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了开始，让我们先确认你在发送币之前钱包的余额。`bitcoin-cli getbalance`0.18505841接下来，让我们选择你将用来资助交易的UTXO。正如你回忆的那样，你可以通过`listunspent`命令获取UTXO列表，然后查看JSON响应并选择交易ID。选择一个有足够资金来资助你新交易的交易，并且这个交易已经被确认了。`utxo_txid="50e91c9b73a90bd883f4a9a8a51be729770df20fae0445a9090b80a8621f4538"`正如你可能还记得的，`vout`是交易中一个输出的索引号。在这个例子中，我将指向一个`vout`并生成一个新的交易。新的交易可以包括多个其他的`vout`，如图[4-11](#Fig11)所示。![新的交易输出](../images/475651_1_En_4_Chapter/475651_1_En_4_Fig11_HTML.jpg)
 - en: Figure 4-11
+  id: totrans-138
   prefs: []
   type: TYPE_NORMAL
+  zh: 图4-11
 - en: vout new transaction illustration
+  id: totrans-139
   prefs: []
   type: TYPE_NORMAL
+  zh: 新的交易输出示例
 - en: 'In this example, you will set the first index for vout.> utxo_vout="0"The last
     but most important variable you need to set is the recipient address. Here, you
     will be using the same wallet address as you used previously to send your coins.>
@@ -792,6 +1088,7 @@
     {        "asm": "OP_DUP OP_HASH160 9f9a7abd600c0caa03983a77c8c3df8e062cb2fa OP_EQUALVERIFY
     OP_CHECKSIG",        "hex": "76a9149f9a7abd600c0caa03983a77c8c3df8e062cb2fa88ac",        "reqSigs":
     1,        "type": "pubkeyhash",        "addresses": [          "mv4rnyY3Su5gjcDNzbMLKBQkBicCtHUtFB"        ]      }    }  ]}'
+  id: totrans-140
   prefs: []
   type: TYPE_NORMAL
 - en: As you have seen, to create a transaction, you generate a signature from the
@@ -799,49 +1096,65 @@
     the public key and the signature and checks to see whether you have a match to
     the public key hash. If results are true, you are able to spend the coins; otherwise,
     you can’t.
+  id: totrans-141
   prefs: []
   type: TYPE_NORMAL
 - en: Note
+  id: totrans-142
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
 - en: A public key visible in the transaction is a type of transaction called Pay
     to Pubkey (P2PK). A hidden public key as you have been using is a type of transaction
     called Pay to PubKey Hash (P2PKH).
+  id: totrans-143
   prefs: []
   type: TYPE_NORMAL
 - en: You will sign your transaction via P2PKH to match your wallet’s type. There
     are two ways to sign the transaction; you can use signrawtransactionwithkey or
     signrawtransactionwithwallet.
+  id: totrans-144
   prefs: []
   type: TYPE_NORMAL
 - en: These two signed methods are available in 0.18.0 RPC, including inputs for raw
     transactions in a serialized hex-encoded format.
+  id: totrans-145
   prefs: []
   type: TYPE_NORMAL
+  zh: 这两个签名方法在0.18.0 RPC版本中可用，包括以序列化的十六进制编码格式提供的原始交易的输入。
 - en: The signrawtransactionwithwallet command format is as follows:signrawtransactionwithwallet
     "hexstring" ( [{"txid":"id","vout":n,"scriptPubKey":"hex","redeemScript":"hex"},...]
     sighashtype )
+  id: totrans-146
   prefs: []
   type: TYPE_NORMAL
+  zh: '`signrawtransactionwithwallet`命令格式如下：`signrawtransactionwithwallet "十六进制字符串"`
+    ( [{"txid":"交易ID","vout":n,"scriptPubKey":"公钥脚本","redeemScript":"赎回脚本"},...] `sighashtype`
+    )'
 - en: Notice that the signrawtransactionwithwallet command allows you to include a
     second argument called “prevtxs”. “prevtxs” is formatted as an array that includes
     the previous transaction outputs. If you decide to utilize and insert value for
     “prevtxs” the transaction will depends on the previous transaction that may not
     even be in the blockchain yet. In case you don’t need this feature just set “prevtxs”
     to null.
+  id: totrans-147
   prefs: []
   type: TYPE_NORMAL
+  zh: 请注意，`signrawtransactionwithwallet`命令允许你包含一个名为“prevtxs”的第二个参数。“prevtxs”格式为一个数组，包括之前的交易输出。如果你决定使用并插入“prevtxs”的值，该交易将依赖于之前的交易，而之前的交易可能甚至不在区块链中。如果你不需要这个功能，只需将“prevtxs”设置为null。
 - en: The signrawtransactionwithkey command format is as follows:signrawtransactionwithkey
     "hexstring" ["privatekey1",...]
+  id: totrans-148
   prefs: []
   type: TYPE_NORMAL
+  zh: '`signrawtransactionwithkey`命令格式如下：`signrawtransactionwithkey "十六进制字符串"` ["私钥1",...]'
 - en: Notice that the second argument is a base58-encoded array of private keys that
     will be the only keys used to sign the transaction. The third optional argument
     is an array of previous transaction outputs that this transaction depends on but
     may not yet be in the blockchain.
+  id: totrans-149
   prefs: []
   type: TYPE_NORMAL
+  zh: 请注意，第二个参数是一个base58编码的私钥数组，它将是签署交易的唯一把钥匙。第三个可选参数是一个之前交易输出的数组，该交易依赖于这些输出，但可能尚未进入区块链。
 - en: 'In our case, you will not include the second argument because your transaction
     does not need to depend on other conditions.> bitcoin-cli signrawtransactionwithwallet
     $rawtxhex{  "hex": "0200000000010138451f62a8800b09a94504ae0ff20d7729e71ba5a8a9f483d80ba9739b1ce9500000000017160014c27b4e6bd8eb821ee80a239e0edd59070f57233dffffffff0140420f00000000001976a9149f9a7abd600c0caa03983a77c8c3df8e062cb2fa88ac0247304402205cc4b04859e34aa6b1e924745f33a7643fbe45fcd6e900fdaa29281feae3f8f6022059d4083a3cf81c3bb82267931660afb8ffc4bae87ede8dfa11efcb6af6a14ac90121028926735fcd5bf6580e6f669c240da8975dddf23a6d4015e4e0bc1ca3f1d2b7f100000000",  "complete":
@@ -863,9 +1176,11 @@
     1,    "blocktime": 1542070705,    "txid": "ff75dbb08da6f4dc6463dd32d8f9b1a4781e1eeee338e93e82820d0fdfbd43ff",    "walletconflicts":
     [    ],    "time": 1542070656,    "timereceived": 1542070656,    "bip125-replaceable":
     "no",    "abandoned": false  }]'
+  id: totrans-150
   prefs: []
   type: TYPE_NORMAL
 - en: Transactions that Require Multisignature
+  id: totrans-151
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
@@ -876,6 +1191,7 @@
     instance, institutions, partners, spouses, or programmed scripts may want to have
     all parties sign instead of just one. These cases would need all the users’ private
     keys before funds could be sent.
+  id: totrans-152
   prefs: []
   type: TYPE_NORMAL
 - en: To do a multiple-signees transaction, you will create two separate wallets for
@@ -883,26 +1199,32 @@
     to generate a new public address for each wallet, or you can download the Electrum
     wallet at [https://electrum.org/#download](https://electrum.org/%2523download)
     and run it in testnet mode to generate your second wallet.
+  id: totrans-153
   prefs: []
   type: TYPE_NORMAL
 - en: As a first example, you will run Electrum because you can use its built-in multisignature
     wallet to understand this process. Once you complete downloading Electrum, run
     Electrum as testnet via the command line.> open -n /Applications/Electrum.app
     --args –testnet
+  id: totrans-154
   prefs: []
   type: TYPE_NORMAL
 - en: Setting Electrum with a Multisignature Wallet
+  id: totrans-155
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
 - en: After Electrum starts, select “Multi-signature wallet” for the create wallet
     option and then click Next. See Figure [4-12](#Fig12).![../images/475651_1_En_4_Chapter/475651_1_En_4_Fig12_HTML.jpg](../images/475651_1_En_4_Chapter/475651_1_En_4_Fig12_HTML.jpg)
+  id: totrans-156
   prefs: []
   type: TYPE_NORMAL
 - en: Figure 4-12
+  id: totrans-157
   prefs: []
   type: TYPE_NORMAL
 - en: Electrum multisignature wallet
+  id: totrans-158
   prefs: []
   type: TYPE_NORMAL
 - en: On the next screen, you can select how many cosigners are required and how many
@@ -910,36 +1232,45 @@
     for instance, a 2-of-3 scenario. A 2-of-3 would mean you need at least two private
     keys (signatures) from three cosigners to authorize the transaction. You can move
     the sliders to better understand this feature, as shown in Figure [4-13](#Fig13).![../images/475651_1_En_4_Chapter/475651_1_En_4_Fig13_HTML.jpg](../images/475651_1_En_4_Chapter/475651_1_En_4_Fig13_HTML.jpg)
+  id: totrans-159
   prefs: []
   type: TYPE_NORMAL
 - en: Figure 4-13
+  id: totrans-160
   prefs: []
   type: TYPE_NORMAL
 - en: Electrum multisignature wallet cosigners and signatures
+  id: totrans-161
   prefs: []
   type: TYPE_NORMAL
 - en: Here, select a 2-of-2 multisignature wallet, which means two cosigners and two
     signatures. Then click the Next button. On the following screen, click “Create
     a new seed” and click the Next button.
+  id: totrans-162
   prefs: []
   type: TYPE_NORMAL
 - en: On the following screen, you can choose the seed type. Standard means P2PKH
     or SegWit, which means a P2SH-SEGWIT, so select Standard and click Next.
+  id: totrans-163
   prefs: []
   type: TYPE_NORMAL
 - en: For the next step, you are given a seed that represents your private key. Store
     your seed and be careful not to share it with anyone. You are then provided with
     what Electrum calls your *master* public key, and you are asked to share it with
     your cosigners, as shown in Figure [4-14](#Fig14).![../images/475651_1_En_4_Chapter/475651_1_En_4_Fig14_HTML.jpg](../images/475651_1_En_4_Chapter/475651_1_En_4_Fig14_HTML.jpg)
+  id: totrans-164
   prefs: []
   type: TYPE_NORMAL
 - en: Figure 4-14
+  id: totrans-165
   prefs: []
   type: TYPE_NORMAL
 - en: Electrum install wizard master public key
+  id: totrans-166
   prefs: []
   type: TYPE_NORMAL
 - en: Note
+  id: totrans-167
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
@@ -947,16 +1278,20 @@
     (HD) wallet that generates an address for you based on a master seed that can
     be used to back up all your funds. The seed consists of words used to retrieve
     your wallet’s private keys; losing your seeds would mean losing your private keys.
+  id: totrans-168
   prefs: []
   type: TYPE_NORMAL
 - en: Click Next, and you can enter a cosigner’s public key or private key. See Figure
     [4-15](#Fig15).![../images/475651_1_En_4_Chapter/475651_1_En_4_Fig15_HTML.jpg](../images/475651_1_En_4_Chapter/475651_1_En_4_Fig15_HTML.jpg)
+  id: totrans-169
   prefs: []
   type: TYPE_NORMAL
 - en: Figure 4-15
+  id: totrans-170
   prefs: []
   type: TYPE_NORMAL
 - en: Electrum install wizard cosigner key
+  id: totrans-171
   prefs: []
   type: TYPE_NORMAL
 - en: 'On the next screen of the wizard, you will be using the master private key
@@ -964,70 +1299,90 @@
     behalf. You can retrieve the private key from inside your private key backup file.
     It shows under extended private masterkey.> vim /Users/[location]/mywallet.txt#
     extended private masterkey: [key]'
+  id: totrans-172
   prefs: []
   type: TYPE_NORMAL
 - en: The Electrum wizard sets your cosigners for you, and the next step of the install
     wizard asks you to set up your password, if you like, for extra security.
+  id: totrans-173
   prefs: []
   type: TYPE_NORMAL
 - en: That’s it. Now that the wizard has completed setting up your account, you can
     send and receive funds from and to your cosigner wallet. Click Receive at the
     top to get your wallet address, as shown in Figure [4-16](#Fig16).![../images/475651_1_En_4_Chapter/475651_1_En_4_Fig16_HTML.jpg](../images/475651_1_En_4_Chapter/475651_1_En_4_Fig16_HTML.jpg)
+  id: totrans-174
   prefs: []
   type: TYPE_NORMAL
 - en: Figure 4-16
+  id: totrans-175
   prefs: []
   type: TYPE_NORMAL
 - en: Electrum wallet receive address and QR code
+  id: totrans-176
   prefs: []
   type: TYPE_NORMAL
 - en: 'You will be using Coinfaucet.eu again to fund your new wallet: [https://coinfaucet.eu/en/btc-testnet/](https://coinfaucet.eu/en/btc-testnet/)
     .'
+  id: totrans-177
   prefs: []
   type: TYPE_NORMAL
 - en: Then you can send these coins back to the Coinfaucet.eu wallet’s address after
     the coins have been confirmed; here is Coinfaucet.eu wallet’s address:2N7RzS3j2eKHVj1E5yV7iGuwfgUtobrCnrc
+  id: totrans-178
   prefs: []
   type: TYPE_NORMAL
 - en: Since you have been providing both of the cosigner’s private keys, this transaction
     will be happening using the send command. However, in case you set two accounts
     and provide only one public key, the second cosigner would need to approve this
     transaction on his account before the send command will actually send the coins.
+  id: totrans-179
   prefs: []
   type: TYPE_NORMAL
 - en: Similarly, you can do this transaction via the RPC command line.
+  id: totrans-180
   prefs: []
   type: TYPE_NORMAL
 - en: To get started, click File ➤ Delete at the top of Electrum to create a standard
     wallet instead of a cosigner wallet.
+  id: totrans-181
   prefs: []
   type: TYPE_NORMAL
 - en: Once this wallet is removed, you can start over and create a new Standard (P2PKH)
     wallet that you will be using as the second cosigner. To retrieve your wallet’s
     address, click the View link at the top and then click Addresses.
+  id: totrans-182
   prefs: []
   type: TYPE_NORMAL
 - en: Next, right-click an address for which you’d like to see its public key. This
     will show the address public key. See Figure [4-17](#Fig17).
+  id: totrans-183
   prefs: []
   type: TYPE_NORMAL
 - en: 'Here is the example’s wallet address: mxaFFFW5CFfJi6fbhn1qFDi8gv6eFsSBKQ'
+  id: totrans-184
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: 'Here is the example’s public key: 038e6fb8b842c750eb68bfccfd0fa1aa1ce8e455d58137e260a067e6d2fb853ea6'
+  id: totrans-185
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '![../images/475651_1_En_4_Chapter/475651_1_En_4_Fig17_HTML.jpg](../images/475651_1_En_4_Chapter/475651_1_En_4_Fig17_HTML.jpg)'
+  id: totrans-186
   prefs: []
   type: TYPE_IMG
+  zh: '![../images/475651_1_En_4_Chapter/475651_1_En_4_Fig17_HTML.jpg](../images/475651_1_En_4_Chapter/475651_1_En_4_Fig17_HTML.jpg)'
 - en: Figure 4-17
+  id: totrans-187
   prefs: []
   type: TYPE_NORMAL
+  zh: 图 4-17
 - en: Electrum Standard wallet address and public key
+  id: totrans-188
   prefs: []
   type: TYPE_NORMAL
+  zh: 电子标准钱包地址和公钥
 - en: 'Next, you will create a new address for your cosigner via command-line RPC.>
     bitcoin-cli getnewaddress2Msggcttx7wDDbcib6yD8ng2oKRdq8Bz4wVNext, you can set
     the two cosigners’ addresses.> address1=2Msggcttx7wDDbcib6yD8ng2oKRdq8Bz4wV> address2=mxaFFFW5CFfJi6fbhn1qFDi8gv6eFsSBKQEnsure
@@ -1060,9 +1415,11 @@
     true}Lastly, sign your transaction via the signedtx command.> signedtx="020000000001010b414524b6969473ede39467d2fe65b2833d0eb6d62ee02051d103b16ab43fea0000000017160014040c578cf60bf00980bfde1920f54459eaab3a09ffffffff01a0860100000000001976a9149f9a7abd600c0caa03983a77c8c3df8e062cb2fa88ac024730440220603883ace41bdf5cf85c87e80f7362b45e35949114f46ac5e5b89f5e13d8d95002205c5eb45ca7de8b2da88c41c4311711beb14e8e0d679e40d1fbc2cb8e81e053fb01210205e848e0f22dfe0c428d02c356d0c9a8d064a789a6bbcaa43a245d701948aba200000000"You
     are ready to send your transaction using sendrawtransaction value.> bitcoin-cli
     sendrawtransaction $signedtx'
+  id: totrans-189
   prefs: []
   type: TYPE_NORMAL
 - en: Replaceable Transactions and Locktime
+  id: totrans-190
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
@@ -1070,12 +1427,15 @@
     includes two more variables you can utilize: locktime and replaceable.createrawtransaction
     [{"txid":"id","vout":n},...] [{"address":amount},{"data":"hex"},...] ( locktime
     ) ( replaceable )'
+  id: totrans-191
   prefs: []
   type: TYPE_NORMAL
 - en: 'You can learn more about these arguments here:'
+  id: totrans-192
   prefs: []
   type: TYPE_NORMAL
 - en: '[https://bitcoincore.org/en/doc/0.17.0/rpc/rawtransactions/createrawtransaction/](https://bitcoincore.org/en/doc/0.17.0/rpc/rawtransactions/createrawtransaction/)'
+  id: totrans-193
   prefs: []
   type: TYPE_NORMAL
 - en: As the name suggests, replaceable allows a raw transaction to be replaced by
@@ -1083,27 +1443,33 @@
     causing the transaction not to go through. For instance, if the fee you are trying
     to pay is too high, you can get the following error message:absurdly-high-fee,
     11563419 > 10000000 (code 256)
+  id: totrans-194
   prefs: []
   type: TYPE_NORMAL
 - en: Bitcoin core supports the locktime argument  in the raw transaction; this argument
     allows you to send transactions at some time in the future, and until they’re
     sent, the sender can cancel the transaction.
+  id: totrans-195
   prefs: []
   type: TYPE_NORMAL
 - en: There are two options. Block height is used for small numbers, and UNIX timestamps
     are used for big numbers. These arguments mean that the transaction is not inserted
     into the block until the conditions are met.
+  id: totrans-196
   prefs: []
   type: TYPE_NORMAL
 - en: Note
+  id: totrans-197
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
 - en: Block height is the number of blocks in the chain between any specific block
     and the first chain block on the chain.
+  id: totrans-198
   prefs: []
   type: TYPE_NORMAL
 - en: Bitcoin Colored Coins
+  id: totrans-199
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
@@ -1117,9 +1483,11 @@
     wallet in case you don’t want to pay someone. That way you get to store data in
     the Bitcoin persistence Blockchain and you only need to pay the transaction fee
     as you don’t pay anyone.
+  id: totrans-200
   prefs: []
   type: TYPE_NORMAL
 - en: Note
+  id: totrans-201
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
@@ -1129,9 +1497,11 @@
     about whether it’s okay to utilize this property. Some believe that storing noncurrency
     data in the blockchain is a bad idea; because there are less costly and more efficient
     ways to store data, it really depends on usage.
+  id: totrans-202
   prefs: []
   type: TYPE_NORMAL
 - en: Sending a Transaction with OP_RETURN
+  id: totrans-203
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
@@ -1140,27 +1510,33 @@
     is a command-line JSON processor that you can use to process your RPC JSON in
     the terminal. You can download it from [https://stedolan.github.io/jq/download](https://stedolan.github.io/jq/download)
     .
+  id: totrans-204
   prefs: []
   type: TYPE_NORMAL
 - en: Install it with Brew.> brew install jq
+  id: totrans-205
   prefs: []
   type: TYPE_NORMAL
 - en: The jq utility allows you to retrieve pieces of the returned JSON so you will
     be able to stream your transaction quicker and with fewer mistakes.
+  id: totrans-206
   prefs: []
   type: TYPE_NORMAL
 - en: Next, you can set some data to send via the OP_RETURN param. This example will
     create an MD5 for a file. In real life, this can be a version of a contract between
     parties or any piece of code you need.
+  id: totrans-207
   prefs: []
   type: TYPE_NORMAL
 - en: Note
+  id: totrans-208
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
 - en: The Message-Digest 5 (MD5) algorithm is a function that generates a 128-bit
     hash value. It’s common to create a file that holds checksum files and that ensures
     the integrity of data because each file change would result in a new MD5 result.
+  id: totrans-209
   prefs: []
   type: TYPE_NORMAL
 - en: You can pick one of bitcoin’s core files such as config.log to generate an MD5
@@ -1171,6 +1547,7 @@
     process, so you don’t need to do a copy and paste and can avoid errors.> utxo_txid=$(bitcoin-cli
     listunspent | jq -r '.[0] | .txid')> utxo_vout=$(bitcoin-cli listunspent | jq
     -r '.[0] | .vout')> recipient=$(bitcoin-cli getrawchangeaddress)
+  id: totrans-210
   prefs: []
   type: TYPE_NORMAL
 - en: Notice a few things here. You set the first JSON item [0] here, but you can
@@ -1178,6 +1555,7 @@
     listunspent command to find out the “amount” the UTXO has. For this example, the
     amount is 0.1166341, and since you want to pay 0.00000200 for fees (200 satoshis),
     you will be sending 0.1166321 in total.
+  id: totrans-211
   prefs: []
   type: TYPE_NORMAL
 - en: 'If you don’t set the fee correctly, you may end up spending too much on fees
@@ -1189,34 +1567,42 @@
     "data": "''$op_return_data''", "''$recipient''": 0.1166321}"'')Next, you need
     to sign and send the transaction.> signedtx=$(bitcoin-cli signrawtransactionwithwallet
     $rawtxhex | jq -r ''.hex'')> bitcoin-cli sendrawtransaction $signedtx43a14c3b1ac446e4774c5338e5ae4e23839ab65a38c45da8b790f4449b090ae5'
+  id: totrans-212
   prefs: []
   type: TYPE_NORMAL
 - en: 'Now, you can track the RawTransaction object on the testnet Blockchain Explorer
     ledger, as shown in Figure [4-18](#Fig18). Here’s the URL:'
+  id: totrans-213
   prefs: []
   type: TYPE_NORMAL
 - en: '[https://live.blockcypher.com/btc-testnet/tx/43a14c3b1ac446e4774c5338e5ae4e23839ab65a38c45da8b790f4449b090ae5/](https://live.blockcypher.com/btc-testnet/tx/43a14c3b1ac446e4774c5338e5ae4e23839ab65a38c45da8b790f4449b090ae5/)![../images/475651_1_En_4_Chapter/475651_1_En_4_Fig18_HTML.jpg](../images/475651_1_En_4_Chapter/475651_1_En_4_Fig18_HTML.jpg)'
+  id: totrans-214
   prefs: []
   type: TYPE_NORMAL
 - en: Figure 4-18
+  id: totrans-215
   prefs: []
   type: TYPE_NORMAL
 - en: Block Explorer testnet, transaction with data
+  id: totrans-216
   prefs: []
   type: TYPE_NORMAL
 - en: As you can see in Figure [4-18](#Fig18), you are getting the message “Data Embedded
     in Transaction with Unknown Protocol.” If you were to design some software that
     uses this method on a regular basis, you would want to include a keyword to identify
     your data.
+  id: totrans-217
   prefs: []
   type: TYPE_NORMAL
 - en: Bitcoin’s Colored Coins
+  id: totrans-218
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
 - en: The colored coins name stuck from bitcoin core’s older implementations of the
     EPOBC protocol where an asset is associated with satoshis (thus “coloring”). Now
     you are able to achieve coloring with the OP_RETURN param  .
+  id: totrans-219
   prefs: []
   type: TYPE_NORMAL
 - en: OP_RETURN colored  your coins and provided a new capability for bitcoin’s blockchain,
@@ -1225,9 +1611,11 @@
     transaction you inserted into the blockchain. OP_RETURN is powerful, and later
     in this book you will see how OP_RETURN is utilized in production-grade projects
     to solve all sorts of issues.
+  id: totrans-220
   prefs: []
   type: TYPE_NORMAL
 - en: Summary
+  id: totrans-221
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
@@ -1235,6 +1623,7 @@
     and SegWit bitcoin wallets, and you were able to retrieve the wallet’s private
     keys and better understand the Elliptic Curve Digital Signature Algorithm (ECDSA)
     and how the public and private keys are created.
+  id: totrans-222
   prefs: []
   type: TYPE_NORMAL
 - en: You spent the majority of this chapter looking into transactions; you sent coins
@@ -1243,6 +1632,7 @@
     in bitcoin’s Block Explorer. You continued by looking into RawTransaction and
     learned how to generate transactions with one output as well as more complex transactions
     with multiple signers via Electrum as well as the command line.
+  id: totrans-223
   prefs: []
   type: TYPE_NORMAL
 - en: Additionally, you learned other options such as replacing your transaction for
@@ -1251,5 +1641,6 @@
     params, which can be used for bitcoin colored coins or just to pass additional
     data utilizing bitcoin’s blockchain for more than spending coins. In the next
     chapter, you will take a closer look at Ethereum and how to write smart contracts.
+  id: totrans-224
   prefs: []
   type: TYPE_NORMAL
