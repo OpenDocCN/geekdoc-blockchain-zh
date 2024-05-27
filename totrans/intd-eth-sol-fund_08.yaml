@@ -1,0 +1,489 @@
+- en: © Chris Dannen 2017Chris DannenIntroducing Ethereum and Solidity10.1007/978-1-4842-2535-6_8
+  prefs: []
+  type: TYPE_NORMAL
+- en: 8. Dapp Deployment
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'As you’ll see, deploying dapps is an adventure in the frontier of a new computing
+    paradigmChris Dannen^(1 )(1)Brooklyn, New York, USAA distributed application,
+    or dapp, shares some of the same ideals as the rest of the EVM protocol: the promise
+    immutability. Dapps are composed of smart contracts that, as noted many times
+    in this book, are executed by all nodes on the Ethereum network at approximately
+    the same time.Dapps in practice are like universally available web services running
+    on the EVM, but made accessible to users via a normal HTML/CSS/JavaScript front
+    end that they can access through their web browser or a smartphone application,
+    or an Ethereum browser such as Mist.NoteThis chapter tackles topics aimed at developers
+    with preexisting skills. If you’re a new coder, read this chapter thoroughly along
+    with Chapter [9](A433414_1_En_9_Chapter.html). Then, pick up a JavaScript beginner
+    book to improve your scripting skills. Next, visit [http://solidity.eth.guide](http://solidity.eth.guide)
+    for more Solidity language tutorials.Running blockchain-based application clients
+    is far easier than managing clients in a cloud-hosted paradigm. Hub-and-spoke
+    web applications scale vertically, reflecting the individual servers they run
+    on. In contrast, an Ethereum application scales horizontally—the way you’d want
+    a cloud application to scale.Although it’s true that today cryptonetworks are
+    significantly constrained in terms of transaction processing power, they will
+    get faster as other components of the protocol mature.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Seven Ways to Think About Smart Contracts
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Behind every dapp is a series of smart contracts. Smart contracts are useful
+    in these scenarios, which may make fun problem areas for prototyping:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Maintain an accounting system for something in the real world, or for other
+    contracts
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Create forwarding contracts, such as a savings account that resends income to
+    a separate bucket automatically
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Manage a relationship between several parties, such as a freelancer agreement
+    or payroll
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Act as a software library for other contracts
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Act as controllers for other systems or sets of contracts
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Serve as application-specific logic for a communal web service
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Serve as a utility that developers can use on a single-serving basis, such as
+    a random number generator
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Dapp development brings with it all sorts of new concerns for application developers,
+    as well as an understanding of the Web3 JavaScript API and the Solidity programming
+    language. Hopefully, you feel prepared to work with these tools directly after
+    reading most of this book!To get a better idea of the kinds of dapps being built
+    today, check out [http://dapps.ethercasts.com](http://dapps.ethercasts.com) ,
+    operated by EtherCasts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Dapp Contract Data Models
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The first thing you’ll need to know to deploy a working contract is what kind
+    of data you can store in the EVM, and where you’re storing it.As we discussed
+    in prior chapters, every contract address in the Ethereum network has storage
+    space for its smart contracts. This storage space has no limit, except what you’re
+    willing to pay. As of this writing, storage space costs about $0.018 per kilobyte.The
+    Solidity language makes it easy to use contracts as little relational databases.
+    To make this easier, the Solidity language has two familiar data types we haven’t
+    mentioned yet:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Mappings
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Structs
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: To learn more about using these types in Solidity, consult [http://solidity.eth.guide](http://solidity.eth.guide)
+    .At its most basic, a contract’s individual storage space is a key/value store
+    with 2256 possible keys and the same number of values. That’s enough space for
+    pretty much any kind of database structure you feel like creating.NoteRecall that
+    object attributes are sometimes referred to by developers as keys, as in the phrase
+    key/value pair or key/value store. In our human example, a key/value pair might
+    be footSize = 11. A table containing everyone’s foot size on a dedicated server
+    is an example of a key/value store. As a stateful transaction machine, you can
+    think of the entire EVM as a giant key/value store that shows account balances.Hopefully
+    by now, you are already picturing the kinds of simple data structures you could
+    create and use in Solidity contracts. In the next section, we’ll begin breaking
+    down distributed app architecture.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How an EVM Back End Talks to a JS Front End
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The gap between the Ethereum network and what might be called the HTTP network,
+    otherwise known as the Web, can indeed be traversed. Let’s say a customer enters
+    a lunch order on a dapp-powered web site from a conventional web browser. In order
+    to successfully pass data about her order (how many milkshakes?) between her browser
+    and the EVM, the dapp’s front end must “send” the data to the EVM in a certain
+    format.NoteDapps may not require their own set of contracts; instead, they may
+    be able to call certain public functions in other contracts to make use of their
+    functionality. For every function declared public in a smart contract, Solidity
+    automatically creates an accessor function so that other contracts can call it.In
+    computing, data-interchange formats work much like the international postal service.
+    Although different servers around the world may be running different operating
+    systems, written in different languages, by totally different minds, they must
+    at some point exchange data with a server that is not like them.To get the “translation”
+    correct, programmers engineer their programs to send information to other programs
+    in a certain notations. Usually, the notation describes a format for an entire
+    object (defined in Chapter [1](A433414_1_En_1_Chapter.html) as a set of attributes
+    and values). For example, a human data object might include height, weight, eye
+    color, foot size, and so on.
+  prefs: []
+  type: TYPE_NORMAL
+- en: JSON-RPC
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'In today’s web applications, JavaScript code can pass information across the
+    Web by using a common object notation called JavaScript Object Notation (JSON)
+    . JSON objects can contain numbers, strings, and ordered sequences of values for
+    certain attributes.There are two important data objects in Web3.js, which are
+    roughly equivalent to JSON in the way they are passed between the front and back
+    ends of an Ethereum-powered application. They are called JSON-RPC objects and
+    they come with the Web3.js library. Installation of Web3.js is covered below.
+    These two objects are used in the following ways:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: web3.eth is used specifically for blockchain interactions.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: web3.shh is used specifically for Whisper interactions.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Whisper is a private messaging protocol that is itself a part of the larger
+    Ethereum protocol. You’ll learn more about Whisper and its place on the roadmap
+    in Chapter [11](A433414_1_En_11_Chapter.html).In motion, you can think of JSON-RPC
+    objects as passing back and forth constantly between the front end (on the HTTP
+    Web) and the back end (the Ethereum Web).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Web 3 Is Here (Almost)
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The JavaScript library called Web3.js is part of the new Web 3 specification.
+    You can find the GitHub page for the Web 3 project at [https://github.com/ethereum/web3.js/](https://github.com/ethereum/web3.js/)
+    .Web 3 is a general term for the decentralized web, just as Web 2 was defined
+    by web-hosted applications and services. Web 1 refers to the original World Wide
+    Web, which hosted static pages. Ever since, the Hypertext Transfer Protocol has
+    been evolving to add more methods and to support ever more sophisticated content
+    and scripts.Web 3 is very much a vision that centers on the Ethereum protocol
+    in particular. It is generally considered to have three components:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Peer-to-peer identity and messaging system
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Shared state (a blockchain)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Decentralized file storage
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'The first two check boxes are complete: the Ethereum network is up and running,
+    and transactions work! The third leg on the stool, decentralized file storage,
+    is part of the Swarm project, which you’ll learn more about in Chapter [11](A433414_1_En_11_Chapter.html).In
+    the Web 3 paradigm, there are no web servers. There are no caches, reverse proxies,
+    load balancers, content delivery networks (CDNs), or other vestiges of legacy
+    large-scale web application deployment. Even decentralized domain name servers
+    (DNS) will be free. When Swarm storage comes online, it will be cheap, just like
+    Ethereum’s web-hosting component.For developers and hackers of all types, Web
+    3 blows up the “freemium” application deployment model, in which more and more
+    users and scale bring you higher and higher hosting bills. In the EVM, you can
+    control your costs by writing efficient code, and you can count on anyone on Earth
+    being able to access your application from day one.Let’s zoom back into the specifics
+    of dapp development and see how the Web we know today talks to the EVM.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Experimenting with the JavaScript API
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In Chapter [6](A433414_1_En_6_Chapter.html), you saw how easy it is to interact
+    with the EVM by typing commands into the JavaScript console in Geth. When you’re
+    doing this, you’re really just calling individual JavaScript methods that come
+    with the Ethereum JavaScript API. These JavaScript methods you type into the Geth
+    console are being interpreted by a JIT-like JavaScript interpreter that is unique
+    to Geth. This is called interactive use of the JSRE, or using it in interactive
+    mode.However, the Ethereum JavaScript API methods can also be exposed to normal
+    web applications, allowing them to talk to the EVM.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using Geth for Dapp Deployment
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Although other Ethereum clients are popular, Geth (which is written in the
+    Go language developed at Google) and its easy-breezy interpretations of JavaScript
+    make it the quickest way to connect a front-end web application on the traditional
+    HTTP Web with a back-end EVM contract.Because these are JavaScript methods being
+    interpreted by Geth into EVM code, it’s possible to string them together into
+    scripts, which of course is the natural use for JavaScript in the first place.
+    This is referred to as using it noninteractively .NoteNoninteractive use of the
+    JavaScript API is the whole reason for what we call computer programming. This
+    is, generally speaking, the goal of programming, or writing a program: to automate
+    what would be otherwise manual commands typed into the terminal, like the ones
+    you typed to install Geth. When performing complex computations or building analytical
+    models, these strings of instructions can get long and tiresome.By writing strings
+    of instructions in a plain-text file, the programmer can make a program condensed,
+    quick, efficient, and repeatable.Another goal of programming is to separate the
+    tasks a human operator would be entering, and do them concurrently in threads,
+    so the whole job takes less time. As you saw with Geth when it first started up,
+    you couldn’t do anything with that command-line window while it was synchronizing,
+    and indeed that thread would not stop as long as Geth was running.By building
+    a console on top of Geth, the Ethcore developers have allowed you, the operator
+    of the console, to issue commands while Geth is synchronizing in the background,
+    in another thread on your local machine.Next, you’ll learn about ideal web development
+    frameworks for connecting to the EVM as a back end.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using Meteor with the EVM
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'If you’re a JavaScript developer, you may have heard about Meteor.js, a library
+    that lets you write reactive web applications that run symmetrical code on the
+    server and client.This full-stack framework is excellent for real-time web applications,
+    but is useful for Ethereum front-end development because it is so well suited
+    to writing single-page applications, or SPAs .Here’s why so many Ethereum developers
+    love Meteor:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: It’s written entirely in JavaScript, as are the tools.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: You get a whole developer environment out of the box.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Deployment is super easy.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Interfaces are fully reactive (similar to Angular.js).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Uses a NoSQL data model called MiniMongo, which can be autopersisted to local
+    smart-contract storage.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: To learn more about building Ethereum apps with Meteor.js, check out [https://github.com/ethereum/wiki/wiki/Dapp-using-Meteor](https://github.com/ethereum/wiki/wiki/Dapp-using-Meteor)
+    .This URL is also listed on tutorials.eth.guide. Next you’ll learn about installing
+    the Web3.js library onto your development machine so you can begin messing around
+    with contracts locally.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Install Web3.js to Build an Ethereum-Enabled Web ­Application
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'The Web3.js library communicates through RPC to a local node. The library works
+    with any Ethereum node, as long as it is exposing its RPC layer . You’ll need
+    to install this library on your local machine to do development, and on your web
+    server to run your front-end application.This is exposed by default on private
+    chains, even if you do not start your chain in Geth with this command flagged.In
+    effect, you can think of your Ethereum node as the bare-metal layer, exposing
+    the EVM through its RPC layer. That RPC layer can send and receive web3.eth and
+    web3.shh objects with a web server that is also running Web3.js.To install Web3.js
+    in your local development environment, open the Terminal and use the installation
+    library that you’re most comfortable with:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'npm: npm install web3'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'bower: bower install web3'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'meteor: meteor add ethereum:web3'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'vanilla: link the dist./web3.min.js'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Then you need to create a Web3 instance and set your localhost as a provider.
+    To continue learning how to work with Web3.js, go to [http://dapps.eth.guide](http://dapps.eth.guide)
+    .Next, you’ll see how to execute JavaScript files in the Geth console.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Executing Contracts in the Console
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: A full tutorial in dapp deployment would take many pages and could be performed
+    dozens of possible ways. This section instead focuses on getting started quickly.You
+    can upload your smart contract files directly in Geth, sending them in a transaction
+    to the EVM by simply adding the --exec argument and then writing JavaScript code
+    pointing to a local script. For example:$ geth --exec 'loadScript("/Desktop/test.js")'In
+    fact, you can even execute JavaScript that is sitting on another machine, as long
+    as it is running Geth:$ geth --exec 'loadScript("/Desktop/test.js")' attach https://100.100.100.100:8000The
+    next section covers the architecture of Ethereum-enabled applications, and how
+    they diverge from traditional web architecture.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How Contracts Expose an Interface
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: When using the JavaScript dapp API, calling a contract via an abstraction layer
+    such as the eth.contract() function will send back an object with all the functions
+    that contract can run when called in JavaScript.To standardize this introspective
+    functionality, the Ethereum protocol comes with something called the application
+    binary interface , otherwise known as the Contract ABI . The ABI behaves like
+    an API, creating a standard syntax for contracts to be called by applications.The
+    ABI dictates that the contract will send back an array that delineates the proper
+    call signature and the available contract functions.It may be surprising to some
+    developers, especially those hailing from the Apple developer environment, that
+    there are no frameworks that “come with” Ethereum to enable the easy writing of
+    common application components.Although the Ethereum protocol may be generally
+    featureless, there’s still a need to make contracts interact in predictable ways
+    in common use cases. These scenarios include currency units, name registry, and
+    trading on exchanges. The ABI is a concession to such scenarios.ABI contains the
+    word binary because in the EVM, the level below the application layer is the one
+    that runs EVM bytecode.You can find this specification at [https://github.com/ethereum/wiki/wiki/Ethereum-Contract-ABI#functions](https://github.com/ethereum/wiki/wiki/Ethereum-Contract-ABI#functions)
+    or at [http://abi.eth.guide](http://abi.eth.guide) .Standards for smart contracts
+    usually consist of sets of function signatures for a few common methods, such
+    as sending, receiving, registering, deleting, and so on.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Recommendations for Prototyping
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The first thing to know about prototyping Solidity contracts is that you do
+    not necessarily need an Ethereum node to test your contracts. You can use the
+    Ethereum VM Contract Simulator , [https://github.com/EtherCasts/evm-sim/](https://github.com/EtherCasts/evm-sim/)
+    . This simulator allows developers to test their contracts in isolation when they
+    don’t have access to the testnet; for example, when working from a netbook.Here
+    are other best practices for prototyping, when you get to the stage where you
+    are testing with live ether:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Don’t use too much ether per contract, and when possible, program upper limits
+    on how much contracts will hold. This is a good fail-safe in the event that a
+    bug traps your funds. Simply don’t use too much when testing with live ether.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Keep your contracts modular and easy to understand. Whenever possible, abstract
+    out functionality into libraries that can be individually tested. Limit the number
+    of variables and length of your functions. Document everything.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Use the Checks-Effects-Interactions pattern. This means you shouldn’t write
+    programs that wait for return data from another contract before proceeding; this
+    will cause time-outs. Generally speaking, you can avoid this by performing checks
+    on the data you get back before changing state.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Write your own intermediaries. Because the EVM is such an unforgiving platform,
+    it’s incumbent on you to create mechanisms for your own programs that act as fail-safes.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: As mentioned in Chapter [5](A433414_1_En_5_Chapter.html), in the token contract
+    tutorial, developers are converging around standards for some types of contracts.
+    You can register your contracts with a third-party service such as Etherchain
+    so that other people can use them. You’ll see publicly listed contracts at [https://etherchain.org/contracts](https://etherchain.org/contracts)
+    .
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Test, test, test! You’ll find testing resources at [http://test.eth.guide](http://test.eth.guide)
+    .
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: You’ve looked at several contracts that were clearly written for demonstration
+    purposes. What kind of simple smart contracts might you create in the service
+    of real dapps, and what is the best way to deploy them? That’s the subject of
+    the last section of this chapter.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Third-Party Deployment Libraries
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Deploying more-sophisticated smart contracts and connecting them to the Web
+    is slightly beyond the scope of this book—in part because it is an area of rapid
+    development and constant changes. It’s also fairly difficult, and requires some
+    patience, as of this writing. As a result, developer tools are a major area of
+    active development in the Ethereum community.Leading groups of developers have
+    created tools to make contract and dapp deployment easier to achieve. Here are
+    some of the projects you should be aware of:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Monax tutorials and Solidity contracts
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: OpenZeppelin smart contracts
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Truffle deployment, testing, and asset creation environment
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Dapple, a developer environment for complex contract systems
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Populus, contract development framework written in Python
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Embark, dapp development framework written in JavaScript
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Ether Pudding, a package builder
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Solium, a linter for Solidity
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: There are many more dapp guides, tutorials, best practices, and sample projects
+    than this book can cover. You will find up-to-date links for all of these tools
+    and libraries, plus a lot more, at [http://dapp.eth.guide](http://dapp.eth.guide)
+    .In addition, a collection of Gitter channels where you can find help with development
+    and deployment can be found at [http://help.eth.guide](http://help.eth.guide)
+    .
+  prefs: []
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In this chapter, you learned about the kinds of contracts Ethereum is useful
+    for writing and how to go about deploying them. Also covered were the ways that
+    smart contracts can communicate with an application’s front end.Ethereum dapp
+    development isn’t easy, but it’s becoming more and more approachable every day.
+    Join the Gitter channels or join a local developer community. As of this writing,
+    81,424 members and 2,257 interested people are in 450 Ethereum Meetups all over
+    the world—in 218 cities and 57 countries to be exact. To find one near you, search
+    Meetup ( [www.meetup.com](http://www.meetup.com) ).In the next chapter, you’ll
+    deploy your own private blockchain to get a better understanding of how chains
+    work.
+  prefs: []
+  type: TYPE_NORMAL

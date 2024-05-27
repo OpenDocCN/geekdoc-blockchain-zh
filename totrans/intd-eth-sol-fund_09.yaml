@@ -1,0 +1,225 @@
+- en: © Chris Dannen 2017Chris DannenIntroducing Ethereum and Solidity10.1007/978-1-4842-2535-6_9
+  prefs: []
+  type: TYPE_NORMAL
+- en: 9. Creating Private Chains
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Contrary to what public-chain enthusiasts argue, private chains do have merit
+    as learning tools, and may ultimately have uses for large corporations, nation-states,
+    or nongovernmental organizations (NGOs). However, it should be said that blockchains
+    are not inherently better for all databases and networksChris Dannen^(1 )(1)Brooklyn,
+    New York, USAIn the last few chapters, we’ve focused on deploying smart contracts,
+    dapps, and tokens. In this chapter, we’ll engage in a brief discussion of blockchains
+    as databases to more thoroughly understand how the chains themselves are deployed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Private and Permissioned Chains
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'A private chain is just a cloud database achieved by way of the peer-to-peer
+    Ethereum protocol: it’s a silo that you control and that you can grant access
+    to.This should be contrasted with a permissioned blockchain , which like an enterprise
+    software application has defined roles with permissions that can be set by a central
+    administrator.Big picture, private chains are in no way inherently better than
+    cloud databases. In practice, the utility of the Ethereum protocol comes from
+    bringing disparate groups together to share secure infrastructure, instead of
+    duplicating effort. Today, the Ethereum network is fully operational, however
+    it has not scaled to the point where existing web application providers could
+    migrate. But this is after only two years of development, and as you’ll see in
+    Chapter [11](A433414_1_En_11_Chapter.html), the future milestones are fairly incredible
+    and coming to pass on schedule.By contrast, the HTTP Web has been under development
+    since 1989.[¹](#Fn1) Decentralized cloud storage, namespaces, and other common
+    elements of the HTTP Web have yet to be reproduced in the Ethereum Web, but will
+    be soon. Let’s move on so you can create your very own custom blockchain, to get
+    a better understanding of how they work.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Setting Up a Local Private Chain
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'A private chain is of limited usefulness because, as established in Chapters
+    [6](A433414_1_En_6_Chapter.html) and [7](A433414_1_En_7_Chapter.html), the security
+    of a chain is proportional to the number of nodes that are mining on it. When
+    you start up your chain, it will have only one miner: you.However, starting up
+    a local private chain is a nice way to create a testnet in a classroom environment,
+    enabling students to mine and thus execute their and their classmates’ transactions
+    and smart contracts. Once you see how easy it is, you will appreciate the highly
+    generalized nature of the EVM.The content is the same as the genesis field provided
+    by the config parameter:Because you already have Geth installed, and you know
+    how to use the command line, you need only three things to create a private chain:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Custom genesis JSON file
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Custom network ID (a number)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A directory where the network ID file is stored
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'You can make up the network ID; it simply can’t be numerals 1 or 2, which are
+    already taken by the testnet (2) and the main network (1). We’ll go over the custom
+    genesis file next.Creating Your Blockchain Genesis FileEvery blockchain has to
+    start somewhere, and in this, your very own Garden of Eden, you get to plant the
+    seed that becomes a private chain. Block 0 does not point to a predecessor block,
+    and is thus unlike any other block in the chain. The protocol ensures that your
+    chain will accept only blocks that can trace their roots back to this genesis
+    block by looking at the root hash in the block header.Here’s how you create the
+    custom genesis file.First, open your text editor. You’re going to create a network
+    called 765, so you’ll set 765 as the nonce value. It needs to be a nonzero number.
+    You can find the code at [https://github.com/chrisdannen/Introducing-Ethereum-and-Solidity/blob/master/genesis765.json](https://github.com/chrisdannen/Introducing-Ethereum-and-Solidity/blob/master/genesis765.json)
+    or under the Chapter [9](A433414_1_En_9_Chapter.html) heading at [http://eth.guide](http://eth.guide)
+    .In your text editor, paste in the following text:{"nonce": "0x0000000000000765","timestamp":
+    "0x0","parentHash": "0x0000000000000000000000000000000000000000000000000000000000000000","extraData":
+    "0x0","gasLimit": "0x4c4b40","difficulty": "0x400","mixhash": "0x0000000000000000000000000000000000000000000000000000000000000000","coinbase":
+    "0x0000000000000000000000000000000000000000","alloc": {}Save this file to your
+    desktop and call it genesis765.json.To open your new chain with a JavaScript console,
+    like the one you used in Chapter [6](A433414_1_En_6_Chapter.html), open the Terminal
+    and then type the following seven elements on one line:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: geth
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: console
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: --networkid
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: --genesis
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The path to the Genesis file
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: --datadir
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A data directory to store your new chain
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: You will create a hidden directory called ∼/.ethereum/chain765 to store your
+    chain. Your complete Terminal command should look like this:geth console --networkid
+    765 --genesis ∼/Desktop/genesis765.json --datadir ∼/.ethereum/chain765Note Type
+    eth at the console of your new chain to see a list of available JavaScript methods.
+    In a group testing environment, you can use commands such as net.peercount to
+    see how many other people are mining on your chain, and other miscellany.And that’s
+    it! Your new chain is up and running, and you can use the console just as you
+    did in Chapter [6](A433414_1_En_6_Chapter.html). Remember that you need to turn
+    on your miner with the miner.start() command in the console before your contracts
+    will execute on this testnet.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Optional Flags to Use with New Chains
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'You can use other flags when creating a new chain to customize your testnet
+    environment:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '--nodiscover: This prevents anyone with the same genesis file and the same
+    network ID from connecting to your chain accidentally.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '--maxpeers 0: If you know how many peers you want connected to your node (say
+    you have a classroom with a limited number of students), you can delimit your
+    chain’s number of participants with this flag.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '--rpcapi "db,eth,net,web3": Enables RPC and various Web3.js APIs that are accessed
+    over RPC.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '--rpcport "8080": The default port for Geth is 8080, but you can choose a different
+    one with this flag.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '--rpccorsdomain " [http://eth.guide/](http://eth.guide/) ": Use this flag to
+    specify the domains of servers that are allowed to connect to your node and make
+    RPC calls.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '--identity "TestnetMainNode": This gives your chain a human-readable name,
+    which makes it easily identifiable when in a list of peers.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Private Blockchains in Production Usage
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'In this chapter we’ve presented the concept of private blockchains as a sandbox
+    for learning Solidity and the Ethereum smart contract deployment paradigm. However,
+    some people are quite serious about taking private blockchains out of the testnet
+    role and using them in an enterprise or small-to-medium business computing context,
+    to create real web services.This is antithetical to the security model that the
+    Ethereum developers had in mind when they designed the protocol. In practice,
+    your private chain presents little incentive for hackers to compromise it. After
+    all, the value of the tokens mined on your chain (or any chain, for that matter)
+    is only what other people will pay for them.Stop and think about that for a moment!
+    The main network, the network we consider the Ethereum public blockchain, is no
+    different than any other chain. Testnets and the main network are technically
+    indistinguishable, except for the rate of participation they get, and the fact
+    that one is socially accepted as the main public chain. If you’re surprised, then
+    you’ve forgotten the core mantra of Ethereum: generalize everything, and keep
+    the protocol featureless.What makes the main network main is the fact that it
+    was started (and later forked) by Vitalik Buterin and the rest of the Ethereum
+    Core development team. It is only the trust, interest, and curiosity in those
+    individuals that keeps people using the main chain.There is no technical feature
+    inside Mist or Geth that could not be changed with a protocol fork, which would
+    designate a new chain as the main one. (In fact, this happened after the DAO hack
+    incident in summer of 2016, leaving behind an “old” chain called Ethereum Classic,
+    which is still being mined today by some miners.)This is the inherent flexibility—and
+    impermanence—that makes the network resilient. This kind of agility is necessary
+    now, in the early days of the network, but will become less and less appealing
+    as the network grows and users seek more predictability and reliability. Before
+    long, state forks will be almost impossible to pull off owing to the sheer size
+    of the network, and the likelihood of another Ethereum chain popping up becomes
+    less and less.Indeed, Ethereum has much maturation to endure before it is running
+    large, mission-critical business logic contracts. However, when you consider the
+    incredible ease of use, it’s easy to see why Ethereum, and networks like it, are
+    bound to replace the stiff and aging Hypertext Transfer Protocol.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: With all the ease and guarantees of private and permissioned blockchains, why
+    have a public chain at all? Why don’t large corporations merely spin up large
+    networks of nodes in their worldwide offices, creating their own private Ethereum
+    networks?The short answer is that it’s easier and cheaper for large organizations
+    to build on top of distributed infrastructure which they don’t have to pay to
+    build and maintain. Even better, they don’t have to pay to secure it; the network
+    itself grows more secure as organizations add their nodes.Indeed, only a public
+    chain is truly trustworthy for high-value transactions, because only a public
+    chain is secured by so much proof of work. For all its users know, a private or
+    permissioned EVM instance has been altered in ways that make it unfair or untrustworthy.
+    With the public chain, protocol forks would need to be initiated by all miners
+    to become effective network-wide.In the next chapter, we’ll discuss what individuals
+    and companies might choose to build on the public chain.Footnotes[1](#Fn1_source)Wikipedia,
+    “Hypertext Transfer Protocol,” [https://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol](https://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol)
+    , 2016.
+  prefs: []
+  type: TYPE_NORMAL

@@ -1,0 +1,1073 @@
+- en: © Chris Dannen 2017Chris DannenIntroducing Ethereum and Solidity10.1007/978-1-4842-2535-6_6
+  prefs: []
+  type: TYPE_NORMAL
+- en: 6. Mining Ether
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Mining is the process by which the Ethereum network reaches consensus about
+    the order of transactions in a given period of time, which in turn allows the
+    EVM to make valid state transitionsChris Dannen^(1 )(1)Brooklyn, New York, USAWe
+    learned a lot about how the EVM works in Chapter [3](A433414_1_En_3_Chapter.html),
+    but one area of its functionality—mining—requires its own chapter. Mining is important
+    because it is the process by which consensus is reached in the system, and by
+    which ether is created. Bitcoin also uses mining to reach consensus, but the way
+    things work in Ethereum is a little bit different, owing to its ability to execute
+    smart contracts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: What’s the Point?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'In the pursuit of something as idealistic as the EVM, a world computer that
+    anyone can use, it’s important to be realistic about how its advantages and disadvantages
+    are assessed. At this point, you may be wondering whether such a sophisticated
+    (or complicated) network can ever succeed.The chapter that follows describes a
+    system that, for some readers, will appear unapproachable and overwhelming. However,
+    like many of our modern-day systems, it’s important to understand the problem
+    being solved. The solutions may change, and indeed the Ethereum protocol (like
+    the Bitcoin protocol) will adapt and change over time. But the problem of trust
+    in human societies is persistent.It’s also important to recall that the creators
+    of decentralized networks are cryptographers at heart, interested in one goal:
+    the creation of an accessible, trustless world computer that is much harder to
+    destroy than it was to create. To quote Vitalik Buterin:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Cryptography is truly special in the 21st century because cryptography is one
+    of the very few fields where adversarial conflict continues to heavily favor the
+    defender. Cypherpunk philosophy is fundamentally about leveraging this precious
+    asymmetry to create a world that better preserves the autonomy of the individual,
+    and cryptoeconomics is to some extent an extension of that, except this time protecting
+    the safety and liveness of complex systems of coordination and collaboration,
+    rather than simply the integrity and confidentiality of private messages. Systems
+    that consider themselves ideological heirs to the cypherpunk spirit should maintain
+    this basic property, and be much more expensive to destroy or disrupt than they
+    are to use and maintain. The “cypherpunk spirit” isn’t just about idealism; making
+    systems that are easier to defend than they are to attack is also simply sound
+    engineering. [¹](#Fn1)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: With that in mind, let’s begin our discussion of mining with the issuance of
+    ether itself.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Ether’s Source
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Ether is considered the native token of Ethereum because it gets created out
+    of thin air during the mining process, as payment for mining work performed by
+    computers. Because mining is computationally intensive, it can generate large
+    electricity costs for your home or office. Miners take their rewards seriously.Mining
+    rewards are accomplished through an account balance increase programmed into the
+    EVM’s state transition function. They are payable to whichever random miner finds
+    a block. (In order to mine, you need to pass the mining method an Ethereum address
+    to pay, so that it knows whose balance to increase.)Let’s take a closer look by
+    starting with some vocabulary definitions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Defining Mining
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'In Ethereum, miners refers to a vast global network of computers, operated
+    mostly by enthusiasts in their homes and offices, running Ethereum nodes that
+    are paid in ether tokens for the work of executing smart contracts and validating
+    the canonical order of transactions around the world. The process of mining is
+    undertaken by each individual node, but the term also refers to the collective
+    effort of the network: individual nodes mine, and the network itself can be said
+    to be secured by mining.Miners process transactions in groups known as blocks
+    . We previously defined a block, in the abstract, as a collated set of transactions
+    that take place over a given period of time. However, a block can also refer to
+    the data object containing those transactions, stored on Ethereum nodes. Each
+    time a node starts, it must download the blocks it missed while offline. Each
+    block contains some metadata from the previous block, to prove it is authentic
+    and build on the existing blockchain.The “true” order of transactions is hard
+    for the network to determine. Mining nodes in different parts of the world may
+    receive new transactions out of order. In fact, there exist many more incorrectly
+    ordered blocks than correctly ordered ones. Some malicious node operators may
+    modify their machines to submit fraudulent blocks in the hopes of sending free
+    ether to their accounts.Thus, mining can properly be defined as dedicating computational
+    effort to the bolstering of a given version of history as the correct one. The
+    mining process is computationally demanding for nodes because it involves executing
+    a memory-intensive hashing algorithm known as as a proof-of-work algorithm . The
+    proof-of-work algorithm (or PoW algorithm) for the Ethereum protocol is Ethash,
+    a new function created by the core developers in order to address the problem
+    of mining centralisation evident in Bitcoin. You’ll sometimes hear this algorithm
+    referred to as Ethereum’s consensus algorithm or consensus engine. The block that
+    is selected as canonical is the one with the greatest amount of proof of work
+    behind it. What this means will become clear by the end of the chapter; for now,
+    let’s continue to define some key terms.The amount of computation a miner can
+    apply to the network is known as hashpower. Hashpower is a reflection of an individual
+    computer’s parts and specifications—in particular, the speed, power, and quantity
+    of graphics processing cards; the computer system’s overall power supply; and
+    the availability of adequate voltage from the wall outlet and the breaker panel
+    it’s connected to.The cryptographic proof which results from mining can be completed
+    more quickly when more hashpower is applied. Therefore, miners often form mining
+    pools to increase their chances of winning rewards, which they then split among
+    the group.Now that we’ve defined some vocabulary, let’s talk about why mining
+    is necessary in the first place and how exactly it works in Ethereum.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Versions of the Truth
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'To understand why there are so many versions of transaction history, let’s
+    turn to Gavin Wood, who says it best in the Ethereum Yellow Paper:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Since the system is decentralized and all parties have an opportunity to create
+    a new block on some older preexisting block, the resultant structure is necessarily
+    a tree of blocks. In order to form a consensus as to which path, from root (the
+    genesis block) to leaf (the block containing the most recent transactions) through
+    this tree structure, known as the blockchain, there must be an agreed-upon scheme.
+    [²](#Fn2)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: We’ll talk more about this tree structure in later sections. For now, simply
+    note that when nodes disagree about which root-to-leaf path is the true blockchain,
+    then a state fork happens, and that is usually disastrous—the equivalent of the
+    EVM splitting into two EVMs. We’ll talk more about forks later in this chapter,
+    too.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Difficulty, Self-Regulation, and the Race for Profit
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Mining is designed to be a money-maker for the people who engage in it; they
+    are paid for providing security to the network. What exactly is drawing thousands
+    of IT hobbyists and professionals to build and run these machines at their own
+    expense?The first thing to know is that time is a factor! When a new cryptocurrency
+    launches, miners rush to turn on their machines. With less competition for fees
+    in the early days, they earn more. Even better, tokens belonging to useful cryptonetworks
+    usually inflate in price over their lifetime, so earning them earlier gives miners
+    more opportunity to profit from appreciation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Difficulty
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Ethereum and Bitcoin are self-regulating networks. As a network gets more popular,
+    more mining hashpower joins in search of profits, and blocks might be found too
+    quickly. To stay within range of its ideal 15-second block time, a dynamically
+    self-adjusting value called difficulty will increase. If blocks are found too
+    quickly or slowly, the system changes the difficulty to get within range of its
+    ideal block time.Generally speaking, as time progresses, network difficulty increases.
+    However, the actual difficulty value is calculated with a formula that includes
+    several variables. Network difficulty may decrease or go flat if miners begin
+    to drop off the network or if overall hashpower decreases.[³](#Fn3)After the Ethereum
+    network experienced attacks in October and November 2016, the market price of
+    ether dropped, and hashrate was reduced as miners who couldn’t make a profit turned
+    off their machines. It rose to its pre-attack highs several months later, commensurate
+    with the recovery in the price of ether.You can think of this difficulty variable
+    as being part of the incentive structure to get miners on the network as soon
+    as possible and to stay there. However, difficulty has another use in the EVM,
+    as one of several factors used to determine a block’s score, sometimes referred
+    to as its heaviness. The heaviest, or highest-scoring, path through the transaction
+    data structure can be said to be the longest, the one that most miners have historically
+    converged upon as the true root-to-leaf path.NoteIn Ethereum and Bitcoin, the
+    longest or heaviest chain is considered the canonical one. Each time the network
+    finds a block, it selects the heaviest block with the highest score, and pays
+    the miner who nominated it. This high score is the outcome for a block that is
+    supported by the most proof of work.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Factors Required for Block Validation
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: 'Every candidate block that each individual miner constructs and seeks to validate
+    contains four pieces of data:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Hash of the transaction ledger for this block (as this machine heard about it)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Root hash of the entire blockchain
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Block number since the chain started
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Difficulty of this block
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If all these things check out, this block is a candidate for winning block.
+    However, even with this information correct, the miner must still solve the proof-of-work
+    algorithm. As you’ll see, the algorithm is essentially a guessing game designed
+    to take a certain amount of time, in service of the ideal 15-second block time.When
+    the guess is correct, this correct value, or nonce, is the final condition to
+    render a block true, canonical, and valid. The nonce is known as evidence of solving
+    the proof-of-work algorithm. Recall from Chapter [3](A433414_1_En_3_Chapter.html)
+    that blocks which are valid, but not the canonical winning block, are known as
+    uncle blocks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How Proof of Work Helps Regulate Block Time
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Anyone who can optimize for the proof-of-work algorithm can find valid blocks
+    faster, causing uncles to lag further and further behind. In the Bitcoin network,
+    a small group of hardware companies has acquired a disproportionately huge amount
+    of power over the network by creating hardware specifically built to run the Bitcoin
+    PoW algorithm. The centralisation of mining efforts is highly profitable in Bitcoin,
+    because it allows these big miners to find blocks faster, reaping all the block
+    rewards. Slower machines never get a chance to solve a block, and eventually,
+    even their uncle blocks come in further and further behind the winning block.
+    In Ethereum, uncle blocks are required to bolster the winning block. As uncles
+    lag more, it becomes harder for the network to find a true block, being that valid
+    uncles are a requirement.Enter the Ethash algorithm: The Ethereum protocol’s defense
+    against mining hardware optimization. Ethash is a derivative of Dagger-Hashimoto,
+    which is a memory-hard algorithm that can’t be brute-forced with a custom application-specific
+    integrated circuit (ASIC) , like the kind that are popular with Bitcoin mining
+    enterprises.Key to this algorithm memory-hardness is its reliance on a directed
+    acyclic graph (DAG) file , which is essentially a 1 GB dataset created anew every
+    125 hours, or 30,000 blocks. This period of 30,000 blocks is also known as an
+    epoch.Directed acyclic graph is a technical term for a tree in which each node
+    is allowed to have multiple parents, with ten levels including the root, and a
+    total of up to 225 values.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: What’s Going on with the DAG and Nonce?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'In effect, each node is playing a guessing game with itself, trying to guess
+    a nonce that will validate the current block; if it guesses the right nonce, it
+    wins the block reward. If not, it continues guessing until it gets word that another
+    node on the network has found a winner. Then, it discards the block it was mining
+    downloads the new block, and begins mining a new block on top of that one. But
+    the node gets both parameters of the guessing game, as well as a new pair of dice
+    (so to speak) with each potential block as it rolls in. The rules of the guessing
+    game are designed this way to prevent clever individual nodes from outsmarting
+    the system in the pursuit of more mining rewards.Therefore, you can think of the
+    DAG file as a way of standardizing the solution time of the proof-of-work algorithm.
+    It levels the playing field for miners, but more important, helps cluster block
+    times around the 15-second mark by ensuring that—even with massive computing power—you
+    can’t guess the correct nonce a whole lot faster than your competitors.All the
+    data a node needs to participate in the guessing came is drawn from the blockchain
+    itself. In cryptography, an encryption seed can be used to help generate a pseudorandom
+    number, thus increasing the randomness of whatever encrypted output the Ethash
+    algorithm produces. In Ethereum and Bitcoin, each node gets the seed from looking
+    at the hash of the last known winning block. In this way, the node must be mining
+    on the correct, canonical chain in order to play the game correctly. Performing
+    proof of work on an erroneous block (say, an uncle) cannot yield a winning block.
+    This is helpful if you’re trying to reduce unfair advantage in a proof-of-work
+    scheme, which could be used by a large pool of miners to highjack the network
+    onto a version of the truth in which everyone’s ether is transferred to the hijacker’s
+    accounts. Here is the process by which a node sets itself up to perform the PoW
+    guessing game:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 1.From an encryption seed derived from the block header, the mining node creates
+    a 16 MB pseudorandom cache.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 2.In turn, the cache is used to generate a larger 1 GB dataset that should be
+    consistent from node to node; this is the DAG. This dataset grows over time, in
+    a linear fashion, and is stored by all full nodes.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 3.Guessing the nonce requires the machine to grab random slices of the DAG dataset
+    and hash them together. This works similarly to using a salt with the hash function.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'In cryptography, a random data chunk you toss into a one-way hash function
+    is called a salt. Salts are like nonces: they make things more random, and thus
+    more secure.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: All This for Faster Blocks ?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Believe it or not, all these modifications to the original Bitcoin paradigm
+    were made in the service of faster block times. Block times as low as 3–5 seconds
+    may be mathematically feasible.[⁴](#Fn4)In both Bitcoin and Ethereum, we’ve said
+    that block time is an idealized period for collecting transactions. Why is this?
+    The system works to keep blocks as near as possible to the ideal, much the way
+    that the human body tries to preserve homeostasis.The Bitcoin protocol targets
+    10-minute block times, and Ethereum targets 15 seconds. Once a true block is found,
+    it takes a short while for other nodes to find out about it. Up until they discard
+    their orphan block and begin mining on the new one, they are actually competing
+    against the new block instead of building upon it. Thus, the effort expended on
+    the orphan is wasted. Think of it this way: if latency causes miners to hear about
+    new blocks an average of one minute late, and new blocks come every 10 minutes,
+    then the overall network is wasting roughly 10 percent of its haspower. Lengthening
+    the time between blocks reduces this waste. In the opinion of some blockchain
+    theorists, Satoshi Nakamoto chose this ratio because it seemed an acceptable level
+    of waste. Ethereum’s faster block time is desirable because it makes transactions
+    confirm faster, but the Ethereum protocol has had to make provisions in its design
+    for the commensurate decrease in security brought on by faster block times, as
+    you’ll see later in this chapter. Block time can be compared to settlement time
+    in a securities trading, which in the United States, stands at three days after
+    the trade date, also known as T+3. A proposal is under consideration by the SEC
+    to quicken settlement time to T+2.In Bitcoin, which has no smart-contract execution,
+    blocks take a theoretical 10 minutes on average, but in reality, transactions
+    process this quickly only about 63 percent of the time. About 13 percent of the
+    time, it takes longer than 20 minutes for a transaction to receive a confirmation.
+    During this time, it’s possible to reverse a transaction up to 20 percent of the
+    time.[⁵](#Fn5)While merely irksome for Bitcoin enthusiasts and businesses, these
+    conditions are unacceptable for a smart-contracts platform designed to power distributed
+    software applications, so Ethereum takes a slightly different approach to mining,
+    in order to achieve faster block times.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Making Fast Blocks Work
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: We’ve already discussed how faster block times are more desirable from the perspective
+    of user experience. However, they can also produce undesirable effects.Because
+    nodes are located all over the world, it’s hard for them to stay perfectly in
+    sync. That’s because information takes time to travel across the Internet from
+    node to node, also known as latency . Although it may not seem like much time
+    to humans, it’s enough to create collisions in the transaction record where the
+    books don’t balance.On average, it takes about 12 seconds for a transaction to
+    propagate around the Ethereum or Bitcoin networks; in actuality, much of this
+    time is consumed by the downloading of transactions to the node.[⁶](#Fn6) In the
+    intervening time before it hears about a new block being found, a miner may continue
+    to work on an old block briefly, before discarding it for the new winner. As described
+    in the section above, uncles that receive mining effort after a valid block has
+    already been found elsewhere in the network are also known as stale or extinct
+    blocks .Faster block times create a higher likelihood of stale blocks, and stale
+    blocks decrease the network’s absolute strength against attacks.[⁷](#Fn7) Worse
+    yet, higher rates of stale blocks make it easier for mining pools to win increasing
+    efficiency advantages over solo miners, consistently beating them out of mining
+    rewards. At best, this is unfair, and at worst, it makes the network less expensive
+    to attack.NoteStale blocks are sometimes called orphaned blocks in Bitcoin, although
+    this phraseology is confusing. These stale blocks do not have any blocks being
+    built upon them—no child blocks—but they may have a perfectly valid block header.
+    Thus, orphans do in fact have “parent” blocks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How Ethereum Uses Stale Blocks
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'In Ethereum, as we’ve said already, orphans or stales have yet another name:
+    they are called uncles, and they are counted toward the score, or weight, of a
+    block. The way this is done in the Ethereum protocol is similar to the blockchain
+    scoring system proposed in the GHOST protocol, which was outlined in a paper by
+    Aviv Zhoar and Yonatan Sompolinsky in December 2013.Vitalik Buterin describes
+    the way he has adapted the GHOST idea for Ethereum, and how it compares to Bitcoin:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The idea is that even though stale blocks are not currently counted as part
+    of the total weight of the chain, they could be; hence they propose a blockchain
+    scoring system which takes stale blocks into account even if they are not part
+    of the main chain. As a result, even if the main chain is only 50 percent efficient
+    or even 5 percent efficient, an attacker attempting to pull off a 51 percent attack
+    would still need to overcome the weight of the entire network. This, theoretically,
+    solves the efficiency issue all the way down to 1-second block times. However,
+    there is a problem: the protocol, as described, only includes stales in the scoring
+    of a blockchain; it does not assign the stales a block reward.'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Uncle Rules and Rewards
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'The following are rules regarding uncles:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In Ethereum’s implementation of GHOST, uncles that are validated along with
+    a block receive 7/8 of the static block reward, or 4.375 ether.[⁸](#Fn8)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A maximum of two uncles are allowed per block.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: These two places are won on a first-come, first-served basis.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: No transaction fees are collected or paid out for uncle blocks, because users
+    are paying these costs once already in the valid block, which actually executes
+    their commands.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Crucially, in order to be worthy of a reward, an uncle block must have an ancestor
+    in common with the true block within the last seven generations.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: This implementation of GHOST solves the issue of security loss by including
+    uncle blocks in the calculation of which block has the largest total proof of
+    work backing it. The uncle rewards are intended to solve the second issue, centralization,
+    by paying miners who contribute to the security of the network, even if they do
+    not nominate a winning block.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Difficulty Bomb
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: It’s worth mentioning that the GHOST protocol (even as Ethereum has adapted
+    it) is the subject of some criticism. Although its flaws are known, they are generally
+    regarded to be harmless. Fixing the GHOST implementation may not be worthwhile
+    anyway, as it will be rendered deprecated when the Ethereum protocol moves away
+    from a proof-of-work to what is known as a proof-of-stake consensus algorithm.[⁹](#Fn9)One
+    reason why cryptocurrencies have value in the marketplace is that they are limited
+    in issuance. Today, 12.5 bitcoins are awarded per block (that is, every 10 minutes).
+    This rate will continue until mid 2020, when 6.25 bitcoins per block will be awarded
+    for each block. Rewards halve this way every four years until approximately the
+    year 2110–40, when 21 million bitcoins will have been issued.Ethereum achieves
+    its limited issuance by planning to end the proof of work period entirely. The
+    effective mining period for Ethereum will come to a close sometime in 2017–2018
+    when the Ethereum system makes the switch; one of the big selling points of proof
+    of stake (or PoS) is that it does not require mining (and the accompanying energy
+    expenditure) to reach consensus.In an effort to force this transition, and simultaneously
+    limit the issuance period for ether, the core developers have built in a difficulty
+    bomb that makes proof-of-work mining less and less feasible beginning in the latter
+    half of 2017, before finally becoming impossible in 2021.[^(10)](#Fn10)How this
+    new proof-of-stake system will work is the subject of much research and debate
+    within the community. To read more about the research being done in this area,
+    skip to Chapter [11](A433414_1_En_11_Chapter.html).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Miner’s Winning Payout Structure
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'A successful miner of a winning block receives a flat payment, plus transaction
+    fees, plus a share of the bounty of all uncles that helped it win. Thus it can
+    be said the rewards in the Ethereum protocol are determined as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 1.A set block reward of 5.0 ether (for the miner that finds the winning block)
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 2.Fee payments of the gas expended within the block (for the miner that finds
+    the winning block)
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 3.1/32 ether per uncle of this block (for miners that find uncles)
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Limits on Ancestry
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The part of the protocol requiring uncles to be within seven blocks of the winning
+    block to receive a partial award exists to make block history “forgettable” after
+    a small number of blocks. The number seven was picked because it offers a reasonable
+    amount of time for a miner to find an uncle, but not so long that it imposes centralization
+    risks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Block Processing Play by Play
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'In order to escape uncle-hood and become the heaviest block, a true block (sometimes
+    called a nephew) needs to pass muster with a long series of steps used in the
+    processing of each block. An important component of this process is the block
+    validator algorithm . This algorithm seeks to validate the hash that comes with
+    the block, located in the block’s header. This aspect of block processing makes
+    a good on-ramp to the anatomy of a block as a data object.NoteIn programming,
+    data structures often have a header containing certain essential information that
+    the computer must read first. Just as in human word processors, the header is
+    merely the top of a body of text. In this analogy, the body of text is the block
+    data structure.Before a completed block can undergo processing and acceptance
+    by the rest of the network, and before nodes can begin mining on top of a new
+    block, each and every node must independently download and validate the block
+    before begining to mine in top of it. Here are all the steps the block validator
+    algorithm takes, in order:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 1.Check if the previous block referenced exists and is valid.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 2.Check that the timestamp of the block is greater than that of the referenced
+    previous block and less than 15 minutes into the future.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 3.Check that the block number, difficulty, transaction root, uncle root and
+    gas limit (various low-level Ethereum-specific concepts) are valid.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 4.Check that the nonce on the block is valid, showing the evidence of proof
+    of work.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 5.Apply all transactions in this now-validated block to the EVM state. If any
+    errors are thrown, or if total gas exceeds the GASLIMIT, return an error and roll
+    back the state change.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 6.Add the block reward to the final state change.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 7.Check that the Merkle tree root final state is equal to the final state root
+    in the block header.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Only after these seven steps is a block canonized as valid and true!Why all
+    this fuss about the block header? To make a blockchain, it would be theoretically
+    possible to create block headers that directly contain data about every transaction,
+    but this would pose scalability challenges and require immensely powerful hardware
+    to run a node.[^(11)](#Fn11)In Bitcoin and Ethereum, a data structure called a
+    Merkle tree is used to avoid putting every single transaction in the header, which
+    would be large and unwieldy. Ethereum adds a data structure representing the state
+    of the EVM, called a state tree. Global state is presented in an Ethereum block
+    by another tree structure known as a Patricia tree. These tree structures are
+    the subject of the next section.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Evaluating the Ancestry of Blocks and Transactions
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'To understand what’s in a block header, and why the contents of the block header
+    are important to determining the longest, heaviest chain, you need to take a step
+    back and explore how computers store data—and how they go about changing that
+    data once stored.First and foremost, the role of tree structures is to help the
+    node verify the data it receives inside blocks, such as the transaction ledger.
+    Secondarily, their role is to do this fast, so that computers of all shapes and
+    sizes can read the blockchain quickly.In computer science, an associative array
+    (or dictionary) refers to a collection of ([key/​value](https://en.wikipedia.org/wiki/Attribute%E2%80%93value_pair))
+    pairs. Recall the concept of key/value pairs from the discussion of data objects
+    in Chapter [1](A433414_1_En_1_Chapter.html). In an associative array, the association
+    between keys and values can be changed. This association is called a binding.Operations
+    associated with dictionaries include the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Adding key/value pairs to the collection
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Removing pairs from the collection
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Modifying existing pairs
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Looking up a value associated with a given key
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Hash tables, search trees, and other specialized tree structures are common
+    solutions to the dictionary problem, where a dictionary is a generic term for
+    a database of records. Solving dictionary problems involves methodologies for
+    querying for a key (a word) and calling up its value (a definition).
+  prefs: []
+  type: TYPE_NORMAL
+- en: How Ethereum and Bitcoin Use Trees
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'In mathematics, a tree is an ordered data structure used to store an associative
+    array of keys and values. A radix tree is a variant that is compressed, requiring
+    less memory. In a normal radix tree, each character in the key describes a path
+    through the data structure to get to the corresponding value, like a set of directions.Creating
+    a Merkle tree requires hashing a large number of “chunks” of transaction data
+    together until they become only one: a root hash. In Ethereum and Bitcoin, the
+    Merkle tree structure is used to record the transaction ledger in each block.
+    The root for the Merkle tree is hashed in with other metadata and included in
+    the header of the subsequent block. Thus, it can be said that each additional
+    transaction (within each block) irrevocably changes the Merkle root; even one
+    wrong transaction will make the root hash look completely different and thus,
+    obviously wrong. This is how blocks can prove their legitimate ancestry to the
+    block validator algorithm, which is part of the overall block processing routine.For
+    a Bitcoin client, determining the status of a single transaction is as easy as
+    looking at the header of the most recent block of the main chain. There, the client
+    should find the Merkle proof showing that the root hash for the block contains
+    the transaction in one of its Merkle trees. The Merkle root is a fingerprint of
+    all the transactions, correctly ordered, that have occurred in the blockchain
+    up until that block.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Merkle-Patricia Trees
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Thanks to the block header, it’s quick and easy for a node to look for, read,
+    or verify block data. In Bitcoin, the block header is an 80-byte chunk of data
+    that includes the Merkle root as well as five other things. The Bitcoin block
+    header contains:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A hash of the previous block header
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A timestamp
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A mining difficulty value
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A proof-of-work nonce
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A root hash for the Merkle tree containing the transactions for that block
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Merkle trees are ideal for storing transaction ledgers, but that’s about it.
+    From the perspective of the EVM, one limitation of the Merkle tree is that although
+    it can prove or disprove the inclusion of transactions in the root hash, it can’t
+    prove or query the current state of the network, such as a given user’s account
+    holdings.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Contents of an Ethereum Block Header
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'To remedy this shortcoming and allow the EVM to run stateful contracts, every
+    block header in Ethereum contains not just one Merkle (transaction) tree, but
+    three trees for three kinds of objects:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Transaction tree
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Receipts tree (data showing the outcome of each transaction)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: State tree
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'To make this possible, the Ethereum protocol combines the Merkle tree with
+    the other tree structure we described above, the Patricia tree. This tree structure
+    is fully deterministic: two Patricia trees with the same (key/value) bindings
+    will always have the same root hash, providing increased efficiency for common
+    database operations such as inserts, lookups, and deletes.[^(12)](#Fn12) It is
+    therefore possible for Ethereum clients to get verifiable answers to all sorts
+    of queries it makes to the network, such as the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Has transaction X been included in block? (Handled by the transaction tree.)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Tell me all instances of event Y in the last 30 days. (Handled by the receipts
+    tree.)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: What is the current balance of contract account Z? (Handled by the state tree.)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: For more about how these tree structures work and why they were chosen, check
+    out [http://trees.eth.guide](http://trees.eth.guide) .
+  prefs: []
+  type: TYPE_NORMAL
+- en: Forking
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'As discussed earlier in this chapter, a network of miners may split in two,
+    if they cannot agree on the longest, heaviest chain. There’s much ado about forking
+    in the cryptocurrency community, where it seems to imply the fracture of a community
+    of humans along with a loss of consensus in the machine network.In reality, nascent
+    forks are constantly happening. Sometimes one branch dies, sometimes both die,
+    and sometimes one lives on to propagate a winning nephew block. A fork occurs
+    when two valid blocks point to the same parent, but some of the miners see one,
+    and the rest see the other. Effectively, this creates two versions of “the truth,”
+    ensuring that these two groups can no longer be said to be on the same network.NoteA
+    state fork is a much bigger deal than a protocol fork. In a protocol fork, no
+    data is changed, but miners may adjust parameters or update code on their nodes
+    to make them perform to a modified specification that the community has agreed
+    is an overall improvement. Protocol forks can thus be said to be voluntary, whereas
+    state forks are not necessarily so.In Ethereum, these constant budding forks are
+    resolved within four blocks, as a matter of mathematical certainty, as one chain
+    finds a winner, gets longer, and begins to “pull” other nodes toward it with the
+    incentive of not only the miner fee for finding and executing the correct block,
+    but all the added incentive of collecting the uncle block rewards.Sometimes a
+    node will find the “right” chain after already receiving a reward for about one
+    to three blocks. Once the node jumps to a better, longer, more winning chain,
+    that mining reward may disappear. However, this all happens within four blocks—that
+    is, one minute—so these small errata are considered no big deal.Deliberate forks
+    are typically deployed by attackers in order to double-spend funds: to make money
+    out of thin air by simultaneously sending one balance to many accounts.In fact,
+    anyone with more than 50 percent of the hashpower can engender a “hostile” deliberate
+    fork, so to speak. In a double spend attack, an attacker operating a fleet of
+    miners, with a large amount of hashpower, sends an ether transaction to purchase
+    a product. After getting hold of the product, the attacker puts together an erroneous
+    block with a second transaction. This second transaction attempts to send the
+    same funds back to the attacker. He or she then creates a block at the same level
+    as the block which contained the original transaction, but containing the second
+    transaction instead, and dedicates all possible hashpower to mining on the fork.
+    Should the attacker have more than 50 percent of haspower, the double spend is
+    guaranteed to succeed eventually at any block depth. Below 50 percent it’s far
+    less prone to succeed. But this attack is still feared enough that, in practice,
+    most exchanges and other institutions who use ether wait for several confirmations
+    before considering the transfer complete.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Mining Tutorial
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Mining is a great excuse to try Geth. Because Geth is such a great tool for
+    learning, and because it’s fairly easy to install, this section provides installation
+    instructions for macOS, Windows, and Ubuntu.NoteBeyond installation here, the
+    following exercises assume you are in a *nix environment—that is, running the
+    Terminal application in either macOS or Ubuntu 14.04 (Trusty). For links to documentation
+    and tutorials about Geth, and instructions for all Ethereum clients on all platforms,
+    visit clients.eth.guide.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Installing Geth on macOS
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: First, open the Terminal on your Mac, located in the Applications folder. Then,
+    type the following at the command line:brew updatebrew upgradeOnce updating is
+    complete, and the command line returns, type the following:brew tap ethereum/ethereumbrew
+    install ethereum
+  prefs: []
+  type: TYPE_NORMAL
+- en: Installing Geth on Windows
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Download the latest stable binary. Extract geth.exe from zip, open a command
+    Terminal and type this:chdir <path to extracted binary>open geth.exe
+  prefs: []
+  type: TYPE_NORMAL
+- en: Getting Comfortable with the Command Line
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: After you install Geth on Ubuntu (described next), you’ll proceed right into
+    some exercises. These exercises assume the use of macOS or Ubuntu Terminal applications.
+    Windows Geth commands will not be discussed here, but can be found at [http://clients.eth.guide](http://clients.eth.guide)
+    .The following guide is written for people who may be using the command line for
+    the first time. If this is you, then you should notice a few things right away.When
+    you first open your Terminal application, located in the Applications folder on
+    macOS and Ubuntu, you’ll see a blinking cursor. This indicates the computer is
+    ready to receive instructions.NoteIn this interface, the computer has a one-track
+    mind. When you type in a command, it may take a few seconds to complete. In the
+    intervening time, text will fly by on the screen. Don’t panic; this is normal.
+    You cannot break your computer by experimenting with Geth or the command line.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Installing Geth on Ubuntu 14.04
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'To install Geth on Ubuntu, first open the Terminal and type this, then hit
+    Enter:sudo apt-get install software-properties-commonOne caveat to this installation,
+    depending on hardware configuration, is that some Ubuntu users may need to install
+    a font library, or the Geth installation will throw an error. You can find this
+    library at [https://community.linuxmint.com/software/view/ttf-ancient-fonts](https://community.linuxmint.com/software/view/ttf-ancient-fonts)
+    or clients.eth.guide. The error is shown in Figure [6-1](#Fig1).![A433414_1_En_6_Fig1_HTML.jpg](A433414_1_En_6_Fig1_HTML.jpg)Figure
+    6-1.Some Ubuntu users may get this errorSimply install this font package and things
+    should go smoothly.Then type the following:sudo add-apt-repository -y ppa:ethereum/ethereumThe
+    program will ask you to type your password. It may not appear on the screen, or
+    even look like anything is being entered at all, but ignore that and press Enter.
+    You should see a result similar to Figure [6-2](#Fig2).![A433414_1_En_6_Fig2_HTML.jpg](A433414_1_En_6_Fig2_HTML.jpg)Figure
+    6-2.Enter your password to complete installation, and you’ll see this resultPutting
+    sudo in front of a Terminal command to execute commands as the root user, or most
+    the most powerful user role in the Unix architecture, with access to all files
+    and commands. Next, at the prompt, type this and hit Enter:sudo apt-get updateAnd
+    then type this and hit Enter:sudo apt-get install ethereumEnter your computer’s
+    administrator password, probably the one you use to login to your computer after
+    it boots up. When the program asks whether you’d like to allow the installation
+    to take some hard drive space, type Y (for yes) and press Enter.Next, let’s run
+    Geth. After installation is finished, you can start Geth by typing its name at
+    the command prompt:gethYou’ll see some code whizz by, looking like Figure [6-3](#Fig3).![A433414_1_En_6_Fig3_HTML.jpg](A433414_1_En_6_Fig3_HTML.jpg)Figure
+    6-3.Geth is synchronizingThis will go on forever if you let it. Press Control+C
+    to get the synchronization to stop, and you’ll be dropped back at your same old
+    command-line prompt. You have now exited Geth.So what’s happening here? Geth is
+    not mining, but it is synchronizing itself with the blockchain by downloading
+    past blocks. It does this in order to show you an up-to-date balance on your accounts,
+    and to quickly send and receive transactions, just like Mist. In fact, Mist does
+    this synchronization thing too, remember? It looks like Figure [6-4](#Fig4).![A433414_1_En_6_Fig4_HTML.jpg](A433414_1_En_6_Fig4_HTML.jpg)Figure
+    6-4.When Geth synchronizes, it’s performing the same operation you see in the
+    Mist wallet, pictured hereHowever, Geth is fairly dumb; it can do only one thing
+    at a time: synchronize. You can’t run any EVM code from here. To gain some control,
+    you’ll need to take advantage of Geth’s built-in JavaScript console, which allows
+    you to execute commands directly in the EVM via the Terminal on your computer.
+    How cool is that?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Executing Commands in the EVM via the Geth Console
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'You can use Geth commands in the Terminal to execute many essential functions
+    on the Ethereum network. The formula for Geth commands is:geth [options] command
+    [command options] [arguments...]And you can find a full list of commands, options,
+    and arguments at [https://github.com/ethereum/go-ethereum/wiki/Command-Line-Options](https://github.com/ethereum/go-ethereum/wiki/Command-Line-Options)
+    . However, since the ultimate promise of the Ethereum network is truly distributed
+    apps, we’ll focus on using the Ethereum JavaScript API through a console you can
+    open up in Geth. The console is really a JSRE, or JavaScript Runtime Environment
+    that operates inside of Geth. Ethereum’s JSRE exposes the full Web3.js JavaScript
+    dapp API, which is covered more in Chapter [8](A433414_1_En_8_Chapter.html). The
+    JSRE can be used actively (in the console) or non-interactively (with written
+    scripts).In addition to the dapp API, Geth also supports a whole slew of management
+    APIs for remote management of your Ethereum note. An example is the personal and
+    admin APIs, which exposes a method for access the file system, execute commands,
+    and monitor your node remotely. These APIs and follow the same conventions as
+    used in the dapp API. You can learn more about the management API at: [https://github.com/ethereum/go-ethereum/wiki/JavaScript-Console#management-apis](https://github.com/ethereum/go-ethereum/wiki/JavaScript-Console#management-apis)
+    .NoteThat running Geth and Mist at the same time will cause an error. A node can
+    run only one network daemon per machine.To restart Geth with the console, type
+    the following:geth consoleIf you already have Mist running and synchronized, you
+    can tell Geth to use Mist’s node to connect by starting Geth via the following
+    command. This saves you from having to wait for Geth to sync all over again if
+    your machine already has most of the blockchain stored locally:geth attachYou
+    can call console and attach one after the other. Why is this useful? You can begin
+    using the JavaScript console in Geth right away if you have a fully synchronized
+    Mist client running. That doesn’t matter much for now, but if you were sending
+    and receiving real transactions to the public blockchain with Geth, you might
+    need to wait for it to synchronize before your balance queries are returned correctly.Below,
+    we’ll use some JavaScript API calls in the console. A full guide to these calls
+    is here: [https://github.com/ethereum/go-ethereum/wiki/JavaScript-Console](https://github.com/ethereum/go-ethereum/wiki/JavaScript-Console)
+    . Next, we’ll learn how to work with accounts and balances by calling some JavaScript
+    methods interactively. To learn more about using the JSRE non-interactively, visit
+    [https://github.com/ethereum/go-ethereum/wiki/JavaScript-Console#non-interactive-use-jsre-script-mode](https://github.com/ethereum/go-ethereum/wiki/JavaScript-Console#non-interactive-use-jsre-script-mode)
+    .NoteThese Geth commands connect to the main network. Recall that the testnet
+    has fake ether you can use to test, whereas the main network requires you to buy
+    ether on an exchange. Mining it is not an easy way to get ahold of ether these
+    days, but we’re going to try it anyway for fun.Your Geth client should be running
+    with the console enabled, giving you a command prompt. Let’s create an account
+    by using a JavaScript API call. In your head, choose a password. In the console,
+    type this, then hit Enter:personal.newAccount("your_new_account_password_here")Replace
+    the text between the quotes with the password you chose. Your primary account
+    is account 0 by default. You will be returned a public key, in green type, as
+    pictured in Figure [6-5](#Fig5).![A433414_1_En_6_Fig5_HTML.jpg](A433414_1_En_6_Fig5_HTML.jpg)Figure
+    6-5.Creating a new account in the JavaScript console couldn’t be easier. Your
+    new public key appears in green. Don’t forget your password!You can check out
+    all your accounts in the console by typing the following:personal.listAccountsNo
+    doubt the balance will return zero. But, no matter: the private key for this new
+    account will be stored with the other private keys you create, in the very same
+    directory you looked at in Chapter [2](A433414_1_En_2_Chapter.html); any value
+    you add here will be backed up when you back up the rest of your private keys.
+    To review the process for doing so, go to the following:http://backup.eth.guideRecall
+    at the beginning of this section, with the description of the Geth JSRE as the
+    gateway to the Ethereum JavaScript API. This API is part of the Web3.js library,
+    which must be installed on your machine for you to take advantage of many of the
+    commands. It is available as an Node Package Manager (npm) module, a Meteor.js
+    package, and in other forms. You can learn more about this library at [https://github.com/ethereum/web3.js/](https://github.com/ethereum/web3.js/)
+    . For a complete listing of JavaScript Dapp API calls, check out [http://js.eth.guide](http://js.eth.guide)
+    or see the Ethereum JavaScript API at[https://github.com/ethereum/wiki/wiki/JavaScript-API](https://github.com/ethereum/wiki/wiki/JavaScript-API)
+    .For developers with pre-existing JavaScript skills, the JS console in Geth may
+    be more intuitive than writing Solidity scripts using the global varables and
+    functions we described in Chapter [4](A433414_1_En_4_Chapter.html). The web3 object
+    provides access to all sorts of methods that will feel familiar to JavaScript
+    developers. Spend some time perusing the console wiki to get an idea of the kinds
+    of scripts you could run locally on your machine, in order to automate actions
+    taken in Geth. Next, you’ll learn how to get on the testnet with Geth, and finally,
+    you’ll start up your miner on the main network and even attempt to mine a block
+    with your own custom signature on it.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Launching Geth with Flags
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Another popular way to get things done at the Geth command line is to launch
+    Geth with certain flags. A full list of options, and their corresponding flags,
+    are located here: [https://github.com/ethereum/go-ethereum/wiki/Command-Line-Options](https://github.com/ethereum/go-ethereum/wiki/Command-Line-Options)
+    .To start Geth on the testnet , type this:geth --testnetYou’ll see text output
+    similar to the screen in Figure [6-6](#Fig6), except that this mining is taking
+    place on the testnet. Press Control+C to stop it.![A433414_1_En_6_Fig6_HTML.jpg](A433414_1_En_6_Fig6_HTML.jpg)Figure
+    6-6.Output from testnetFor quick access to the CLI options, this short link is
+    also available: [http://cli.eth.guide](http://cli.eth.guide) .As of this writing,
+    network difficulty is fairly high, and solo miners might take a very long time
+    to find a block. But in the next section, we’ll start mining to our new wallet
+    address anyway, to understand the experience of the miners who secure the network.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Fire Up Your Miner!
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Geth does not begin mining automatically; you will give it the command to start
+    or stop mining. In these examples, you will be mining with your machine’s CPU.
+    Mining with a GPU is more effective, but slightly more complicated, and is more
+    suitable for specialized mining rigs anyway. We’ll discuss these later in the
+    chapter.To begin mining on the main network, open a new Terminal window and enter
+    the JavaScript console by typing the following:geth consoleYou’ll see the node
+    begin to synchronize, but it will quickly return a command-line prompt where you
+    can enter commands as Geth works in the background, so to speak.NoteIn the console,
+    don’t worry if the output text from mining or synchronization appears to overwrite
+    your commands; it just appears that way. When you press Enter in the console,
+    your command will be executed as normal, even if it seems to have broken onto
+    several lines.In order to get paid, you’ll need to tell your node the Ethereum
+    address for receiving your mining payments. Remember that because the EVM is a
+    global virtual machine, it doesn’t care whether the Ethereum address, or public
+    key, you enter was created, or is currently associated with, your local computer.
+    Everything is local to the EVM.To set your etherbase as the recipient address
+    for your payout, type this command in the console:miner.setEtherbase(eth.accounts[your_address_here])To
+    finally begin mining, type this:miner.start()Boom! Your miner will begin. In the
+    off-chance you find a block, your payment will be received at the address you
+    set above, but don’t be surprised if it takes days or even weeks. You’ll see the
+    node generating the DAG file and beginning the mining process , as shown in Figure
+    [6-7](#Fig7). Why isn’t ether mining an instant money-maker? That has a lot to
+    do with your hardware, as you’ll see below.![A433414_1_En_6_Fig7_HTML.jpg](A433414_1_En_6_Fig7_HTML.jpg)Figure
+    6-7.The miner gets ready to mineYou can stop this process by typing the following:miner.stop()Next,
+    you’ll put a personal tag on the blocks you mine, just because.Exercise : Add
+    Your Name to the BlockchainUsing the JavaScript console, you can add extra data—a
+    grand total of 32 bytes, or enough to write some plain text or enter some ciphertext
+    for someone else to read.In the console, your miner should be stopped. Now type
+    this JavaScript command with your name or a message between the quotes:miner.setExtra("My_message_here")Then
+    type this:miner.start()The console will return true and begin mining. Should you
+    find a block, it will be marked with your signature, which you can view on any
+    blockchain explorer such as Etherchain ( [https://etherchain.org](https://etherchain.org)
+    ).Exercise: Check Your BalanceInstall the Web3.js library ( [https://github.com/ethereum/wiki/wiki/JavaScript-API#adding-web3](https://github.com/ethereum/wiki/wiki/JavaScript-API#adding-web3)
+    ) as described in the last section, to try out some of the Ethereum JavaScript
+    API calls. These include checking a balance, sending a transaction, creating an
+    account, and all sorts of other mathematical and blockchain-related functions.
+    If your etherbase private key is held on your machine, for example, you can get
+    the balance by typing in the console:eth.getBalance(eth.coinbase).toNumber();Hopefully
+    by now, you have a working understanding of mining, and you’ve see it happen before
+    your own eyes. In reality, the most effective way to see how mining moves state
+    transition forward, executing contracts, is to work with the testnet.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Mining on the Testnet
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: One quick final note about mining. Recall in Chapter [5](A433414_1_En_5_Chapter.html)
+    that the Mist wallet can mine on the testnet, but not the main net. Why is this?Actually,
+    there is no need for Mist to mine on the main net and take up your computer’s
+    resources, because your contracts will execute without you mining. This is because
+    there are currently thousands of nodes already mining on the public Ethereum chain,
+    and being paid real ether to do so.NoteIf your contracts aren’t executing on the
+    testnet, don’t go berserk! Turn your Mist or Geth testnet miner on, and your contracts
+    will execute. This is a common mistake.While there may coincidentally be others
+    mining on the testnet while you are testing your contracts, there may also not
+    be. Because there’s no real financial incentive to leave a miner running on the
+    testnet, you might find yourself in a lull, with nobody else on the testnet. This
+    is why Mist allows testnet mining along with its GUI contract deployment interface.
+  prefs: []
+  type: TYPE_NORMAL
+- en: GPU Mining Rigs
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Most ether mining is done with specialized GPU miners like the ones in Figure
+    [6-8](#Fig8), which are operated by me. Two of the machines pictured are running
+    the Claymore Dualminer, a custom mining program written by a Bitcointalk.org forum
+    member named Claymore, and which mines both ether and another cryptocurrency simultaneously
+    on multi-GPU rigs. You can learn more about the Claymore Dualminer at [https://bitcointalk.org/index.php?topic=1433925.0](https://bitcointalk.org/index.php?topic=1433925.0)
+    .![A433414_1_En_6_Fig8_HTML.jpg](A433414_1_En_6_Fig8_HTML.jpg)Figure 6-8.Four
+    Ethereum miners running in the author’s basementThe third and fourth rigs pictured
+    here are running ethOS, a special Linux distro specifically created for rigs mining
+    Ethereum, Zcash, or Monero. This is a far easier solution if you’re building from
+    scratch. You can learn more about ethOS at [http://ethosdistro.com](http://ethosdistro.com)
+    .Several software patches are available for Windows, macOS, and Ubuntu that enable
+    multi-GPU mining. However, this is easiest done on Ubuntu.If you’re running Ubuntu
+    and you’d like to mine with multiple GPUs, it’s easiest done with AMD hardware.
+    Once your video cards are physically installed, a few quick commands are all that
+    are needed. In Ubuntu 14.04, open your Terminal and type the following:sudo apt-get
+    -y updatesudo apt-get -y upgrade -fsudo apt-get install fglrx-updatessudo amdconfig
+    --adapter=all --initialThen reboot. Next, enable OpenCL by entering the following
+    Terminal commands:export GO_OPENCL=trueexport GPU_MAX_ALLOC_PERCENT=100export
+    GPU_SINGLE_ALLOC_PERCENT=100You can check that the configuration worked correctly
+    by opening the Terminal back up again and typing this:aticonfig --list-adaptersYou
+    should now see your AMD graphics cards in a list. The card denoted with an asterix
+    (*) is the computer’s default video output. If you see a black screen, your monitor
+    may be plugged into the wrong video card.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Mining on a Pool with Multiple GPUs
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: It may be a little bit late to get serious about mining for profit. The outset
+    of this chapter covered the concept of network difficulty. As we’ve discussed
+    already, network difficulty is already quite high, and the effective mining period
+    for Ethereum will end sometime in 2017 or 2018\. Competition for mining rewards
+    is intense. You can think of your miner’s chances of finding a winning block as
+    being represented by the ratio of your miner’s hashing power to network difficulty.
+    People who are mining for profit seek to gain an edge by using powerful hardware
+    to improve their chances.As Ethereum becomes more popular, time passes, and mining
+    hashpower on the network increases, mining becomes less and less appealing for
+    most users. However, it can still be fun and useful to learn how Ethereum mining
+    works, if for no other reason than to mine new cryptocurrencies in the future.
+    If you have hardware accessible, there’s no reason not to experiment with mining,
+    even if buying ether outright may be cheaper than mining it in some localities.There
+    are several mining pools, as you’ll see if you visit [http://mining.eth.guide](http://mining.eth.guide)
+    , but for simplicity’s sake we’ll use a program called QtMiner for Ubuntu 14.04,
+    which you can download from [http://ethpool.org/downloads/qtminer2.tgz](http://ethpool.org/downloads/qtminer2.tgz)
+    .Once downloaded, extract the archive and make the qt.miner script executable:tar
+    zxvf qtminer.tgzcd ./qtminerchmod +x qtminer.shFinally, start QTMiner with the
+    following command, where address is the Ethereum address you want to be paid mining
+    rewards, and name is the name of this particular mining rig:./qtminer.sh -s us1.ethermine.org:4444
+    -u address.name -GTo check your earnings without opening Mist, which can take
+    forever to sync, go to Ethermine.org and enter the same Ethereum address you included
+    previously in the upper-right search box.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'In this chapter you’ve tackled the most complex facet of the Ethereum protocol:
+    the mining process. You learned how miners are paid, how much, and how the system
+    ensures that no single mining pool with advanced equipment can dominate the network.
+    You installed Geth and began executing JavaScript methods at the command line.
+    You started small with testnet mining, and moved all the way up to multi-GPU mining
+    on a pool. If you’d like to see a dynamic picture of all these factors at work
+    in the live chain, visit [https://ethstats.net](https://ethstats.net) .Let’s integrate
+    what you’ve learned in this chapter into the prior chapters with a short summary
+    from end to end:A block in Ethereum is a record of transactions that transpire
+    over a given 12 to 15-second interval. Each time a node synchronizes with the
+    network, it downloads blocks from nearby nodes, before assembling them into a
+    data structure that allows the root hash to be computed and verified. Thus, it
+    can trust it has an accurate history of the blockchain, and it can safely begin
+    mining new blocks or sending new transactions. This is the synchronization process
+    you glimpsed when installing Mist and Geth.In the next chapter, you’ll learn about
+    the economic incentives and disincentives that make proof-of-work mining so resilient
+    against attacks. This emerging field is known as cryptoeconomics.Footnotes[1](#Fn1_source)Vitalik
+    Buterin, “A Proof of Stake Design Philosophy,” [https://medium.com/@VitalikButerin/a-proof-of-stake-design-philosophy-506585978d51#.7n3x85gvs](https://medium.com/@VitalikButerin/a-proof-of-stake-design-philosophy-506585978d51#.7n3x85gvs)
+    , 2016.[2](#Fn2_source)Gavin Wood, “Ethereum Yellow Paper,” [https://github.com/ethereum/yellowpaper](https://github.com/ethereum/yellowpaper)
+    , 2016.[3](#Fn3_source)Ethereum Community Forum, “How Is Mining Difficulty Calculated,”
+    [https://forum.ethereum.org/discussion/5002/how-is-the-mining-difficulty-calculated-on-ethereum](https://forum.ethereum.org/discussion/5002/how-is-the-mining-difficulty-calculated-on-ethereum)
+    , 2016.[4](#Fn4_source)Ethereum Blog, “Toward a 12-Second Block Time,” [https://blog.ethereum.org/2014/07/11/toward-a-12-second-block-time/](https://blog.ethereum.org/2014/07/11/toward-a-12-second-block-time/)
+    , 2014.[5](#Fn5_source)Ibid.[6](#Fn6_source)Ibid.[7](#Fn7_source)Ibid.[8](#Fn8_source)GitHub,
+    “Modified Ghost Implementation (Ethereum White Paper),” [https://github.com/ethereum/wiki/wiki/White-Paper#modified-ghost-implementation](https://github.com/ethereum/wiki/wiki/White-Paper#modified-ghost-implementation)
+    , 2016.[9](#Fn9_source)Bitslog, “Uncle Mining: an Ethereum Protocol Flaw,” [https://bitslog.wordpress.com/2016/04/28/uncle-mining-an-ethereum-consensus-protocol-flaw/](https://bitslog.wordpress.com/2016/04/28/uncle-mining-an-ethereum-consensus-protocol-flaw/)
+    , 2016.[10](#Fn10_source)StackOverflow, “When Will the Difficulty Bomb Make Mining
+    Impossible?” [http://ethereum.stackexchange.com/questions/3779/when-will-the-difficulty-bomb-make-mining-impossible/3819#3819](http://ethereum.stackexchange.com/questions/3779/when-will-the-difficulty-bomb-make-mining-impossible/3819#3819)
+    , 2016.[11](#Fn11_source)Ethereum Blog, “Merkling in Ethereum,” [https://blog.ethereum.org/2015/11/15/merkling-in-ethereum/](https://blog.ethereum.org/2015/11/15/merkling-in-ethereum/)
+    , 2015.[12](#Fn12_source)Ethereum Wiki, “Merkle Patricia Tree Specification,”
+    [https://github.com/ethereum/wiki/wiki/Patricia-Tree#merkle-patricia-tree-specification](https://github.com/ethereum/wiki/wiki/Patricia-Tree#merkle-patricia-tree-specification)
+    , 2016.'
+  prefs: []
+  type: TYPE_NORMAL
