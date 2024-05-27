@@ -1,0 +1,495 @@
+- en: © Nishith Pathak and Anurag Bhandari 2018Nishith Pathak and Anurag BhandariIoT,
+    AI, and Blockchain for .NET[https://doi.org/10.1007/978-1-4842-3709-0_5](A458845_1_En_5_Chapter.html)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 5. Consuming Microsoft Cognitive APIs
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Nishith Pathak^(1 ) and Anurag Bhandari²(1)Kotdwara, Dist. Pauri Garhwal, India(2)Jalandhar,
+    Punjab, IndiaBy now, you have a fair understanding of Microsoft Cognitive technologies,
+    its various offerings in terms of service, and a sneak preview of understanding
+    their concepts. Microsoft has done a fantastic job in abstracting the research
+    on AI and machine learning, hiding all complex processing nuances by giving easy-to-consume
+    REST based services, sitting on its Azure Cloud solution. In fact, the entire
+    suite of Microsoft Cognitive Services is exposed as REST APIs. Since the REST
+    API has an API endpoint, you really don’t need any specific platform or programming
+    language to consume it. Another advantage of the REST API is that it can accept
+    input in JSON or XML format and give output in the same formats. This gives you
+    great flexibility to consume REST API directly in all major programming languages,
+    such as C#, Java, PHP, Ruby, Python, JavaScript, and so on. As this book targets
+    .NET developers, we will restrict ourselves to using C# throughout the book. But,
+    really, the fundamentals of consuming Microsoft Cognitive Services remain the
+    same for any language.Like any enterprise service, every call to Microsoft Cognitive
+    Services needs to be authenticated and authorized before being used. This is achieved
+    through the use of a subscription key. Once you get a subscription key (we are
+    going to discuss later how to do that), it is passed as a query string parameter
+    or in a header while calling the REST endpoint of cognitive services. At the end
+    of this chapter, you will learn
+  prefs: []
+  type: TYPE_NORMAL
+- en: Prerequisites for consuming Cognitive Services
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Obtaining a subscription key for Cognitive Services
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Calling the Microsoft Cognitive Vision API
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Consuming the Cognitive Vision API using Visual Studio
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Interesting uses of the Computer Vision API
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Free Tier and Pay Per Use Model
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'When people get to know the Microsoft Cognitive API, the first thing that strikes
+    them are the following questions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: What’s the cost of calling Microsoft Cognitive Services?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Are there some free services available for personal use?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: What happens if I provide my credit card details?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Can I put a limit on the use of APIs?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: What are the SLAs for Cognitive APIs being available in enterprise scenarios?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Before we delve into more details, let’s answer these questions. Microsoft Cognitive
+    Services come with two types of models for consuming cognitive services, namely
+    free tier and paid tier (some of the services only have a paid tier). Free tier,
+    as the name suggests, provides an opportunity to consume Microsoft Cognitive Services
+    without paying anything to Microsoft. Free tier is mostly useful for the end user
+    to give a try with personal or low-volume applications. If your requirement fulfills
+    any of these requisites, we certainly encourage you to use free tier. As you can
+    expect, a free tier for each service also have some restrictions. As it doesn’t
+    support SLA for services provided by Microsoft, free tier is often called as a
+    restricted tier.Cognitive Services also has the paid tier for service, which is
+    based on pay per use model and is a model that should be used for any non-personal
+    consumption of the cognitive services including enterprise applications. The pay
+    per use model has a different pricing model for different services. For example,
+    the pay per use model used by the Emotions API differ from the Speech API. Some
+    of the Cognitive Services pay per use models have different payment consumption
+    models. Figure [5-1](#Fig1) shows the pricing model for the Emotions API. Some
+    of the Cognitive Services also provide services on a standard tier that ensure
+    Cognitive Service SLA availability at least 99 percent of the time.![A458845_1_En_5_Fig1_HTML.jpg](A458845_1_En_5_Fig1_HTML.jpg)Figure
+    5-1Various pricing tiers for the Emotions APINoteWhile writing this book, if your
+    free tier session or usage expires, Microsoft Cognitive Services does not automatically
+    move from free tier to paid tier. Rather, your services don’t yield a response.
+    We encourage you to go ahead and use free tier with ease but do check the Microsoft
+    Cognitive Service policy, as it can change over time.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Understanding the Prerequisites
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Each cognitive API is unique and so is its usage and applicability. It is important
+    first to understand which Cognitive API needs to be consumed. Chapter [4](A458845_1_En_4_Chapter.html)
+    introduced the various APIs. Apart from knowing which cognitive API to consume,
+    you need to have its subscription key and programming language of choice. Each
+    subscription key for any cognitive service is unique and exclusive, i.e. the subscription
+    key is unique for that user and for that specific service. You can’t use the same
+    subscription key to call two different cognitive services—the subscription key
+    for the Emotions API is not valid for calling the Speech API.In previous chapters,
+    we discussed that consuming cognitive services through REST API is language and
+    platform independent. This means you are free to consume in any of your favorite
+    languages. Since we are targeting .NET developers in this book, we use Visual
+    Studio as our development IDE. Visual Studio 2017, as you may know, is a perfect
+    development environment and default industry-wide code editor for creating an
+    application for the .NET developer. Installing Visual Studio by default installs
+    your .NET Framework, language support, template, and compiler. All versions of
+    Visual Studio come with several editions (community, professional, enterprise,
+    etc.)—we use the Visual studio 2017 professional edition.NoteWe don’t cover the
+    installation of Visual Studio 2017 professional edition. If you don’t have Visual
+    Studio, visit the download section of [https://www.visualstudio.com](https://www.visualstudio.com)
+    to install it.Although we use C# as our preferred language for creating examples,
+    concepts of consuming REST services don’t really change even if you are consuming
+    it in a non-.Net environment. We further extend our smart hospital use case to
+    consume some cognitive services. Flip back to the end of Chapter [1](A458845_1_En_1_Chapter.html)
+    if you need to review the smart hospital use case. Throughout this book, our examples
+    and code are entirely focused on building the smart hospital.Just to recap, here
+    are the prerequisites required for consuming the Cognitive API:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Subscription key
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Visual Studio 2017
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Your passion and enthusiasm
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: You already have the passion and enthusiasm for creating a smart AI application,
+    that’s why you are reading this book. Assuming you have installed Visual Studio
+    2017, you now just need to grab your subscription key for the Cognitive API and
+    get started.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to Get the Subscription Key for Cognitive Services
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: All Microsoft Cognitive Services API require a subscription key to be passed
+    either as a header or query parameter. All you need in order to get a subscription
+    key for your cognitive services is a Hotmail account. You can go through any of
+    the Microsoft Cognitive APIs and click on the Get an API key option, which requires
+    signing it, and you are done. But wait!! You also need more quota for consuming
+    the key. Thinking of longer-term perspective, we recommend you get it through
+    a free subscription, which requires you to have an Azure account. If you already
+    have an Azure account, you can directly go to the next section or create the account
+    here.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Creating the Azure Account
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Go to [https://azure.microsoft.com/en-in/free](https://azure.microsoft.com/en-in/free)
+    and click on the Start Free button, as shown in Figure [5-2](#Fig2).![A458845_1_En_5_Fig2_HTML.jpg](A458845_1_En_5_Fig2_HTML.jpg)Figure
+    5-2The screen for Azure portal free subscriptionMicrosoft wants to encourage new
+    developers and architects such as you to play with an Azure account. As soon as
+    you create the Azure account, you are entitled with $200 of credit which you can
+    eventually use during your trial period of 30 days to explore other Azure products,
+    such as testing and deploying apps on Azure VMs, getting insightful information
+    about your data, to name a few. In addition to $200, you will get $50 every month
+    for using professional Visual Studio 2017 edition.TipThese bonus freebies are
+    certainly useful to consume other Azure services and make your application more
+    interesting. In due course of the book, we use this money to consume other IOT
+    services as well.Clicking on Start Free redirects you to the form shown in Figure
+    [5-3](#Fig3). Fill in the details for getting the Azure account.![A458845_1_En_5_Fig3_HTML.jpg](A458845_1_En_5_Fig3_HTML.jpg)Figure
+    5-3The form for signing up for the free Azure subscriptionFill in the form by
+    entering your personal details, phone, and credit card details before clicking
+    on Sign Up. It is important to note that phone and card details are just for verification
+    of your identity. There won’t be any charges levied on the card. It is also important
+    to know that Azure doesn’t upgrade your tier (from free to paid) by default. Instead,
+    once the trial period is over, the service stops but your accounts still stays.
+    You have the option anytime to go back again, access your account, and access
+    the service. You can also use the credits that you have received by creating your
+    free account along with using the professional edition of VS 2017.Once your identity
+    is verified, you need to accept the subscription agreement to complete your application.
+    At this point, it’s a good idea to spend a few minutes quickly scanning through
+    the agreement terms and offer details, links to both of which are given in the
+    Agreement section of the application form. Once you’ve accepted the agreement
+    and clicked the Sign Up button, you will be redirected to the subscriber’s page.
+    Here, click the Start Managing My Service button to go to the Azure portal. First-time
+    users of the Azure portal are encouraged to get a little tour, as shown in Figure
+    [5-4](#Fig4). It is a good idea to take a tour and become familiar with the dashboard.![A458845_1_En_5_Fig4_HTML.jpg](A458845_1_En_5_Fig4_HTML.jpg)Figure
+    5-4The options for first-time users to take a tour of the Azure portal. If it
+    is your first time on Azure portal, it is highly recommended to take a quick short
+    tour of the portal.You are then redirected to the dashboard, as shown in Figure
+    [5-5](#Fig5), which gives you the step-by-step process in a wizard-like interface
+    to create new resources.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Getting the Subscription Key from Azure Portal
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Creating the Azure account is a one-time activity. If you already have an Azure
+    account, you can directly access the Azure portal to get the subscription keys.![A458845_1_En_5_Fig5_HTML.jpg](A458845_1_En_5_Fig5_HTML.jpg)Figure
+    5-5The Azure portal dashboardSearch for Cognitive Services at the top and you
+    are redirected to the Cognitive Service page, as shown in Figure [5-6](#Fig6).
+    If this is your first time on the page, no cognitive service have been created.![A458845_1_En_5_Fig6_HTML.jpg](A458845_1_En_5_Fig6_HTML.jpg)Figure
+    5-6No keys and subscription associated for the first-time usersClick Add and the
+    search for the Computer Vision API. Then fill in the details shown in Figure [5-7](#Fig7).![A458845_1_En_5_Fig7_HTML.jpg](A458845_1_En_5_Fig7_HTML.jpg)Figure
+    5-7The blade of the Azure portal for creating the computer vision subscription
+    keyOnce all the fields are filled in, click the Create button as shown in Figure
+    [5-7](#Fig7). It will take a few seconds to a minute for your new account to be
+    created and deployed to the selected resource group. You can track the deployment
+    status in the Alerts menu in the top-right corner of the portal. Once it’s done,
+    the Alert menu shows a confirmation, as shown in Figure [5-8](#Fig8).![A458845_1_En_5_Fig8_HTML.jpg](A458845_1_En_5_Fig8_HTML.jpg)Figure
+    5-8The notification of successful creation of the computer vision in Azure portalThis
+    confirms the one-time process of creating the keys. You can now click the Go the
+    Resource link and select Computer Vision to get the keys. Scroll down a bit to
+    find the Keys option under Resource Management. Clicking this option will reveal
+    two subscription keys created especially for you, as shown in Figure [5-9](#Fig9).
+    Copy one of the two keys and keep it handy. You are going to need it soon.![A458845_1_En_5_Fig9_HTML.jpg](A458845_1_En_5_Fig9_HTML.jpg)Figure
+    5-9The computer vision keys generated in the Azure account
+  prefs: []
+  type: TYPE_NORMAL
+- en: Testing the API
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: It is now important to test whether the subscription keys are working correctly
+    before you use them in your application later in the chapter. The easiest way
+    to do this is to validate them with any of the free GUI testing tools. We personally
+    prefer Postman, which is easier and handy to use. Just call the HTTP API provided
+    by the computer vision and use one of the subscription keys as a value for the
+    request header as Ocp-Apim-Subscription-Key , as shown in Figure [5-10](#Fig10).![A458845_1_En_5_Fig10_HTML.jpg](A458845_1_En_5_Fig10_HTML.jpg)Figure
+    5-10The Postman tool for testing the computer vision APIThe Ocp-Apim-Subscription-Key
+    key has been used by Microsoft Cognitive Services to assume its value as a subscription.
+    It is important to remember this, as we are going to use this key while calling
+    any Microsoft Cognitive Services. Pick one of the images from your desktop; I
+    chose the image shown in Figure [5-11](#Fig11). Click on the Send button on Postman
+    to call your API. If all the request parameters are correctly set, you should
+    get a 200 status.![A458845_1_En_5_Fig11_HTML.jpg](A458845_1_En_5_Fig11_HTML.jpg)Figure
+    5-11Image used in Postman to test the subscription keyThe JSON response for this
+    image should be:{"description":{"tags":["person","indoor","boy","young","child","little","standing","small","man","front","holding","shirt","wearing","table","room","girl","playing","suitcase","luggage","red","video","living","remote","people"],"captions":[{"text":"a
+    young boy standing in a room","confidence":0.74894680759015353}]},"requestId":"f1f9b0fa-d0cf-4e17-9cd2-9d87b8c1c53c","metadata":{"width":441,"height":662,"format":"Jpeg"}}As
+    you see, the text caption shows "a young boy standing in a room". Isn’t this really
+    accurate! Think about how useful this is, in just a single call. These insights
+    can be tremendously beneficial in quite a number of use cases, such as security,
+    creating a visual impaired solution for the blind, and so on. Now you are all
+    set to use the same cognitive services to do more interesting work. The first
+    thing we should do is get familiar with calling these cognitive services in Visual
+    Studio.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Creating Your First Smart Cognitive Application
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: (This section assumes you already have VS 2017 installed.) Open Visual Studio
+    2017\. From the File menu, point to New and then click Project. In the New Project
+    dialog box, expand the Visual C# node in the Project Types tree. You’ll see various
+    templates under it. As we want to quickly create our first cognitive application,
+    select Windows Classic Desktop under Visual C#. Select the Console App (.NET Framework).
+    Give your project a name, such as myFirstCognitiveApp, as shown in Figure [5-12](#Fig12),
+    and click OK to create a new console-based project in Visual Studio 2017.![A458845_1_En_5_Fig12_HTML.jpg](A458845_1_En_5_Fig12_HTML.jpg)Figure
+    5-12The VS 2017 new project templateNoteFrom here on, we assume that you understand
+    how to create a new project using Visual Studio 2017\. Going forward, we will
+    simply ask you to create a new project in VS, specifying the template and any
+    specific project name (if required).Open the Solution Explorer and rename the
+    Program.cs file to CognitiveApp.cs. In the Project menu, click Add Reference.
+    In the Add Reference dialog box, click the Framework tab and add references to
+    the following assemblies, as shown in Figure [5-13](#Fig13).
+  prefs: []
+  type: TYPE_NORMAL
+- en: System.Web
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: System.Configuration
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: System.Net.Http
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '![A458845_1_En_5_Fig13_HTML.jpg](A458845_1_En_5_Fig13_HTML.jpg)Figure 5-13The
+    Add Reference dialog box in Visual Studio 2017'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Steps for Consuming the Cognitive API
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Create a new function called DescribeImage that takes images, calls our cognitive
+    API, and returns the result from the API as a string. In order to do this, your
+    function would follow these series of steps:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Step 1\. Create the HTTP client to make HTTP calls.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Step 2\. Build the HTTP request object with appropriate parameters.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Step 3\. Call the Computer Vision API by passing the HTTP request created in
+    Step 2 and getting the response back from the API.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Your function signature should look like the following:public static async Task<string>
+    DescribeImage(string imageFilePath)If you look at this signature, you’ll observe
+    that the function has been marked as static and async. The function has been marked
+    static so that you can directly call it from the main function. Here, we use C#’s
+    async programming while calling the API to make the user experience smoother and
+    more responsive.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Build the HttpClient Instance
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The first and most important step for calling the Cognitive API from Visual
+    Studio is to build the httpClient instance. The HttpClient class resides in the
+    System.Net.Http namespace. Its instance is required to get, post, put, and delete
+    HTTP calls. There are multiple ways to instantiate httpclient. Creating an instance
+    inside a using block automatically disposes the object at the end of the block.
+    Disposing of I/O-intensive objects appropriately is important because the system
+    resources they use aren’t kept reserved and are immediately made available to
+    other programs. Your httpclient instantiation should look like this:using (HttpClient
+    myhttpClient = new HttpClient())
+  prefs: []
+  type: TYPE_NORMAL
+- en: Build the Http Request Object with Appropriate Parameters
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Now that you have created the httpClient instance, the next step is to pass
+    the subscription key in the header and the image as multipart form data content.
+    In order to pass the subscription key as a header, you need a unique header key
+    named Ocp-Apim-Subscription-Key, which is used across all cognitive services to
+    recognize its value as a subscription key. You can create the key-value pair or
+    hard code it. Instead, we recommend storing the subscription key in the configuration
+    file, which will prevent any recompilation due to a change in the subscription
+    key. You can add it to httpclient instance created in the previous steps. Your
+    code should look like this:myHttpClient.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key",
+    ConfigurationManager.AppSettings["AzureSubscriptionKeyVision"]);The next step
+    is to pass the image as multipart form data content to the httpclient. The .NET
+    Framework provides the container class MultipartFormDataContent, which resides
+    in the System.net.http namespace, to do the honors.using (MultipartFormDataContent
+    reqContent = new MultipartFormDataContent())It’s better to instantiate these objects
+    using using to get them automatically disposed of. Once the container class is
+    created, you can read the entire image in the body in the byte format and add
+    it to the multipartFormDataContent instance, as shown here. The File.ReadAllBytes()
+    method takes in the absolute path of a file and returns its byte sequence.var
+    imgContent = new ByteArrayContent(System.IO.File.ReadAllBytes(imageFilePath));                        reqContent.Add(imgContent);
+  prefs: []
+  type: TYPE_NORMAL
+- en: Calling Microsoft Cognitive Vision API
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Now you are all set to call the Cognitive Vision API. For the httpclient to
+    make a POST call to the Cognitive Vision API, you need to provide it the correct
+    HTTP address of the Cognitive API and the API in the multipartFormDataContent
+    object. Specify the address as shown here by setting maxCandidates as 1, which
+    ensures that only one description is returned from the API.var queryString = HttpUtility.ParseQueryString(string.Empty);                    queryString["maxCandidates"]
+    = "1";var uri = "https://westcentralus.api.cognitive.microsoft.com/vision/v1.0/describe/?"
+    + queryString;The next step is to call the Microsoft Cognitive API in an asynchronous
+    manner, passing the address and the multiform data content, as shown in this code:HttpResponseMessage  respMessage
+    = await myHttpClient.PostAsync(uri, reqContent);string finalJson = await respMessage.Content.ReadAsStringAsync();                        return
+    finalJson;The previous code uses the asynchronous operation while calling the
+    API. It is always a best practice to call all your APIs in an asynchronous way
+    to ensure your application is not unresponsive until you hear back from the API.
+    The entire code of your console application should now look something like this:using
+    System;using System.Collections.Generic;using System.Configuration;using System.Linq;using
+    System.Net.Http;using System.Text;using System.Threading.Tasks;using System.Web;namespace
+    myFirstCognitiveApp{    class CognitiveApp    {        static void Main(string[]
+    args)        {            Task<string> result = DescribeImage(@"C:\nishith\image.jpg");            Console.WriteLine(result.Result);            Console.ReadLine();        }        public
+    static async Task<string> DescribeImage(string imageFilePath)        {            using
+    (HttpClient myHttpClient = new HttpClient())            {                myHttpClient.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key",
+    ConfigurationManager.AppSettings["AzureSubscriptionKeyVision"]);                using
+    (MultipartFormDataContent reqContent = new MultipartFormDataContent())                {                    var
+    queryString = HttpUtility.ParseQueryString(string.Empty);                    queryString["maxCandidates"]
+    = "1";                    var uri = "https://westcentralus.api.cognitive.microsoft.com/vision/v1.0/describe/?"
+    + queryString;                    try                    {                        var
+    imgContent = new ByteArrayContent(System.IO.File.ReadAllBytes(imageFilePath));                        reqContent.Add(imgContent);                        HttpResponseMessage  respMessage
+    = await myHttpClient.PostAsync(uri, reqContent);                        string
+    finalJson = await respMessage.Content.ReadAsStringAsync();                        return
+    finalJson;                    }                    catch (System.IO.FileNotFoundException
+    ex)                    {                        return "The specified image file
+    path is invalid.";                    }                    catch (ArgumentException
+    ex)                    {                        return "The HTTP request object
+    does not seem to be correctly formed.";                    }                }            }        }    }}
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Result of Your Code
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Build the project and correct any syntax errors if necessary. In Visual Studio,
+    pressing F5 or Ctrl+F5 will run your program. This program, being part of a console
+    application, will open and run inside the command prompt. Figure [5-14](#Fig14)
+    shows the same result in a console window against the child image that we used
+    in the Postman example.![A458845_1_En_5_Fig14_HTML.jpg](A458845_1_En_5_Fig14_HTML.jpg)Figure
+    5-14The output in the console windowCongratulations! You are finally not just
+    able to call cognitive applications but have a clear understanding of the steps
+    required to call the Cognitive API. Similar steps need to be performed in the
+    next chapters for consuming cognitive services, so it’s better to revise the steps
+    once again before marching ahead in our journey of creating smarter applications.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s Do Something a Little More Interesting
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Go back to your Console application and replaceTask<string> result = DescribeImage(@"C:\nishith\image.jpg");WithTask<string>
+    result = DescribeImage(@"C:\nishith\mahatma.jpg");Then run the application. What
+    we did in this code was replace the image of the child with the father of a nation,
+    Mahatma Gandhi, as shown in Figure [5-15](#Fig15).![A458845_1_En_5_Fig15_HTML.jpg](A458845_1_En_5_Fig15_HTML.jpg)Figure
+    5-15The image of Mahatma Gandhi, which now we are passing to the console application
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Output
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: As you see in Figure [5-16](#Fig16), the caption returned is “Mahatma Gandhi
+    wearing glasses posing for the camera”.![A458845_1_En_5_Fig16_HTML.jpg](A458845_1_En_5_Fig16_HTML.jpg)Figure
+    5-16The output of passing the Mahatma Gandhi imageThis same cognitive service
+    API that could describe the image is able to recognize Steve Jobs. Isn’t this
+    amazing? What’s the trick? Under the covers, Microsoft has a celebrity recognition
+    image classification model that spans more than 200,000 celebrities from various
+    verticals like industry, politics, sports, and entertainment. Whenever any call
+    is made to Microsoft Cognitive Vision API, a check is performed to see if the
+    person detected is part of this classification model or not.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Your Next Tasks
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Each of the 29 cognitive APIs is very powerful. Some of these APIs are multitaskers
+    and do more than one task. Our Computer Vision API, for example, is one of the
+    most powerful APIs under the Vision category. As you have seen in the previous
+    simple examples, the computer vision API is not just able to describe the scene
+    for us, but it can also identify the celebrities. Give it a try with some landmarks
+    in your city/country and see if the Computer Vision API can recognize things.
+    Apart from scene recognition and identifying celebrities, it can be used to accomplish
+    the following tasks
+  prefs: []
+  type: TYPE_NORMAL
+- en: Provide an image and generate thumbnails
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Extract a printed or handwritten text from an image
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Analyze a video in real time, frame by frame
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: We suggest that you modify this program and try it with various images and test
+    functionalities by tweaking the code a bit. You will be amazed to see how the
+    Microsoft Cognitive Vision API can do all these tasks with great finesse.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Recap
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In this chapter, you learned about the prerequisites required to consume the
+    Cognitive API. This was followed by a stepwise approach to getting your subscription
+    key. You then learned about the approach of calling the Microsoft Cognitive API
+    with a detail code walkthrough in Visual Studio. You also got an idea about the
+    various possibilities of tasks that can be achieved by just calling Microsoft
+    Cognitive API. In the next chapter, we use the other Microsoft Cognitive APIs
+    to extend our hospital use case and learn how to use Microsoft Cognitive APIs
+    to turn a regular hospital into a smart one.
+  prefs: []
+  type: TYPE_NORMAL

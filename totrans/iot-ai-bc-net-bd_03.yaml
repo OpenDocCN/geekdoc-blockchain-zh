@@ -1,0 +1,877 @@
+- en: © Nishith Pathak and Anurag Bhandari 2018Nishith Pathak and Anurag BhandariIoT,
+    AI, and Blockchain for .NET[https://doi.org/10.1007/978-1-4842-3709-0_3](A458845_1_En_3_Chapter.html)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3. Creating Smart IoT Applications
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Nishith Pathak^(1 ) and Anurag Bhandari²(1)Kotdwara, Dist. Pauri Garhwal, India(2)Jalandhar,
+    Punjab, IndiaIn Chapter [2](A458845_1_En_2_Chapter.html) we learned about the
+    Internet of Things, IoT devices, practical use cases, and messaging protocols.
+    We also gained the conceptual understanding of Azure IoT Suite and its various
+    components, especially Azure IoT Hub. Armed with this knowledge, it is time to
+    create an IoT solution ourselves. We will create our own IoT network and write
+    applications for devices in that network to solve a real-world problem.By the
+    end of this chapter, you will learn to:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Write applications for IoT devices using Azure’s device SDK
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Create simulated IoT devices
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Create an IoT Hub
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Perform device-to-Cloud and Cloud-to-device communication
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Use the Notification Hubs service to send out push notifications
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Use Case: Centralized Patient Monitoring'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Our use case will revolve around solving a problem for Asclepius Consortium.
+    Refer the section called “Smart Hospitals  ” in Chapter [1](A458845_1_En_1_Chapter.html)
+    for more details about this fictional association.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Problem
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The member hospitals of Asclepius Consortium  are all faced with the same problem.
+    A doctor or nurse cannot be with each patient at all times, even with patients
+    in the ICU, in order to attend to other existing and new incoming patients. Normally,
+    a nurse visits a patient after set regular intervals to administer medications
+    and check vital statistics, but sometimes this is not enough. There have been
+    instances when complications occurred—severe and otherwise—due to delay in providing
+    necessary care when the patient’s vitals started to deteriorate just because nurses
+    and doctors could not be timely notified.Clearly, a solution that could automate
+    monitoring and notifications would be a godsend in such a typical healthcare scenario.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Solution
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'The simplest solution involves creating a network of two IoT devices—connected
+    via an Azure IoT Hub—one for collecting patient data (device with sensors) and
+    the other for taking action based on collected data (device with actuator). Data
+    is processed and the action to be taken is calculated over at the hub. Depending
+    on the size of hospital and other factors, an actual deployment of such a solution
+    would be larger and more sophisticated than our two-device setup, but the basics
+    would remain the same. Our simplified solution will give you a good starting point
+    to build upon. Azure IoT makes it super easy to scale solutions by providing a
+    fully managed interface to add, remove, and maintain virtually unlimited IoT devices
+    later.Figure [3-1](#Fig1) is a visual depiction of the proposed solution.![A458845_1_En_3_Fig1_HTML.png](A458845_1_En_3_Fig1_HTML.png)Figure
+    3-1Dataflow of the proposed centralized patient monitoring solutionHere’s a step-by-step
+    breakdown of how this solution will work:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Step 1. A standard medical device connected to the patient constantly records
+    their vitals—body temperature, pulse rate, respiration rate, and blood pressure.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Step 2. An IoT device (Device 1) is connected to patient’s medical device through
+    GPIO or a wireless interface. Device 1 receives all data being recorded by the
+    medical device. Apart from that, it has its own sensors to measure room’s temperature
+    and humidity values. A combination of all these statistics is necessary to reliably
+    monitor the patient’s health.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Step 3. Device 1 sends out the combined telemetry data to our IoT Hub. An application
+    (solution backend) written to receive hub’s incoming messages constantly analyzes
+    the input stream of data. If the values lie within normal ranges, no action is
+    taken. Conversely, if our logic detects an anomaly it sends out a message to Device
+    2 to trigger an alarm. As an added precaution, a push notification is relayed
+    to doctors’ phones through an Azure Notification Hub.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Step 4. Device 2—installed outside the patient’s room—continuously listens to
+    our IoT Hub. Depending on the severity of message received from hub, it triggers
+    a physical alarm connected to it as an actuator.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Step 5. A physical alarm immediately catches the attention of nearby staff,
+    reducing potential delays in patient getting professional medical help.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'In our implementation of this solution, we will be using one simulated device
+    and one actual device (Raspberry Pi).Device 1 will be a simulated device, which
+    is basically a custom software program that uses Azure’s device SDK to simulate
+    an IoT device and generate random sensor values. Learning to create a simulated
+    device will have two advantages: (1) you will get to learn how IoT Hub works even
+    if you do not have an actual device and/or its sensors, and (2) you will learn
+    to test your network before using actual devices.Device 2 will be a Raspberry
+    Pi Zero W, which is essentially a Pi Zero with WiFi and Bluetooth pre-installed.
+    Pi Zero W is cheap ($10) and easy-to-use.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Getting an Azure Subscription
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: If you already have an Azure account, feel free to skip this section. Utilizing
+    the services in Azure IoT Suite, including IoT Hub, will require you to have a
+    valid Azure subscription. An Azure subscription is different from simply having
+    a free Microsoft Live ID (@outlook.com or @hotmail.com email account). A subscription
+    can be obtained several ways, including creating an account on Azure’s website
+    using your credit card and getting it bundled with Visual Studio Professional.
+    For the purposes of this book, we’ll explore the former option.Signing up for
+    an Azure account is easy, but requires you to have a Microsoft account—get it
+    free at signup.live.com if you already don’t have one. You have two options to
+    sign up for an Azure account—get a Pay-As-You-Go subscription or start with a
+    30-day free trial.With a Pay-As-You-Go subscription, you pay monthly charges for
+    services that you use, as per you use them. The subscription is a no-commitment
+    one, meaning it does not require you to pay any additional initial or fixed monthly
+    charges. For example, if the only service you are availing is a VM that costs
+    $20/month, then that’s all what you pay monthly, for as long as you use it. Likewise,
+    if you have activated the free tier of an IoT Hub, you pay $0 or nothing if you
+    stay within the bounds imposed by the free tier.The 30-day free trial is your
+    safest bet and is highly recommended if you are a first-time user. With the trial,
+    you get a complimentary $200 (subject to change at any time) credit in your Azure
+    account. You can use this credit however you like. Once you have exhausted your
+    free credits—which is usually an unlikely scenario—you will be asked to pay for
+    the additional paid services. After the 30 days of the trial period are over,
+    you will be given an option to switch to Pay-As-You-Go subscription. If you don’t,
+    you will lose access to the services you’d set up during the trial period. Your
+    Azure Portal access, however, will remain intact. But unlike how trials go usually,
+    Azure does not automatically upgrade you to a paid plan after your trial expires.
+    So there is zero risk of your credit/debit card getting involuntarily charged.It
+    is worth mentioning that Visual Studio Professional and Enterprise subscribers
+    get complimentary Azure credits every month—$50 for Professional and $150 for
+    Enterprise subscribers. This amount is automatically credited every month to the
+    Microsoft account linked to a Visual Studio subscription.Assuming that you do
+    not have an existing Azure account, let’s sign up for the free trial. With a Microsoft
+    account, head over to [https://azure.microsoft.com/en-in/free](https://azure.microsoft.com/en-in/free)
+    and click the Start Free button. You may be asked to log in using your Microsoft
+    account at this point. Once you do, you will receive a message about your account
+    having no existing subscriptions.Click on the Sign Up For a Free Trial link. This
+    will bring up a signup form where you will need to supply basic information about
+    yourself, as can be seen in Figure [3-2](#Fig2).![A458845_1_En_3_Fig2_HTML.jpg](A458845_1_En_3_Fig2_HTML.jpg)Figure
+    3-2Azure trial signup formNext, you will be asked to enter some additional information
+    for identity verification purposes. This includes your mobile number and credit
+    card details. Please note that credit card details are required only for verification.
+    You may be charged a minor phony amount during signup, but that transaction would
+    be instantly reversed. As stated by Microsoft on their website—We keep prices
+    low by verifying that account holders are real people, not bots or anonymous trouble
+    makers. Don't worry, your card will not be charged unless you explicitly convert
+    to a paid offer, although you might see a temporary authorization hold.Once your
+    identity is verified, you will need to accept the subscription agreement to complete
+    your application. At this point, it’s a good idea to spend a few minutes quickly
+    scanning through the agreement terms and offer details, links to both of which
+    are given in the Agreement section of the application form. Once you’ve accepted
+    the agreement and clicked the Sign Up button, you will be redirected to the subscriber’s
+    page. Here, click the button to go to Azure Portal.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Creating an IoT Hub
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'IoT Hub sits at the core of our network. It is the entity that allows devices
+    to securely communicate with the solution backend and vice versa. We’ll create
+    this first and deal with the devices later. With an Azure subscription at our
+    disposal, go ahead and create a hub.Head to [https://portal.azure.com](https://portal.azure.com)
+    and access your Azure Portal. From the left side menu, click on New. From the
+    resulting blade, select Internet of Things ➤ IoT Hub, as seen in Figure [3-3](#Fig3)  .
+    Alternatively, search for “iot hub” in the Search the Marketplace textbox.![A458845_1_En_3_Fig3_HTML.jpg](A458845_1_En_3_Fig3_HTML.jpg)Figure
+    3-3The new resource blade in AzureIn the resulting form (see Figure [3-4](#Fig4))  ,
+    enter a unique name for your hub. As a matter of practice, we follow the notation
+    <nickname>-<resource type>-<application name> but you can use your own as long
+    as the name is globally unique. Change the pricing tier from S1 (paid) to F1 (free).
+    The free tier has a daily message limit of 8000, which is sufficient for our testing.
+    Alternatively, you can utilize the free credits you received with Azure’s trial
+    subscription to opt for a paid account in case you plan to take our experiment
+    to the next level, since you will not be able upgrade to a higher plan if you
+    create a free-tier hub. IoT Hub Units and Device-to-cloud Partitions fields will
+    be disabled in free tier: the former pertains to management of daily message quota,
+    and the latter affects availability and consistency of the hub as it decides the
+    number of concurrent readers that can connect to your hub (a concept taken directly
+    from Azure’s Event Hubs). You can ignore these values for now and proceed to create
+    the hub.![A458845_1_En_3_Fig4_HTML.jpg](A458845_1_En_3_Fig4_HTML.jpg)Figure 3-4New
+    IoT Hub formIt normally takes 1-2 minutes for Azure to finish creating a new hub.
+    Once your hub is ready, you will see a notification in the Notifications center
+    at the top. Click the notification to open the hub’s details page, as seen in
+    Figure [3-5](#Fig5). Take a note of the Hostname field. This is the URL where
+    your hub is hosted, and what devices and solution the backend will interact with.![A458845_1_En_3_Fig5_HTML.jpg](A458845_1_En_3_Fig5_HTML.jpg)Figure
+    3-5Details blade for our newly created IoT HubThe Hostname value, though, cannot
+    be used directly to register devices or by applications to send/receive messages
+    to/from the hub. You will additionally need a shared access key pair for that.
+    The combination of hostname and a shared access key is a connection string. As
+    you’ll see later, shared access keys will be different for each registered device
+    as well as for registering new devices.When a new hub is created, Azure creates
+    for you various roles (policies) with varying permissions on the hub. Each policy
+    has its own set of shared access keys. For the purposes of our solution, let’s
+    retrieve the connection string corresponding to the policy with full permissions.
+    In a production setup, you might want to use a more restrictive policy.In your
+    IoT Hub’s details blade, navigate to Settings ➤ Shared Access Policies ➤ iothubowner.
+    In the resulting right sidebar (see Figure [3-6](#Fig6)), scroll down to locate
+    Connection String—Primary Key. Note it down.![A458845_1_En_3_Fig6_HTML.jpg](A458845_1_En_3_Fig6_HTML.jpg)Figure
+    3-6Getting the connection string of the IoT Hub'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Creating Device Identities
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The next step in sequence is to register our the devices in the hub’s registry.
+    You saw in Chapter [2](A458845_1_En_2_Chapter.html) how security is the number
+    one concern of an IoT Hub. A device cannot connect to a hub if it is not registered
+    with it. So, even before we create our simulated device (Device 1) and configure
+    our Pi Zero (Device 2), we will create their device identities. Each device identity
+    is associated with a device ID and a key. Our client applications, running on
+    the devices, will need these values to identify themselves to the hub.There are
+    two ways to create a device identity—using code and through Azure Portal. We will
+    explore both.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using Code
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: This method requires using Azure’s Devices SDK to write a few lines of code.
+    It may be a little bit cumbersome to register just one or two devices using this
+    method, but it is extremely helpful while registering hundreds or thousands of
+    devices, or when automating device registration.We’ll create a simple C#-based
+    Windows Console App. Fire up your Visual Studio. Go to File ➤ New ➤ Project, and
+    choose Console App under Visual C# ➤ Windows Classic Desktop. Refer to Figure
+    [3-7](#Fig7).![A458845_1_En_3_Fig7_HTML.jpg](A458845_1_En_3_Fig7_HTML.jpg)Figure
+    3-7Creating a new console app in Visual Studio 2017Once Visual Studio has finished
+    creating the new application, right-click the AddDeviceToHub project in Solution
+    Explorer and select Manage NuGet Packages. In the package manager window, switch
+    to Browse tab, search for Microsoft.Azure.Devices and install the first package
+    in the list (that exactly matches the searched name). You may be prompted to install
+    several dependencies along with the Azure IoT Devices SDK; choose to install all.NoteThe
+    version we used for all subsequent code examples is Visual Studio Professional
+    2017\. If you do not have Professional 2017 or are running an older version, we
+    highly recommend that you upgrade. VS Community 2017—available completely free
+    of cost—will work equally well.Next, add a new app setting for IoT Hub’s connection
+    string in App. config . Add the following code. Replace the value attribute’s
+    value with the connection string you noted at the end of “Creating an IoT Hub”
+    section earlier.<appSettings>  <add key="connectionString" value="" /></appSettings>In
+    Program.cs, copy-paste the following code:using System;using System.Threading.Tasks;using
+    Microsoft.Azure.Devices;using Microsoft.Azure.Devices.Common.Exceptions;namespace
+    AddDeviceToHub{    class Program    {        static RegistryManager registryManager;        static
+    string connectionString = System.Configuration.ConfigurationManager.AppSettings["connectionString"];        static
+    void Main(string[] args)        {            registryManager = RegistryManager.CreateFromConnectionString(connectionString);            RegisterDeviceAsync().Wait();            Console.ReadLine();        }        private
+    static async Task RegisterDeviceAsync()        {            string deviceId =
+    "medicaldevice-patient1";            Device device;            try            {                device
+    = await registryManager.AddDeviceAsync(new Device(deviceId));            }            catch
+    (DeviceAlreadyExistsException)            {                device = await registryManager.GetDeviceAsync(deviceId);            }            Console.WriteLine("Device
+    shared access key:" + device.Authentication.SymmetricKey.PrimaryKey);        }    }}Let’s
+    break down this program to understand what’s happening in each section.Adding
+    a NuGet package automatically adds its DLLs in the project’s references, but its
+    corresponding using statements need to be manually placed in the code. That is
+    why we have the following two lines at the top:using Microsoft.Azure.Devices;using
+    Microsoft.Azure.Devices.Common.Exceptions;We need a reference to hub’s registry
+    manager. So, we created a new static field:static RegistryManager registryManager;We
+    also created a static field for the connection string:static string connectionString
+    = System.Configuration.ConfigurationManager.AppSettings["connectionString"];The
+    ConfigurationManager class is, by default, not present in the System.Configuration
+    namespace. We have to add a reference to the System.Configuration DLL in our project.
+    Right-click References in Solution Explorer and scroll down to add the needed
+    reference, as shown in Figure [3-8](#Fig8).![A458845_1_En_3_Fig8_HTML.jpg](A458845_1_En_3_Fig8_HTML.jpg)Figure
+    3-8Adding a reference to System.ConfigurationRegisterDeviceAsync is the actual
+    method that registers our device. We use it to register only Device 1\. It tries
+    to add the device in our hub’s registry. If the device with the specified device
+    ID already exists, an instance of the existing device is fetched. The shared access
+    key of the added device is then printed to the console.private static async Task
+    RegisterDeviceAsync(){    string deviceId = "medicaldevice-patient1";    Device
+    device;    try    {        device = await registryManager.AddDeviceAsync(new Device(deviceId));    }    catch
+    (DeviceAlreadyExistsException)    {        device = await registryManager.GetDeviceAsync(deviceId);    }    Console.WriteLine("Device
+    shared access key:" + device.Authentication.SymmetricKey.PrimaryKey);}Finally,
+    everything is put together in the Main method by making a call to the RegisterDeviceAsync
+    method.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using the Portal
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Azure Portal makes adding devices to a hub super easy by lending its wizard-like
+    interface for the purpose. Although this method is easier, it involves creating
+    devices one at a time. To create a new device, navigate to your IoT Hub’s details
+    blade. In its left sidebar, scroll down and select Explorers ➤ IoT Devices ➤ Add.
+    Fill in the details as seen in Figure [3-9](#Fig9).![A458845_1_En_3_Fig9_HTML.jpg](A458845_1_En_3_Fig9_HTML.jpg)Figure
+    3-9Adding a device through Azure PortalOnce the device is added successfully,
+    it will be listed in the device explorer alongside Device 1 that we added using
+    code earlier. If added device’s status shows as “disabled,” enable the device
+    by opening its Device Details blade.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Creating a Simulated Device
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: With our hub created and devices registered with it, let’s create our simulated
+    device that will periodically send patient telemetry data to the hub.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Creating the Application
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'The steps are similar to what we saw in Creating Device Identities section.
+    In Visual Studio, create another console application called SimulatedDevice in
+    the same solution IoTCentralizedPatientMonitoring. Install the NuGet package Microsoft.Azure.Devices.Client
+    to the new project. Like before, add a reference to System.Configuration in order
+    to read app settings from App.config.In App.config, add the following key-value
+    pairs:<appSettings>  <add key="iotHubHostname" value="" />  <add key="deviceId"
+    value="medicaldevice-patient1" />  <add key="deviceSharedAccessKey" value="" /></appSettings>The
+    value of iotHubHostname is the hostname we noted down in the “Creating an IoT
+    Hub” section rather than the connection string. deviceSharedAccessKey is the output
+    that was printed at the end in the “Using Code” subsection of “Creating Device
+    Identities”. If you did not get a chance to note it down, you can easily get it
+    from IoT Devices explorer of your hub in Azure Portal; take the primary key value
+    from there.Add the following code in SimulatedDevice project’s Program.cs file:static
+    void Main(string[] args){  deviceClient = DeviceClient.Create(iotHubHostname,
+    new DeviceAuthenticationWithRegistrySymmetricKey(deviceId, deviceSharedAccessKey),
+    TransportType.Mqtt);  deviceClient.ProductInfo = "Asclepius Consortium Vitals
+    Recorder";  SendPatientTelemetryToHubAsync();  Console.ReadLine();}private static
+    async void SendPatientTelemetryToHubAsync(){  // Minimum values for telemetry
+    parameters  double minBodyTemperature = 36.5; // degrees Celsius  double minPulseRate
+    = 60; // beats per minute  double minRespirationRate = 12; // breaths per minute  double
+    minRoomTemperature = 18; // degrees Celsius  double minRoomHumidity = 30; // percentage  Random
+    random = new Random();  while (true)  {    // Pretentiously received from the
+    medical device    double currentBodyTemperature = minBodyTemperature + random.NextDouble()
+    * 4; // 36.5-40.5 deg    double currentPulseRate = minPulseRate + random.NextDouble()
+    * 40; // 60-100 per min    double currentRespirationRate = minRespirationRate
+    + random.NextDouble() * 4; // 12-16 per min    // Pretentiously received from
+    on-board sensors    double currentTemperature = minRoomTemperature + random.NextDouble()
+    * 12; // 18-30 deg    double currentHumidity = minRoomHumidity + random.NextDouble()
+    * 30; // 30-60%    // Combined telemetry data    var deviceTelemetryData = new    {      messageId
+    = Guid.NewGuid().ToString(),      deviceId = deviceId,      patientBodyTemperature
+    = currentBodyTemperature,      patientPulseRate = currentPulseRate,      patientRespirationRate
+    = currentRespirationRate,      rooomTemperature = currentTemperature,      roomHumidity
+    = currentHumidity    };    // Serialize and send data to hub    var messageString
+    = JsonConvert.SerializeObject(deviceTelemetryData);    var message = new Message(Encoding.ASCII.GetBytes(messageString));    await
+    deviceClient.SendEventAsync(message);    // Output the sent message to console    Console.WriteLine("Message
+    at {0}: {1}", DateTime.Now, messageString);    // Wait for 3 seconds before repeating    await
+    Task.Delay(3000);      }}Let’s break down the code as before.We start by adding
+    the required using statements:using System.Threading.Tasks;using Microsoft.Azure.Devices.Client;using
+    Newtonsoft.Json;using System.Configuration;We create an instance of DeviceClient,
+    the class that exposes methods to communicate with the hub. We also read app setting
+    values into class fields.static DeviceClient deviceClient;static string iotHubHostname
+    = ConfigurationManager.AppSettings["iotHubHostname"];static string deviceId =
+    ConfigurationManager.AppSettings["deviceId"];static string deviceSharedAccessKey
+    = ConfigurationManager.AppSettings["deviceSharedAccessKey"];In the SendPatientTelemetryToHubAsync
+    method, we start by setting minimum values for telemetry parameters that will
+    be recorded (simulated) by the device.double minBodyTemperature = 36.5; // degrees
+    Celsiusdouble minPulseRate = 60; // beats per minutedouble minRespirationRate
+    = 12; // breaths per minutedouble minRoomTemperature = 18; // degrees Celsiusdouble
+    minRoomHumidity = 30; // percentageNext, we start an infinite loop that:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 1.Generates fake sensor values.// Pretentiously received from the medical devicedouble
+    currentBodyTemperature = minBodyTemperature + random.NextDouble() * 4; // 36.5-40.5
+    degdouble currentPulseRate = minPulseRate + random.NextDouble() * 40; // 60-100
+    per mindouble currentRespirationRate = minRespirationRate + random.NextDouble()
+    * 4; // 12-16 per min// Pretentiously received from on-board sensorsdouble currentTemperature
+    = minRoomTemperature + random.NextDouble() * 12; // 18-30 degdouble currentHumidity
+    = minRoomHumidity + random.NextDouble() * 30; // 30-60%
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 2.Builds the telemetry data object.var deviceTelemetryData = new{  messageId
+    = Guid.NewGuid().ToString(),  deviceId = deviceId,  patientBodyTemperature = currentBodyTemperature,  patientPulseRate
+    = currentPulseRate,  patientRespirationRate = currentRespirationRate,  rooomTemperature
+    = currentTemperature,  roomHumidity = currentHumidity};
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 3.Serializes and sends the data to hub.var messageString = JsonConvert.SerializeObject(deviceTelemetryData);var
+    message = new Message(Encoding.ASCII.GetBytes(messageString));await deviceClient.SendEventAsync(message);
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 4.Waits for 3000 milliseconds (three seconds) until repeating.await Task.Delay(3000);
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Running the Application
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Set SimulatedDevice project as the startup project in Visual Studio and press
+    the F5 button on the keyboard (or the Start button in VS) to run the application.
+    A Command Prompt window will pop up and display a message every three seconds
+    that we are outputting on console. Figure [3-10](#Fig10) shows sample output.![A458845_1_En_3_Fig10_HTML.jpg](A458845_1_En_3_Fig10_HTML.jpg)Figure
+    3-10Output from the simulated device console applicationTo verify whether messages
+    are being successfully sent to the hub, open the hub’s details blade in Azure
+    Portal. You should see the usage count increase, as shown in Figure [3-11](#Fig11).![A458845_1_En_3_Fig11_HTML.jpg](A458845_1_En_3_Fig11_HTML.jpg)Figure
+    3-11Daily usage—messages exchanges—for a hub can be checked in Azure Portal
+  prefs: []
+  type: TYPE_NORMAL
+- en: Creating the Solution Backend
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'We have created a simulated client, sent messages from it, and verified their
+    count in Azure Portal. The next step is to create a very basic solution backend
+    that can:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Show messages in the console received from the device (device-to-cloud)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Analyze received messages and make decisions
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Send messages to another device (Cloud-to-device)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Send push notifications to Android phones through Notification Hubs
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Creating the Application
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: As previously, we’ll create the solution backend as a console application. In
+    Visual Studio, add a new console app project called SolutionBackend to the IoTCentralizedPatientMonitoring
+    solution.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Creating a Notification Hub
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Doing this is similar to creating an IoT Hub. On Azure Portal, go to New ➤ Web+Mobile
+    ➤ Notification Hubs. Create a new hub as shown in Figure [3-12](#Fig12).![A458845_1_En_3_Fig12_HTML.jpg](A458845_1_En_3_Fig12_HTML.jpg)Figure
+    3-12Creating a Notification Hub in AzureKeep the hub name that you use here handy,
+    as you’ll use it later. The Namespace field can have the same value as hub name
+    field. Stick to the free tier for this exercise. It comes with a generous limit
+    of 1 million push notifications and 150 registered devices (to which notifications
+    can be sent via the hub).Azure Notification Hubs supports all major device platforms
+    to send out notifications to—iOS, Android, Windows, Windows Phone, etc. In this
+    exercise, we’ll limit our push notifications to Android devices only.Sending to
+    each platform requires separate settings in the hub. For Android, we need a Google
+    Cloud Messaging (GCM) API key. Getting your key through the standard process may
+    be complicated if you are new to Android development. We’ll take a shortcut by
+    going the Firebase route.Head over to [https://firebase.google.com](https://firebase.google.com)
+    and create your free account. On the Console page, create a new project (name
+    doesn’t matter). In the newly created project, find the project settings option.
+    On the Settings page, switch to Cloud Messaging tab and copy the value for Legacy
+    server key. Figure [3-13](#Fig13) shows a project’s settings page.![A458845_1_En_3_Fig13_HTML.jpg](A458845_1_En_3_Fig13_HTML.jpg)Figure
+    3-13Locating the API key in Firebase for GCMOnce Azure has finished creating our
+    notification hub, go to Notification Settings ➤ Google (GCM). Paste the key we
+    copied above in API Key textbox, as shown in Figure [3-14](#Fig14).![A458845_1_En_3_Fig14_HTML.jpg](A458845_1_En_3_Fig14_HTML.jpg)Figure
+    3-14Setting the GCM API key  in notification hub to allow it to send messages
+    to Android devices
+  prefs: []
+  type: TYPE_NORMAL
+- en: Adding Dependencies
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: We need three NuGet packages—Microsoft.ServiceBus.Messaging (for reading device-to-Cloud
+    messages), Microsoft.Azure.Devices (for sending Cloud-to-device messages), and
+    Microsoft.Azure.NotificationHubs (for sending push notifications). Install them
+    for this project via the NuGet Package Manager. As usual, we also need to reference
+    app settings in App.config. So, add a reference to System.Configuration.When all
+    dependencies are installed, add the following using statements at the top in Program.cs:using
+    Microsoft.ServiceBus.Messaging;using Microsoft.Azure.Devices;using Microsoft.Azure.NotificationHubs;using
+    Newtonsoft.Json;using System.Configuration;
+  prefs: []
+  type: TYPE_NORMAL
+- en: Adding App Settings
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Add the following settings in App.config:<add key="connectionString" value=""
+    /><add key="deviceToCloudEndPoint" value="messages/events" /><add key="receiverDeviceId"
+    value="alarmdevice-patient1" /><add key="notificationHubName" value="" /><add
+    key="notificationHubConnectionString" value="" />connectionString will be what
+    we noted in the “Creating an IoT Hub” section. notificationHubName will be what
+    we noted in the “Creating a Notification Hub” subsection just a while ago. To
+    retrieve the value for notificationHubConnectionString, on your notification hub’s
+    Azure Portal page, go to Access Policies ➤ DefaultFullSharedAccessSignature and
+    copy the connection string.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Adding Initializations
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Add the following static fields in Program.cs:static EventHubClient eventHubClient;static
+    ServiceClient serviceClient;static NotificationHubClient notificationHubClient;static
+    string connectionString = ConfigurationManager.AppSettings["connectionString"];static
+    string deviceToCloudEndPoint = ConfigurationManager.AppSettings["deviceToCloudEndPoint"];static
+    string receiverDeviceId = ConfigurationManager.AppSettings["receiverDeviceId"];static
+    string notificationHubName = ConfigurationManager.AppSettings["notificationHubName"];static
+    string notificationHubConnectionString = ConfigurationManager.AppSettings["notificationHubConnectionString"];Initialize
+    them in the Main method as shown here.// Initialize event hub client to receive
+    device to cloud messageseventHubClient = EventHubClient.CreateFromConnectionString(connectionString,
+    deviceToCloudEndPoint);// Initialize service client to send cloud to device messagesserviceClient
+    = ServiceClient.CreateFromConnectionString(connectionString);// Initialize notification
+    hub client to send cloud to mobile push notificationsnotificationHubClient = NotificationHubClient.CreateClientFromConnectionString(notificationHubConnectionString,
+    notificationHubName);
+  prefs: []
+  type: TYPE_NORMAL
+- en: Receiving Messages from Devices
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: 'Let’s create a new method for receiving messages sent to our IoT Hub by connected
+    devices (only the medical device in our case).private static async Task ReceiveMessagesAsync(string
+    partition){  // Create a receiver to read messages written to the given partition
+    starting at given date-time  var eventHubReceiver = eventHubClient.GetDefaultConsumerGroup().CreateReceiver(partition,
+    DateTime.UtcNow);  // Start receiving messages  while (true)  {    EventData eventData
+    = await eventHubReceiver.ReceiveAsync();    if (eventData == null) continue;    //
+    Extract the message    string serializedMessage = Encoding.UTF8.GetString(eventData.GetBytes());
+    // serialized JSON string    // Display the message on console    ShowMessageOnConsole(serializedMessage);    //
+    Analyze the message    AnalyzeMessage(serializedMessage);  }}In the infinite while
+    loop, we are constantly checking to see incoming messages on the hub. We can do
+    all sorts of things with received messages. In our code, we are writing them to
+    the console and then performing basic analysis to make decisions. It’s important
+    to note that messages are received as serialized JSON strings as we sent them
+    in SimulatedDevice project.ShowMessageOnConsole() method is simple beyond your
+    imagination:private static void ShowMessageOnConsole(string message){  Console.WriteLine();  Console.WriteLine("Message
+    received: " + message);}We’ll look at the AnalyzeMessage() method in a bit. First,
+    let’s hook up the receive messages method in the Main() method. Add the following
+    lines at the end of Main:// Get the first partitionvar firstPartition = eventHubClient.GetRuntimeInformation().PartitionIds[0];//
+    Start receiving messages from medical deviceReceiveMessagesAsync(firstPartition).Wait();Although
+    IoT Hub’s free tier (F1) allows for two partitions, we are reading the first partition
+    for keeping our code simple. For this simplicity, we are sacrificing receiving
+    messages written to the second partition. A production application will typically
+    have even more partitions (4 and above).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Analyzing Received Messages
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: 'Add the following method in Program.cs:private static void AnalyzeMessage(string
+    messageJSONString){  // Deserialize the message  var messageType = new  {    messageId
+    = "",    deviceId = "",    patientBodyTemperature = 0.0d,    patientPulseRate
+    = 0.0d,    patientRespirationRate = 0.0d,    rooomTemperature = 0.0d,    roomHumidity
+    = 0.0d  };  var message = JsonConvert.DeserializeAnonymousType(messageJSONString,
+    messageType);  //  If patient''s body temperature is more than 102 deg Fahrenheit:  //  1\.
+    send an alert to the alarm device to inform hospital staff  //  2\. send a push
+    notification to registered phones to inform doctors  if (message.patientBodyTemperature
+    > 38.89)  {    Console.WriteLine("SENDING HIGH BODY TEMPERATURE ALERT TO PATIENT''S
+    ALARM DEVICE.");    SendMessageToDeviceAsync(receiverDeviceId, "high-body-temp-alert").Wait();    Console.WriteLine("SENDING
+    HIGH BODY TEMPERATURE ALERT TO NOTIFICATION HUB.");    SendPushNotificationAsync("ALERT:
+    Patient in Room 1 has high fever.").Wait();  }}The code is pretty much self-explanatory.
+    As the received message is a serialized JSON string, we convert it into a C# object
+    before we can start analyzing it. Once that is done, we perform a simplistic analysis
+    of checking the patient’s body temperature.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Sending Messages to Device
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: As with other things in Azure IoT devices SDK, sending messages to a device
+    is dead simple.private async static Task SendMessageToDeviceAsync(string deviceId,
+    string message){  var commandMessage = new Message(Encoding.ASCII.GetBytes(message));  await
+    serviceClient.SendAsync(deviceId, commandMessage);}Check the call to this method
+    in the AnalyzeMessage() method in the last section.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Sending Push Notifications
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: 'Sending messages to the notification hub to be further relayed as push notifications
+    is equally simple.private async static Task SendPushNotificationAsync(string message){  await
+    notificationHubClient.SendGcmNativeNotificationAsync("{ \"data\" : {\"message\":\""
+    + message + "\"}}");}'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Running the Application
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Our simple solution backend is now ready to be tested. Before running, verify
+    the app settings in App.config. Incorrect app settings values is a common cause
+    of issues.To be able to test the solution backend, you will need the SimulatedDevice
+    project to be running simultaneously. Otherwise, the backend will have no messages
+    to receive and analyze. Visual Studio provides an easy way to run multiple projects
+    at once. In Solution Explorer, right-click the solution IoTCentralizedPatientMonitoring
+    and select Properties. In Common Properties ➤ Startup Project, select the Multiple
+    Startup Projects option. Set Start as the action for both the SimulatedDevice
+    and SolutionBackend projects. Click OK to save.Click the Run button or press F5
+    to start the application. Both projects should now run at the same time. Sample
+    output from the solution backend is shown in Figure [3-15](#Fig15).![A458845_1_En_3_Fig15_HTML.jpg](A458845_1_En_3_Fig15_HTML.jpg)Figure
+    3-15Messages that were sent by the simulated device are received by the solution
+    backendAs you can see in Figure [3-15](#Fig15), there were a couple of instances
+    when a patient’s body temperature was high and alerts were sent to the alarm device
+    and notification hub. In the next section, we write and run an application on
+    an actual Raspberry Pi Zero. That is when you’ll be able to see the alerts received
+    from the solution backend, routed through IoT Hub.If you want to test receiving
+    notification hub messages, you will need to create an Android application and
+    run it on a mobile. To save you time and effort, the Azure team has created a
+    ready-to-use Android application for the purpose. Visit [https://github.com/Azure/azure-notificationhubs-samples/tree/master/Android/GetStartedFirebase](https://github.com/Azure/azure-notificationhubs-samples/tree/master/Android/GetStartedFirebase)
+    to learn more. Figure [3-16](#Fig16) is a screenshot of a push notification our
+    Android mobile received from our solution backend.![A458845_1_En_3_Fig16_HTML.png](A458845_1_En_3_Fig16_HTML.png)Figure
+    3-16Alert notifications received from the hub by Azure’s IoT Hub demo Android
+    app: (left) in-app notification in the form of a toast and (right) message in
+    the phone’s notifications shadeTipYou can write additional code in the Android
+    app to make the phone vibrate strongly and play a sharp, persistent ringtone whenever
+    an alert notification is received to immediately catch doctors’ attention.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Writing an IoT Application for Raspberry Pi
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The thing that you were waiting for is here. Time has come to finally put your
+    Pi to use. The joy of watching a physical device do wonderful things is beyond
+    compare.TipIt’s okay if you do not have a physical Pi Zero. Azure’s Raspberry
+    Pi web simulator is a great way to test your code in the absence of a real device.
+    It runs completely in a browser and has two components—a Pi with its circuit configuration
+    on the left and a code editor on the right. As of writing this book, the simulator
+    is in early preview stage and doesn’t allow for modifying the pre-configured circuit.
+    But that may change in future. The Pi web simulator is available at [https://azure-samples.github.io/raspberry-pi-web-simulator](https://azure-samples.github.io/raspberry-pi-web-simulator)
+    .The build-up to this section has already taught you a lot of things you need
+    to know about writing applications for IoT devices. You have already created a
+    simulated device using Azure IoT devices SDK. Developing for an actual device
+    will be similar, as you will be using the same SDK. But this time you will be
+    writing the application not in C# but in JavaScript (using node.js). This is because
+    Linux is the most common operating system available for the Pi. Running .NET applications
+    on Linux is possible through Mono, but it’s notoriously tricky to set up and maintain
+    properly. Python and node.js are popular choices for developing applications for
+    Pi and several other IoT devices.NoteInstructions in this section apply not only
+    to Pi Zero but all other models of Raspberry Pi as well, including Model 1 B+,
+    2, and 3.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Setting Up Your Pi
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'If you are new to Pi and have not set it up before, Raspberry Pi’s official
+    documentation is a great place to start. Visit [https://www.raspberrypi.org/learning/software-guide](https://www.raspberrypi.org/learning/software-guide)
+    to get started. Alternatively, find the software installation guide on Raspberry
+    Pi website’s Help page. You will be instructed to:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Choose the right operating system (Raspbian is an officially supported flavor
+    of Linux)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Download and install the operating system on a microSD card
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Connect Pi to LAN or WiFi networks, etc.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: We recommend that you install Raspbian. Once you have your Pi all set up, ensure
+    you have SSH access and I2C interface enabled. Doing so is as easy as running
+    the raspi-config command; you will find detailed instructions on Pi’s website.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Connecting to Pi via SSH
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: There are several ways to connect to a Pi from a computer to write and deploy
+    software on it. Remote access via SSH is the most common and secure method. You
+    could also simply connect a monitor/TV and a keyboard to your Pi and start coding
+    as you normally would on your laptop. Or, access Pi’s desktop using VNC or xrdp.
+    Both methods will allow you to connect Pi’s graphical interface, much like when
+    you use RDP to connect to a remote Windows VM. Connecting via SSH is faster and
+    requires less hardware. The only downside is SSH allows only for command-line
+    access. You do not get to access the graphical interface. But, why worry? We are
+    developers! We love to write code and execute commands.For connecting to SSH in
+    Windows, you need a third-party software such as PuTTY. Download and install PuTTY
+    from [https://www.putty.org](https://www.putty.org) . While setting up your Pi,
+    you might have already connected to it via SSH at least once. If not, find instructions
+    to do that on Pi’s documentation. Figure [3-17](#Fig17) shows how one typically
+    connects to a Pi through PuTTY and Figure [3-18](#Fig18) shows Pi’s command-line
+    interface after connecting.![A458845_1_En_3_Fig17_HTML.jpg](A458845_1_En_3_Fig17_HTML.jpg)Figure
+    3-17Connecting to Pi via SSH using PuTTY![A458845_1_En_3_Fig18_HTML.jpg](A458845_1_En_3_Fig18_HTML.jpg)Figure
+    3-18Pi’s command-line interface after connecting
+  prefs: []
+  type: TYPE_NORMAL
+- en: Installing node.js
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Node.js is a server-side implementation of JavaScript. It provides ultra-fast
+    APIs for accessing I/O (files, databases, etc.) and other system-level resources.
+    In other words, Node is an application server to run JavaScript-based applications.
+    Learn more about Node at [https://nodejs.org](https://nodejs.org) .There is more
+    than one way to install the latest version of node.js in Raspbian. It’s best to
+    follow the official installation instructions as mentioned at [https://nodejs.org](https://nodejs.org)
+    . Since Raspbian is a Debian-based Linux OS, follow the instructions to install
+    node via package manager (apt-get). The following two commands should ideally
+    do the trick:curl -sL https://deb.nodesource.com/setup_9.x | sudo -E bash -sudo
+    apt-get install -y nodejsTo verify if node was installed correctly, run this command:node
+    -vNoteSkip the following instructions if the package manager installation of nodejs
+    worked for you.You should get an output such as v9.5.0. If this method does not
+    work, go to the Downloads page on nodejs.org and download the Linux Binary (ARM)
+    package corresponding to your Pi’s model. For example, for Pi Zero you download
+    the ARMv6 package:wget https://nodejs.org/dist/v9.5.0/node-v9.5.0-linux-armv6l.tar.xzNext,
+    extract the downloaded tarball archive to a globally-accessible location. Run
+    the following three commands:sudo mkdir /usr/lib/nodejssudo tar -xJvf node-v9.5.0-linux-armv6l.tar.xz
+    -C /usr/lib/nodejssudo mv /usr/lib/nodejs/node-v9.5.0-linux-armv6l /usr/lib/nodejs/node-v9.5.0Add
+    the above directory permanently to your PATH environment variable.Open the .profile
+    file in a text editor:nano ~/.profileAnd add these lines to the end of the document:export
+    NODEJS_HOME=/usr/lib/nodejs/node-v9.5.0export PATH=$NODEJS_HOME/bin:$PATHFinally,
+    refresh your PATH:. ~/.profile
+  prefs: []
+  type: TYPE_NORMAL
+- en: Creating the Application
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Create a new directory to store the application and enter into it:mkdir AlarmDevicecd
+    AlarmDeviceInitialize this directory as a node application:npm initYou will be
+    asked a series of questions, at the end of which a new file called package. json
+    will be generated.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Installing Dependencies
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: 'Now, install Azure IoT devices SDK dependencies. This step is similar to installing
+    NuGet packages in Visual Studio. Run the following command:npm install --save
+    az-iot-bi, azure-iot-device, azure-iot-device-mqtt, wiring-piThis will install
+    the required dependencies in a new folder called node_modules and update the package.json
+    file. Our final package.json file looked like this:{  "name": "alarmdevice",  "version":
+    "1.0.0",  "description": "Azure IoT app to receive messages from Remote Patient
+    Monitoring IoT Hub.",  "main": "index.js",  "dependencies": {    "az-iot-bi":
+    "^0.1.20",    "azure-iot-device": "^1.3.0",    "azure-iot-device-mqtt": "^1.3.0",    "wiring-pi":
+    "^2.2.1"  },  "devDependencies": {},  "scripts": {    "test": "echo \"Error: no
+    test specified\" && exit 1"  },  "author": "Anurag Bhandari",  "license": "MIT"}NoteIf
+    the installation of the wiring-pi package fails, ensure that you have Git installed
+    in Raspbian. To install Git, run the sudo apt-get install git-core command.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Connecting an Actuator
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: The simplest actuator that we can use in an alarm device is an LED that provides
+    a visual indication about an event. LEDs are cheap and very easily available.
+    We will connect a red LED to our Pi Zero’s GPIO. You can do the same or connect
+    a sound device such as a buzzer. The wiring connection will pretty much remain
+    the same.GPIO pins work in two modes—input (for sensors) and output (for actuators).
+    In output mode, a pin’s voltage may be set to high (1) or low (0) through code
+    to turn an actuator on or off. Although there are 40 GPIO pins on recent Pi models,
+    not all of them can be usable by sensors and actuators. Also, there are more than
+    one pin numbering systems. Visit [https://pinout.xyz/pinout/wiringpi](https://pinout.xyz/pinout/wiringpi)
+    to see Pi Zero’s pin layout. As we are using the wiring-pi node module for interacting
+    with pins, we’ll follow its numbering system.Connect an LED to ground and pin
+    15\. These are the third and fourth pins from the left in the first row. The LED’s
+    short leg (cathode, -ve) will go in ground and the long leg (anode, +ve) will
+    go in pin 15, as shown in Figure [3-19](#Fig19)  .![A458845_1_En_3_Fig19_HTML.jpg](A458845_1_En_3_Fig19_HTML.jpg)Figure
+    3-19Circuit layout for our Pi Zero. The LED is connected to pin 15 (WiringPi notation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Writing the Code to Receive Messages and Take Action
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: 'Create a new file called index.js in the current directory:nano index.jsAnd
+    paste the following code:// Required dependenciesconst wpi = require(''wiring-pi'');const
+    deviceClient = require(''azure-iot-device'').Client;const message = require(''azure-iot-device'').Message;const
+    protocol = require(''azure-iot-device-mqtt'').Mqtt;// App settingsconst connectionString
+    = ''<connection string of alarmdevice-patient1 in IoT Devices explorer in Azure
+    Portal>'';const LEDPin = 15;// Other global variablesvar client;var blinkLEDTimeout
+    = null;/** Handler for message received event. *  Displays the received message
+    in console. *  Blinks an LED if an alert is received. */function receiveMessageCallback(msg)
+    {  var message = msg.getData().toString(''utf-8'');  if (message === "high-body-temp-alert")
+    {    blinkLED();  }  client.complete(msg, function () {    console.log(''Received
+    message: '' + message);  });}/** Lights up the LED for 5 secs. */function blinkLED()
+    {  if(blinkLEDTimeout) {       clearTimeout(blinkLEDTimeout);   }  wpi.digitalWrite(LEDPin,
+    1);  blinkLEDTimeout = setTimeout(function () {    wpi.digitalWrite(LEDPin, 0);  },
+    5000);}// Set up wiringwpi.setup(''wpi'');wpi.pinMode(LEDPin, wpi.OUTPUT);// Create
+    a device client using IoT Hub connection stringclient = deviceClient.fromConnectionString(connectionString,
+    protocol);// Handler for hub connection opened eventclient.open(function (err)
+    {  if (err) {    console.error(''[ERROR] IoT Hub connection error:'' + err.message);    return;  }  else
+    {    console.log(''Connected to IoT Hub.'');  }  // Attach the cloud-to-device
+    method callback  client.on(''message'', receiveMessageCallback);});You will notice
+    that, although the code is in a different language, the structure is pretty much
+    the same. Go through it a couple of times and refer to the comments in the code
+    for hints.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Running the Application
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Run the application using the following command:node index.jsIf the connection
+    to the IoT Hub is successful, you will see the message " Connected to IoT Hub
+    " printed in console. At this point, the alarm device is listening to the hub
+    for incoming messages.Fire up Visual Studio again, open the IoTCentralizedPatientMonitoring
+    solution, and run it. Make sure both the SimulatedDevice and SolutionBackend projects
+    are set as startup projects. When the solution backend encounters the high body
+    temperature condition, it will send an alert message to the alarm device. Wait
+    for this condition to occur. When it does, go back to PuTTY and check for the
+    alert message (see Figure [3-20](#Fig20)). Do not forget to check out your LED
+    light blinking on each alert.![A458845_1_En_3_Fig20_HTML.jpg](A458845_1_En_3_Fig20_HTML.jpg)Figure
+    3-20Console output from the node.js application running on PiCongratulations.
+    You have successfully created your first-ever IoT network with functioning devices
+    and a solution backend!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Recap
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'We realize that it was a big chapter with a lot to grasp. But by the end, you
+    were able to write IoT applications and create a network of your own. You learned
+    how to:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Get an Azure subscription required to use IoT Suite services
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Create an IoT Hub in Azure Portal
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Register devices in the hub via code and the Portal
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Create a simulated device using Azure IoT devices SDK that sends telemetry data
+    to the hub
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Create a solution backend that receives device messages, analyzes them, and
+    sends messages to another IoT device
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Send push notifications using the Azure Notification Hubs service
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Write applications for real IoT devices (Raspberry Pi Zero)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In the next chapter, you will learn about another key enabler of AI 2.0 applications—artificial
+    intelligence.
+  prefs: []
+  type: TYPE_NORMAL
