@@ -1,0 +1,1559 @@
+- en: © The Author(s), under exclusive license to APress Media, LLC, part of Springer
+    Nature 2021B. SitnikovskiIntroducing Blockchain with Lisp[https://doi.org/10.1007/978-1-4842-6969-5_2](https://doi.org/10.1007/978-1-4842-6969-5_2)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 2. Racket Programming Language
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Boro Sitnikovski^([1](#Aff2)  )(1)Skopje, North Macedonia![../images/510363_1_En_2_Chapter/510363_1_En_2_Figa_HTML.jpg](../images/510363_1_En_2_Chapter/510363_1_En_2_Figa_HTML.jpg)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Structure, by D. Bozhinovski*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now that we have vaguely explained what a blockchain is and how it is useful,
+    the next obvious step is to implement these calculations in a computer, so that
+    they are automatically performed. In this chapter, we introduce a tool that will
+    allow us to implement these calculations exactly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 2.1 Introduction to Lisp
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Lisp, originating from 1958, stands for *LIST Processing* and is a family of
+    programming languages. Unlike standard programming languages, it has a fully parenthesized
+    prefix notation. For example, instead of writing 1 + 2, one would write (+ 1 2).
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are many Lisp implementations in the Lisp family. One such implementation
+    is Racket, and we will use it in this book since this implementation is particularly
+    easy for entry-level programmers. The language is used in a variety of contexts
+    such as research, computer science education, and general-purpose programming.
+    It has also been used for commercial projects. One notable example is the Hacker
+    News^([1](#Fn1)) website, which runs on Arc, a programming language developed
+    in Racket.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Lisp implementations are quite known for their minimalism. Due to this minimalism,
+    building a blockchain (or anything, for that matter) in Lisp will imply that you
+    can do the same in most other programming languages with ease. Lisps favor function
+    composition—chaining two functions together—for example, given *f*(*x*) and *g*(*x*),
+    one composition is *f*(*g*(*x*)). Further in the book, we will see the interesting
+    properties that composition offers and how easily we can maintain and extend our
+    code.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 2.1.1 Data Structures and Recursion
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'There are three important notions in a Lisp:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Primitives* or axioms (starting points or building blocks). As an example,
+    the numbers 1, 2, and so on, are something we do not have to implement ourselves
+    since they are already included in the programming language. Another example is
+    operations on numbers, such as + and *.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Composition* or a way to compose primitives to do complex calculations. For
+    example, we can combine + and * as follows: 1 + (2 * 3) or in prefix (Lisp) notation:
+    (+ 1 (* 2 3)).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Abstraction* or capturing the composition of primitives. For example, if we
+    find ourselves doing a calculation over and over again, it would be good to capture
+    (abstract, or wrap) it in a function that can be easily reused.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: We will rely on these concepts repeatedly throughout the book, as they allow
+    us to build complex structures.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![../images/510363_1_En_2_Chapter/510363_1_En_2_Figb_HTML.gif](../images/510363_1_En_2_Chapter/510363_1_En_2_Figb_HTML.gif)
+    Definition 2-1'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A **data structure** is a collection of values, the relationships among them,
+    and the functions or operations that can be applied to these values.
+  prefs: []
+  type: TYPE_NORMAL
+- en: An example of a data structure  is numbers together with the plus and multiplication
+    functions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: From the motivation in the previous chapter we can see the need of forming such
+    a data structure, where, for example, a block is a structure that contains a hash,
+    an owner, and transaction amount.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are many data structures. An ordered list is one example, representing
+    the numbers (1, 2, 3) in that order. Further, there are operations on lists, such
+    as counting the number of elements, merging two lists, and so on.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We used the numbers 1, 2, and 3 in the previous example of a list—these elements
+    are *primitives* . A list, together with its operations, represents an *abstraction*
+    . Chaining several list operations together represents a *composition* .
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now that we can transform some data structure (by applying operations on it),
+    it would be good to be able to repeatedly transform a data structure according
+    to some specific rules. For example, if we have a blockchain data structure we
+    may want to come up with a way to transform it such that, for example, a new block
+    is inserted in it. This might require applying the same operation several times.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![../images/510363_1_En_2_Chapter/510363_1_En_2_Figc_HTML.gif](../images/510363_1_En_2_Chapter/510363_1_En_2_Figc_HTML.gif)
+    Definition 2-2'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In mathematics and computer science, functions exhibit **recursive** behavior
+    when they can be defined by two properties:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '1.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: A simple base case (or cases)—a terminating case that returns a value without
+    using recursion
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '2.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: A rule (or rules) that reduces toward the base case
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: The most common example of a recursive function is the factorial function, defined
+    as follows:![$$ fact(n)=\left\{\begin{array}{l}1,\mathrm{if}\ n=0\\ {}n\cdot fact\left(n-1\right),\mathrm{otherwise}\end{array}\right.
+    $$](../images/510363_1_En_2_Chapter/510363_1_En_2_Chapter_TeX_Equa.png)
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, using substitution we can see that *fact*(3) evaluates to 3 ⋅ *fact*(2),
+    which is 3 ⋅ 2 ⋅ *fact*(1), and finally 3 ⋅ 2 ⋅ 1 ⋅ *fact*(0), which is just 6.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The recursion we just discussed applies the same operation multiple times, and
+    gives the motivation for the next definition.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![../images/510363_1_En_2_Chapter/510363_1_En_2_Figd_HTML.gif](../images/510363_1_En_2_Chapter/510363_1_En_2_Figd_HTML.gif)
+    Definition 2-3'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A **tree** is a hierarchical, recursive data structure that can have two possible
+    values:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '1.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: An empty value
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '2.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: A single value, coupled with another two subtrees
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: A family tree is one example of a tree. Another example of a tree is a binary
+    tree, whereby the left subtree’s value is less than the current value and the
+    right subtree’s value is greater than the current value:1     22    / \3   1   3
+  prefs: []
+  type: TYPE_NORMAL
+- en: Trees are important in Lisps, as they are used to represent a program’s structure.
+    We will discuss this more in the next section.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 2.1.2 Languages and Syntax
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: In this section, we take a quick look at the foundations of a Lisp, which will
+    provide a high overview of the ideas behind Lisps.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![../images/510363_1_En_2_Chapter/510363_1_En_2_Fige_HTML.gif](../images/510363_1_En_2_Chapter/510363_1_En_2_Fige_HTML.gif)
+    Definition 2-4'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A **language** consists of:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '1.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Symbols, which can be combined into sentences
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '2.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Grammar, which is a set of rules that tells us which sentences are well-formed
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: This definition of a language is also reflected in programming languages, which
+    have a special grammar called the syntax. For example, the C programming language
+    has a special syntax—you have to follow specific rules when writing program statements.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![../images/510363_1_En_2_Chapter/510363_1_En_2_Figf_HTML.gif](../images/510363_1_En_2_Chapter/510363_1_En_2_Figf_HTML.gif)
+    Definition 2-5'
+  prefs: []
+  type: TYPE_NORMAL
+- en: An **abstract syntax tree** is a tree representation of the abstract syntactic
+    structure of source code written in a programming language.
+  prefs: []
+  type: TYPE_NORMAL
+- en: When you write a program in a programming language, there’s an intermediate
+    step that parses the program’s source code and derives an abstract syntax tree.![../images/510363_1_En_2_Chapter/510363_1_En_2_Fig1_HTML.jpg](../images/510363_1_En_2_Chapter/510363_1_En_2_Fig1_HTML.jpg)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 2-1
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Example 1: Abstract syntax tree'
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, the image in Figure [2-1](#Fig1) represents an abstract syntax
+    tree for the following pseudocode:1   **while** (a > b) {2       a = a - 1;3       b
+    = b * 2;4   }As another example, the image in Figure [2-2](#Fig2) represents the
+    following pseudocode:1   **if** (a == b && b == c) {2       a = a - 1;3       b
+    = b * 2;4   } **else** a = a * b * 2;It is not important to understand what these
+    codes do, rather understand how such programs are represented internally in programming
+    languages.![../images/510363_1_En_2_Chapter/510363_1_En_2_Fig2_HTML.jpg](../images/510363_1_En_2_Chapter/510363_1_En_2_Fig2_HTML.jpg)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 2-2
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Example 2: Abstract syntax tree'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Lisps do not have the restriction of a special syntax like C has, for example.
+    The code that we will write will be the actual abstract syntax tree. This is why
+    Lisps rely on prefix notation. We see how Lisps are based on a minimalistic design,
+    as we do not get the overhead of many other languages that have special syntax
+    and sometimes functionalities that overlap.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![../images/510363_1_En_2_Chapter/510363_1_En_2_Figg_HTML.gif](../images/510363_1_En_2_Chapter/510363_1_En_2_Figg_HTML.gif)
+    Definition 2-6'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The syntactic elements in Lisp are symbolic **expressions**  or S-expressions.
+    An S-expression can be one of:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '1.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: A symbol (a string of characters)
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '2.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: A well-formed list (balanced parentheses) of S-expressions
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: For example, hello is a valid S-expression, and so is (hello there). But (hello(
+    is not a valid S-expression, because the parentheses are not balanced. Whitespace
+    is important in constructing S-expressions. Note that h ello is different from
+    hello.
+  prefs: []
+  type: TYPE_NORMAL
+- en: An S-expression is well-formed if and only if the abstract syntax tree is balanced.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Syntax has a special meaning in Lisps compared to other languages. With macros
+    as part of the core language, it’s possible to extend this syntax.^([2](#Fn2))
+    S-expressions form the syntax of a Lisp.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![../images/510363_1_En_2_Chapter/510363_1_En_2_Figh_HTML.gif](../images/510363_1_En_2_Chapter/510363_1_En_2_Figh_HTML.gif)
+    Exercise 2-1'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We treated numbers with the plus function as a data structure. Think of another
+    data structure.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![../images/510363_1_En_2_Chapter/510363_1_En_2_Figi_HTML.gif](../images/510363_1_En_2_Chapter/510363_1_En_2_Figi_HTML.gif)
+    Exercise 2-2'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Evaluate sum(3), sum(5), and sum(1) given the following definition:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![$$ sum(n)=\left\{\begin{array}{l}0,\mathrm{if}\ n=0\\ {}n+ sum\left(n-1\right),\mathrm{otherwise}\end{array}\right.
+    $$](../images/510363_1_En_2_Chapter/510363_1_En_2_Chapter_TeX_IEq1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: What about sum(−1)?
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![../images/510363_1_En_2_Chapter/510363_1_En_2_Figj_HTML.gif](../images/510363_1_En_2_Chapter/510363_1_En_2_Figj_HTML.gif)
+    Exercise 2-3'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Which of the following S-expressions is valid?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 1.  hello
+  prefs: []
+  type: TYPE_NORMAL
+- en: 2.  123
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.  (hello 123)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 4.  (hello (123)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 5.  (+ 1 (* 2 3))
+  prefs: []
+  type: TYPE_NORMAL
+- en: 6.  (+ (* 3 2) (/ 6 2))
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Hint**: Drawing an abstract syntax tree for each of the expressions might
+    make it more obvious why one is or isn’t valid.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 2.2 Configuration and Installation
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Racket can be downloaded and installed via [https://download.racket-lang.org](https://download.racket-lang.org/).
+    There are binaries available for Windows, Linux, and Mac. This book was written
+    using Racket version 7, but it may work as well with other versions. After downloading
+    and installing the complete package, we can run DrRacket. If you get to the screen
+    shown in Figure [2-3](#Fig3), congratulations! It means that the installation
+    was successful.![../images/510363_1_En_2_Chapter/510363_1_En_2_Fig3_HTML.jpg](../images/510363_1_En_2_Chapter/510363_1_En_2_Fig3_HTML.jpg)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 2-3
+  prefs: []
+  type: TYPE_NORMAL
+- en: DrRacket
+  prefs: []
+  type: TYPE_NORMAL
+- en: The upper text area part of the screen is the definitions area, where we usually
+    write the definitions. Alternatively, the lower part is the interactions area,
+    where we interact with the definitions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Help Desk, found under Help > Help Desk on the top menu, contains useful
+    information such as a quick introduction, reference manuals, and examples.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'There are two main approaches to working with Racket:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using the graphical user interface (GUI), which is the recommended way and what
+    we use throughout this book
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Using the command-line utilities (racket is the interpreter/compiler and raco
+    is the package manager), which is for more advanced users
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 2.3 Introduction to Racket
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The first thing that Lisp newcomers notice is that there are too many parentheses
+    in Lisp programs. This is true, but it is a direct consequence of the fact that
+    we are writing our abstract syntax tree in a language that has no special syntax.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As we go through this book, we will see the power of expressiveness we get as
+    a result. For example, one advantage is that there is no need for a special order
+    of operations. In high school, we had to remember that * and / had to be evaluated
+    before + and -. This is not the case with Lisps, as the order of evaluation is
+    obvious by the way we’ve written our program.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let’s consider the expression (+ 1 (* 2 3)). As we mentioned, whitespace is
+    an important part of S-expressions, so (+1 (* 2 3)) is different from (+ 1 (*
+    2 3)). To convert this to a more familiar notation in our mind, we could swap
+    the operators so that they are in *infix* notation instead of *prefix*: (+ 1 (*
+    2 3)) is the same as (1 + (2 * 3)). We now see that the value of this expression
+    is 7.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Next, let’s write this expression followed by the return key (Enter) in the
+    interactions area (the bottom text area) of the DrRacket editor:1   > (+ 1 (*
+    2 3))2   7The > sign indicates that the command that follows it must be input
+    into the interactions area.![../images/510363_1_En_2_Chapter/510363_1_En_2_Fig4_HTML.jpg](../images/510363_1_En_2_Chapter/510363_1_En_2_Fig4_HTML.jpg)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 2-4
+  prefs: []
+  type: TYPE_NORMAL
+- en: DrRacket first calculation
+  prefs: []
+  type: TYPE_NORMAL
+- en: We get 7 as a result, as depicted in Figure [2-4](#Fig4). We’ve done our first
+    calculation in Racket.
+  prefs: []
+  type: TYPE_NORMAL
+- en: After finishing an evaluation, DrRacket again waits for a new command. This
+    is because in the interactions area, we are in REPL mode, which stands for Read-Evaluate-Print-Loop.
+    That is, the interactions area will read what we write, try to evaluate it (come
+    up with a result), print the result, and loop back to reading again.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Lisp evaluation is very similar to substitution in mathematics. For example,
+    one way (+ 1 (* 2 3)) can be evaluated is as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '1.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: (+ 1 (* 2 3))
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '2.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: (+ 1 6)
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '3.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '7'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: That is, in each step, we reduce the expression until no further reductions
+    are possible. We immediately notice how powerful substitution as a concept is.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 2.3.1 Primitive Types
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: In the evaluation above  , we got a number as a result—the value 7 has a type
+    of number. While types of values are implicit in Racket, we still have a way to
+    check what the type of a value is, as we will see later with the help of predicates.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Racket has some primitive (built-in) types, such as:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Symbols, such as hello, world
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Lists, such as (1, 2, 3)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Functions, such as f(x) = x + 1
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Numbers, such as 1, 2, 3.14
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Booleans, such as #t (for True) and #f (for False)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Characters or single letters: #\A, #\B, #\C'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Strings or lists of characters: "Hello", "World"'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Bytes: Per ASCII code, we can represent characters in terms of a number (e.g.
+    72 is H)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Bytes, as a list of byte: #"Hello", #"World"'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '1   > 123 2   123 3   > #t 4   #t 5   > #f 6   #f 7   > #\A 8   #\A 9   > "Hello  World"10   "Hello
+    World"11   > (bytes 72 101 108 108 111)12   #"Hello"Each evaluation has a specific
+    type attached to the produced value  :'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '1.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The first evaluation (123) has a type of number.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '2.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The second (#t) and third (#f) evaluations have a type of boolean.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '3.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The fourth evaluation (#\A) has a type of character.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '4.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The fifth evaluation ("Hello World") has a type of string.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '5.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The sixth evaluation ((bytes 72 101 108 108 111)) has a type of bytes and is
+    using the ASCII table for letters.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: We cover symbols, lists, and functions in the following sections  .
+  prefs: []
+  type: TYPE_NORMAL
+- en: 2.3.2 Lists, Evaluation, and Quotes
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: In order to produce the ordered list (1, 2, 3), we can ask DrRacket to evaluate
+    (list 1 2 3) in the interactions area:1   > (list 1 2 3)2   '(1 2 3)
+  prefs: []
+  type: TYPE_NORMAL
+- en: list is a built-in function, just like +, which we already used. list accepts
+    any number of arguments, and as a result, returns a list generated from them.
+    The returned expression '(1 2 3) is just a fancy notation, which is equivalent
+    to the expression (quote (1 2 3)), where we tell Racket to return the actual list
+    (1 2 3) instead of evaluating it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We notice how parentheses are used to denote a function call, or evaluation.
+    In general, the code (f a_1 a_2 ... a_n) makes a function call to f, passing n
+    arguments in that order. For example, for the function f(x) = x + 1, one example
+    evaluation is f(1) and we write (f 1), where as a return value we get 2.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Note that (list 1 2 3) returned ''(1 2 3) as a result. Let’s try to understand
+    what happened here. If (list 1 2 3) had returned (1 2 3), this wouldn’t have made
+    much sense since (as we discussed) this notation would try to call the (nonexistent)
+    function 1 with arguments 2 and 3\. Instead, it returned a *quoted* list: ‘(1
+    2 3).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To understand how this affects evaluation, let’s consider an example where
+    you say either of these statements to someone:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Say your name
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Say “your name”
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In the first example, you expect the person to tell you their name. In the second
+    example, you expect them to say the words “your name,” rather than their actual
+    name.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Similar to this example, there is a built-in syntax called quote , and we can
+    use it on any set of symbols:1   > (**quote** hello)2   'hello
+  prefs: []
+  type: TYPE_NORMAL
+- en: This allows for the creation of new symbols and is especially important for
+    the creation of macros. There is a special list, called the *empty list,* and
+    is denoted as (list), or (quote ()), or simply '(). We will later see why this
+    list is special when we start using recursion.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For additional information on list (or any other function), you can click the
+    word using the mouse and press the F1 button. This will open Racket’s manuals
+    screen, which will allow you to pick a function that you want information about.
+    Usually, it’s the first match on this list. Clicking it should show something
+    similar to Figure [2-5](#Fig5).![../images/510363_1_En_2_Chapter/510363_1_En_2_Fig5_HTML.jpg](../images/510363_1_En_2_Chapter/510363_1_En_2_Fig5_HTML.jpg)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 2-5
+  prefs: []
+  type: TYPE_NORMAL
+- en: Racket manual for list
+  prefs: []
+  type: TYPE_NORMAL
+- en: In Racket, parentheses, brackets, and braces have the same effect. Thus, (list
+    1 2 3) is the same as [list 1 2 3] and {list 1 2 3}. This visual distinction may
+    be useful to group evaluations when there are a lot of parentheses.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Recall that S-expressions can be either a symbol or a list. Since we discussed
+    evaluation, lists, and symbols in this section, at this point in the book we have
+    covered what makes the core of a Lisp.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![../images/510363_1_En_2_Chapter/510363_1_En_2_Figk_HTML.gif](../images/510363_1_En_2_Chapter/510363_1_En_2_Figk_HTML.gif)
+    Exercise 2-4'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Create a list in Racket that contains a mixture of different types (numbers,
+    strings). The list should have at least two elements.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![../images/510363_1_En_2_Chapter/510363_1_En_2_Figl_HTML.gif](../images/510363_1_En_2_Chapter/510363_1_En_2_Figl_HTML.gif)
+    Exercise 2-5'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note that list is a function and quote is a syntax. Read the manual for both
+    using the F1 key.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 2.3.3 Dotted Pairs
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Another built-in function is cons, which stands for *construct* . This function
+    accepts only two arguments, and as a result, it returns a (quoted) pair:1   >
+    (cons 1 2)2   ''(1 . 2)Think of ''(1 . 2) as a sequence of two numbers: 1 and
+    2.![../images/510363_1_En_2_Chapter/510363_1_En_2_Fig6_HTML.jpg](../images/510363_1_En_2_Chapter/510363_1_En_2_Fig6_HTML.jpg)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 2-6
+  prefs: []
+  type: TYPE_NORMAL
+- en: The (cons 'some-value 'nil) pair
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are two other built-in functions, called car and cdr, which are used to
+    retrieve the first and the second element of a pair, respectively:1   > (car (cons
+    1 2))2   13   > (cdr (cons 1 2))4   25   > (car '(1 . 2))6   17   > (cdr '(1 .
+    2))8   2
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note how we used function composition here, namely, we “composed” car and cons
+    in the first example, and cdr and cons in the second example.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Pairs are so important that we can encode any data structure with them. In fact,
+    lists are a special kind of pair, where (list 1 2 3) is equal to (cons 1 (cons
+    2 (cons 3 '()))). See Figure [2-7](#Fig7).![../images/510363_1_En_2_Chapter/510363_1_En_2_Fig7_HTML.jpg](../images/510363_1_En_2_Chapter/510363_1_En_2_Fig7_HTML.jpg)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 2-7
+  prefs: []
+  type: TYPE_NORMAL
+- en: An example of a list
+  prefs: []
+  type: TYPE_NORMAL
+- en: The motivation for using a list is that it will allow us, for example, to link
+    several blocks together to make a blockchain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Racket also supports sets. In a list/pair there can be repeated elements, but
+    in a set all elements are unique. Additionally, there are operations that we can
+    use on sets, such as union (merges two sets), subtraction (removes the elements
+    in set 1 that are found in set 2), and so on.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, consider the following code where the built-in functions list->set,
+    set-union, and set-subtract are used:1   > (list->set '(1 2 3 4 4))2   (set 1
+    3 2 4)3   > '(1 2 3 4 4)4   '(1 2 3 4 4)5   > (set-union (list->set '(1 2 3))
+    (list->set '(3 4 5)))6   (set 1 5 3 2 4)7   > (set-subtract (list->set '(1 2 3))
+    (list->set '(3 4 5)))8   (set 1 2)
+  prefs: []
+  type: TYPE_NORMAL
+- en: We notice how in Lisp, depending only on a few primitive notions (function calls,
+    pairs, and quote), we can capture abstraction. We will talk more about this in
+    Section 2.3.13.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![../images/510363_1_En_2_Chapter/510363_1_En_2_Figm_HTML.gif](../images/510363_1_En_2_Chapter/510363_1_En_2_Figm_HTML.gif)
+    Exercise 2-6'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Represent the same list you created in Exercise 2-4 using cons.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![../images/510363_1_En_2_Chapter/510363_1_En_2_Fign_HTML.gif](../images/510363_1_En_2_Chapter/510363_1_En_2_Fign_HTML.gif)
+    Exercise 2-7'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Use a combination of car and cdr for the list in Exercise 2-6 to get the second
+    element in the list.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 2.3.4 Adding Definitions
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: So far we’ve worked only with the interactions area in DrRacket. Let’s try to
+    do something useful with the definitions area.![../images/510363_1_En_2_Chapter/510363_1_En_2_Fig8_HTML.jpg](../images/510363_1_En_2_Chapter/510363_1_En_2_Fig8_HTML.jpg)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 2-8
+  prefs: []
+  type: TYPE_NORMAL
+- en: Adding definitions in DrRacket
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We can notice a couple of things in the screenshot in Figure [2-8](#Fig8):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the definitions area, we added some code. We notice that we used another
+    built-in syntax named define to attach a value (123) to a symbol/variable (a-number).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In the interactions area, we interacted with something that was already defined
+    in the definitions area. In this case, the interaction was to just display the
+    definition’s value by referring to its symbol.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'In this book, every Racket program will start with #lang racket. This means
+    that we will be dealing with Racket’s ordinary syntax. There are different values
+    this can accept; for example, we can work with a language specialized in drawing
+    graphics, but that is out of context for this book.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Everything that we write in the definitions area we can also write in the interactions
+    area and vice versa. To have the definitions available in the interactions area,
+    we need to run the program by choosing Racket > Run from the top menu. Note that
+    when we run a program, the interactions area gets cleared.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If our definitions have references to other definitions, we can hover over the
+    symbol’s name using the mouse and DrRacket will draw a line pointing to the definition
+    of that reference (Figure [2-9](#Fig9)). For big and complex programs, this will
+    be useful for uncovering details of a function.![../images/510363_1_En_2_Chapter/510363_1_En_2_Fig9_HTML.jpg](../images/510363_1_En_2_Chapter/510363_1_En_2_Fig9_HTML.jpg)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 2-9
+  prefs: []
+  type: TYPE_NORMAL
+- en: Following references in DrRacket
+  prefs: []
+  type: TYPE_NORMAL
+- en: Definitions can be saved to a file for later usage by choosing File > Save Definitions
+    from the top menu.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![../images/510363_1_En_2_Chapter/510363_1_En_2_Figo_HTML.gif](../images/510363_1_En_2_Chapter/510363_1_En_2_Figo_HTML.gif)
+    Exercise 2-8'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Store the list from Exercise 2-7 in the definitions area and then use car and
+    cdr on that list in the interactions area.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 2.3.5 Procedures and Functions
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: In Lisp, a procedure  is essentially a mathematical function. When called, it
+    returns some data. However, unlike mathematical functions, some Lisp expressions
+    and procedures have side effects.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For example, consider two functions: add-1 increases a number by one and get-current-weather
+    gets the current weather from an external service. The first function will always
+    return the same value at any point in time, whereas the second “function” can
+    return different values at different points in time.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Thus Lisp procedures are not always functions in the “pure” sense of mathematics,
+    but in practice, they are frequently referred to as “functions” anyway (even those
+    that may have side effects), to emphasize that a computed result is always returned.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Given the reasoning in the previous paragraph, from this point, we will refrain
+    from using the word “function” and stick with “procedure.”
+  prefs: []
+  type: TYPE_NORMAL
+- en: There is special built-in syntax called lambda , which accepts two arguments
+    and produces a procedure as a result. The first argument is a list of arguments
+    that the procedure will accept, and the second argument is an expression (body)
+    that acts on the arguments from the list.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For example, (lambda (x) (+ x 1)) returns a procedure that accepts a single
+    argument x, such that when this procedure is called with an argument, it increases
+    this argument’s value by one: (+ x 1).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Evaluating this expression gives us:1   > (**lambda** (x) (+ x 1))2   #<procedure>In
+    order to call the procedure, we can try to pass an argument:1   > ((**lambda**
+    (x) (+ x 1)) 1)2   2Of course, writing and evaluating procedures this way is hard.
+    Instead, we can define the procedure in the definitions area and then interact
+    with it in the interactions area:1   (**define** add-one (**lambda** (x) (+ x
+    1)))Interaction:1   > (add-one 1)2   23   > (add-one 2)4   35   > (add-one (add-one
+    1))6   3To make things a little bit easier, Racket has special syntax for defining
+    procedures, so these two are equivalent:(define add-one (lambda (x) (+ x 1)))
+    <=> (define (add-one x) (+ x 1))Procedures can also take more than one argument:(define
+    add (lambda (x y) (+ x y))) <=> (define (add x y) (+ x y))![../images/510363_1_En_2_Chapter/510363_1_En_2_Figp_HTML.gif](../images/510363_1_En_2_Chapter/510363_1_En_2_Figp_HTML.gif)
+    Exercise 2-9
+  prefs: []
+  type: TYPE_NORMAL
+- en: In Exercise 2-7 you retrieved the second element from a list with (car (cdr
+    l)). Define a procedure that accepts a list and returns the second element from
+    that list.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 2.3.6 Conditional Procedures
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'There are useful built-in procedures  such as checking whether a value is a
+    number, whether one number is greater than another, and so on. 1   > (number?
+    1) 2   #t 3   > (number? "hello") 4   #f 5   > (character? #\A) 6   #t 7   > (string?
+    "hello") 8   #t 9   > (byte? 72)10   #t11   > (bytes? #"Hello")12   #t13   > (procedure?
+    add-one)14   #t15   > (symbol? (quote hey))16   #t17   > (symbol? 1)18   #f19   >
+    (> 1 2)20   #f21   > (= 1 2)22   #f23   > (= 1 1)24   #tif is a built-in syntax
+    that allows the evaluation of expressions based on the *truthiness* of some predicate.
+    It accepts three arguments:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conditional to check
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Expression to evaluate if the conditional is true
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Expression to evaluate if the conditional is false
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Here’s example usage:1   > (**if** (= 1 1) "It is true" "It is not true")2   "It
+    is true"3   > (**if** (= 1 2) "It is true" "It is not true")4   "It is not true"The
+    more general syntax for if is cond:1   (**cond** (test-1 action-1)2         (test-2
+    action-2)3         ...4         (test-n action-n))
+  prefs: []
+  type: TYPE_NORMAL
+- en: Optionally, the last test can be an else to use the specific action  if none
+    of the conditions match.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'As an example, here is one way to use cond in a definition:1   (**define**
+    (is-large x)2     (**cond** ((> x 10) #t)3           (**else** #f)))Interacting
+    with it:1   > (is-large 5)2   #f3   > (is-large 10)4   #f5   > (is-large 11)6   #tAs
+    we’ve seen, = is an equality predicate that checks whether two numbers are equal.
+    However, it only works on numbers, and it will raise an error if we use it on
+    anything else  :1   > (= 1 2)2   #f3   > (= 3.14 3.14)4   #t5   > (= ''() ''())6   =:
+    **contract** violationThere are three other important equality predicates:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: eq? checks whether two arguments refer to the same object in memory.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: eqv? is the same as eq?, except that it can also be used for primitive types
+    (e.g. numbers, strings).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: equal? is the same as eqv?, except that it can also be used to check if the
+    arguments have the same recursive structure (e.g. lists).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Note that there’s only one empty list '() in memory,^([3](#Fn3)) so all three
+    predicates will return the same value when checking against empty lists.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To show where eq? fails, we will use a built-in procedure called integer->char
+    that converts a number to a character  , per ASCII.1   > (integer->char 65)2   #\A3   >
+    (eq? '() '())4   #t5   > (eq? (integer->char 65) (integer->char 65))6   #f7   >
+    (eq? '(1) '(1))8   #f
+  prefs: []
+  type: TYPE_NORMAL
+- en: As expected, this will return true for the empty list but cannot compare objects
+    that aren’t referring to the same memory location or lists that actually have
+    elements.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note how eqv? differs in this case:1   > (eqv? '() '())2   #t3   > (eqv? (integer->char
+    65) (integer->char 65))4   #t5   > (eqv? '(1) '(1))6   #fFinally, equal? will
+    compare structures recursively, supporting lists  :1   > (equal? '() '())2   #t3   >
+    (equal? (integer->char 65) (integer->char 65))4   #t5   > (equal? '(1) '(1))6   #t![../images/510363_1_En_2_Chapter/510363_1_En_2_Figq_HTML.gif](../images/510363_1_En_2_Chapter/510363_1_En_2_Figq_HTML.gif)
+    Exercise 2-10
+  prefs: []
+  type: TYPE_NORMAL
+- en: We already defined is-large using the cond syntax. Represent it using the if
+    syntax.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![../images/510363_1_En_2_Chapter/510363_1_En_2_Figr_HTML.gif](../images/510363_1_En_2_Chapter/510363_1_En_2_Figr_HTML.gif)
+    Exercise 2-11'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Represent the following logic using cond: return ''foo if the value is a string
+    or a number, and ''bar otherwise.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 2.3.7 Recursive Procedures
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Procedures, just like data structures  (e.g. trees), can be recursive. We already
+    saw an example with the factorial procedure, in that it called itself to make
+    a computation or a loop.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For example, here’s how we could define a factorial in Racket:1   (**define**
+    (fact n)2     (**if** (= n 0)3         14         (* n (fact (- n 1)))))Calling
+    it will produce the following:1   > (fact 3)2   63   > (fact 0)4   1For a more
+    advanced example, we will define a procedure that calculates the length (number
+    of elements) of a list:1   (**define** (list-length x)2     (**cond** ((eq? x
+    ''()) 0)3           (**else** (+ 1 (list-length (cdr x))))))We defined a procedure
+    called list-length that accepts a single argument x and the body of the procedure
+    has the condition  :'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '1.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: For the empty list, just return 0 since the length of an empty list is 0.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '2.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Otherwise, return the value of one plus (list-length (cdr x)).
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: Testing it with a few values:1   > (list-length '(1 2 3))2   33   > (list-length
+    '())4   05   > (list-length '(1))6   1Recall that lists are represented in terms
+    of pairs:1   > (car '(1 2 3))2   13   > (cdr '(1 2 3))4   '(2 3)5   > (car (cdr
+    '(1 2 3)))6   27   > (cdr (cdr '(1 2 3)))8   '(3)In other words, cdr of a list
+    will return that same list without the first element  . Here is how Racket evaluates
+    (list-length '(1 2 3)):1   (list-length '(1 2 3))2   = (+ 1 (list-length '(2 3)))3   =
+    (+ 1 (+ 1 (list-length '(3))))4   = (+ 1 (+ 1 (+ 1 (list-length '()))))5   = (+
+    1 (+ 1 (+ 1 0)))6   = (+ 1 (+ 1 1))7   = (+ 1 2)8   = 3
+  prefs: []
+  type: TYPE_NORMAL
+- en: We just saw an example of a recursive behavior, since the recursive cases were
+    reduced to the base case to get a result. With this example, we can see the power
+    of recursion and how it allows us to process values in a repeating manner.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There is another way that we can write list-length:1   > (**define** (list-length-iter
+    x n)2       (**cond** ((eq? x '()) n)3             (**else** (list-length-iter
+    (cdr x) (+ n 1)))))4   > (list-length-iter '(1 2  3) 0)5   3Here’s how it evaluates:1   (list-length-iter
+    '(1 2 3) 0)2   = (list-length-iter '(2 3) 1)3   = (list-length-iter '(3) 2)4   =
+    (list-length-iter  '() 3)5   = 3
+  prefs: []
+  type: TYPE_NORMAL
+- en: Both procedures  are recursive, in that they generate the same result. However,
+    the nature of the evaluation is very different.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![../images/510363_1_En_2_Chapter/510363_1_En_2_Figs_HTML.gif](../images/510363_1_En_2_Chapter/510363_1_En_2_Figs_HTML.gif)
+    Definition 2-7'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Recursive procedures can generate an **iterative** or a **recursive** process:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '1.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: A recursive process is one where the current state of calculation is not captured
+    by the arguments, and so it relies on “deferred” evaluations
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '2.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: An iterative process is where the current state of calculation is captured completely
+    by its arguments
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: In the previous examples, list-length generates a recursive process since it
+    needs to go down to the base case and then build its way back up to do the calculations
+    that were “deferred.” In contrast, list-length-iter generates  an iterative process,
+    since the results are captured in the arguments.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This distinction is important because the very different nature of evaluation
+    implies a few things. For example, iterative processes evaluate faster than recursive
+    ones.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In contrast, some algorithms cannot be written using iterative processes, as
+    we will see later with left and right folds.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![../images/510363_1_En_2_Chapter/510363_1_En_2_Figt_HTML.gif](../images/510363_1_En_2_Chapter/510363_1_En_2_Figt_HTML.gif)
+    Exercise 2-12'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The way we implemented fact represents a recursive procedure that generates
+    a recursive process. Rework it so that it is still a recursive procedure and generates
+    an iterative process.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 2.3.8 Procedures That Return Procedures
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: We can construct procedures that return other procedures as a result. For example:1   >
+    (**define** (f x) (**lambda** (y) (+ x y)))2   > f3   #<procedure:f>4   > (f 1)5   #<procedure>6   >
+    ((f 1) 2)7   3
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note the new syntax on line 3\. It states that the return value of the expression
+    on the previous line is a procedure named f. However, on line 4, when we execute
+    (f 1), we get an unnamed procedure. That is because lambdas are anonymous functions
+    without a name.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This concept is so powerful that we can implement our own cons, car, and cdr:1   (**define**
+    (my-cons x y) (**lambda** (z) (**if** (= z 1) x y)))2   (**define** (my-car z)
+    (z 1))3   (**define** (my-cdr z) (z 2))Evaluating:1   > (my-cons 1 2)2   #<procedure>3   >
+    (my-car (my-cons 1 2))4   15   > (my-cdr (my-cons 1 2))6   2
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note how we define my-cons to return another procedure that accepts an argument
+    z, and then based on that argument’s value, we return either the first or the
+    second element.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using the substitution method, (my-cons 1 2) evaluates to (lambda (z) (if (=
+    z1 2)). So, this lambda (procedure) “captures” data in a sense. Then, when we
+    call my-car or my-cdr on this procedure, we just pass 1 or 2 to get the first
+    or the second value, respectively.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![../images/510363_1_En_2_Chapter/510363_1_En_2_Figu_HTML.gif](../images/510363_1_En_2_Chapter/510363_1_En_2_Figu_HTML.gif)
+    Exercise 2-13'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Implement a procedure so that when it’s evaluated, it returns a procedure that
+    returns a constant number.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Hint**: (lambda () 1) is a procedure that accepts no arguments and returns
+    a constant number.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 2.3.9 General Higher-Order Procedures
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: With the example above, we’ve seen how Racket can return procedures as return
+    values (output). However, it can also accept procedures as arguments (input).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![../images/510363_1_En_2_Chapter/510363_1_En_2_Figv_HTML.gif](../images/510363_1_En_2_Chapter/510363_1_En_2_Figv_HTML.gif)
+    Definition 2-8'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A **higher-order procedure** takes one or more procedures as arguments or returns
+    a procedure as a result.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'There are three common built-in higher-order procedures: map, filter and fold.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For the purpose of this example, we will rely on these definitions:1   (**define**
+    my-test-list ''(1 2 3))2   (**define** (add-one x) (+ x 1))3   (**define** (gt-1
+    x) (> x 1))map takes as input a procedure with a single argument and a list, and
+    it returns a list where all members of the list have this procedure applied to
+    them:1   > (map (**lambda** (x) (+ x 1)) my-test-list)2   ''(2 3 4)3   > (map  add-one  my-test-list)4   ''(2
+    3 4)If we use substitution on (map add-one my-test-list), we get (list (add-one
+    1) (add-one 2) (add-one 3)). However, it is best to implement these procedures
+    ourselves to understand how they work. map takes a transformation procedure f,
+    together with a list l. We have two cases to cover:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: For the empty list, we just return the empty list.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Otherwise, we extract the first element, apply the transformation procedure,
+    and reconstruct the list by recursively mapping the remainder of the elements.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '1   (**define** (my-map f l)2     (**cond** ((eq? l ''()) ''())3           (**else**
+    (cons (f (car l)) (my-map f (cdr l))))))Another higher-order procedure, filter,
+    takes as input a predicate with a single argument and a list, and it only returns
+    those members in the list whose predicate evaluates to true  :1   > (filter gt-1
+    my-test-list)2   ''(2 3)To reimplement filter, note that it takes a predicate
+    p, together with a list l. There are three cases:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: For the empty list, just as before, we just return the empty list.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Otherwise, if a predicate matches the current element, we include it in the
+    generation of the new list, recursively filtering the remainder of the elements.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Otherwise, we recursively filter the remainder of the elements, skipping the
+    addition of the current one to the list.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '1   (**define** (my-filter p l)2     (**cond** ((eq? l ''()) ''())3           ((p
+    (car l)) (cons (car l) (my-filter p (cdr l))))4           (**else** (my-filter
+    p (cdr l)))))Finally, fold takes as input a combining procedure that accepts two
+    arguments (the current value and accumulator), an initial value, and a list. fold
+    then returns a value combined with this procedure. There are two types of folds,
+    a right and a left one, which combine from the right and the left respectively  :1   >
+    (foldr cons ''() ''(1 2 3))2   ''(1 2 3)3   > (foldl cons ''() ''(1 2 3))4   ''(3
+    2 1)foldr takes a combining operator (procedure) op, together with an initial
+    value i and list l. The two cases we need to cover are as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: For the empty list, we return the initial value.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Otherwise, we use the combining operator to the current element, applied to
+    the folded remainder of the list.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '1   (**define** (my-foldr op i l)2     (**cond** ((eq? ''() l) i)3           (**else**
+    (op (car l)4                     (my-foldr op i (cdr l))))))foldl is a bit different.
+    We start by defining a procedure that has two cases:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: For the empty list, we return the initial value.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Otherwise, we call the fold again, changing the initial value to be combined
+    with the current element and the remainder of the list.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 1   (**define** (my-foldl op i l)2     (**cond** ((eq? '() l) i)3           (**else**
+    (my-foldl op (op (car l) i) (cdr l)))))This procedure  works in a similar way
+    to foldr, except that the result is captured in the procedure’s argument. For
+    example, here’s how it unfolds for (my-foldl + 0 '(1 2 3)):1   (my-foldl + 0 '(1
+    2 3))2   = (my-foldl + 1 '(2 3))3   = (my-foldl + 3 '(3))4   = (my-foldl + 6 '())5   =
+    6
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note that the right fold exhibits a recursive process (think my-length), while
+    the left one exhibits an iterative process (think my-length-iter).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![../images/510363_1_En_2_Chapter/510363_1_En_2_Figw_HTML.gif](../images/510363_1_En_2_Chapter/510363_1_En_2_Figw_HTML.gif)
+    Exercise 2-14'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Implement a procedure so that it calls a procedure that’s passed in the arguments.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Hint**: (... (lambda () 1)) should return 1.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![../images/510363_1_En_2_Chapter/510363_1_En_2_Figx_HTML.gif](../images/510363_1_En_2_Chapter/510363_1_En_2_Figx_HTML.gif)
+    Exercise 2-15'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Use DrRacket’s feature to follow definitions on my-map, my-filter, my-foldr,
+    and my-foldl to get a better understanding of how they work.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![../images/510363_1_En_2_Chapter/510363_1_En_2_Figy_HTML.gif](../images/510363_1_En_2_Chapter/510363_1_En_2_Figy_HTML.gif)
+    Exercise 2-16'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Pick some operators and predicates and use my-map, my-filter, my-foldr, and
+    my-foldl with them on lists to see what they evaluate to.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 2.3.10 Packages
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '![../images/510363_1_En_2_Chapter/510363_1_En_2_Figz_HTML.gif](../images/510363_1_En_2_Chapter/510363_1_En_2_Figz_HTML.gif)
+    Definition 2-9'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A **package** in Racket resembles a set of definitions someone has written for
+    others to use.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, if we want to use hashing procedures, we would pick a package that
+    implements these and use them. This allows us to put our focus on the system design
+    instead of defining everything from scratch.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Packages can be browsed at [https://pkgs.racket-lang.org](https://pkgs.racket-lang.org/).
+    They can be installed from the DrRacket GUI. When we try to use a package, we
+    will be provided with an option to install it, given it is available in the packages
+    repository. Alternatively, packages can be installed using raco pkg install <package_name>
+    from the command line. We will take advantage of packages later.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To export objects (variables, procedures, etc.) from a package, we use the
+    provide syntax. As an example, let’s create a few procedures and then save their
+    definitions in a file called utils.rkt by choosing File > Save Definitions from
+    the top menu.1   (**define** (sum-list l) (foldl + 0 l))2   (**define** (add-one
+    x) (+ x 1))34   (**provide** sum-list)We will create another file called test.rkt
+    in the same folder as utils.rkt. We will use the require syntax:1   (**require**
+    "utils.rkt")23   (**define** (add-two x) (+ x 2))We can now interact with test.rkt:1   >
+    (sum-list ''(1 2 3))2   63   > (add-two 1)4   35   > (add-one 1)6   add-one: undefined;'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note that add-one was undefined because only the procedures we provide in the
+    special syntax (provide ...) will be available for use by those that require the
+    package  .
+  prefs: []
+  type: TYPE_NORMAL
+- en: 2.3.11 Scope
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: As a start, let’s consider the following definitions:1   (**define** my-number
+    123)2   (**define** (add-to-my-number x) (+ my-number x))
+  prefs: []
+  type: TYPE_NORMAL
+- en: We created a variable called my-number and assigned the number 123 to it. We
+    also created a procedure called add-to-my-number, which adds a number (that’s
+    passed to it as an argument) to my-number.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![../images/510363_1_En_2_Chapter/510363_1_En_2_Figaa_HTML.gif](../images/510363_1_En_2_Chapter/510363_1_En_2_Figaa_HTML.gif)
+    Definition 2-10'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Scope** refers to the visibility of some specific definitions, or to which
+    parts of the program can use these definitions.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: my-number is defined at the same “level” as add-to-my-number, so it is in the
+    scope of add-to-my-number. But the x in add-to-my-number is only accessible in
+    the body of the procedure definition and not accessible to anything outside it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Using the let syntax, we can introduce variables that are visible only in a
+    certain section:1   (**let** ([var-1 value-1]2         [var-2 value-2])3   ...
+    our code ...)This creates variables var-1 and var-2, which are visible only in
+    the our code part.1   > (**let** ((x 1) (y 2)) (+ x y))2   33   > x4   . . x:
+    undefined;5   > y6   . . y: undefined;The letrec syntax  which is very similar
+    to let, where in addition the variables will be visible in the variable scope:1   >
+    (**letrec** ((x 1) (y (+ x 1))) y)2   2![../images/510363_1_En_2_Chapter/510363_1_En_2_Figab_HTML.gif](../images/510363_1_En_2_Chapter/510363_1_En_2_Figab_HTML.gif)
+    Definition 2-11'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Variable “shadowing**  **”** occurs when a variable defined in scope has
+    the same name as a variable defined in an outer scope.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, compare the result of these two evaluations:1   > (**let** ((x
+    1)) x)2   13   > (**let** ((x 1)) (**let** ((x 2)) x))4   2
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the second example, we have a let within a let. The inner let is defining
+    an x and so is the outer let. However, the x within the inner let will be used
+    in the inner let’s body.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Finally, let’s consider another example:1   (**define** a-number 3)2   (**define**
+    (test-1 x) (+ a-number x))3   (**define** (test-2 a-number) (+ a-number a-number))Interacting:1   >
+    (test-1 4)2   73   > (test-2 4)4   8
+  prefs: []
+  type: TYPE_NORMAL
+- en: test-1 is using a-number from the global scope. test-2 is using variable shadowing
+    for my-number, so it is the same as saying (define (test-2 x) (+ x x)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![../images/510363_1_En_2_Chapter/510363_1_En_2_Figac_HTML.gif](../images/510363_1_En_2_Chapter/510363_1_En_2_Figac_HTML.gif)
+    Exercise 2-17'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Use DrRacket’s feature to follow definitions on test-1 and test-2.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 2.3.12 Mutation
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '![../images/510363_1_En_2_Chapter/510363_1_En_2_Figad_HTML.gif](../images/510363_1_En_2_Chapter/510363_1_En_2_Figad_HTML.gif)
+    Definition 2-12'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Mutation** allows a variable to be redefined with a different value.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Mutation can be achieved using the set! syntax. Consider the following definition:1   (**define**
+    x 123)2   x3   (**define** x 1234)4   xThis definition will produce an error that
+    says module: identifier already defined in: x. However, the next definition:1   (**define**
+    x 123)2   x3   (**set**! x 1234)4   x'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Will happily print 123 followed by 1234.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Even though mutation looks powerful, good Lisp practice says to avoid mutation
+    when possible. The reason for that is that mutation causes side effects, and side
+    effects make reasoning about programs harder. To demonstrate this issue, consider
+    this definition:1   (**define** some-number 123)23   (**define** (add-one)4     (+
+    1 some-number))56   (**define** (add-one-mutation)7     (**begin**8       (**set!**
+    some-number (+ 1 some-number))9       some-number))
+  prefs: []
+  type: TYPE_NORMAL
+- en: begin allows us to sequence multiple expressions, executing them in order  .
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now let’s interact with it:1   > (add-one)2   1243   > (add-one)4   124So far,
+    so good. No side effects, since add-one returns the same value every time it’s
+    called. However:1   > (add-one-mutation)2   1243   > (add-one-mutation)4   1255   >
+    (add-one)6   126
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is what makes it hard to reason about programs—when some of the values
+    are modified, some procedures might return different values for the same inputs.
+    Thus, care must be taken when using mutation. However, we will use mutation in
+    the peer- to-peer implementation later, which will make things slightly simpler  .
+  prefs: []
+  type: TYPE_NORMAL
+- en: 2.3.13 Structures
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '![../images/510363_1_En_2_Chapter/510363_1_En_2_Figae_HTML.gif](../images/510363_1_En_2_Chapter/510363_1_En_2_Figae_HTML.gif)
+    Definition 2-13'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A **structure** is a composite data type that defines a grouped list of variables
+    to be placed under one name.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In Racket, the special syntax struct allows us to capture data structures and
+    come up with a new kind of abstraction. In a sense, we already know how we can
+    capture abstractions with car, cons, and cdr. However, struct is much more convenient
+    since it automatically provides procedures to construct a data type and retrieve
+    its values.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Consider the following example code:1   (**struct** document (author title
+    content))2   (**define** a-document3     (document4      "Boro Sitnikovski"5      "Introducing
+    Blockchain with Lisp"6      "Hello  World"))From the expression on line 1, we
+    automatically get the following procedures:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: document-author, document-title, document-content extracts values from objects.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: document constructs an object of such type.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: document? checks whether a given object is of such type.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Then, using document on line 3, we can construct an object that is using this
+    data structure.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Next  , we can use the automatically generated procedures to extract values
+    from objects that are using this data structure: 1   > (document-author a-document) 2   "Boro
+    Sitnikovski" 3   > (document-title a-document) 4   "Introducing Blockchain with
+    Lisp" 5   > (document-content a-document) 6   "Hello World" 7   > (document? a-document) 8   #t 9   >
+    (document? "test")10   #fThere is also a way to declare mutable structures as
+    follows:1   (**struct** document (author title content) **#:mutable**)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The #:mutable keyword will automatically generate set-<field>! procedures for
+    every property in the structure.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now we can interact as follows:1   > (document-author a-document)2   "Boro Sitnikovski"3   >
+    (set-document-author! a-document "Boro")4   > (document-author  a-document)5   "Boro"![../images/510363_1_En_2_Chapter/510363_1_En_2_Figaf_HTML.gif](../images/510363_1_En_2_Chapter/510363_1_En_2_Figaf_HTML.gif)
+    Exercise 2-18
+  prefs: []
+  type: TYPE_NORMAL
+- en: Create a person structure that contains a first name, last name, and age.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 2.3.14 Threads
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '![../images/510363_1_En_2_Chapter/510363_1_En_2_Figag_HTML.gif](../images/510363_1_En_2_Chapter/510363_1_En_2_Figag_HTML.gif)Definition
+    2-14'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A **thread** is a sequence of instructions that can execute in parallel.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Racket has a built-in procedure thread that accepts a procedure that will run
+    in parallel without blocking the next instruction in order.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We will show an example of demonstrating threads. We will implement a procedure
+    called detailed-fact that will be similar to fact, but also print whatever it
+    is currently processing.1   (**define** (detailed-fact n)2     (**begin**3       (display
+    "Calculating factorial of ")4       (displayln n)5       (**if** (= n 0)6           17           (*
+    n (detailed-fact (- n 1))))))display is a procedure that prints some text, and
+    displayln is the same, but it also prints a newline.1   > (**begin** (detailed-fact
+    1) (detailed-fact 2))2   Calculating factorial of 13   Calculating factorial of
+    04   Calculating factorial of 25   Calculating factorial of 16   Calculating factorial
+    of 0This code represents a sequential execution and the results  make sense. However,
+    we now turn to parallel execution to see what will happen:1   > (**begin** (thread
+    (**lambda** () (detailed-fact 1))) (thread (**lambda** ()2     (detailed-fact
+    2))))3   Calculating factorial of 24   Calculating factorial of 15   Calculating
+    factorial of 06   Calculating factorial of 17   Calculating factorial of 0
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note how we used (thread (lambda () ...)) instead of just (thread ...). As we
+    said, thread expects a procedure, but at the end of the evaluation, there would
+    be the output of factorial of some number (for example 3), so (thread 3) does
+    not make sense.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this parallel execution, the output is not ordered as it was in the previous
+    case. This means that the lambdas within thread are being executed in parallel,
+    so the order of execution cannot be guaranteed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We will use threads for parallel processing in the peer-to-peer implementation
+    later  , where we will have one thread per peer so that when we are serving one
+    peer we don’t block the serving of other peers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 2.4 Creating an Executable
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The idea behind producing an executable is so that you can run it on other computers
+    without requiring a DrRacket installation, and also without having to share the
+    original code. In the later chapters, we will create an executable so that the
+    blockchain can be used and shared by others.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To create an example executable, we start with the following code:1   **#lang
+    racket**2   (print "Hello")3   (read-bytes-line)
+  prefs: []
+  type: TYPE_NORMAL
+- en: This code will just print the text Hello. The print procedure prints some text
+    (similar to display), and read-bytes-line waits for user input. If we did not
+    use read-bytes-line, it would just print and exit right away, before we could
+    read the text.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Next, we choose Racket > Create Executable. Select Distribution and choose Create.
+    After doing that, the executable should be created in the target folder.![../images/510363_1_En_2_Chapter/510363_1_En_2_Fig10_HTML.jpg](../images/510363_1_En_2_Chapter/510363_1_En_2_Fig10_HTML.jpg)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 2-10
+  prefs: []
+  type: TYPE_NORMAL
+- en: Running an executable
+  prefs: []
+  type: TYPE_NORMAL
+- en: Running the executable should show something similar to Figure [2-10](#Fig10).
+    Pressing the Return key will exit the program.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 2.5 Summary
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The point of this chapter is to get a basic understanding of the Racket programming
+    language. Here’s what we learned in this chapter:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Lisp is a family of programming languages and Racket belongs to the Lisp family.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Lisps have no special syntax compared to standard programming languages and
+    syntax is defined differently in Lisp, through S-expressions.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Lisp evaluation is very similar to substitution in mathematics.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'There are several primitive types: symbols, booleans, characters, strings,
+    and lists.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Lists are special kinds of pairs.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Procedures are a way to capture abstraction. They can accept and return any
+    kind of type, including procedures themselves. They can also be recursive.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Packages allow us to reuse code, written either by ourselves or by someone else.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Produced executables can be shared with friends so that everyone can use them.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL

@@ -1,0 +1,691 @@
+- en: © The Author(s), under exclusive license to APress Media, LLC, part of Springer
+    Nature 2021B. SitnikovskiIntroducing Blockchain with Lisp[https://doi.org/10.1007/978-1-4842-6969-5_1](https://doi.org/10.1007/978-1-4842-6969-5_1)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 1. Introduction to Blockchain
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Boro Sitnikovski^([1](#Aff2)  )(1)Skopje, North Macedonia![../images/510363_1_En_1_Chapter/510363_1_En_1_Figa_HTML.jpg](../images/510363_1_En_1_Chapter/510363_1_En_1_Figa_HTML.jpg)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*The blockchain bazaar, by D. Bozhinovski*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This chapter introduces some important blockchain definitions and examples.
+    We will see what properties a blockchain has, what it allows us to do, and what
+    it is good for.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![../images/510363_1_En_1_Chapter/510363_1_En_1_Figb_HTML.gif](../images/510363_1_En_1_Chapter/510363_1_En_1_Figb_HTML.gif)
+    Definition 1-1'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Blockchain** is a system in which a record of transactions is maintained
+    across several computers that are linked in a peer-to-peer network.^([1](#Fn1))'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We will give an example that will serve as a motivation, as well as define what
+    encryption and hashing techniques are and how can they help us with our system.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note that we will hand-wave some of the technical bits in this chapter, as it
+    serves as introductory material. The technical bits will be uncovered later when
+    we start building the blockchain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 1.1 Motivation and Basic Definitions
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Let’s assume that you and your friends exchange money often, for example, when
+    paying for dinner or drinks. It can be inconvenient to exchange cash all the time.
+  prefs: []
+  type: TYPE_NORMAL
+- en: One possible solution is to keep records of all the bills that you and your
+    friends have. This is called a *ledger* and is depicted in Figure [1-1](#Fig1).![../images/510363_1_En_1_Chapter/510363_1_En_1_Fig1_HTML.jpg](../images/510363_1_En_1_Chapter/510363_1_En_1_Fig1_HTML.jpg)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 1-1
+  prefs: []
+  type: TYPE_NORMAL
+- en: A ledger and a set of connected friends (peers)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![../images/510363_1_En_1_Chapter/510363_1_En_1_Figc_HTML.gif](../images/510363_1_En_1_Chapter/510363_1_En_1_Figc_HTML.gif)
+    Definition 1-2'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A **ledger** is a book that contains a record of transactions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Further, at the end of every day, you all sit together and refer to the ledger
+    to do the calculations to settle up. Let’s imagine that there is a pot, which
+    is the place where all of the money is kept. If you spent more than you received,
+    you put money into the pot; otherwise, you take money out.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We want to design a system that functions similarly to a regular bank account.
+    A holder of a wallet (the bank account) should only be able to send money from
+    their wallet to other wallets. Thus, every person in the system will have a *wallet*
+    of a kind, which can also be used to determine their balance. Note that with the
+    current setup using a ledger, we have to go through all existing records to determine
+    the balance of a specific wallet.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If we want to avoid going through all existing records, there is a way we can
+    optimize this, using *unspent transaction outputs* (UTXOs)  , as we will see in
+    Section 3.5.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A problem that may arise is the so-called *double-spending* problem, where Bob
+    can try to send all of his money to Alice and you at the same time. This would
+    effectively double the money he sends in relation to what he has. There are several
+    ways this can be resolved, and the solution that we will provide will be a simple
+    check of the sum of the inputs and the sum of the outputs (UTXO).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Another problem that might appear with this kind of system is that anyone can
+    add a transaction. For example, Bob can add a transaction in which Alice pays
+    him a few dollars without Alice’s approval. We need to rethink our system so that
+    each transaction will be verified/signed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![../images/510363_1_En_1_Chapter/510363_1_En_1_Figd_HTML.gif](../images/510363_1_En_1_Chapter/510363_1_En_1_Figd_HTML.gif)
+    Definition 1-3'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A **digital signature** is a way to verify the authenticity of digital messages
+    and documents.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To sign and verify transactions, we will rely on digital signatures (Figure
+    [1-2](#Fig2)). For now, let’s assume that anyone who adds information to the ledger
+    also adds a signature with each record, and others have no way to modify the signature,
+    but can only verify it. We will cover the technical details in Section 1.2.![../images/510363_1_En_1_Chapter/510363_1_En_1_Fig2_HTML.jpg](../images/510363_1_En_1_Chapter/510363_1_En_1_Fig2_HTML.jpg)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 1-2
+  prefs: []
+  type: TYPE_NORMAL
+- en: Our ledger now contains signatures
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now let’s assume that Bob is keeping the ledger to himself, and everybody agrees
+    to this. The ledger is now stored in what is called a *centralized place* . If
+    Bob is unavailable at the end of the day when everybody gathers to settle up,
+    nobody will be able to refer to the ledger.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We need to find a way to decentralize the ledger, so that at any given time,
+    anyone can make a transaction. For this, every person involved will keep a copy
+    of the ledger to themselves, and when they meet at the end of the day, they will
+    sync their ledgers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You are connected to your friends, and so are they to you. Informally, this
+    makes it a peer-to-peer network.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![../images/510363_1_En_1_Chapter/510363_1_En_1_Fige_HTML.gif](../images/510363_1_En_1_Chapter/510363_1_En_1_Fige_HTML.gif)
+    Definition 1-4'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A **peer-to-peer network** is formed when two or more computers are connected
+    to each other.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, when you are accessing a web page on the Internet using a browser,
+    your browser is the “client” and the web page you’re accessing is hosted by a
+    “server.” This represents a centralized system since every user is getting the
+    information from a single place—the “server.”
+  prefs: []
+  type: TYPE_NORMAL
+- en: In contrast, in a peer-to-peer network—which represents a decentralized system—the
+    distinction between a “client” and a “server” is blurred. Every peer is both a
+    “client” and a “server” at the same time.![../images/510363_1_En_1_Chapter/510363_1_En_1_Fig3_HTML.jpg](../images/510363_1_En_1_Chapter/510363_1_En_1_Fig3_HTML.jpg)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 1-3
+  prefs: []
+  type: TYPE_NORMAL
+- en: A decentralized ledger
+  prefs: []
+  type: TYPE_NORMAL
+- en: With a decentralized system (see Figure [1-3](#Fig3)), as the list of peers
+    (persons) grows, we might run into a problem of *trust* . When everybody meets
+    at the end of the day to sync their ledgers, how can they believe that the transactions
+    listed in other people’s ledgers are true? Even if everybody trusts everybody
+    else’s ledger, what if a new person wants to join this network? It’s natural for
+    existing users to ask this newcomer to prove that they can be trusted. We need
+    to modify our system to support this kind of trust. One way to achieve that is
+    through a *proof of work*, which we introduce next.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![../images/510363_1_En_1_Chapter/510363_1_En_1_Figf_HTML.gif](../images/510363_1_En_1_Chapter/510363_1_En_1_Figf_HTML.gif)
+    Definition 1-5'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A **proof of work** is data that is time-consuming to calculate, and easy for
+    others to verify.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For each record we will also include a special number (or a hash) that will
+    represent *proof of work*, in that it will provide proof that the transaction
+    is valid. We will cover the technical details in Section 1.3.
+  prefs: []
+  type: TYPE_NORMAL
+- en: At the end of the day, we agree that we will trust the ledger of the person
+    who has put most of the work in it. If Bob has some errands to run, he can catch
+    up the next day by trusting the rest of the peers in the network.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In addition to all this, we want the transactions to have an order, so every
+    record will also contain a link to the previous record. This represents the actual
+    blockchain, as depicted in Figure [1-4](#Fig4).![../images/510363_1_En_1_Chapter/510363_1_En_1_Fig4_HTML.jpg](../images/510363_1_En_1_Chapter/510363_1_En_1_Fig4_HTML.jpg)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 1-4
+  prefs: []
+  type: TYPE_NORMAL
+- en: A chain of blocks, aptly called a blockchain
+  prefs: []
+  type: TYPE_NORMAL
+- en: If everybody agreed to use this ledger as a source of truth, there would be
+    no need to exchange physical money at all. Everybody can just use the ledger to
+    put money in or retrieve it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To understand the technical bits of digital signatures and proof of work, we
+    will be looking at encryption and hashing, respectively. Fortunately for us, the
+    programming language that we will be using has built-in functionalities for encryption
+    and hashing. We don’t have to dig too deep into how hashing and encryption and
+    decryption work, because a basic understanding will be sufficient.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Observe how we started with a simple definition of a ledger and gradually built
+    up to a complex system. We will use the same approach in programming.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 1.2 Encryption
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: We will start by defining encryption and decryption.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![../images/510363_1_En_1_Chapter/510363_1_En_1_Figg_HTML.gif](../images/510363_1_En_1_Chapter/510363_1_En_1_Figg_HTML.gif)
+    Definition 1-6'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Encryption** is a method of encoding values so that only authorized persons
+    can view the original content. **Decryption** is a method of decoding encrypted
+    values.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note that in this section we will mostly talk about numbers, but characters
+    and letters can also be encrypted/decrypted using the same methods, by using the
+    ASCII^([2](#Fn2)) values for the characters.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Before we talk about encryption, we first have to recall what *functions* are,
+    since encoding/decoding values is achieved by using functions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 1.2.1 Functions
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Figure [1-5](#Fig5) shows a visual representation of a function  . An input
+    goes in the function and an output is produced.![../images/510363_1_En_1_Chapter/510363_1_En_1_Fig5_HTML.jpg](../images/510363_1_En_1_Chapter/510363_1_En_1_Fig5_HTML.jpg)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 1-5
+  prefs: []
+  type: TYPE_NORMAL
+- en: A function
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![../images/510363_1_En_1_Chapter/510363_1_En_1_Figh_HTML.gif](../images/510363_1_En_1_Chapter/510363_1_En_1_Figh_HTML.gif)
+    Definition 1-7'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Functions** are mathematical entities that assign unique outputs to given
+    inputs.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For example, you might have a function that accepts as input a person and then
+    returns the person’s age or name as the output. Another example is the function
+    f(x) = x + 1. There are many inputs this function can accept: 1, 2, and 3.14\.
+    For example, when we input 2 it gives us an output of 3, since f(2) = 2 + 1 =
+    3.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'One simple way to think of functions is in the form of tables. For a function
+    f(x) accepting a single argument *x*, we have a two-column table where the first
+    column is the input and the second column is the output  . For a function f(x,
+    y) that’s accepting two arguments *x* and *y,* we have a three-column table where
+    the first and second columns represent the input, and the third column is the
+    output. Thus, to display the function discussed above in the form of a table,
+    it would look like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| **x** | ***f*****(*****x*****)** |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| 1 | 2 |'
+  prefs: []
+  type: TYPE_TB
+- en: '| 2 | 3 |'
+  prefs: []
+  type: TYPE_TB
+- en: '| … | … |'
+  prefs: []
+  type: TYPE_TB
+- en: 1.2.2 Symmetric-Key Algorithm
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'We can assume  that there exist functions *E*(*x*) and *D*(*x*) for encryption
+    and decryption, respectively. We want these functions to have the following properties:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*E*(*x*) ≠ *x*, meaning that the encrypted value should not be the same as
+    the original value.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*E*(*x*) ≠ *D*(*x*), meaning that the encryption and decryption functions produce
+    different values.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*D*(*E*(*x*)) = *x*, meaning that the decryption of an encrypted value should
+    return the original value.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: For example, let’s assume there’s some kind of an encryption scheme, say E(“Boro”)
+    = 426f726f. We can “safely” communicate the value 426f726f without actually exposing
+    our original value, and only those who know the decryption scheme D(x) will be
+    able to see that D(426f726f) = “Boro”.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Another example of an encryption scheme is for *E*(*x*) to shift every character
+    in *x* forward, and for *D*(*x*) to shift every character in *x* backward. This
+    scheme is known as the *Caesar cipher*. To encrypt the text “abc” we have E(“abc”)
+    = “bcd”, and to decrypt it, we have D(“bcd”) = “abc”.
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, this scheme makes a *symmetric algorithm*, as shown in Figure [1-6](#Fig6),
+    meaning that we have to share the functions E and D with the parties involved.
+    That makes it open to attacks.![../images/510363_1_En_1_Chapter/510363_1_En_1_Fig6_HTML.jpg](../images/510363_1_En_1_Chapter/510363_1_En_1_Fig6_HTML.jpg)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 1-6
+  prefs: []
+  type: TYPE_NORMAL
+- en: Symmetric-key algorithm
+  prefs: []
+  type: TYPE_NORMAL
+- en: 1.2.3 Asymmetric-Key Algorithm
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'To solve the problems that arise with symmetric-key algorithms, we will use
+    what is called an *asymmetric algorithm* or *public-key cryptography* (Figure
+    [1-7](#Fig7)). In this scheme, we have two kinds of keys: public and private.
+    We share the public key with the world and keep the private one to ourselves.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This algorithm scheme has a neat property in which only the private key can
+    decode a message, and only the public key can encode a message.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We have two functions that should have the same properties as those for the
+    symmetric-key algorithm:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*E*(*x*, *p*) encrypts a message *x* given a public key *p*'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*D*(*x*′, s) decrypts an encrypted message *x*′ given a private (secret) key
+    *s*'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '![../images/510363_1_En_1_Chapter/510363_1_En_1_Fig7_HTML.jpg](../images/510363_1_En_1_Chapter/510363_1_En_1_Fig7_HTML.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 1-7
+  prefs: []
+  type: TYPE_NORMAL
+- en: Asymmetric-key algorithm
+  prefs: []
+  type: TYPE_NORMAL
+- en: In our example, we will rely on the modulo operation. Recall, from high school,
+    that *a* mod *b* represents the remainder when *a* is divided by *b*. For example,
+    4 mod 2 = 0 because there is no remainder when dividing 4 by 2, however, 5 mod
+    2 = 1.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here’s one example of a basic encryption algorithm based on addition and modulo
+    operations:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '1.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Pick one random number, for example 100\. This will represent a common, publicly
+    available key.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '2.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Pick another random number in the range (1, 100), for example, 97\. This will
+    represent the private key *s*.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '3.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'The public key *p* is obtained by subtracting the common key from the private
+    one: 100 − 97 = 3.'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '4.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: To encrypt data, add it to the public key and the take modulo 100\. *E*(*x*,
+    *p*) = (*x* + *p*) mod 100.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '5.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: To decrypt data, we use the same logic but with our private key, so *D*(*x*′,
+    *s*) = (*x*′ + *s*) mod 100.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: For example, suppose we want to encrypt 5\. Then *E*(5, 3) = (5 + 3) mod 100
+    = 8\. To decrypt 8, we have *D*(8, 97) = (8 + 97) mod 100 = 105 mod 100 = 5.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This example uses a very simple generation pair: (*x* + *y*) mod *c*. But,
+    in practice, the pair-generation algorithm is much more complex and harder for
+    attackers to break. After all, the complexity of the algorithm’s computation is
+    what makes it hard to break.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We can use a similar algorithm for digital signatures:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*S*(*x*, *s*) signs a message *x* given a private key *s* (encryption).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*V*(*x*′, *sig*, *p*) verifies a signed message *x*′, given signature sig and
+    public key *p* (decryption).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: As we said earlier, each record will also include a special number (or a hash).
+    This hash will be what is produced by *S*(*x*, *s*) (encryption), and it can be
+    verified by using the verify function to confirm a record’s ownership (decryption).
+  prefs: []
+  type: TYPE_NORMAL
+- en: The wallet will contain a pair of public and private keys. These keys will be
+    used to receive or send money. With the private key, it is possible to write new
+    blocks (or transactions) to the blockchain, effectively spending money. With the
+    public key, others can use it to send money to the wallet and verify signatures.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![../images/510363_1_En_1_Chapter/510363_1_En_1_Figi_HTML.gif](../images/510363_1_En_1_Chapter/510363_1_En_1_Figi_HTML.gif)
+    Exercise 1-1'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Come up with a table of functions such that:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '1.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The input is a number and the output is a number.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '2.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The input is a number and the output is the name of an employee in a company
+    given that number.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '![../images/510363_1_En_1_Chapter/510363_1_En_1_Figj_HTML.gif](../images/510363_1_En_1_Chapter/510363_1_En_1_Figj_HTML.gif)**Exercise
+    1-2**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Check the three properties for a symmetric-key algorithm to ensure that the
+    Caesar cipher is compatible with them.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![../images/510363_1_En_1_Chapter/510363_1_En_1_Figk_HTML.gif](../images/510363_1_En_1_Chapter/510363_1_En_1_Figk_HTML.gif)**Exercise
+    1-3**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Come up with an encryption scheme, based on mathematical substitution.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![../images/510363_1_En_1_Chapter/510363_1_En_1_Figl_HTML.gif](../images/510363_1_En_1_Chapter/510363_1_En_1_Figl_HTML.gif)**Exercise
+    1-4**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Use the asymmetric-key algorithm we defined to sign a message and verify it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Hint**: This is similar to the encryption/decryption example that we showed.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 1.3 Hashing
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '![../images/510363_1_En_1_Chapter/510363_1_En_1_Figm_HTML.gif](../images/510363_1_En_1_Chapter/510363_1_En_1_Figm_HTML.gif)'
+  prefs: []
+  type: TYPE_IMG
+- en: Definition 1-8
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Hashing** is a one-way function in that it encodes text without a way to
+    retrieve the original value.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Hashing is simpler than the previously described encryption schemes. One example
+    of a hashing function is to return the length of characters - *H*(“abc”) = 3,
+    but also *H*(“bcd”) = 3\. This means that we don’t have a way to retrieve the
+    original value other than by using the return value 3.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As we mentioned earlier, the reason to use such a technique is that it has some
+    interesting properties, such as providing us with proof of work.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![../images/510363_1_En_1_Chapter/510363_1_En_1_Fign_HTML.gif](../images/510363_1_En_1_Chapter/510363_1_En_1_Fign_HTML.gif)
+    Definition 1-9'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Mining** is the process of validating transactions. For this effort, successful
+    miners obtain money as a reward.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Hashcash is one kind of a proof of work system.^([3](#Fn3)) We will use it to
+    implement mining. We will see how this algorithm works in detail in the later
+    chapters, when we implement it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Hashing functions have another useful property that allows us to connect two
+    or more distinct blocks by having the information about the current block’s hash
+    (current-hash) and the previous block’s hash (previous-hash) in each block. For
+    example, block-1 may have a hash such as 123456 and block-2 may have a hash such
+    as 345678\. Now, block-2’s previous-hash will be block-1’s current-hash, that
+    is, 123456\. Here, we linked these two blocks, effectively creating a linked list
+    of blocks containing ledgers with transactions. This linking is depicted in Figure
+    [1-4](#Fig4).
+  prefs: []
+  type: TYPE_NORMAL
+- en: The hash of the block is based on the block’s data itself, so to verify a hash,
+    we can just hash the block’s data and compare it to current-hash.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Two or more blocks (or transactions) that are connected form a blockchain. The
+    validity of the blockchain will depend on the validity of each transaction.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![../images/510363_1_En_1_Chapter/510363_1_En_1_Figo_HTML.gif](../images/510363_1_En_1_Chapter/510363_1_En_1_Figo_HTML.gif)
+    Exercise 1-5'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Come up with your own hashing function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![../images/510363_1_En_1_Chapter/510363_1_En_1_Figp_HTML.gif](../images/510363_1_En_1_Chapter/510363_1_En_1_Figp_HTML.gif)
+    Exercise 1-6'
+  prefs: []
+  type: TYPE_NORMAL
+- en: How can the linked list depicted in Figure [1-4](#Fig4) be traversed? What are
+    the implications of this property?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 1.4 Smart Contracts
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '![../images/510363_1_En_1_Chapter/510363_1_En_1_Figq_HTML.gif](../images/510363_1_En_1_Chapter/510363_1_En_1_Figq_HTML.gif)
+    Definition 1-10'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A **smart contract** is a self-executing contract in which the conditions of
+    an agreement between a buyer and a seller are directly expressed by lines of code.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A blockchain is programmable if the transaction conditions themselves can be
+    programmed by users. For example, users (not necessarily programmers) can write
+    a script to add requirements that must be satisfied before sending money. It could
+    look something like this:1   if (user has more than 10 money)2      then approve
+    transaction3      else reject transaction
+  prefs: []
+  type: TYPE_NORMAL
+- en: Smart contracts are implemented as a computation that takes place on the blockchain.
+    We will implement a very basic functionality of smart contracts in the later chapters.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 1.5 Bitcoin
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Bitcoin was the world’s first implementation of a blockchain. In November 2008,
+    a paper authored by Satoshi Nakamoto, entitled “Bitcoin: A Peer-to-Peer Electronic
+    Cash System,” was published on a cryptography mailing list. Bitcoin’s whitepaper
+    is nine pages, however, it is a mostly theoretical explanation of the design,
+    and as such may be a bit overwhelming to newcomers.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Bitcoin software is open-source code and was released in January 2009 on
+    SourceForge. The design of a Bitcoin includes a decentralized network (peer-to-peer
+    network), block (mining), blockchain, transactions, and wallets, each of which
+    we will look at in detail in this book.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Although there are many blockchain models and each differs in implementation
+    details, the blockchain we will be building upon in this book will look pretty
+    similar to Bitcoin, with some parts simplified.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 1.6 Example Workflows
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: We will list a few important workflows that our system will use, among others.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Mining a block* creates a new block, using Hashcash to calculate the current-hash
+    of the block. It also contains previous-hash, which is a link to the previous
+    block in the blockchain.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Checking a wallet balance* for person A will first filter all blocks in the
+    blockchain (sender = A or receiver = A) and then sum them to calculate the balance.
+    The more our blockchain grows, the longer this operation will take. For that purpose,
+    we will use the unspent transaction outputs (UTXO) model. This model is a list
+    of transactions containing information about the owner and the amount of money.
+    Thus, every transaction will consume elements from this list.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Adding a block to a blockchain* consists of sending money from A to B. One
+    prerequisite is that A has enough money. We check this using the wallet balance
+    workflow. We proceed by creating a transaction (sender = A, receiver = B) and
+    signing it. Then we mine a block using this transaction and update the UTXO with
+    the rewards.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 1.7 Summary
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The point of this chapter is to provide a vague idea of how the system that
+    we will implement looks. Things will become much clearer in the implementation
+    chapter (Chapter [3](510363_1_En_3_Chapter.xhtml)), where we have to be explicit
+    about the definitions of every component.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here’s briefly what we learned in this chapter:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The core component of the system is a block.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A block contains (among other data) transactions.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: We have a ledger that is an ordered list of all valid blocks (a blockchain).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Every peer involved with the ledger has a wallet.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Every record in the ledger is signed by the owner and can be verified by the
+    public (digital signatures).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The ledger is in a decentralized location, that is, everybody has a copy of
+    it.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Trust is based on proof of work (mining).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL

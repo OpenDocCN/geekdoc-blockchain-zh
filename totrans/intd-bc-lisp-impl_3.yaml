@@ -1,0 +1,948 @@
+- en: © The Author(s), under exclusive license to APress Media, LLC, part of Springer
+    Nature 2021B. SitnikovskiIntroducing Blockchain with Lisp[https://doi.org/10.1007/978-1-4842-6969-5_3](https://doi.org/10.1007/978-1-4842-6969-5_3)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3. Blockchain Implementation
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Boro Sitnikovski^([1](#Aff2)  )(1)Skopje, North Macedonia![../images/510363_1_En_3_Chapter/510363_1_En_3_Figa_HTML.jpg](../images/510363_1_En_3_Chapter/510363_1_En_3_Figa_HTML.jpg)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Gateway to abstractions, by D. Bozhinovski*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now that we have equipped ourselves with the ability to write computer programs,
+    we will implement the components (data structures and operations) of the blockchain.
+    Throughout this chapter, we will be using some new procedures. For some of them,
+    we will give a brief explanation. For others, if you are curious, you can get
+    additional details from Racket’s manuals.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Every section in this chapter is hands-on, meaning that you will have to implement
+    it as we go through. Exercises are provided to make sure you understand how the
+    procedures we build will be used. Before we start, recall that at the top of every
+    file you have to prepend #lang racket, as we mentioned in the previous chapter.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: As before, code snippets that start with a > are to be evaluated in the REPL.
+    Don’t save their definitions in the actual target file.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We start by defining serialization. We will rely on it heavily in the next chapter,
+    when peers will send information to each other. Think of it as a neat way to transform
+    data structures to some object that’s easy to transfer between peers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![../images/510363_1_En_3_Chapter/510363_1_En_3_Figb_HTML.gif](../images/510363_1_En_3_Chapter/510363_1_En_3_Figb_HTML.gif)Definition
+    3-1'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Serialization** is the process of converting an object into a stream of bytes
+    to store the object or transmit it to memory, a database, or a file. **Deserialization**
+    is the opposite process—converting a stream of bytes into an object.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.1 The wallet.rkt File
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In this section, we will implement wallets. They will be used by transactions
+    later to determine the source and the destination of sending/receiving money.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As we discussed earlier, a wallet is a structure that contains a public and
+    a private key. Wallets have this form:1   (**struct** wallet2     (private-key
+    public-key)3     **#:prefab**)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The #: operator represents an **optional keyword argument**—it’s basically
+    an argument whose value can be set by referring to this argument’s name. In contrast,
+    for ordinary arguments, we have to rely on their order to set their values. For
+    example, in (lambda (x y z) ...), we have to pass values for x and y before we
+    can pass a value for z.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The #:prefab part is new. A prefab (“previously fabricated”) structure type
+    is a built-in type that is known to the Racket printer. We can print/display the
+    structure and all of its contents. In addition, we can serialize/deserialize these
+    kinds of structures.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![../images/510363_1_En_3_Chapter/510363_1_En_3_Figc_HTML.gif](../images/510363_1_En_3_Chapter/510363_1_En_3_Figc_HTML.gif)Definition
+    3-2'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**RSA** is an asymmetric-key algorithm used to encrypt and decrypt messages,
+    similar in nature to the one described in Section 1.2.2.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We will make a procedure that creates a wallet by generating random public
+    and private keys, and it will rely on the RSA algorithm.1   (**define** (make-wallet)2     (**letrec**
+    ([rsa-impl (get-pk ''rsa libcrypto-factory)]3              [privkey (generate-private-key
+    rsa-impl ''((nbits 512)))]4              [pubkey (pk-key->public-only-key privkey)])5       (wallet
+    (bytes->hex-string6                (pk-key->datum privkey ''PrivateKeyInfo))7               (bytes->hex-string8                (pk-key->datum
+    pubkey ''SubjectPublicKeyInfo)))))All of the procedures we’re using come from
+    the crypto package:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: get-pk returns the RSA implementation algorithm.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: generate-private-key generates a private key given algorithm (in this case,
+    RSA).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: pk-key->public-only-key returns a public key given public/private key.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: pk-key->datum returns a public/private key so that it is easily serializable
+    by the next procedure in this list.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: bytes->hex-string converts a hex string (think numbers for example) to bytes,
+    e.g. "0102030304" -> "Hello".
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: We need to require the necessary packages:1   (**require** crypto)2   (**require**
+    crypto/all)And we export everything so that this procedure can be used as a package.1   (**provide**
+    (**struct-out** wallet) make-wallet)
+  prefs: []
+  type: TYPE_NORMAL
+- en: The struct-out syntax  is exporting the struct together with the procedures
+    it generates.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here’s an example of a generated wallet:1   > (make-wallet)2   '#s(wallet3       "3082015502010030..."4       "305c300d06092a86...")
+  prefs: []
+  type: TYPE_NORMAL
+- en: We now have a way to create wallets for our blockchain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![../images/510363_1_En_3_Chapter/510363_1_En_3_Figd_HTML.gif](../images/510363_1_En_3_Chapter/510363_1_En_3_Figd_HTML.gif)Exercise
+    3-1'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Create a wallet using make-wallet and store it in a variable using define.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![../images/510363_1_En_3_Chapter/510363_1_En_3_Fige_HTML.gif](../images/510363_1_En_3_Chapter/510363_1_En_3_Fige_HTML.gif)Exercise
+    3-2'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Extract the private and the public key of the previously created wallet. The
+    code should look something like (wallet-?? (make-wallet)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![../images/510363_1_En_3_Chapter/510363_1_En_3_Figf_HTML.gif](../images/510363_1_En_3_Chapter/510363_1_En_3_Figf_HTML.gif)Exercise
+    3-3'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Get yourself briefly introduced to the procedures used in the crypto package
+    by reading the manuals.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Hint**: If your local documentation does not contain information about the
+    crypto package, refer to [https://docs.racket-lang.org](https://docs.racket-lang.org/).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.2 The block.rkt File
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Recall that a blockchain is simply a list of blocks, as depicted in Figure [1-4](510363_1_En_1_Chapter.xhtml#Fig4)
+    (Chapter [1](510363_1_En_1_Chapter.xhtml)). Thus, a block is the building block
+    of a blockchain, and in this section, we will provide an implementation of blocks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.2.1 Construction
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: A block should contain the current hash, the previous hash, the data, and the
+    timestamp that it was generated:1   > (**struct** block2   (current-hash previous-hash
+    data timestamp)3   **#:prefab**)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using a hashing algorithm will allow us to confirm that the block is valid.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In general, blocks can contain any data, not just transactions, but we are limiting
+    them to transactions for now. We will also add a nonce field for the Hashcash
+    algorithm. We will see the purpose of this field in a moment:1   (**struct** block2     (current-hash
+    previous-hash transaction timestamp nonce)3     **#:prefab**)Our block also contains
+    a transaction that is roughly of the following form:1   > (**struct** transaction2     (signature
+    from to value)3     **#:prefab**)
+  prefs: []
+  type: TYPE_NORMAL
+- en: We will implement transactions in details later.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here’s one way to generate a block:1   > (block "123456" "234" (transaction
+    "BoroS" "Boro" "You" 123) 1 1)2   ''#s(block "123456" "234" #s(transaction "BoroS"
+    "Boro" "You" 123)3   1 1)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, this block makes a transaction from "Boro" to "You" with the value
+    of 123, and with a timestamp and a nonce of 1.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.2.2 Hashing and Verification
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Next, we will implement a procedure that calculates a block’s hash. We will
+    use the SHA hashing algorithm.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![../images/510363_1_En_3_Chapter/510363_1_En_3_Figg_HTML.gif](../images/510363_1_En_3_Chapter/510363_1_En_3_Figg_HTML.gif)'
+  prefs: []
+  type: TYPE_IMG
+- en: Definition 3-3
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**SHA** is a hashing algorithm that takes an input and produces a hash value.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here’s how the procedure looks:1   (**define** (calculate-block-hash previous-hash
+    timestamp transaction nonce)2     (bytes->hex-string (sha256 (bytes-append3              (string->bytes/utf-8
+    previous-hash)4              (string->bytes/utf-8 (number->string timestamp))5              (string->bytes/utf-8
+    (~a (serialize transaction)))6              (string->bytes/utf-8 (number->string
+    nonce))))))There are a few things to note here:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We expect every field in the structure to be of type string. This will make
+    things much easier later, e.g., when we want to store the blockchain in a data
+    file.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If you check the manuals for sha256, you will notice it accepts bytes. That
+    means we have to convert every field to bytes using string->bytes/utf-8 and then
+    append all these bytes together before hashing them.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: number->string converts a number to a string, so for example 3 -> "3" and ∼a
+    does the same thing but it can also convert objects to string.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'We use serialize on a transaction. This procedure accepts an object and returns
+    an S-expression containing the same contents. Not all objects can be serialized;
+    however, in this case, we use #:prefab which additionally makes structures serializable.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Finally, we store the hash as a hex string. Think of hex as a way to store a
+    string from readable characters to numbers, e.g. "Hello" -> "0102030304".
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: As an example, this is how we calculate the hash of our earlier example block:1   >  (calculate-block-hash  "234"  1  (transaction  "BoroS"  "Boro"  "You"2   "a
+    book") 1)3   "5e2889a76a464ea19a493a74d2da991a78626fc1fa9070340c2284ad92f4dd17"Now
+    that we have a way to calculate a block’s hash, we also need a way to verify it.
+    To do that, we just hash the block’s contents again and compare this hash to the
+    one stored in the block:1   (**define** (valid-block? bl)2     (equal? (block-current-hash
+    bl)3             (calculate-block-hash (block-previous-hash bl)4                                   (block-timestamp
+    bl)5                                   (block-transaction bl)6                                   (block-nonce
+    bl))))
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.2.3 Hashcash Algorithm
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: At this point, we have everything we need to implement the Hashcash algorithm  .1   (**define**
+    difficulty 2)2   (**define** target (bytes->hex-string (make-bytes difficulty
+    32)))
+  prefs: []
+  type: TYPE_NORMAL
+- en: We set the difficulty to 2, and thus the target will contain a difficulty number
+    of bytes using the built-in procedure called make-bytes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A block will be considered mined if the hash matches the target, given the
+    difficulty:1   (**define** (mined-block? block-hash)2     (equal? (subbytes (hex-string->bytes
+    block-hash) 1 difficulty)3             (subbytes (hex-string->bytes target) 1
+    difficulty)))A couple of things to note here:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'hex-string->bytes is just a way to convert a hex string, e.g. "0102030304"
+    -> #"\1\2\3\3\4".'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: subbytes takes a list of bytes, a start, and an end point and returns that sublist.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Thus, given a random hash, we consider it to be valid if its first two (in this
+    case, per difficulty) bytes match the target.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The actual Hashcash procedure is as follows:1   (**define** (make-and-mine-block2             previous-hash
+    timestamp transaction nonce)3     (**let** ([current-hash (calculate-block-hash4                   previous-hash
+    timestamp transaction nonce)])5       (**if** (mined-block? current-hash)6           (block
+    current-hash previous-hash transaction timestamp nonce)7           (make-and-mine-block8            previous-hash
+    timestamp transaction (+ nonce 1)))))
+  prefs: []
+  type: TYPE_NORMAL
+- en: This procedure keeps increasing the nonce until a block is valid  , at which
+    point it is returned. That is, we continuously change the nonce until sha256 produces
+    a hash that matches the target. This defines the foundations of mining (proof
+    of work).
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, here’s how we can mine the earlier block we gave as an example:1   >
+    (**define** mined-block (make-and-mine-block "234" 1 (transaction "BoroS"2     "Boro"
+    "You" "a book") 1))3   > (block-nonce mined-block)4   3375   > (block-previous-hash
+    mined-block)6   "234"7   > (block-current-hash mined-block)8   "e920d627196658b64e349c1d3d6f2de1ab308d98d1c48130ee36df47ef25ee9a"
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note that nonce had to go up to 337 for the mining conditionals to be fulfilled.
+    This is the amount of “work” that was required. In some cases, it will be smaller,
+    and in others, it will be larger.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Lastly, we need a small helper procedure:1   (**define** (mine-block transaction
+    previous-hash)2     (make-and-mine-block3      previous-hash (current-milliseconds)
+    transaction 1))
+  prefs: []
+  type: TYPE_NORMAL
+- en: current-milliseconds returns the current time in milliseconds since midnight
+    UTC, January 1, 1970.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We provide these structures and procedures:1   (**provide** (**struct-out block**)
+    mine-block valid-block? mined-block?)And make sure we require all the necessary
+    packages  :1   (**require** (**only-in** file/sha1 hex-string->bytes))2   (**require**
+    (**only-in** sha sha256))3   (**require** (**only-in** sha bytes->hex-string))4   (**require**
+    racket/serialize)
+  prefs: []
+  type: TYPE_NORMAL
+- en: The only-in syntax imports only specific objects from a package that we specify,
+    instead of importing everything.
+  prefs: []
+  type: TYPE_NORMAL
+- en: At this point, besides being able to create and sign wallets, we now also have
+    the necessary procedures to create and mine a block.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![../images/510363_1_En_3_Chapter/510363_1_En_3_Figh_HTML.gif](../images/510363_1_En_3_Chapter/510363_1_En_3_Figh_HTML.gif)Exercise
+    3-4'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Create a block (with a transaction) using block (and transaction) and store
+    it in a variable using define. Then, calculate its hash using calculate-block-hash.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![../images/510363_1_En_3_Chapter/510363_1_En_3_Figi_HTML.gif](../images/510363_1_En_3_Chapter/510363_1_En_3_Figi_HTML.gif)Exercise
+    3-5'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Use make-and-mine-block on a block you generated. What’s the nonce count, i.e.,
+    how much “work” (processing) did it take to mine that block?
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![../images/510363_1_En_3_Chapter/510363_1_En_3_Figj_HTML.gif](../images/510363_1_En_3_Chapter/510363_1_En_3_Figj_HTML.gif)Exercise
+    3-6'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Use valid-block? on the block in the previous exercise. Now use valid-block?
+    on that block where its nonce is 1.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Hint**: To generate a “new” block out of an existing one called bl, you can
+    use:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 1   (block (block-current-hash bl)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 2          (block-previous-hash bl)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3          (block-transaction bl)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 4          (block-timestamp bl)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 5          (block-nonce bl))
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.3 The utils.rkt File
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: This file will contain common procedures that will be used by other components.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A procedure that we will use often is true-for-all?. It returns true if a predicate
+    satisfies all members of the list, and false otherwise:1   (**define** (true-for-all?
+    pred list)2     (**cond**3       [(empty? list) #t]4       [(pred (car list))
+    (true-for-all? pred (cdr list))]5       [**else** #f]))Here’s an example how we
+    can use it:1   > (true-for-all? (**lambda** (x) (> x 3)) ''(1 2 3))2   #f3   >
+    (true-for-all? (**lambda** (x) (> x 3)) ''(4 5 6))4   #tNext, we’ll have a need
+    for a procedure to export a struct into a file:1   (**define** (struct->file object
+    **file**)2     (**let** ([out (open-output-file **file #:exists** ''replace)])3       (write
+    (serialize object) out)4       (close-output-port out)))'
+  prefs: []
+  type: TYPE_NORMAL
+- en: open-output-file returns an object in memory, which we can then write to using
+    write. When we do that, it will write to the opened file. close-output-port closes
+    this object in memory. This procedure will serialize a struct and then will write
+    the serialized contents to a file.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following procedure is the opposite of struct->file: given a file, it will
+    return a struct by opening the file, reading its contents, and deserializing its
+    contents.1   (**define** (file->struct **file**)2     (**letrec** ([in (open-input-file
+    **file**)]3              [result (read in)])4       (close-input-port in)5       (deserialize
+    result)))A few notes here:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: read will read and return data from in (the opposite of write).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: open-input-file is similar to open-output-file, except that it is used to read
+    from a file using read.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: deserialize is the opposite of serialize.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: We provide these procedures:1   (**provide** true-for-all? struct->file file->struct)And
+    make sure we require all the necessary packages:1   (**require** racket/serialize)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now we have a way to write our blockchain data into the filesystem (and read
+    it from the filesystem). This way, our blockchain data can persist.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![../images/510363_1_En_3_Chapter/510363_1_En_3_Figk_HTML.gif](../images/510363_1_En_3_Chapter/510363_1_En_3_Figk_HTML.gif)Exercise
+    3-7'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Use struct->file on some block to store it in a file. Then, use file->struct
+    on that same file. Did you get the same block? Next, use a text editor to open
+    the file you created. What do the file contents look like?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.4 Transactions
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In this section, we will implement the procedures for signing and verifying
+    transactions, as depicted in Figure 1-2 (Chapter [1](510363_1_En_1_Chapter.xhtml)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.4.1 The transaction-io.rkt File
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The transaction  structure will consist of a transaction-io structure  (transaction
+    input/output). The transaction input will represent the blockchain address from
+    which the money was sent, and the transaction output will represent the blockchain
+    address to which the money was sent.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This structure contains a hash so that we’re able to verify its validity. It
+    also has a value, an owner, and a timestamp.1   (**struct** transaction-io2     (transaction-hash
+    value owner timestamp)3     **#:prefab**)Similarly to a block, we will use the
+    same code for creating a hash and also rely on serialization:1   (**define** (calculate-transaction-io-hash
+    value owner timestamp)2     (bytes->hex-string  (sha256  (bytes-append3              (string->bytes/utf-8
+    (number->string value))4              (string->bytes/utf-8 (~a (serialize owner)))5              (string->bytes/utf-8  (number->string  timestamp))))))make-transaction-io
+    is a helper procedure that will initialize timestamp as well:1   (**define** (make-transaction-io
+    value owner)2     (**let** ([timestamp (current-milliseconds)])3       (transaction-io4        (calculate-transaction-io-hash
+    value owner timestamp)5        value6        owner7        timestamp)))A transaction-io
+    structure  is valid if its hash is equal to the hash of the value, owner, and
+    the timestamp  :1   (**define** (valid-transaction-io? t-in)2     (equal? (transaction-io-transaction-hash
+    t-in)3             (calculate-transaction-io-hash4              (transaction-io-value
+    t-in)5              (transaction-io-owner t-in)6              (transaction-io-timestamp  t-in))))Here’s
+    an example usage:1   > (make-transaction-io 123 "Some person")2   '#s(transaction-io
+    "df652a3c15feba2eb9071cfdd810130c971f7fe7494a4710ee623   2fca11f0d83e" 123 "Some
+    person" 1573765357289)4   > (valid-transaction-io? (transaction-io "df652a3c15feba2eb9071cfdd810135   0c971f7fe7494a4710ee622fca11f0d83e"
+    123 "Some person" 1573765357289))6   #t7   > (valid-transaction-io? (transaction-io
+    "badhash" 123 "Some person"8   1573765357289))9   #fFinally, we import the necessary
+    packages and export the procedures:1   (**require** (**only-in** sha sha256))2   (**require**
+    (**only-in** sha bytes->hex-string))3   (**require** racket/serialize)45   (**provide**
+    (**struct-out** transaction-io)6             make-transaction-io valid-transaction-io?)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now that we have a way to store transaction inputs/outputs, we can proceed with
+    the actual transaction implementation  .
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.4.2 The transaction.rkt File
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: This file will contain procedures for signing and verifying transactions. It
+    will also use transaction inputs and outputs and store them in a single transaction.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here’s everything that we will need to require:1   (**require** "transaction-io.rkt")2   (**require**
+    "utils.rkt")3   (**require** (**only-in** file/sha1 hex-string->bytes))4   (**require**
+    "wallet.rkt")5   (**require** crypto)6   (**require** crypto/all)7   (**require**
+    racket/serialize)A transaction contains a signature, sender, receiver, value,
+    and a list of inputs and outputs (transaction-io objects).1   (**struct** transaction2     (signature
+    from to value inputs outputs)3     **#:prefab**)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![../images/510363_1_En_3_Chapter/510363_1_En_3_Figl_HTML.gif](../images/510363_1_En_3_Chapter/510363_1_En_3_Figl_HTML.gif)'
+  prefs: []
+  type: TYPE_IMG
+- en: Definition 3-4
+  prefs: []
+  type: TYPE_NORMAL
+- en: In Racket, a **crypto factory** consists of specific implementations of crypto-graphic
+    algorithms.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In addition to the code, we need to use all crypto factories. They will allow
+    us to use some procedures, for example hex<->pk-key:1   (use-all-factories!)We
+    will need a procedure that makes an empty, unsigned, and unprocessed (no input
+    outputs) transaction. This procedure will be used later when we send money or
+    create the first (genesis) transaction.1   (**define** (make-transaction from
+    to value inputs)2     (transaction3      ""4      from5      to6      value7      inputs8      '()))
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.4.2.1 Digital Signatures
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Next, we need a procedure  to sign a transaction. It is similar to the procedures
+    we wrote earlier where we used hashing, in that we get all bytes from the structure
+    and append them. The difference, in this case, is that we will be using digital
+    signatures for signing and verifying data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To create a digital signature, we use a hashing procedure (in this case, it
+    is using the SHA algorithm). The private key is then used to encrypt the produced
+    hash. The encrypted hash will represent the digital signature. 1   (**define**
+    (sign-transaction from to value) 2     (**let** ([privkey (wallet-private-key
+    from)] 3           [pubkey (wallet-public-key from)]) 4       (bytes->hex-string 5        (digest/sign 6         (datum->pk-key
+    (hex-string->bytes privkey) 'PrivateKeyInfo) 7         'sha1 8         (bytes-append 9          (string->bytes/utf-8
+    (~a (serialize from)))10          (string->bytes/utf-8 (~a (serialize to)))11          (string->bytes/utf-8
+    (number->string value)))))))
+  prefs: []
+  type: TYPE_NORMAL
+- en: digest/sign is the procedure that does the hashing and encryption. It accepts
+    a private key, an algorithm,^([1](#Fn1)) and bytes, and it returns encrypted data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.4.2.2 Processing Transactions
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: 'Next, we implement a procedure for processing transactions  which will:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Sum all the inputs within inputs-sum.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Calculate the leftover, which is the difference between inputs-sum and the current
+    transaction’s value.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Generate new outputs based on the transaction’s value and leftover.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Combine the old outputs (outputs) and new outputs (new-outputs) to the newly
+    generated transaction (inputs remain unchanged and will be used by the UTXO implementation
+    later).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Use foldr + 0 l to calculate the sum of a list of numbers, l.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In other words, based on some transaction inputs, the procedure will create
+    transaction outputs that contain the transaction’s value and leftover money: 1   (**define**
+    (process-transaction t) 2     (**letrec** 3         ([inputs (transaction-inputs
+    t)] 4          [outputs (transaction-outputs t)] 5          [value (transaction-value
+    t)] 6          [inputs-sum 7           (foldr + 0 (map (lambda (i) (transaction-io-value
+    i)) inputs))] 8          [leftover (- inputs-sum value)] 9          [new-outputs10           (list11            (make-transaction-io
+    value (transaction-to t))12            (make-transaction-io leftover (transaction-from
+    t)))])13       (transaction14        (sign-transaction (transaction-from t)15                          (transaction-to
+    t)16                          (transaction-value t))17        (transaction-from
+    t)18        (transaction-to t)19        value20        inputs21        (append
+    new-outputs outputs))))We will also need a procedure that checks a transaction
+    signature  : 1   (**define** (valid-transaction-signature? t) 2     (**let** ([pubkey
+    (wallet-public-key (transaction-from t))]) 3       (digest/verify 4        (datum->pk-key
+    (hex-string->bytes pubkey) 'SubjectPublicKeyInfo) 5        'sha1 6        (bytes-append 7         (string->bytes/utf-8
+    (~a (serialize (transaction-from t)))) 8         (string->bytes/utf-8 (~a (serialize
+    (transaction-to t)))) 9         (string->bytes/utf-8 (number->string (transaction-value
+    t))))10         (hex-string->bytes (transaction-signature t)))))
+  prefs: []
+  type: TYPE_NORMAL
+- en: digest/verify is the opposite of digest/sign, in that instead of signing, it
+    determines if a signature is valid.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Lastly, we will need a procedure that determines transaction validity under
+    the following conditions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Its signature is valid: valid-transaction-signature?'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'All outputs are valid: valid-transaction-io?'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'The sum of the inputs is greater than or equal to the sum of the outputs: >=
+    sum-inputs sum-outputs. This resolves the problem of double-spending.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 1   (**define** (valid-transaction? t) 2     (**let** ([sum-inputs 3            (foldr
+    + 0 (map (**lambda** (t) (transaction-io-value t)) 4                            (transaction-inputs
+    t)))] 5           [sum-outputs 6            (foldr + 0 (map (**lambda** (t) (transaction-io-value
+    t)) 7                            (transaction-outputs t)))]) 8       (**and** 9        (valid-transaction-signature?
+    t)10        (true-for-all? valid-transaction-io? (transaction-outputs t))11        (>=
+    sum-inputs sum-outputs))))
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The (and ...) syntax  will return #t if all values passed to it are #t, and
+    it will return #f otherwise. In contrast, (or ...) will return #t if at least
+    one value passed to it is #t, and #f otherwise.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Finally, we export the following:1   (**provide** (**all-from-out** "transaction-io.rkt")2            (**struct-out**
+    transaction)3            make-transaction process-transaction valid-transaction?)
+  prefs: []
+  type: TYPE_NORMAL
+- en: The all-from-out syntax specifies all objects that we import (and that are exported)
+    from the target. In this case, besides the file exporting the transaction structure
+    with a couple of procedures, it also exports everything from transaction-io.rkt.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In addition to wallets and blocks, our implementation also supports the creation
+    and processing of transactions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![../images/510363_1_En_3_Chapter/510363_1_En_3_Figm_HTML.gif](../images/510363_1_En_3_Chapter/510363_1_En_3_Figm_HTML.gif)Exercise
+    3-8'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Create a transaction, process it, and verify it using the procedures above.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Hint**: Use make-transaction, process-transaction, and valid-transaction?,
+    respectively.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.5 The blockchain.rkt File
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: We will now implement the final component—the blockchain. We’ll need to require
+    a bunch of stuff:1   (**require** "block.rkt")2   (**require** "transaction.rkt")3   (**require**
+    "utils.rkt")4   (**require** "wallet.rkt")Recall that UTXO is just a list of transaction-io
+    objects, where it represents unspent transaction outputs. In a way, it resembles
+    the initial balance of wallets. Thus, the structure will contain a list of blocks
+    and UTXO:1   (**struct** blockchain2     (blocks utxo)3     **#:prefab**)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.5.1 Initialization
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: We will need a procedure for the initialization of the blockchain. It should
+    accept the genesis transaction, genesis hash, and UTXO:1   (**define** (init-blockchain
+    t seed-hash utxo)2     (blockchain (cons (mine-block (process-transaction t) seed-hash)
+    '())3                 utxo))One way to initialize a blockchain is as follows:1   >
+    (**define** coin-base (make-wallet))2   > (**define** wallet-a (make-wallet))3   >
+    (**define** genesis-t (make-transaction coin-base wallet-a 100  '()))4   > (**define**
+    utxo (list5   >              (make-transaction-io 100 wallet-a)))6   > (**define**
+    blockchain (init-blockchain genesis-t "1337cafe"  utxo))
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.5.2 Rewards
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: In the original Bitcoin implementation, the block reward starts at 50 coins
+    for the first block and halves on every 210000 blocks. This means that every block
+    up until block 210000 will reward 50 coins, while block 210001 will reward 25\.
+    In other words, the reward is calculated using the following formula, where *b*
+    is the number of blocks.![$$ \frac{2^{\left\lfloor \frac{b}{210000}\right\rfloor
+    }}{50} $$](../images/510363_1_En_3_Chapter/510363_1_En_3_Chapter_TeX_Equa.png)We
+    follow the same algorithm. We start with 50 coins initially and halve them on
+    every 210000 blocks.1   (**define** (mining-reward-factor blocks)2     (/ 50 (expt
+    2 (floor (/ (length blocks) 210000)))))
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.5.3 Adding a Transaction
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'The next procedure will add a transaction to the blockchain. It should:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '1.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Mine a block.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '2.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Create a new UTXO based on the processed transaction outputs, inputs, and the
+    current UTXO.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '3.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Generate a new list of blocks by adding the newly mined block.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '4.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Calculate the rewards based on the current UTXO.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: Additionally, UTXO will be treated as a set so that we can easily remove specific
+    inputs and append new transactions using set operations. 1   (**define** (add-transaction-to-blockchain
+    b t) 2     (**letrec** ([hashed-blockchain 3               (mine-block t 4                (block-current-hash
+    (car (blockchain-blocks b))))] 5              [processed-inputs (transaction-inputs
+    t)] 6              [processed-outputs (transaction-outputs t)] 7              [utxo
+    (set-union processed-outputs 8                               (set-subtract (blockchain-utxo
+    b) 9                                             processed-inputs))]10              [new-blocks
+    (cons hashed-blockchain (blockchain-blocks b))]11              [utxo-rewarded
+    (cons12                              (make-transaction-io13                               (mining-reward-factor
+    new-blocks)14                               (transaction-from t))15                              utxo)])16        (blockchain17         new-blocks18         utxo-rewarded)))
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'There is another thing about add-transaction-to-blockchain: given a blockchain
+    and a transaction, it returns a new, updated blockchain. This newly returned blockchain
+    will be the latest that should be used, since the previous one will not contain
+    this new transaction. This way, we avoid mutating the previous blockchain.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Next, we will create a procedure that will determine the balance of a wallet—the
+    sum of all unspent transactions for the matching owner:1   (**define** (balance-wallet-blockchain  b  w)2     (**letrec**
+    ([utxo (blockchain-utxo b)]3              [my-ts (filter4                      (**lambda**
+    (t) (equal? w (transaction-io-owner t)))5                      utxo)])6       (foldr
+    + 0 (map (**lambda** (t) (transaction-io-value t)) my-ts))))We will also need
+    a procedure that will send money from one wallet to another by initiating a transaction
+    and then adding it to the blockchain for processing. my-ts will contain the current
+    receiver’s transaction inputs. Finally, we add the transaction to the blockchain
+    only if it is valid. 1   (**define** (send-money-blockchain b from to value) 2     (**letrec**
+    ([my-ts 3               (filter (**lambda** (t) (equal? from (transaction-io-owner
+    t))) 4                       (blockchain-utxo b))] 5               [t (make-transaction
+    from to value my-ts)]) 6       (**if** (transaction? t) 7           (**let** ([processed-transaction
+    (process-transaction t)]) 8             (**if** (**and** 9                  (>=
+    (balance-wallet-blockchain b from) value)10                  (valid-transaction?
+    processed-transaction))11                 (add-transaction-to-blockchain b processed-transaction)12                 b))13           (add-transaction-to-blockchain
+    b '()))))
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.5.4 Verification
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'We will now introduce a procedure that determines blockchain validity under
+    the following conditions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: All blocks are valid using valid-block?.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Previous hashes are matching using the equal? check by comparing the previous
+    hash of all blocks (except the last) to the current hash of all blocks (except
+    the first).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: All transactions are valid using valid-transaction?.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: All blocks are mined using mined-block?.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 1   (**define** (valid-blockchain? b) 2     (**let** ([blocks (blockchain-blocks
+    b)]) 3       (**and** 4        (true-for-all? valid-block? blocks) 5        (equal?
+    (drop-right (map block-previous-hash blocks) 1) 6                (cdr (map block-current-hash
+    blocks))) 7        (true-for-all? 8         valid-transaction? (map 9                            (**lambda**
+    (block) (block-transaction block))10                            blocks))11         (true-for-all?12         mined-block?
+    (map block-current-hash blocks)))))Finally, we export everything:1   (**provide**
+    (**all-from-out** "block.rkt")2            (**all-from-out** "transaction.rkt")3            (**all-from-out**
+    "wallet.rkt")4            (**struct-out** blockchain)5            init-blockchain
+    send-money-blockchain6            balance-wallet-blockchain valid-blockchain?)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We now have all the necessary components: managing wallets, blocks, transactions,
+    and finally the blockchain.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![../images/510363_1_En_3_Chapter/510363_1_En_3_Fign_HTML.gif](../images/510363_1_En_3_Chapter/510363_1_En_3_Fign_HTML.gif)Exercise
+    3-9'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Create two sets and use set-subtract, set-union, and set-intersect on them.
+    Observe the results.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![../images/510363_1_En_3_Chapter/510363_1_En_3_Figo_HTML.gif](../images/510363_1_En_3_Chapter/510363_1_En_3_Figo_HTML.gif)Exercise
+    3-10'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Initialize a blockchain with init-blockchain and add a transaction to it using
+    add-transaction-to-blockchain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![../images/510363_1_En_3_Chapter/510363_1_En_3_Figp_HTML.gif](../images/510363_1_En_3_Chapter/510363_1_En_3_Figp_HTML.gif)Exercise
+    3-11'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Use valid-blockchain? on the blockchain in the previous exercise (do this before
+    adding the new transaction, and again after adding the new transaction).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![../images/510363_1_En_3_Chapter/510363_1_En_3_Figq_HTML.gif](../images/510363_1_En_3_Chapter/510363_1_En_3_Figq_HTML.gif)Exercise
+    3-12'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Make a transfer in a blockchain using send-money-blockchain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.6 Integrating Components
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In this section, we will combine all the various parts into a single point and
+    show how they can be easily used.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.6.1 The main-helper.rkt File
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'This file will import everything from blockchain.rkt and utils.rkt and will
+    provide some printing procedures.1   (**require** "blockchain.rkt")2   (**require**
+    "utils.rkt")The next procedure will convert a transaction object to a printable
+    string. It will use substring to only print a subset of the hash (since it may
+    be too big), and it will also use format, which is a string-formatting procedure
+    that replaces every ∼a in a string with the passed argument in order.1   (**define**
+    (format-transaction t)2     (format "...~a... sends ...~a... an amount of ~a."3             (substring
+    (wallet-public-key (transaction-from t)) 64 80)4             (substring  (wallet-public-key  (transaction-to  t))
+    64  80)5             (transaction-value t)))The next procedure will print the
+    details of a block. printf is similar to print, except that it can be used like
+    format:1   (**define** (print-block bl)2     (printf "Block information**\n**=================3   Hash:**\t**~a**\n**Hash_p:**\t**~a**\n**Stamp:**\t**~a**\n**Nonce:**\t**~a**\n**Data:**\t**~a**\n**"4         (block-current-hash
+    bl)5         (block-previous-hash bl)6         (block-timestamp bl)7         (block-nonce
+    bl)8         (format-transaction (block-transaction bl))))Besides using recursion
+    explicitly, there is a built-in for syntax that also allows repetitive computations.
+    To print a blockchain, we will use the for syntax to go through all blocks, print
+    them to the standard output, and then use newline to add a newline character to
+    make the separation of every block obvious:1   (**define** (print-blockchain b)2     (**for**
+    ([block (blockchain-blocks b)])3       (print-block block)4       (newline)))We
+    print wallets similarly:1   (**define** (print-wallets b wallet-a wallet-b)2     (printf
+    "**\n**Wallet A balance: ~a**\n**Wallet B balance: ~a**\n\n**"3             (balance-wallet-blockchain
+    b wallet-a)4             (balance-wallet-blockchain b wallet-b)))And export the
+    procedures:1   (**provide** (**all-from-out** "blockchain.rkt")2            (**all-from-out**
+    "utils.rkt")3            format-transaction print-block print-blockchain print-wallets)![../images/510363_1_En_3_Chapter/510363_1_En_3_Figr_HTML.gif](../images/510363_1_En_3_Chapter/510363_1_En_3_Figr_HTML.gif)Exercise
+    3-13'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Create a transaction and use format-transaction to see what it outputs. Repeat
+    the same for a block (print-block), blockchain (print-blockchain), and wallets
+    (print-wallets).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.6.2 The main.rkt File
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: This is where we will put all the components together and use them. We start
+    by checking if the blockchain.data file  exists by using file-exists?. This file
+    will contain contents from a previous blockchain if it exists. If it doesn’t,
+    we will just create a fresh blockchain.1   (**require** "main-helper.rkt")23   (**when**
+    (file-exists? "blockchain.data")4     (**begin**4       (printf "Found 'blockchain.data',
+    reading...**\n**")6       (print-blockchain (file->struct "blockchain.data"))7       (exit)))
+  prefs: []
+  type: TYPE_NORMAL
+- en: We used when, which is similar to if, except that the else branch is omitted.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Next, we initialize wallets:1   (**define** coin-base (make-wallet))2   (**define**
+    wallet-a (make-wallet))3   (**define** wallet-b (make-wallet))We initialize transactions
+    by creating the genesis transaction:1   (printf "Making genesis transaction...**\n**")2   (**define**
+    genesis-t (make-transaction coin-base wallet-a 100 ''()))We initialize the unspent
+    transactions—the genesis transaction:1   (**define** utxo (list2                 (make-transaction-io
+    100 wallet-a)))Finally, we initiate the blockchain by mining the genesis transaction:1   (printf
+    "Mining genesis block...**\n**")2   (**define** blockchain (init-blockchain genesis-t
+    "1337cafe" utxo))3   (print-wallets blockchain wallet-a wallet-b)Making a second
+    transaction:1   (printf "Mining second transaction...**\n**")2   (**set!** blockchain
+    (send-money-blockchain blockchain wallet-a wallet-b 2))3   (print-wallets blockchain
+    wallet-a wallet-b)Making a third transaction:1   (printf "Mining third transaction...**\n**")2   (**set!**
+    blockchain (send-money-blockchain blockchain wallet-b wallet-a 1))3   (print-wallets
+    blockchain wallet-a wallet-b)Attempting to make a fourth transaction:1   (printf
+    "Attempting to mine fourth (not-valid) transaction...**\n**")2   (**set!** blockchain
+    (send-money-blockchain blockchain wallet-b wallet-a 3))3   (print-wallets blockchain
+    wallet-a wallet-b)Checking blockchain validity:1   (printf "Blockchain is valid:
+    ~a**\n\n**" (valid-blockchain? blockchain))Printing every block from the blockchain:1   (**for**
+    ([block (blockchain-blocks blockchain)])2     (print-block block)3     (newline))And
+    exporting the blockchain to blockchain.data, which can be reused later.1   (struct->file
+    blockchain "blockchain.data")2   (printf "Exported blockchain to ''blockchain.data''...**\n**")Once
+    we create main.rkt, we run it from the Racket > Run menu. It should show the following
+    output: 1   Making genesis transaction... 2   Mining genesis block... 3 4   Wallet
+    A balance: 100 5   Wallet B balance: 0 6 7   Mining second transaction... 8 9   Wallet
+    A balance: 13010   Wallet B balance: 201112   Mining third transaction...1314   Wallet
+    A balance: 14015   Wallet B balance: 601617   Attempting to mine fourth (not-valid)
+    transaction...1819   Wallet A balance: 14020   Wallet B balance: 602122   Blockchain
+    is valid: #t2324   Block information25   =================26   Hash:   e720bb198279a76057280bdf8eb667fe1883d0ae263c5d5d1be08697a2f534d127   Hash_p:
+    38200563c1f807be2a5d10ec42dd53acae1f6f804b4c93016b87c974817f065d28   Stamp:  152992361057429   Nonce:  21630   Data:   ...bb6...
+    sends ...896... an amount of 10.3132   Block information33   =================34   Hash:   38200563c1f807be2a5d10ec42dd53acae1f6f804b4c93016b87c974817f065d35   Hash_p:
+    6a20fbe4038bb3b83090e7f767bb24af5164218bba5c751a1858262df2a2a84736   Stamp:  152992361040537   Nonce:  75238   Data:   ...896...
+    sends ...bb6... an amount of 20.3940   Block  information41   =================42   Hash:   6a20fbe4038bb3b83090e7f767bb24af5164218bba5c751a1858262df2a2a84743   Hash_p:
+    7365656467656e6573697344   Stamp:  152992361033245   Nonce:  22046   Data:   ...58d...
+    sends ...896... an amount of 100.4748   Exported blockchain to ''blockchain.data''...'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.7 Summary
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: We built every component one by one, gradually. Some components are *orthogonal*—they
+    are independent of one another. For example, the wallet implementation does not
+    call any procedures from block, and a block can be used independently of a wallet.
+    When we combine all of the components, we get a blockchain system.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This design allows us to easily extend our system. In the next chapter, we will
+    extend the system with peer-to-peer and smart contracts functionalities without
+    having to change the basic components.
+  prefs: []
+  type: TYPE_NORMAL

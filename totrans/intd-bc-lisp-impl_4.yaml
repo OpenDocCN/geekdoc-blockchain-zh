@@ -1,0 +1,696 @@
+- en: © The Author(s), under exclusive license to APress Media, LLC, part of Springer
+    Nature 2021B. SitnikovskiIntroducing Blockchain with Lisp[https://doi.org/10.1007/978-1-4842-6969-5_4](https://doi.org/10.1007/978-1-4842-6969-5_4)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 4. Extending the Blockchain
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Boro Sitnikovski^([1](#Aff2)  )(1)Skopje, North Macedonia![../images/510363_1_En_4_Chapter/510363_1_En_4_Figa_HTML.jpg](../images/510363_1_En_4_Chapter/510363_1_En_4_Figa_HTML.jpg)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Extensions, by D. Bozhinovski*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the previous chapter, we implemented blockchain’s basic components. In this
+    chapter, we will extend the blockchain with smart contracts and peer-to-peer support.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 4.1 Smart Contracts Implementation
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Bitcoin’s blockchain is programmable, which means that the transaction conditions
+    themselves can be programmed by users. For example, users can write *scripts*
+    (short pieces of code) to add requirements that must be satisfied before making
+    a transaction.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In Section 2.4, we created an executable that we can send to our friends, but
+    they cannot change the executable because they don’t have the original code. And
+    even if they did have the original code, not all users have programming skills.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The point of smart contracts is to allow non-programmers to adjust the behavior
+    of the transactional process without having to change the original code.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 4.1.1 The smart-contracts.rkt File
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'The idea is to implement a small language, which users can consume. Our implementation
+    will depend on transactions:1   (**require** "transaction.rkt")We have to extend
+    the original valid-transaction? so that it will also consider contracts when calculating
+    validity:1   (**define** (valid-transaction-contract? t c)2     (**and** (eval-contract
+    t c)3          (valid-transaction? t)))We will now implement a procedure that
+    will accept a transaction, a contract, a scripting language (which is really just
+    an S-expression), and return some value. The returned value can be true, false,
+    a number, or a string. 1   (**define** (eval-contract t c) 2     (**match** c 3       [(?
+    number? x) x] 4       [(? string? x) x] 5       [`() #t] 6       [`true #t] 7       [`false
+    #f] 8       [`(if ,co ,tr ,fa) (**if** co tr fa)] 9       [`(+ ,l ,r) (+ l r)]10       [**else**
+    #f]))'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We used new syntax here, called match. It is similar to cond, except that it
+    can directly compare the structure of an object. For example, ? <expr> <pat> matches
+    when <expr> is true and stores the value in <pat>. In the previous code, if we
+    pass a number, it will return that same number. Additionally, if we pass the value
+    true (i.e., c matches true), then it will return #t. Another example is if c matches
+    a structure of the form (if X Y Z) (quoted^([1](#Fn1))), then it will return the
+    evaluation of (if X Y Z).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here are a few example uses: 1   > (**define** test-transaction (transaction
+    "BoroS" "Boro" "You" "a book" 2     ''() ''())) 3   > (eval-contract test-transaction
+    123) 4   123 5   > (eval-contract test-transaction "Hi") 6   "Hi" 7   > (eval-contract
+    test-transaction ''()) 8   #t 9   > (eval-contract test-transaction ''true)10   #t11   >
+    (eval-contract test-transaction ''false)12   #f13   > (eval-contract test-transaction
+    ''(if #t "Hi" "Hey"))14   "Hi"15   > (eval-contract test-transaction ''(if #f
+    "Hi" "Hey"))16   "Hey"17   > (eval-contract test-transaction ''(+ 1 2))18   3However,
+    we still haven’t used any of the transaction’s values in our language. Let’s extend
+    it with a few more commands:1   ...2        [`from (transaction-from t)]3        [`to
+    (transaction-to t)]4        [`value (transaction-value t)]5   ...Now we can do
+    something like this:1   > (eval-contract test-transaction ''from)2   "Boro"3   >
+    (eval-contract test-transaction ''to)4   "You"5   > (eval-contract test-transaction
+    ''value)6   "a book"We will implement a few more operators so that the scripting
+    language becomes more expressive:1   ...2        [`(* ,l ,r) (* l r)]3        [`(-
+    ,l ,r) (- l r)]4        [`(= ,l ,r) (equal? l r)]5        [`(> ,l ,r) (> l r)]6        [`(<
+    ,l ,r) (< l r)]7        [`(and ,l ,r) (**and** l r)]8        [`(or ,l ,r) (**or**
+    l r)]9   ...However, there is a problem in the language implementation. Consider
+    the evaluations of (+ 1 2) and (+ (+ 1 2) 3):1   > (eval-contract test-transaction
+    ''(+ 1 2))2   33   > (eval-contract test-transaction ''(+ (+ 1 2) 3))4   . . +:
+    **contract** violation'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The problem happens in the matching clause [`(+ ,l ,r) (+ l r)]. When we match
+    against '(+ (+ 1 2) 3)), we end up with (+ '(+ 1 2) 3), and Racket cannot sum
+    a quoted list with a number. The solution to this problem is to *recursively*
+    evaluate every subexpression. So the match turns from [`(+ ,l ,r) (+ l r)] to
+    [`(+ ,l ,r) (+ (eval-contract t l) (eval-contract t r))].
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this case, the evaluation will happen as follows:1   (eval-contract t '(+
+    (+ 1 2) 3))2   = (eval-contract t (list '+ (eval-contract t '(+ 1 2))3                               (eval-contract
+    t 3)))4   = (eval-contract t (list '+ (+ 1 2) 3))5   = (eval-contract t (list
+    '+ 3 3))6   = (eval-contract t '(+ 3 3))7   = (eval-contract t 6)8   = 6
+  prefs: []
+  type: TYPE_NORMAL
+- en: It is important to remember the distinction between a quoted list and a non-quoted
+    one; the latter will attempt evaluation. In this case, we juggled the quotations
+    to produce the desired results.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We will have to rewrite all of the operators: 1   ... 2        [`(+ ,l ,r)
+    (+ (eval-contract t l) (eval-contract t r))] 3        [`(* ,l ,r) (* (eval-contract
+    t l) (eval-contract t r))] 4        [`(- ,l ,r) (- (eval-contract t l) (eval-contract
+    t r))] 5        [`(= ,l ,r) (= (eval-contract t l) (eval-contract t r))] 6        [`(>
+    ,l ,r) (> (eval-contract t l) (eval-contract t r))] 7        [`(< ,l ,r) (< (eval-contract
+    t l) (eval-contract t r))] 8        [`(**and** ,l ,r) (and (eval-contract t l)
+    (eval-contract t r))] 9        [`(**or** ,l ,r) (or (eval-contract t l) (eval-contract
+    t r))]10   ...The if implementation in the language has the same problem. So we
+    will also change it:1   ...2        [`(if ,co ,tr ,fa) (**if** (eval-contract
+    t co)3                           (eval-contract t tr)4                           (eval-contract
+    t fa))]5   ...Thus, the final procedure becomes: 1   (**define** (eval-contract
+    t c) 2     (**match** c 3       [(? number? x) x] 4       [(? string? x) x] 5       [`()
+    #t] 6       [`true #t] 7       [`false #f] 8       [`(if ,co ,tr ,fa) (**if**
+    (eval-contract t co) 9                              (eval-contract t tr)10                              (eval-contract
+    t fa))]11       [`(+ ,l ,r) (+ (eval-contract t l) (eval-contract t r))]12       [`from
+    (transaction-from t)]13       [`to (transaction-to t)]14       [`value (transaction-value
+    t)]15       [`(+ ,l ,r) (+ (eval-contract t l) (eval-contract t r))]16       [`(*
+    ,l ,r) (* (eval-contract t l) (eval-contract t r))]17       [`(- ,l ,r) (- (eval-contract
+    t l) (eval-contract t r))]18       [`(= ,l ,r) (= (eval-contract t l) (eval-contract
+    t r))]19       [`(> ,l ,r) (> (eval-contract t l) (eval-contract t r))]20       [`(<
+    ,l ,r) (< (eval-contract t l) (eval-contract t r))]21       [`(**and** ,l ,r)
+    (and (eval-contract t l) (eval-contract t r))]22       [`(**or** ,l ,r) (or (eval-contract
+    t l) (eval-contract t r))]23       [**else** #f]))Users can now supply scripting
+    code, such as (if (= (+ 1 2) 3) from to):1   > (eval-contract test-transaction
+    ''(if (= (+ 1 2) 3) from to))2   "Boro"3   > (eval-contract test-transaction ''(if
+    (= (+ 1 2) 4) from to))4   "You"Finally, we provide the output, which is just
+    the transaction validity check:1   (**provide** valid-transaction-contract?)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 4.1.2 Updating Existing Code
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Now that we have implemented the logic for smart contracts, the next thing we
+    need to address is the front-end—how users can use its functionality. For that
+    matter, we will update the implementation to support contracts by reading from
+    a file. If a file named contract.script exists, we will read and parse it (with
+    read) and then run the code.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We will rewrite the money sending procedure in blockchain.rkt to accept contracts.
+    It’s the same procedure except that we use valid-transaction-contract? instead
+    of valid-transaction?. 1   (**define** (send-money-blockchain b from to value
+    c) 2     (**letrec** ([my-ts 3               (filter (**lambda** (t) (equal? from
+    (transaction-io-owner t))) 4                       (blockchain-utxo b))] 5               [t
+    (make-transaction from to value my-ts)]) 6       (**if** (transaction? t) 7           (**let**
+    ([processed-transaction (process-transaction t)]) 8             (**if** (**and** 9                  (>=
+    (balance-wallet-blockchain b from) value)10                  (valid-transaction-contract?
+    processed-transaction c))11                  (add-transaction-to-blockchain b
+    processed-transaction)12                  b))13           (add-transaction-to-blockchain
+    b '()))))Next, we will update utils.rkt to add this helper procedure for reading
+    contracts:1   (**define** (file->contract file)2     (**with-handlers** ([exn:fail?
+    (**lambda** (exn) '())])3       (read (open-input-file **file**))))
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here, we used with-handlers, which accepts a procedure that handles the case
+    when something may fail—in this case, read or open-input-file.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Finally, make sure to add file->contract to the list of provides in utils.rkt.
+    Additionally, in main.rkt update every use of send-money-blockchain to additionally
+    send (file->contract "contract.script") as an argument so that the contract processed
+    is the one read from contract.script.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We will also need to update blockchain.rkt and main.rkt because they now rely
+    on a procedure implemented in the smart contracts package. We will add (require
+    "smart-contracts.rkt") to them.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![../images/510363_1_En_4_Chapter/510363_1_En_4_Figb_HTML.gif](../images/510363_1_En_4_Chapter/510363_1_En_4_Figb_HTML.gif)Exercise
+    4-1'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Come up with a few valid expressions and evaluate them using eval-contract.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![../images/510363_1_En_4_Chapter/510363_1_En_4_Figc_HTML.gif](../images/510363_1_En_4_Chapter/510363_1_En_4_Figc_HTML.gif)Exercise
+    4-2'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Repeat the previous exercise, but use the contract.script file.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Hint**: This exercise might require you to create an executable.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 4.2 Peer-to-Peer Implementation
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In Section 3.6.2, we used DrRacket to execute the blockchain implementation.
+    That’s okay for testing purposes. However, if we wanted to share that implementation
+    with other users and ask them to execute it, it will be kind of inconvenient because
+    there’s no way to share data between different users.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this section, we will implement peer-to-peer support so that users who are
+    interested in our implementation can join the system/community.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Before we dive into the implementation, Figure [4-1](#Fig1) shows a high overview
+    of the architecture that we will build.![../images/510363_1_En_4_Chapter/510363_1_En_4_Fig1_HTML.jpg](../images/510363_1_En_4_Chapter/510363_1_En_4_Fig1_HTML.jpg)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 4-1
+  prefs: []
+  type: TYPE_NORMAL
+- en: Peer-to-peer architecture
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Every peer node (user connected to the system) list will consist of the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Peer context data* *:* Information such as relations with other peers, list
+    of connected peers, and so on.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Generic handler:* Transforms the peer context data.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Further, there will be two ways to establish communication with other peers:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A peer will accept new connections from other peers.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A peer will try to connect/make new connections to other peers.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Whenever a connection is established, peers will communicate with each other
+    through the generic handler, parsing and evaluating commands such as syncing/updating
+    the blockchain, updating the list of peers, and so on.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Consider this example scenario: Assume there are three peers—Peer 1, Peer 2,
+    and Peer 3\. Peer 1 and Peer 2 are online, and Peer 3 is offline at the moment.
+    Peer 1 has the following list of valid peers: (Peer 1, Peer 2, Peer 3). Peer 2’s
+    list of peers is empty. According to the diagram, Peer 1 will accept new connections
+    and try to connect to peers. So, Peer 1 will try to connect to Peer 2\. This connection
+    will be successful, and the next step is for Peer 1 to send some data to Peer
+    2 (e.g., the list of valid peers).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Peer 2’s list of peers was empty, but now it will be merged with Peer 1, so
+    it will become (Peer 1, Peer 2, Peer 3). Peer 1 and Peer 2 are connected to each
+    other, and they will keep trying to connect to Peer 3\. Once Peer 3 becomes available,
+    the same algorithm will be executed and Peer 3 will join the network.
+  prefs: []
+  type: TYPE_NORMAL
+- en: With this approach, the goal is to build a system similar to the high-level
+    description shown in Figures [1-1](#Fig1) and [1-3](510363_1_En_1_Chapter.xhtml#Fig3)
+    (Chapter [1](510363_1_En_1_Chapter.xhtml)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Building communication systems of this type is naturally complex. It is suggested
+    you consult the Racket manuals (by pressing the F1 key) for every procedure that
+    you will be using.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 4.2.1 The peer-to-peer.rkt File
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: To start, we will add dependencies for the block implementation and rely on
+    serialization to send data to other peers:1   (**require** "blockchain.rkt")2   (**require**
+    "block.rkt")3   (**require** racket/serialize)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 4.2.1.1 Peer Context Structure
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: We will implement structures that hold information about the peers so that we
+    have a reference to send data to the correct destinations. The peer-info structure  contains
+    an IP address and a port of a peer. Think of an IP address and a port similar
+    to a street address and a number, respectively.1   (**struct** peer-info2     (ip
+    port)3     **#:prefab**)The peer-info-io structure  additionally contains IO ports
+    (think communication channels) for sending and receiving data between peers:1   (**struct**
+    peer-info-io2     (peer-info input-port output-port)3     **#:prefab**)
+  prefs: []
+  type: TYPE_NORMAL
+- en: The reason we separate peer-info and peer-info-io is that later in main-p2p.rkt,
+    we won’t have the context of input/output ports (before a connection to a peer
+    is established), so it gives us a nice way to reuse the structure.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Finally, peer-context-data contains all the information needed for a single
+    peer, that is:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: List of valid peers
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: List of connected peers
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A reference to the blockchain
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 1   (**struct** peer-context-data2     (name3      port4      [valid-peers **#:mutable**]5      [connected-peers
+    **#:mutable**]6      [blockchain **#:mutable**])7     **#:prefab**)
+  prefs: []
+  type: TYPE_NORMAL
+- en: The list^([2](#Fn2)) of valid peers will be updated depending on the information
+    retrieved from the connected peers. The list of connected peers will be a (not
+    necessarily strict) subset of valid-peers. The blockchain will be updated with
+    the data combined from all peers. We make them mutable because it provides an
+    easy way to update the data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 4.2.1.2 Generic Handler
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: The generic handler  will be a handler procedure that will be used both by the
+    server (the “accepting new connections” part of the diagram) and the client (the
+    “connecting to new peers” part of the diagram). It will be a procedure that accepts
+    commands (commands similar in nature to the smart contracts’ eval-contract implementation)
+    and then does something depending on the command.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here’s a list of commands that peers will send to each other:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| **Request** | **Response** | **Notes** |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| get-valid-peers | valid-peers:X | A peer may request a list of valid peers.
+    The response will be X – valid peers. Note that this response should automatically
+    trigger the valid-peers command. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| get-latest-blockchain | latest-blockchain:X | A peer may request the latest
+    blockchain from another peer. The response will be X - the latest version of the
+    blockchain. This should trigger the latest-blockchain command. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| latest-blockchain:X |   | When a peer gets this request, it will update the
+    blockchain, given it is valid. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| valid-peers:X |   | When a peer gets this request, it will update the list
+    of valid peers. |'
+  prefs: []
+  type: TYPE_TB
+- en: 'The commands  in this table will allow the peers to sync data with each other.
+    We will now provide the handler implementation. It accepts a peer-context and
+    input/output ports. Given these, it will read the input (command) and send the
+    appropriate output (evaluated command) back to the peer: 1   (**define** (handler
+    peer-context in out) 2     (flush-output out) 3     (**define** line (read-line
+    in)) 4     (**when** (string? line) *; it can be eof* 5       (**cond** [(string-prefix?
+    line "get-valid-peers") 6              (fprintf out "valid-peers:~a\n" 7                       (serialize 8                        (set->list 9                         (peer-context-data-valid-peers
+    peer-context))))10              (handler peer-context in out)]11             [(string-prefix?
+    line "get-latest-blockchain")12              (fprintf out "latest-blockchain:")13              (write14               (serialize
+    (peer-context-data-blockchain peer-context)) out)15              (handler peer-context
+    in out)]16             [(string-prefix? line "latest-blockchain:")17              (**begin**
+    (maybe-update-blockchain peer-context line)18                     (handler peer-context
+    in out))]19             [(string-prefix? line "valid-peers:")20              (**begin**
+    (maybe-update-valid-peers peer-context line)21                     (handler peer-context
+    in out))]22             [(string-prefix? line "exit")23              (fprintf
+    out "bye\n")]24             [**else** (handler peer-context in out)])))We used
+    some new procedures  here:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: An output buffer (output communication channel with a peer) is usually filled
+    with bytes. We need to flush (empty) this buffer every time we want to send a
+    message, to avoid resending the previous messages. We achieve this using `flush-output`.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: read-line is similar to read except that it will stop reading once a newline
+    is reached.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: string-prefix? checks to see if a string starts with some other string.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: fprintf is similar to printf except that we can also supply the first argument
+    to specify where this message should be sent.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: set->list converts a set to a list.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: There’s a little trick involved in the latest-blockchain case—we used write
+    instead of (fprintf out "latest-blockchain:∼a\n"). The reason for that is that
+    print (and thus printf and fprintf) cannot be relied on for output that needs
+    to be formatted in a specific way. For example  , print prints strings with quotation
+    marks (to make the printed data more legible to the user), and this will be messed
+    up when we try to deserialize the data we received, so we want to send the data
+    in its “raw” format.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The next step is to implement procedures for updating the blockchain and the
+    list of valid peers, under the conditions that the blockchain is valid and it
+    has higher effort than ours. 1   (**define** (maybe-update-blockchain peer-context
+    line) 2     (**let** ([latest-blockchain 3            (trim-helper line #rx"(latest-blockchain:|[\r\n]+)")] 4           [current-blockchain 5            (peer-context-data-blockchain
+    peer-context)]) 6       (**when** (**and** (valid-blockchain? latest-blockchain) 7                   (>
+    (get-blockchain-effort latest-blockchain) 8                      (get-blockchain-effort
+    current-blockchain))) 9         (printf "Blockchain updated for peer ~a\n"10                 (peer-context-data-name
+    peer-context))11         (set-peer-context-data-blockchain! peer-context12                                            latest-blockchain))))'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We used #rx"..." for the first time—this specifies a regular expression. Think
+    of it as a way to define a search pattern in some string.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For example, #rx"(latest-blockchain:|[\r\n]+)" matches the following strings:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: latest-blockchain:a\n
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: latest-blockchain:b\n
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In general, latest-blockchain:...\n
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'The previous procedure  will update the blockchain only when it is valid and
+    the effort is higher than the current one. We define the effort as the sum of
+    all blocks’ nonces:1   (**define** (get-blockchain-effort b)2     (foldl + 0 (map
+    block-nonce (blockchain-blocks b))))To update the list of valid peers is to merge
+    the current list of valid peers with the newly received list, thus mutating the
+    peer-context structure  :1   (**define** (maybe-update-valid-peers peer-context
+    line)2     (**let** ([valid-peers (list->set3                         (trim-helper
+    line #rx"(valid-peers:|[\r\n]+)"))]4           [current-valid-peers (peer-context-data-valid-peers5                                 peer-context)])6       (set-peer-context-data-valid-peers!7        peer-context8        (set-union
+    current-valid-peers valid-peers))))We also used this procedure, which is just
+    a helper one that will remove a command (prefix) from a string, allowing us to
+    focus on the input. For example, when we receive valid-peers:X, it will remove
+    valid-peers:, allowing us to retrieve X easily.1   (**define** (trim-helper line
+    x)2     (deserialize3      (read4       (open-input-string5        (string-replace
+    line x "")))))'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This concludes the handler implementation. Now there is a procedure that can
+    be used by peers to accept commands and update the list of peers and the blockchain.
+    In the next section, we will implement the communication between the peers—they
+    should communicate with each other using these commands that we implemented  .
+  prefs: []
+  type: TYPE_NORMAL
+- en: 4.2.1.3 Server Implementation
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: 'When a peer connects to another peer (a server), here’s what should happen:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '1.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The server should wait for the incoming peer to send some command.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '2.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The server should use the handler procedure to handle the necessary data.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '3.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The server should send the transformed data back to the incoming peer.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: However, if more than one peer connects, then the procedure will “block,” in
+    the sense that the second peer will have to wait for the first one to be served,
+    the third will have to wait for the second, and so on.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To resolve this issue, we turn to threads. accept-and-handle is the main procedure
+    that will serve the incoming peers. The procedure accepts a connection (listener
+    object) and a peer context and launches handler in a thread for every incoming
+    connection:1   (**define** (accept-and-handle listener peer-context)2     (**define-values**
+    (in out) (tcp-accept listener))3     (thread4      (**lambda** ()5        (handler
+    peer-context in out)6        (close-input-port in)7        (close-output-port
+    out))))
+  prefs: []
+  type: TYPE_NORMAL
+- en: We used a new procedure called tcp-accept that accepts a connection and returns
+    the input (to read data) and the output ports (to send data). Using the define-values
+    syntax, we store both of these values.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'peers/serve is the main server listener. This is straight copy-pasted from
+    the Racket documentation, and the curious reader can navigate to the documentation
+    and read more about the implementation details. In short, a *custodian* is a kind
+    of container that ensures there are no bogus threads or input/output ports in
+    the memory and takes care of this for us. 1   (**define** (peers/serve peer-context) 2     (**define**
+    main-cust (make-custodian)) 3     (**parameterize** ([current-custodian main-cust]) 4       (**define**
+    listener 5         (tcp-listen (peer-context-data-port peer-context) 5 #t)) 6       (**define**
+    (loop) 7         (accept-and-handle listener peer-context) 8         (loop)) 9       (thread
+    loop))10     (**lambda** ()11       (custodian-shutdown-all main-cust)))'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The tcp-listen procedure  keeps listening to a specific port for new incoming
+    connections.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 4.2.1.4 Client Implementation
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: 'Next  , we will implement connect-and-handle—a procedure that tries to connect
+    to other peers, whereas previously we constructed a procedure that was supposed
+    to serve incoming peers. This procedure will be similar to accept-and-handle,
+    but kind of dual, in that it does not accept new connections. Rather, it tries
+    to make a new connection: 1   (**define** (connect-and-handle peer-context peer) 2     (**begin** 3       (**define-values**
+    (in out) 4         (tcp-connect (peer-info-ip peer) 5                      (peer-info-port
+    peer))) 6 7       (**define** current-peer-io (peer-info-io peer in out)) 8 9       (set-peer-context-data-connected-peers!10        peer-context11        (cons
+    current-peer-io12              (peer-context-data-connected-peers peer-context)))1314        (thread15         (**lambda**
+    ()16           (handler peer-context in out)17           (close-input-port in)18           (close-output-port
+    out)1920           (set-peer-context-data-connected-peers!21            peer-context22            (set-remove23             (peer-context-data-connected-peers
+    peer-context)24             current-peer-io))))))This procedure is quite long
+    so it deserves some unpacking:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '1.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The tcp-connect procedure tries to make a connection to a specific IP address
+    and port (values that we extract from the peer-info structure).
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '2.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: When the connection is successful, tcp-connect will return the input and output
+    ports, which we can use to read data from and write data to, respectively.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '3.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Next, the specific list of connected peers for the current context will be updated.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '4.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Finally, we launch a thread, using handler to handle the communication. When
+    the connection is finished, we do a cleanup and remove the peer from the list
+    of peers.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'The next procedure is to make sure we’re connected with all known peers. We
+    use threads, again, for the same reason as in the server—we do not want this procedure
+    to block the program from connecting to other clients while it tries to connect
+    to one. This procedure is dual to peers/serve, and tcp-connect is dual to tcp-accept.
+    We use sleep to wait for a few seconds before processing again in order to make
+    the process more performant. 1   (**define** (peers/connect peer-context) 2     (**define**
+    main-cust (make-custodian)) 3     (**parameterize** ([current-custodian main-cust]) 4       (**define**
+    (loop) 5         (**let** ([potential-peers (get-potential-peers peer-context)]) 6           (**for**
+    ([peer potential-peers]) 7             (**with-handlers** ([exn:fail? (**lambda**
+    (x) #t)]) 8               (connect-and-handle peer-context peer)))) 9         (sleep
+    10)10         (loop))11       (thread loop))12     (**lambda** ()13       (custodian-shutdown-all
+    main-cust)))To implement get-potential-peers, we first get the list of connected
+    and valid peers from the peer context. The valid peers that are not in the list
+    of connected peers are potential peers we can make new connections with.1   (**define**
+    (get-potential-peers peer-context)2     (**let** ([current-connected-peers3            (list->set4             (map
+    peer-info-io-peer-info5                  (peer-context-data-connected-peers peer-context)))]6           [valid-peers
+    (peer-context-data-valid-peers peer-context)])7       (set-subtract valid-peers
+    current-connected-peers)))'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 4.2.1.5 Integrating Parts Together
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: The next procedure will ping all peers (that have connected to us or that we
+    have connected to) in an attempt to sync blockchain data and update other stuff,
+    such as the list of valid peers: 1   (**define** (peers/sync-data peer-context) 2     (**define**
+    (loop) 3       (sleep 10) 4       (**for** [(p (peer-context-data-connected-peers
+    peer-context))] 5         (**let** ([in (peer-info-io-input-port p)] 6               [out
+    (peer-info-io-output-port p)]) 7           (fprintf out "get-latest-blockchain\nget-valid-peers\n") 8           (flush-output
+    out))) 9       (printf "Peer ~a reports ~a valid and ~a connected peers.\n"10               (peer-context-data-name
+    peer-context)11               (set-count12                (peer-context-data-valid-peers
+    peer-context))13               (set-count14                (peer-context-data-connected-peers
+    peer-context)))15       (loop))16     (**define** t (thread loop))17     (**lambda**
+    ()18       (kill-thread t)))The following procedure is the entry point, where
+    everything is launched together:1   (**define** (run-peer peer-context)2     (**begin**3       (peers/serve
+    peer-context)4       (peers/connect peer-context)5       (peers/sync-data peer-context)))Finally,
+    we export the necessary objects:1   (**provide** (**struct-out** peer-context-data)2             (**struct-out**
+    peer-info)3             run-peer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 4.2.2 Updating Existing Code
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: We need to modify main-helper.rkt to include the peer-to-peer implementation:1   ;
+    ...2   (**require** "peer-to-peer.rkt")3   ; ...45   (**provide** (**all-from-out**
+    "blockchain.rkt")6             (**all-from-out** "utils.rkt")7             (**all-from-out**
+    "peer-to-peer.rkt")8             format-transaction print-block print-blockchain
+    print-wallets)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 4.2.3 The main-p2p.rkt File
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: This is where we will put all the components together and use them. We want
+    this implementation to accept some input arguments, such as the blockchain database
+    file and the IP and port addresses of each peer.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Once we create an executable, we have a way to pass input to it by using the
+    *command-line arguments* . For example, if our executable is named blockchain,
+    we can pass additional data to it by running ./blockchain <param1> <param2> <...>.
+    Racket provides a built-in procedure called current-command-line-arguments , which
+    will read these arguments into a vector (similar to a list), and we then use vector->list
+    to convert it to a list for further processing.1   (**require** "main-helper.rkt")23   (**define**
+    args (vector->list  (current-command-line-arguments)))45   (**when** (not (= 3
+    (length args)))6     (begin7       (printf "Usage: main-p2p.rkt db.data port ip1:port1,ip2:port2...")8       (newline)9       (exit)))string-to-peer-info
+    is a helper procedure that does additional parsing for the peers’ information:1   (**define**
+    (string-to-peer-info s)2     (**let** ([s (string-split s ":")])3       (peer-info
+    (car s) (string->number (cadr s)))))We proceed by parsing the arguments:1   (**define**
+    db-filename (car args))2   (**define** port (string->number (cadr args)))3   (**define**
+    valid-peers4     (map string-to-peer-info (string-split (caddr args) ",")))We
+    then proceed with checking if the database file exists using file-exists?. This
+    file will contain contents from a previous blockchain if it exists. If the file
+    doesn’t exist, we will proceed to create one.1   (**define** db-blockchain2     (**if**
+    (file-exists? db-filename)3         (file->struct db-filename)4         (initialize-new-blockchain)))We
+    provide the functionality for creating a new blockchain: 1   (**define** wallet-a
+    (make-wallet)) 2 3   (**define** (initialize-new-blockchain) 4     (**begin** 5       (**define**
+    coin-base (make-wallet)) 6 7       (printf "Making genesis transaction...\n") 8       (**define**
+    genesis-t (make-transaction coin-base wallet-a 100 ''())) 910       (**define**
+    utxo (list11                      (make-transaction-io 100 wallet-a)))1213       (printf
+    "Mining genesis block...\n")14       (**define** b (init-blockchain genesis-t
+    "1337cafe" utxo))15       b))Next is the code for initialization of the current
+    peer—it is named Test peer, and it contains data from the parsed command-line
+    arguments (the port, valid peers, etc.).1   (**define** peer-context2     (peer-context-data
+    "Test peer"3                        port4                        (list->set valid-peers)5                        ''()6                        db-blockchain))7   (**define**
+    (get-blockchain) (peer-context-data-blockchain peer-context))89   (run-peer peer-context)We
+    keep exporting the database to have up-to-date information whenever a user quits
+    the app.1   (**define** (export-loop)2     (**begin**3       (sleep 10)4       (struct->file
+    (get-blockchain) db-filename)5       (printf "Exported blockchain to ''~a''...\n"
+    db-filename)6       (export-loop)))78   (thread export-loop)Finally, we create
+    a procedure to keep mining empty blocks. Note that the peer-to-peer implementation
+    runs in threaded mode, so there will be no blocking if we keep running this procedure. 1   (**define**
+    (mine-loop) 2     (**let** ([newer-blockchain 3            (send-money-blockchain
+    (get-blockchain) 4                                   wallet-a 5                                   wallet-a 6                                   1 7                                   (file->contract
+    "contract.script"))]) 8       (set-peer-context-data-blockchain! peer-context
+    newer-blockchain) 9       (printf "Mined a block!")10       (sleep 5)11       (mine-loop)))1213   (mine-loop)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We can proceed by creating an executable and share it with our friends. If we
+    know their IP addresses (or they know ours), we can make a connection and thus
+    form a system.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 4.3 Summary
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Congratulations! As part of this chapter, we added two new important features
+    to the blockchain implementation: smart contracts and peer-to-peer support. This
+    concludes the blockchain implementation of this book.'
+  prefs: []
+  type: TYPE_NORMAL
