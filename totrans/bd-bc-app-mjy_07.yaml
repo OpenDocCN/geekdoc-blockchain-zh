@@ -1,0 +1,3598 @@
+- en: 'Part IV: Building Application Protocols'
+  id: totrans-0
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+  zh: 第四章：构建应用协议
+- en: While the original vision of Ethereum was a single public blockchain to serve
+    as a “world computer,” the reality is much more nuanced. It is now clear that
+    a single public blockchain cannot scale to the capacity needed for mass consumer
+    applications. Ethereum itself is moving toward the direction of multiple interconnected
+    blockchains for sharding and state channels (for more about side chains, see [Chapter
+    13](ch13.xhtml#ch13)). In fact, a compelling idea for sharding is to divide computing
+    load onto various blockchains according to business application. For example,
+    there could be a blockchain specializing in e-commerce, another specializing in
+    gambling games, and yet another one specializing in payments and stable coins.
+    These specialized blockchains are called *application protocol* blockchains.
+  id: totrans-1
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 尽管以太坊的原始愿景是一个单一的公共区块链，作为“世界电脑”，但现实要复杂得多。现在很清楚，单一的公共区块链无法扩展到支持大规模消费者应用所需的容量。以太坊本身正在朝着多个互联的区块链方向发展，用于分片和状态通道（有关侧链的更多信息，请参见[第13章](ch13.xhtml#ch13)）。实际上，一个很有吸引力的分片想法是根据业务应用将计算负载分配到各种区块链上。例如，可以有一个专注于电子商务的区块链，另一个专注于赌博游戏，还有一个专注于支付和稳定币的区块链。这些专业区块链被称为*应用协议*区块链。
+- en: I envision a world with many interconnected application protocol blockchains,
+    each with a specially optimized virtual machine to efficiently handle one type
+    of application. The Ethereum protocol will thrive by providing an interoperability
+    layer for all those specialized and optimized blockchains.
+  id: totrans-2
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 我预见一个由众多互联的应用协议区块链组成的世界，每个区块链都配备了专门优化的虚拟机，以高效处理某一类型的应用。以太坊协议将通过为所有这些专门化和优化的区块链提供互操作性层而蓬勃发展。
+- en: Indeed, in the history of enterprise software engineering, successful products
+    are always optimized for their specific application use cases. One size fits all
+    does not work. In this part of the book, I will discuss how to develop optimized
+    blockchains for specific application protocols. In this book, we will use open
+    source software developed by Second State to customize and optimize the Ethereum
+    platform, including the Lity language extension to Solidity ([www.LityLang.org](http://www.LityLang.org)).
+    We will also use the CyberMiles public blockchain ([www.CyberMiles.io](http://www.CyberMiles.io))
+    as a case study. The CyberMiles public blockchain is fully compatible with Ethereum
+    but optimized for e-commerce applications.
+  id: totrans-3
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 实际上，在企业软件工程的历史中，成功的产品总是针对其特定的应用用例进行优化的。一刀切的方法行不通。在这本书的这部分，我将讨论如何为特定的应用协议开发优化的区块链。在这本书中，我们将使用Second
+    State开发的开源软件来定制和优化以太坊平台，包括对Solidity的Lity语言扩展([www.LityLang.org](http://www.LityLang.org))。我们还将以CyberMiles公共区块链([www.CyberMiles.io](http://www.CyberMiles.io))作为一个案例研究。CyberMiles公共区块链与以太坊完全兼容，但针对电子商务应用进行了优化。
+- en: 14. Extending the Ethereum Protocol
+  id: totrans-4
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+  zh: 14. 扩展以太坊协议
+- en: In the previous chapters of this book, you learned about the power and also
+    the limitations of Ethereum. Ethereum is one of the first and certainly the most
+    popular blockchain smart contract platform. It is a protocol with multiple open
+    source implementations from the community and has a robust software upgrade process
+    known as Ethereum Improvement Proposals (EIPs). However, as a big organization
+    with many stakeholders, Ethereum improvement is a slow process. As a “world computer,”
+    Ethereum is also unlikely to optimize for specific applications.
+  id: totrans-5
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 在这本书的前几章中，你了解了以太坊的力量以及它的局限。以太坊是第一个，当然也是最流行的区块链智能合约平台之一。它是一个有社区提供的多个开源实现的协议，并且有一个健全的软件升级过程，称为以太坊改进提案（EIPs）。然而，作为一个拥有许多利益相关者的大家庭，以太坊的改进是一个缓慢的过程。作为“世界电脑”，以太坊也不太可能针对特定应用进行优化。
+- en: 'I believe there are opportunities for many different public blockchains. Each
+    of them will optimize Ethereum for specific application protocols. However, all
+    of them will need to fix at least a few of Ethereum’s most glaring problems, as
+    described here:'
+  id: totrans-6
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 我相信有许多不同的公共区块链都有机会。每个它们都将优化以太坊以适应特定的应用协议。然而，它们都需要至少解决以太坊在这里描述的最为突出的几个问题：
+- en: The Ethereum Virtual Machine (EVM) has many limitations. While the EVM is Turing
+    complete, it is inefficient to implement many algorithms. For example, it is currently
+    impossible to implement public-private key applications on Ethereum because a
+    single public key infrastructure (PKI) encryption operation will consume Ethereum
+    gas fees worth hundreds of dollars. Even basic string operations are slow and
+    expensive with the standard EVM.
+  id: totrans-7
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+  zh: 以太坊虚拟机（EVM）存在许多局限性。虽然EVM是图灵完备的，但实现许多算法效率低下。例如，目前在以太坊上实现公私钥应用是不可能的，因为一次公钥基础设施（PKI）加密操作将消耗价值数百美元的以太坊燃料费。即使是基本字符串操作，在标准EVM上也慢且昂贵。
+- en: Ethereum is too slow. At about 20 transactions per second (fewer for smart contract
+    transactions), Ethereum is not suitable for most application use cases.
+  id: totrans-8
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+  zh: 以太坊太慢了。大约每秒20笔交易（智能合约交易更少），以太坊不适用于大多数应用场景。
+- en: It does not yet scale. With the Ethereum public blockchain in 2019, the more
+    people who use it, the worse the user experience gets.
+  id: totrans-9
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+  zh: 它尚未实现可扩展。在2019年的以太坊公有区块链上，使用它的人越多，用户体验就越差。
+- en: It could be unsafe, especially for beginners. It is easy to send Ethereum assets
+    to the wrong address or lose assets because of poorly written smart contracts.
+  id: totrans-10
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+  zh: 这可能会存在安全隐患，尤其是对初学者来说。很容易因为地址写错而将以太坊资产发送到错误的地方，或者因为智能合约编写不当而丢失资产。
+- en: Smart contract programming is hard. Code audits have shown that Ethereum smart
+    contracts average about 100 obvious bugs per 1,000 lines of code. That is an astonishing
+    number for applications managing financial assets. In contrast, Microsoft business
+    applications, which are a lot less mission critical, average about 15 bugs per
+    1,000 lines of code.
+  id: totrans-11
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+  zh: 智能合约编程是困难的。代码审计显示，以太坊智能合约平均每1000行代码就有大约100个明显的错误。这对于管理金融资产的应用来说是一个惊人的数字。相比之下，微软的商业应用程序，其关键性远小于以太坊，平均每1000行代码大约有15个错误。
+- en: In this chapter, I provide an overview of the technical approaches that could
+    potentially alleviate these Ethereum shortcomings.
+  id: totrans-12
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 在本章中，我概述了可能有助于缓解以太坊这些不足的技术方法。
+- en: Fully Compatible, Yet Faster
+  id: totrans-13
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+  zh: 完全兼容，然而更快
+- en: Second State creates Ethereum-compatible virtual machines that can run on a
+    variety of underlying consensus mechanisms. This allows developers to choose the
+    most suitable blockchain to deploy their applications. For example, the virtual
+    machine can run as a Tendermint application (see [Chapter 20](ch20.xhtml#ch20))
+    to take advantage of the Byzantine fault tolerant (BFT) Tendermint consensus engine,
+    as well as the various delegated proof-of-stake (DPoS) mechanisms that can be
+    implemented on top of Tendermint (e.g., the CyberMiles public blockchain).
+  id: totrans-14
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 第二状态创造了可以运行在多种底层共识机制上的以太坊兼容虚拟机。这使得开发者可以选用最适合部署应用的区块链。例如，该虚拟机可以作为Tendermint应用运行（参见[第20章](ch20.xhtml#ch20)），以利用拜占庭容错（BFT）Tendermint共识引擎，以及可以在Tendermint之上实现的各类委托证明-权益（DPoS）机制（例如，CyberMiles公有区块链）。
+- en: The performance impediment of Ethereum is primarily a result of its proof-of-work
+    (PoW) consensus mechanism. A huge amount of meaningless computation must be performed
+    for each block of data that can be added to the blockchain. An Ethereum-compatible
+    blockchain can easily achieve 100× performance gain by simply replacing the PoW
+    module with a DPoS or delegated Byzantine fault tolerance (DBFT) module. For example,
+    on the CyberMiles blockchain, consensus is reached by 19 validator nodes (i.e.,
+    super nodes) before a new block is created. The validators are elected by CyberMiles
+    token holders and are required to run high-performance hardware in tier 1 data
+    centers.
+  id: totrans-15
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 以太坊的性能瓶颈主要是其工作量证明（PoW）共识机制所导致的。每个可以添加到区块链的数据块都需要执行大量无意义的计算。一个以太坊兼容的区块链仅通过将PoW模块替换为DPoS或委托拜占庭容错（DBFT）模块，就能轻松实现100倍的性能提升。例如，在CyberMiles区块链上，在创建新块之前，需要19个验证节点（即超级节点）达成共识。这些验证节点由CyberMiles代币持有者选举产生，并需在一流的数据中心运行高性能硬件。
+- en: '**Note**'
+  id: totrans-16
+  prefs: []
+  type: TYPE_NORMAL
+  zh: '**注意**'
+- en: Being Ethereum-compatible, all Ethereum scalability solutions are also available
+    on EVM-based blockchains. This allows users to take advantage of extensive research
+    conducted by the Ethereum community and contribute improvements back to the Ethereum
+    community. A great example here is the Plasma protocol, which aims to build layer
+    2 networks to scale Ethereum to millions of transactions per second.
+  id: totrans-17
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 作为以太坊兼容的，所有以太坊可扩展性解决方案也适用于基于EVM的区块链。这使用户能够利用以太坊社区进行的大量研究，并将改进贡献给以太坊社区。这里的典型例子是Plasma协议，其旨在构建第二层网络，使以太坊能够扩展到每秒数百万笔交易。
+- en: Furthermore, as we will discuss in the next section, the virtual machine can
+    offload complex computational tasks to native library functions. That allows for
+    vastly improved smart contract execution speed and much lower gas costs for such
+    tasks. For many operations, the native functions could represent four to six orders
+    of magnitudes in terms of performance gains (see [Chapter 18](ch18.xhtml#ch18)
+    for more).
+  id: totrans-18
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 此外，正如我们在下一节中讨论的，虚拟机可以将复杂的计算任务卸载到本地方法库函数。这允许智能合约执行速度大幅提高，并为此类任务大幅降低燃气成本。对于许多操作，本地方法可能代表性能提升四个到六个数量级（更多内容参见[第18章](ch18.xhtml#ch18)）。
+- en: Smart Enhancements to the EVM
+  id: totrans-19
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+  zh: Smart Enhancements to the EVM
+- en: 'Lity is a new programming language extension to Solidity, with support for
+    its features in an extended EVM version. Here are some of Lity’s features:'
+  id: totrans-20
+  prefs: []
+  type: TYPE_NORMAL
+  zh: Lity是Solidity的新编程语言扩展，支持在扩展的EVM版本中其特性。以下是Lity的一些特性：
+- en: Lity provides a new language keyword to call native library functions written
+    in C or C++. This is known as the libENI framework. Through libENI, each Lity-based
+    blockchain can be customized and optimized for address-specific application scenarios.
+    I will discuss libENI in [Chapter 18](ch18.xhtml#ch18).
+  id: totrans-21
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+  zh: Lity提供了一个新的语言关键字，用于调用用C或C++编写的本地方法库函数。这被称为libENI框架。通过libENI，每个基于Lity的区块链都可以根据特定地址的应用场景进行定制和优化。我将在[第18章](ch18.xhtml#ch18)中讨论libENI。
+- en: Lity supports fixed-point math and sophisticated math operations. It provides
+    deterministic results for fractional number operations, which was a key limitation
+    in Ethereum.
+  id: totrans-22
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+  zh: Lity支持固定点数学和复杂的数学运算。它为分数数运算提供了确定性的结果，这是以太坊的一个关键限制。
+- en: Lity supports timer-based operations scheduled for a future time. The scheduled
+    execution is crucial for many classes of use cases, such as interest and dividends
+    payment, trust and will, delivery confirmations, and so on. This is also called
+    *long-running contracts*.
+  id: totrans-23
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+  zh: Lity支持基于定时器的未来时间安排的操作。计划执行对于许多用例类至关重要，例如利息和股息支付、信托和遗嘱、交货确认等。这也被称为*长期运行合约*。
+- en: Lity supports “trusted” operations that can be invoked only by current validators
+    or super nodes of the underlying blockchain. This allows for trusted smart contracts
+    on the blockchain that can provide a first-class substitute for community-based
+    oracles, which connect the blockchain to the outside world.
+  id: totrans-24
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+  zh: Lity支持“可信”操作，只能由底层区块链的当前验证者或超级节点调用。这允许在区块链上实现可信的智能合约，为社区基础的预言机提供一等替代品，将区块链连接到外部世界。
+- en: Lity supports secure random numbers generated by validators or super nodes of
+    the underlying blockchain.
+  id: totrans-25
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+  zh: Lity支持由底层区块链的验证者或超级节点生成的安全随机数。
+- en: Lity supports alternative mechanisms for paying for gas fees in blockchains
+    that require gas for executing smart contracts.
+  id: totrans-26
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+  zh: Lity支持在需要执行智能合约时支付燃气费用的区块链上的替代机制。
+- en: Lity supports a new type of “upgradeable” smart contract. Those contracts only
+    expose the function interfaces to the world at the contract address. The actual
+    implementation of those functions are proxy contracts deployed at other addresses
+    on the blockchain. Lity supports virtual machine operations to change the smart
+    contract’s proxy implementation. That allows developers to upgrade or fix critical
+    bugs on smart contracts.
+  id: totrans-27
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+  zh: Lity支持一种新的“可升级”智能合约。这些合约只向合约地址公开函数接口。这些函数的实际实现是部署在区块链上其他地址的代理合约。Lity支持虚拟机操作来更改智能合约的代理实现。这允许开发者升级或修复智能合约中的关键错误。
+- en: Lity supports new language constructs such as rule expressions so that application
+    developers can build business rules directly into the smart contract (see [Chapter
+    17](ch17.xhtml#ch17)). Those are commonly known as *domain-specific language*
+    (DSL) features.
+  id: totrans-28
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+  zh: Lity支持如规则表达式等新语言构造，以便应用开发者可以直接在智能合约中构建业务规则（参见[第17章](ch17.xhtml#ch17)）。这些通常被称为*领域特定语言*（DSL）特性。
+- en: Next, let’s look into some concrete examples from this list.
+  id: totrans-29
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 接下来，让我们看看这个列表中的一些具体例子。
+- en: Trusted Oracles
+  id: totrans-30
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+  zh: 可信预言机
+- en: One of the most important services on blockchains is the oracle service. An
+    *oracle* is typically a smart contract that makes external data (i.e., off-chain,
+    real-world, or cross-chain data) deterministically available on the blockchain.
+    It provides a single source of truth for off-chain states and hence allows blockchain
+    nodes to reach consensus.
+  id: totrans-31
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 区块链上最重要的服务之一是预言机服务。一个*预言机*通常是一个智能合约，它使外部数据（即链下、现实世界或跨链数据）在区块链上确定性地可用。它为链下状态提供了一个真相来源，从而使区块链节点能够达成共识。
+- en: The traditional oracle is highly centralized and goes against the spirit of
+    the decentralized blockchain. For example, Fedex might establish a delivery service
+    oracle that provides delivery status of packages. A weather station might establish
+    a weather oracle. To use those oracles, blockchain users and dapps must trust
+    the entities behind those oracles.
+  id: totrans-32
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 传统的预言机高度集中，与去中心化区块链的精神相悖。例如，Fedex可能会建立一个交付服务预言机，提供包裹的交付状态。一个气象站可能会建立一个气象预言机。要使用这些预言机，区块链用户和dapp必须信任这些预言机背后的实体。
+- en: A second approach for oracles is to create a community-based cryptoeconomic
+    game for members of the community to compete and provide the truth in a smart
+    contract. Examples of such oracles include the BTC Relay to provide information
+    about the Bitcoin blockchain, and the Ethereum Alarm Clock to provide time.
+  id: totrans-33
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 第二种预言机的方法是创建一个基于社区的加密经济游戏，让社区成员在智能合约中竞争并提供真相。此类预言机的例子包括提供比特币区块链信息的BTC Relay，以及提供时间的以太坊闹钟。
+- en: Lity, however, takes a different approach to create trusted smart contracts
+    and make oracles first-class citizens. This approach works on DPoS blockchains.
+    In a DPoS blockchain, the validators (super nodes) are trusted entities. They
+    must stake a large number of tokens from their own account and from their supporters/community.
+    Those tokens are subject to slashing and confiscation if the validator misbehaves.
+    So, if a smart contract can be updated only by current validators, data from this
+    contract should have a high level of trust on the DPoS blockchain.
+  id: totrans-34
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 然而，Lity采取了不同的方法来创建可信的智能合约，并使预言机成为一等公民。这种方法适用于DPoS区块链。在DPoS区块链中，验证者（超级节点）是可信实体。他们必须质押大量来自他们自己账户和他们的支持者/社区的代币。如果验证者行为不端，这些代币可能会被削减和没收。因此，如果一个智能合约只能由当前的验证者更新，那么这个合约中的数据在DPoS区块链上应该具有很高的信任度。
+- en: In the Lity language, a built-in function called `isValidator` checks whether
+    the current transaction sender/function caller is a validator. It works on any
+    Lity-based DPoS blockchain.
+  id: totrans-35
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 在Lity语言中，有一个内置函数`isValidator`，用于检查当前交易发送者/函数调用者是否是验证者。它在任何基于Lity的DPoS区块链上都能工作。
+- en: '[Click here to view code image](Images/ch14_images.xhtml#pro14_1)'
+  id: totrans-36
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 请点击[这里查看代码图片](Images/ch14_images.xhtml#pro14_1)
+- en: '[PRE0]'
+  id: totrans-37
+  prefs: []
+  type: TYPE_PRE
+  zh: '[PRE0]'
+- en: Then with the `ValidatorOnly` modifier, we can construct smart contracts that
+    act as trusted oracles on the blockchain.
+  id: totrans-38
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 然后，利用`ValidatorOnly`修饰符，我们可以在区块链上构建作为可信预言机的智能合约。
+- en: '[Click here to view code image](Images/ch14_images.xhtml#pro14_2)'
+  id: totrans-39
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 请点击[这里查看代码图片](Images/ch14_images.xhtml#pro14_2)
+- en: '[PRE1]'
+  id: totrans-40
+  prefs: []
+  type: TYPE_PRE
+  zh: '[PRE1]'
+- en: Secure Random Numbers
+  id: totrans-41
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+  zh: 安全随机数
+- en: Getting secure random numbers is a significant challenge for blockchain smart
+    contracts. Lity pioneered an approach to access a random number series from a
+    seed in the current block header. The random seed is based on the hashes of all
+    transactions in the current block, and it is extremely difficult to manipulate
+    even for the validator node that builds and proposes the block.
+  id: totrans-42
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 获取安全随机数对于区块链智能合约来说是一个重大挑战。Lity开创了一种方法，从当前区块头的种子中访问随机数系列。随机种子基于当前区块中所有交易的哈希，即使对于构建和提出区块的验证节点来说，也很难操纵。
+- en: 'Inside the smart contract, you can access the random number series by simply
+    calling the built-in function `rand()`. The following is an example:'
+  id: totrans-43
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 在智能合约内部，您可以通过简单地调用内置函数`rand()`来访问随机数系列。以下是一个示例：
+- en: '[Click here to view code image](Images/ch14_images.xhtml#pro14_3)'
+  id: totrans-44
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 请点击[这里查看代码图片](Images/ch14_images.xhtml#pro14_3)
+- en: '[PRE2]'
+  id: totrans-45
+  prefs: []
+  type: TYPE_PRE
+  zh: '[PRE2]'
+- en: You should not call `rand()` in a `view` or `pure` function. If the random number
+    does not need to be recorded on the blockchain (i.e., outside of a transaction
+    in a `view` function executed on a single node), it does not need to be generated
+    by the blockchain. The calling application should simply generate a random number
+    locally, which is much cheaper in terms of resource consumption.
+  id: totrans-46
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 你不应该在`view`或`pure`函数中调用`rand()`。如果随机数不需要记录在区块链上（即，在单个节点上执行的`view`函数中的交易之外），它不需要由区块链生成。调用应用程序应该简单地在本地生成一个随机数，这在资源消耗方面要便宜得多。
+- en: Alternative Gas Fees
+  id: totrans-47
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+  zh: 替代燃料费
+- en: One of the major hurdles of blockchain application adoption is that end users
+    are asked to pay a gas fee to perform certain functions on the blockchain. The
+    gas mechanism is crucial for the blockchain’s security, as it prevents DoS attackers
+    from overwhelming the blockchain nodes with computationally intensive requests.
+    However, the gas requirement also means that new end users must be taught to purchase
+    cryptocurrencies and manage private keys before they can even start to use decentralized
+    applications.
+  id: totrans-48
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 区块链应用采纳的主要障碍之一是要求终端用户支付燃料费以在区块链上执行某些功能。燃料机制对区块链的安全至关重要，因为它防止DoS攻击者通过计算密集型请求淹没区块链节点。然而，燃料要求也意味着新的终端用户在使用去中心化应用之前必须先被教会购买加密货币和管理私钥。
+- en: Lity provides an alternative approach to onboard new users to blockchain applications.
+    Through the `freegas` keyword, the smart contract owner can designate a contract
+    function that should have gas fees paid by the owner herself. When the user calls
+    those functions, she would indicate that she is not paying gas by setting `gasPrice`
+    to 0.
+  id: totrans-49
+  prefs: []
+  type: TYPE_NORMAL
+  zh: Lity为将新用户引入区块链应用提供了一种替代方法。通过`freegas`关键字，智能合约所有者可以指定一个应由所有者本人支付燃料费的合约函数。当用户调用这些函数时，她会表明她没有支付燃料费，通过将`gasPrice`设置为0。
+- en: If the `gasPrice=0` transaction calls a function that is *not* `freegas`, the
+    transaction will fail.
+  id: totrans-50
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+  zh: 如果`gasPrice=0`的交易调用了一个不是`freegas`的函数，交易将会失败。
+- en: If the `gasPrice=0` transaction calls a `freegas` function in a contract that
+    does not have a balance, the transaction will fail.
+  id: totrans-51
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+  zh: 如果`gasPrice=0`的交易调用了一个没有余额的合约中的`freegas`函数，交易将会失败。
+- en: Of course, the caller can specify a regular `gasPrice` (e.g., 2Gwei), and in
+    that case, the caller pays for gas even if the contract function is `freegas`.
+  id: totrans-52
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 当然，调用者可以指定一个常规的`gasPrice`（例如，2Gwei），在这种情况下，即使合约函数是`freegas`，调用者也需要支付燃料费。
+- en: If the `gasPrice=0` transaction calls a `freegas` function in a contract that
+    has a sufficient balance, then the function executes, and the gas fee is deducted
+    from the contract address. The caller pays nothing, and the contract pays gas
+    at the system’s standard gas price.
+  id: totrans-53
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 如果`gasPrice=0`的交易调用了一个余额充足的合约中的`freegas`函数，那么该函数将执行，并且燃料费将从合约地址扣除。调用者不用支付任何费用，合约按照系统标准的燃料价格支付燃料费。
+- en: '**Note**'
+  id: totrans-54
+  prefs: []
+  type: TYPE_NORMAL
+  zh: '**注意**'
+- en: There is a configurable rate limit for making `gasPrice=0` transactions. The
+    blockchain node software can prevent users from exploiting the system by sending
+    a lot of free transactions.
+  id: totrans-55
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 对于`gasPrice=0`的交易有一个可配置的速率限制。区块链节点软件可以防止用户通过发送大量免费交易来利用系统。
+- en: The following is an example. On the CyberMiles blockchain, if an end user calls
+    the test function with `gasPrice=0` and the contract address has a CMT balance,
+    the transaction’s gas fee will come out of the contract address.
+  id: totrans-56
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 以下是一个示例。在CyberMiles区块链上，如果一个终端用户用`gasPrice=0`调用测试函数，并且合约地址有CMT余额，那么交易的燃料费将来自合约地址。
+- en: '[Click here to view code image](Images/ch14_images.xhtml#pro14_4)'
+  id: totrans-57
+  prefs: []
+  type: TYPE_NORMAL
+  zh: '[点击此处查看代码图片](Images/ch14_images.xhtml#pro14_4)'
+- en: '[PRE3]'
+  id: totrans-58
+  prefs: []
+  type: TYPE_PRE
+  zh: '[PRE3]'
+- en: The `payable` function is important as it allows the contract to receive funds
+    that will later be used as gas. [Figure 14.1](ch14.xhtml#ch14fig1) shows the `freegas`
+    transaction in action on the CyberMiles public blockchain.
+  id: totrans-59
+  prefs: []
+  type: TYPE_NORMAL
+  zh: '`payable`函数很重要，因为它允许合约接收稍后用作燃料的资金。 [图 14.1](ch14.xhtml#ch14fig1) 展示了在CyberMiles公共区块链上`freegas`交易的运作情况。'
+- en: '![image](Images/yuan_f14_01.jpg)'
+  id: totrans-60
+  prefs: []
+  type: TYPE_IMG
+  zh: '![image](Images/yuan_f14_01.jpg)'
+- en: '**Figure 14.1** The caller makes a `freegas` transaction by setting `gasPrice`
+    to zero.'
+  id: totrans-61
+  prefs: []
+  type: TYPE_NORMAL
+  zh: '**图 14.1** 调用者通过将`gasPrice`设置为零来发起一个`freegas`交易。'
+- en: Safety First
+  id: totrans-62
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+  zh: 安全第一
+- en: 'Through language and virtual machine enhancements in Lity, we can proactively
+    prevent many classes of security problems. The following are some examples:'
+  id: totrans-63
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 通过在Lity中进行语言和虚拟机增强，我们可以主动预防许多安全问题的类别。以下是一些示例：
+- en: The Lity compiler automatically checks the structural signature of the smart
+    contracts it compiles. If it detects the smart contract is likely to be one of
+    the popular types (e.g., an ERC20 or ERC721 token contract), it will check that
+    all required methods are implemented and the contract is free of common errors.
+    The Lity compiler throws errors if it sees a noncompliant ERC20 contract (learn
+    more in [Chapter 15](ch15.xhtml#ch15)).
+  id: totrans-64
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+  zh: Lity 编译器会自动检查它编译的智能合约的结构签名。如果检测到智能合约很可能是流行类型之一（例如，一个 ERC20 或 ERC721 代币合约），它会检查是否实现了所有必需的方法，并且合约没有常见的错误。如果看到一个不符合规定的
+    ERC20 合约，Lity 编译器会抛出错误（在[第 15 章](ch15.xhtml#ch15)了解更多）。
+- en: The Lity compiler checks for known code issues and bug patterns, such as the
+    ERC20 contract’s compliance to the ERC223 safety standard. It throws warnings
+    and can attempt to automatically fix some most serious issues.
+  id: totrans-65
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+  zh: Lity 编译器检查已知的代码问题和错误模式，例如 ERC20 合约对 ERC223 安全标准的遵守。它会发出警告，并尝试自动修复一些最严重的问题。
+- en: The Lity language provides access to secure random numbers generated by blockchain
+    validators, when the consensus mechanism allows.
+  id: totrans-66
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+  zh: Lity 语言提供了对由区块链验证者生成的安全随机数的访问，当共识机制允许时。
+- en: The Lity virtual machine automatically checks for unsafe operations at runtime,
+    such as integer overflow, which is a common ERC20 issue that had resulted in billions
+    of dollars of value destruction. When a contract encounters an integer overflow
+    in Lity runtime, it will stop execution with an error instead of proceeding with
+    the overflowed buffer, as Ethereum does today. This eliminates a whole class of
+    errors.
+  id: totrans-67
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+  zh: Lity 虚拟机在运行时自动检查不安全操作，例如整数溢出，这是 ERC20 常见的导致数十亿美元价值毁灭的问题。当在 Lity 运行时合约遇到整数溢出时，它会停止执行并抛出错误，而不是像以太坊今天那样继续处理溢出的缓冲区。这消除了一类错误。
+- en: As an open source collaborative effort, the Lity project aims to continuously
+    bring updates to those security features, such as support for new ERCs and new
+    code vulnerability patterns, to the community.
+  id: totrans-68
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 作为一个开源的协作努力，Lity 项目旨在持续向社区带来更新，例如支持新的 ERCs 和新的代码漏洞模式等安全特性。
+- en: Conclusion
+  id: totrans-69
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+  zh: 结论
+- en: In this chapter, I discussed how the Lity project extends the Ethereum protocol
+    both at the consensus layer and at the virtual machine layer to create Ethereum-compatible
+    blockchains that support much needed performance/security/usability enhancements
+    as well as experimental features. In the next several chapters, we will look into
+    application design and development on the Lity language and virtual machine.
+  id: totrans-70
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 在本章中，我讨论了 Lity 项目如何扩展以太坊协议，既在共识层也在虚拟机层，以创建支持性能/安全性/易用性改进以及实验性特性的以太坊兼容区块链。在接下来的几章中，我们将深入探讨在
+    Lity 语言和虚拟机上进行应用设计和开发。
+- en: 15. Extending Ethereum Tools
+  id: totrans-71
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+  zh: 15. 扩展以太坊工具
+- en: In the previous chapter, you saw how the Lity language and virtual machine extends
+    and improves on the Ethereum protocol. The open source Ethereum ecosystem also
+    encourages such platforms to extend and fork existing tools to incorporate new
+    features.
+  id: totrans-72
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 在上一章中，你看到了 Lity 语言和虚拟机如何扩展和改进以太坊协议。开源的以太坊生态系统也鼓励这样的平台扩展和分叉现有工具以整合新特性。
+- en: Lity tools include wallets, block explorers, and coding/deployment tools. These
+    tools are customized and configured for each blockchain and are supported by commercial
+    providers, such as Second State ([www.SecondState.io](http://www.SecondState.io)).
+  id: totrans-73
+  prefs: []
+  type: TYPE_NORMAL
+  zh: Lity 工具包括钱包、区块链浏览器和编码/部署工具。这些工具针对每个区块链进行定制和配置，并由商业提供商支持，例如 Second State（[www.SecondState.io](http://www.SecondState.io)）。
+- en: 'In this chapter, I will cover Lity-customized tools for the CyberMiles public
+    blockchain. They include the following:'
+  id: totrans-74
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 在本章中，我将介绍适用于 CyberMiles 公共区块链的 Lity 定制工具。它们包括以下内容：
+- en: The Venus chrome extension is CyberMiles’ extension of the Metamask wallet for
+    Ethereum.
+  id: totrans-75
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+  zh: Venus 浏览器扩展是 CyberMiles 对 Metamask 以太坊钱包的扩展。
+- en: The Europa integrated development environment (IDE) is Lity and CyberMiles’
+    fork of the Remix IDE for Ethereum.
+  id: totrans-76
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+  zh: Europa 集成开发环境（IDE）是 Lity 和 CyberMiles 分叉的以太坊 Remix IDE。
+- en: The web3-cmt.js library is the customized web3 library that supports the CMT
+    cryptocurrency on the CyberMiles blockchain. It can be customized to any Lity-based
+    blockchain.
+  id: totrans-77
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+  zh: web3-cmt.js 库是支持 CyberMiles 区块链上 CMT 加密货币的定制 web3 库。它可以定制为任何基于 Lity 的区块链。
+- en: The CyberMiles App (aka the CMT wallet) is a mobile wallet application that
+    runs CyberMiles dapps inside the wallet.
+  id: totrans-78
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+  zh: CyberMiles App（又名 CMT 钱包）是一个移动钱包应用程序，可以在钱包内运行 CyberMiles dapps。
+- en: The `lityc` project provides tools to analyze and secure Lity smart contract
+    source code.
+  id: totrans-79
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+  zh: '`lityc`项目提供了分析和安全Lity智能合约源代码的工具。'
+- en: A blockchain explorer web service provides a query and search interface for
+    blockchain data on a Lity-based blockchain. On CyberMiles, this data service is
+    available at [www.CMTTracking.io](http://www.CMTTracking.io).
+  id: totrans-80
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+  zh: 区块链浏览器Web服务提供了一个查询和搜索界面，用于查询基于Lity的区块链的数据。在CyberMiles上，这项数据服务可在[www.CMTTracking.io](http://www.CMTTracking.io)获得。
+- en: '**Note**'
+  id: totrans-81
+  prefs: []
+  type: TYPE_NORMAL
+  zh: '**注意**'
+- en: With Second State’s BUIDL online IDE ([http://buidl.secondstate.io](http://buidl.secondstate.io)),
+    you can experiment with the latest Lity features on a live blockchain. There is
+    no need to deal with cryptocurrencies or gas fees or event wallets, just Lity
+    contracts and web3 JavaScript applications. Learn more in [Chapter 3](ch03.xhtml#ch03).
+  id: totrans-82
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 使用Second State的BUIDL在线IDE（[http://buidl.secondstate.io](http://buidl.secondstate.io)），您可以在活区块链上尝试最新的Lity功能。无需处理加密货币或燃料费或事件钱包，只需Lity合约和web3
+    JavaScript应用程序。在[第3章](ch03.xhtml#ch03)了解更多。
+- en: Smart Contract Tools
+  id: totrans-83
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+  zh: Smart Contract Tools
+- en: In this section, I will review how to develop and deploy smart contracts on
+    the CyberMiles blockchain using the Europa online IDE together with the Venus
+    wallet.
+  id: totrans-84
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 在本节中，我将回顾如何使用Europa在线IDE以及Venus钱包在CyberMiles区块链上开发和部署智能合约。
+- en: Venus Wallet
+  id: totrans-85
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+  zh: Venus Wallet
+- en: The Venus wallet ([Figure 15.1](ch15.xhtml#ch15fig1)) is a Chrome browser extension
+    to manage your CyberMiles blockchain accounts. It is based on the open source
+    Metamask software. It stores and manages your private keys to those accounts on
+    your computer (i.e., a wallet for private keys and, by extension, cryptocurrency
+    stored in those accounts). For developers, Venus is a great tool since it integrates
+    with other development tools and allows you to interact with CyberMiles accounts.
+  id: totrans-86
+  prefs: []
+  type: TYPE_NORMAL
+  zh: Venus钱包（[图15.1](ch15.xhtml#ch15fig1)）是Chrome浏览器的一个扩展程序，用于管理您的CyberMiles区块链账户。它基于开源的Metamask软件。它存储和管理您在这些账户上的计算机上的私钥（即私钥钱包，以及由此扩展的在这些账户中存储的加密货币）。对于开发者来说，Venus是一个很好的工具，因为它与其他开发工具集成，并允许您与CyberMiles账户互动。
+- en: '![image](Images/yuan_f15_01.jpg)'
+  id: totrans-87
+  prefs: []
+  type: TYPE_IMG
+  zh: '![image](Images/yuan_f15_01.jpg)'
+- en: '**Figure 15.1** The Venus wallet is based on the open source Metamask project.'
+  id: totrans-88
+  prefs: []
+  type: TYPE_NORMAL
+  zh: '**图15.1** Venus钱包基于开源的Metamask项目。'
+- en: First, make sure you have the latest Google Chrome browser installed. You can
+    get it at [https://www.google.com/chrome/](https://www.google.com/chrome/).
+  id: totrans-89
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 首先，请确保您已安装最新版本的Google Chrome浏览器。您可以在[https://www.google.com/chrome/](https://www.google.com/chrome/)获取它。
+- en: 'Next, follow the instructions on the CyberMiles web site to install Venus on
+    your Chrome browser: [https://cybermiles.io/venus](https://cybermiles.io/venus).'
+  id: totrans-90
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 接下来，按照CyberMiles网站上的说明在您的Chrome浏览器上安装Venus：[https://cybermiles.io/venus](https://cybermiles.io/venus)。
+- en: Now, you should see the Venus icon on your Chrome toolbar. Click it to bring
+    up its user interface (UI). You should create a password for your Venus wallet.
+    This is important since your password protects your account private keys stored
+    on this computer. Once you create the password, Venus will give you a 12-word
+    recovery phrase. That is the only way for you to recover the password, so keep
+    it safe!
+  id: totrans-91
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 现在，您应该在Chrome工具栏上看到Venus图标。点击它以打开其用户界面（UI）。您应该为您的Venus钱包创建一个密码。这很重要，因为您的密码保护存储在这台计算机上的账户私钥。创建密码后，Venus将为您提供一个12个单词的恢复短语。这是您恢复密码的唯一方式，所以要妥善保管！
+- en: For development purposes, select the top-left drop-down list from the Venus
+    UI, and select CyberMiles Testnet, which is a CyberMiles public blockchain maintained
+    for testing purposes.
+  id: totrans-92
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 出于开发目的，从Venus UI的左上角下拉列表中选择，并选择CyberMiles Testnet，这是用于测试目的的CyberMiles公共区块链。
+- en: You will also need to create an account on the testnet to store your testnet
+    CMTs there. Select the icon at the top right of the Venus UI, and click **Create
+    Account**. Venus will create an account address and its associated private key
+    for you. You can name this account so that you can access it in the Venus UI later.
+    You can also use Venus to manage mainnet CMTs, which can be traded on exchanges
+    for U.S. dollars. But to do that, you should make sure that your computer is physically
+    secure since real money will be at stake.
+  id: totrans-93
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 您还需要在测试网上创建一个账户来存储您的测试网CMT。在Venus UI的右上角点击图标，然后点击**创建账户**。Venus将为您创建一个账户地址及其关联的私钥。您可以给这个账户命名，以便稍后可以在Venus
+    UI中访问。您还可以使用Venus管理主网CMT，这些CMT可以在交易所兑换成美元。但要做到这一点，您应该确保您的计算机物理安全，因为真实货币将面临风险。
+- en: Of course, you still need to fund your account with some testnet CMTs to use
+    it. Go to the public CyberMiles testnet faucet at [https://travis-faucet.cybermiles.io/](https://travis-faucet.cybermiles.io/)
+    and request 1,000 testnet CMTs for your address! The testnet CMTs can be used
+    only on the testnet. They are not traded on any exchanges and can disappear at
+    any time when the testnet is retired. Unlike the mainnet CMTs, testnet CMTs have
+    zero monetary value.
+  id: totrans-94
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 当然，您仍然需要用一些测试网CMT为您的账户注资以使用它。访问公共CyberMiles测试网水龙头[https://travis-faucet.cybermiles.io/](https://travis-faucet.cybermiles.io/)并为您的地址请求1,000个测试网CMT！测试网CMT只能在测试网上使用。它们在任何交易所上都不会交易，并且当测试网退役时随时可能消失。与主网CMT不同，测试网CMT没有货币价值。
+- en: Now you have set up Venus and are ready to interact with your first smart contract
+    on the CyberMiles testnet!
+  id: totrans-95
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 现在您已经设置了Venus，准备好与CyberMiles测试网上的第一个智能合约进行交互了！
+- en: Europa IDE
+  id: totrans-96
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+  zh: Europa IDE
+- en: 'The Europa IDE is based on Remix on the Ethereum blockchain but customized
+    for CyberMiles. Europa is completely web-based. Just go to its web site to load
+    the web app: [http://europa.cybermiles.io/](http://europa.cybermiles.io/).'
+  id: totrans-97
+  prefs: []
+  type: TYPE_NORMAL
+  zh: Europa IDE基于Ethereum区块链上的Remix但为CyberMiles进行了定制。Europa是完全基于web的。只需访问其网站即可加载web应用：[http://europa.cybermiles.io/](http://europa.cybermiles.io/)。
+- en: In the code editor to the right, let’s enter a simple smart contract. What follows
+    is an example of the `HelloWorld` smart contract. It is written in Solidity/Lity.
+  id: totrans-98
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 在右侧的代码编辑器中，让我们输入一个简单的智能合约。以下是`HelloWorld`智能合约的示例。它用Solidity/Lity编写。
+- en: '[Click here to view code image](Images/ch15_images.xhtml#pro15_1)'
+  id: totrans-99
+  prefs: []
+  type: TYPE_NORMAL
+  zh: '[点击此处查看代码图片](Images/ch15_images.xhtml#pro15_1)'
+- en: '[PRE4]'
+  id: totrans-100
+  prefs: []
+  type: TYPE_PRE
+  zh: '[PRE4]'
+- en: The `HelloWorld` smart contract has two key methods.
+  id: totrans-101
+  prefs: []
+  type: TYPE_NORMAL
+  zh: '`HelloWorld`智能合约有两个关键方法。'
+- en: The `sayHello()` method returns a greeting to its caller. The greeting is initially
+    set to “Hello, World!” when the smart contract is deployed.
+  id: totrans-102
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+  zh: '`sayHello()`方法向其调用者返回一个问候。当智能合约部署时，问候被初始化为“Hello, World!”。'
+- en: The `updateMessage()` method allows the method caller to change the greeting
+    from “Hello, World!” to another message.
+  id: totrans-103
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+  zh: '`updateMessage()`方法允许调用者将问候从“Hello, World!”更改为另一条消息。'
+- en: Hit the **Start to compile** button in the right panel ([Figure 15.2](ch15.xhtml#ch15fig2))
+    to compile this contract. This will generate the bytecode and application binary
+    interface (ABI) to be used later. When you click the ABI or Bytecode button, the
+    ABI or bytecode will be copied to the computer’s clipboard, and you can paste
+    them into other files or applications later.
+  id: totrans-104
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 在右侧面板中点击**开始编译**按钮（[图15.2](ch15.xhtml#ch15fig2)）以编译此合约。这将生成稍后使用的字节码和应用程序二进制接口（ABI）。当您点击ABI或字节码按钮时，ABI或字节码将被复制到计算机的剪贴板，稍后您可以在其他文件或应用程序中粘贴它们。
+- en: '![image](Images/yuan_f15_02.jpg)'
+  id: totrans-105
+  prefs: []
+  type: TYPE_IMG
+  zh: '![image](Images/yuan_f15_02.jpg)'
+- en: '**Figure 15.2** Compiling a CyberMiles smart contract on Europa'
+  id: totrans-106
+  prefs: []
+  type: TYPE_NORMAL
+  zh: '**图15.2** 在Europa上编译CyberMiles智能合约'
+- en: Next, on the Run tab of Europa, you can connect Europa to your Venus account
+    via the Injected Web3 drop-down box. Europa will automatically detect your currently
+    selected Venus account.
+  id: totrans-107
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 接下来，在Europa的Run标签页上，您可以通过Injected Web3下拉框将Europa连接到您的Venus账户。Europa将自动检测您当前选择的Venus账户。
+- en: You should now see options to deploy the smart contract to the blockchain. Click
+    the **Deploy** button to deploy the contract to the blockchain. The contract will
+    be deployed on the CyberMiles testnet. At this time, Europa will pop up and ask
+    you to send the “gas fee” from your account address ([Figure 15.3](ch15.xhtml#ch15fig3)).
+    The gas fee is required by the CyberMiles blockchain to pay for the network service
+    required to deploy your contract.
+  id: totrans-108
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 您现在应该看到将智能合约部署到区块链的选项。点击**部署**按钮将合约部署到区块链。合约将在CyberMiles测试网上部署。此时，Europa会弹出，要求您从您的账户地址发送“燃料费”（[图15.3](ch15.xhtml#ch15fig3)）。燃料费是CyberMiles区块链要求支付部署您合约所需的网络服务费。
+- en: '![image](Images/yuan_f15_03.jpg)'
+  id: totrans-109
+  prefs: []
+  type: TYPE_IMG
+  zh: '![image](Images/yuan_f15_03.jpg)'
+- en: '**Figure 15.3** Paying a gas fee to deploy the contract'
+  id: totrans-110
+  prefs: []
+  type: TYPE_NORMAL
+  zh: '**图15.3** 支付部署合约的燃料费'
+- en: After you submit the request, wait for a few minutes for the CyberMiles network
+    to confirm the deployment of your contract. The contract deployment address will
+    be shown in the confirmation ([Figure 15.4](ch15.xhtml#ch15fig4)), and the deployed
+    contract and its available methods will be available on the Europa Run tab as
+    well.
+  id: totrans-111
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 提交请求后，请等待几分钟，让CyberMiles网络确认您的合约部署。合约部署的地址将在确认信息中显示（[图15.4](ch15.xhtml#ch15fig4)），部署的合约及其可用方法也将在Europa
+    Run标签页中可用。
+- en: '![image](Images/yuan_f15_04.jpg)'
+  id: totrans-112
+  prefs: []
+  type: TYPE_IMG
+  zh: '![image](Images/yuan_f15_04.jpg)'
+- en: '**Figure 15.4** The contract is now deployed, and the available methods are
+    shown.'
+  id: totrans-113
+  prefs: []
+  type: TYPE_NORMAL
+  zh: '**图15.4** 合约现已部署，展示了可用方法。'
+- en: If you have already deployed the smart contract on the testnet, you already
+    know the deployed address of the contract. You can simply enter the contract address
+    on the box next to the At Address button and then click the button. This will
+    configure Europa to use an already-deployed contract. No gas fee is needed in
+    this case.
+  id: totrans-114
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 如果您已经在测试网上部署了智能合约，您已经知道合约的部署地址。您只需在At Address按钮旁边的框中输入合约地址，然后点击按钮。这将配置Europa以使用已经部署的合约。在这种情况下无需支付燃料费。
+- en: Once Europa is connected to your deployed contract, it shows the contract methods
+    on the Run tab. You can enter a new greeting next to the updateMessage button
+    and click the button to update the message ([Figure 15.5](ch15.xhtml#ch15fig5)).
+    Since blockchain storage is required to store the updated message, you will again
+    be prompted to pay a gas fee through Venus.
+  id: totrans-115
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 一旦Europa连接到您部署的合约，它会在运行标签上显示合约方法。您可以在updateMessage按钮旁边输入一个新的问候语，然后点击按钮更新消息([图15.5](ch15.xhtml#ch15fig5))。由于区块链存储需要存储更新的消息，您将再次被提示通过Venus支付燃料费。
+- en: '![image](Images/yuan_f15_05.jpg)'
+  id: totrans-116
+  prefs: []
+  type: TYPE_IMG
+  zh: '![image](Images/yuan_f15_05.jpg)'
+- en: '**Figure 15.5** Calling the `updateMessage()` method'
+  id: totrans-117
+  prefs: []
+  type: TYPE_NORMAL
+  zh: '**图15.5** 调用`updateMessage()`方法'
+- en: Once the network confirms the message update, you will again see a confirmation
+    message. After the `updateMessage()` is confirmed, you can call `sayHello()` from
+    Europa ([Figure 15.6](ch15.xhtml#ch15fig6)), and you will see the updated message.
+  id: totrans-118
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 一旦网络确认了消息更新，您将再次看到一条确认信息。在`updateMessage()`被确认之后，您可以从Europa调用`sayHello()`([图15.6](ch15.xhtml#ch15fig6))，然后您将看到更新的消息。
+- en: '![image](Images/yuan_f15_06.jpg)'
+  id: totrans-119
+  prefs: []
+  type: TYPE_IMG
+  zh: '![image](Images/yuan_f15_06.jpg)'
+- en: '**Figure 15.6** Calling the `sayHello()` method'
+  id: totrans-120
+  prefs: []
+  type: TYPE_NORMAL
+  zh: '**图15.6** 调用`sayHello()`方法'
+- en: The Europa IDE is easy to use. It is an excellent choice for beginners. You
+    can also interact with the blockchain through command-line tools on each node.
+    The node software provides more capabilities, and we will discuss it later in
+    this chapter.
+  id: totrans-121
+  prefs: []
+  type: TYPE_NORMAL
+  zh: Europa IDE易于使用。它是初学者的优秀选择。你还可以通过每个节点的命令行工具与区块链互动。节点软件提供更多功能，我们将在本章后面讨论。
+- en: The `lityc` Compiler and Analysis Tool
+  id: totrans-122
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+  zh: '`lityc`编译器和分析工具'
+- en: The `lityc` software extends the Ethereum `solc` to provide a compiler for the
+    Lity language. It compiles the Lity smart contract into ABI and bytecode. You
+    can then use the Travis node console or web3-cmt.js to deploy the ABI and bytecode
+    to the CyberMiles public blockchain as smart contracts. Please see [Appendix A](app.xhtml#app)
+    for more details.
+  id: totrans-123
+  prefs: []
+  type: TYPE_NORMAL
+  zh: '`lityc`软件扩展了以太坊`solc`，提供了一个Lity语言的编译器。它将Lity智能合约编译为ABI和字节码。然后您可以使用Travis节点控制台或web3-cmt.js将ABI和字节码部署到CyberMiles公共区块链作为智能合约。请参阅[附录A](app.xhtml#app)以获取更多详细信息。'
+- en: While compiling and deploying can also be done in tools like Europa, a more
+    interesting feature of the command-line `lityc` is its source code static analyzer.
+    For example, the `lityc` compiler can check the contract’s compliance to specified
+    ERC specification. Let’s consider the following contract. The `totalSupply()`
+    function does not conform to the ERC20 specification.
+  id: totrans-124
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 虽然编译和部署也可以在Europa等工具中完成，但命令行`lityc`的一个更有趣的功能是其源代码静态分析器。例如，`lityc`编译器可以检查合约是否符合特定的ERC规范。让我们考虑下面的合约。`totalSupply()`函数不符合ERC20规范。
+- en: '[Click here to view code image](Images/ch15_images.xhtml#pro15_2)'
+  id: totrans-125
+  prefs: []
+  type: TYPE_NORMAL
+  zh: '[点击此处查看代码图片](Images/ch15_images.xhtml#pro15_2)'
+- en: '[PRE5]'
+  id: totrans-126
+  prefs: []
+  type: TYPE_PRE
+  zh: '[PRE5]'
+- en: 'Running `lityc` to compile it will yield the following error message:'
+  id: totrans-127
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 运行`lityc`编译程序会显示以下错误信息：
+- en: '[Click here to view code image](Images/ch15_images.xhtml#pro15_3)'
+  id: totrans-128
+  prefs: []
+  type: TYPE_NORMAL
+  zh: '[点击此处查看代码图片](Images/ch15_images.xhtml#pro15_3)'
+- en: '[PRE6]'
+  id: totrans-129
+  prefs: []
+  type: TYPE_PRE
+  zh: '[PRE6]'
+- en: 'At the time of this writing, `lityc` supports the following ERC specifications,
+    and more are being added on a regular basis:'
+  id: totrans-130
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 截至本文写作时，`lityc`支持以下ERC规范，并且定期增加更多：
+- en: ERC20
+  id: totrans-131
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+  zh: ERC20
+- en: ERC223
+  id: totrans-132
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+  zh: ERC223
+- en: ERC721
+  id: totrans-133
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+  zh: ERC721
+- en: ERC827
+  id: totrans-134
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+  zh: ERC827
+- en: ERC884
+  id: totrans-135
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+  zh: ERC884
+- en: 'Furthermore, if you have the Oyente static analysis tool installed on your
+    computer, `lityc` can automatically run Oyente when compiling. See the following
+    code for an example:'
+  id: totrans-136
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 此外，如果您在计算机上安装了Oyente静态分析工具，`lityc`在编译时可以自动运行Oyente。以下代码为例：
+- en: '[Click here to view code image](Images/ch15_images.xhtml#pro15_4)'
+  id: totrans-137
+  prefs: []
+  type: TYPE_NORMAL
+  zh: '[点击此处查看代码图片](Images/ch15_images.xhtml#pro15_4)'
+- en: '[PRE7]'
+  id: totrans-138
+  prefs: []
+  type: TYPE_PRE
+  zh: '[PRE7]'
+- en: Oyente is an open source project that is actively developed and updated to detect
+    even more problem patterns with smart contract source code. Oyente integration
+    with `lityc` will likely drive adoption of static analyzer tools in blockchain
+    applications.
+  id: totrans-139
+  prefs: []
+  type: TYPE_NORMAL
+  zh: Oyente是一个开源项目，它正在积极开发和更新，以检测智能合约源代码的更多问题模式。Oyente与`lityc`的集成可能会推动区块链应用中静态分析工具的采用。
+- en: Dapp Tools
+  id: totrans-140
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+  zh: Dapp Tools
+- en: While Europa is a great tool, it is too hard for regular people. To make your
+    smart contracts available to the general public, you typically need to build a
+    web-based UI. For that, you need the web3-cmt.js JavaScript library to interact
+    with the CyberMiles blockchain.
+  id: totrans-141
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 虽然Europa是一个很好的工具，但对于普通人来说太难了。为了让你的智能合约对大众可用，你通常需要构建一个基于web的用户界面。为此，你需要web3-cmt.js
+    JavaScript库与CyberMiles区块链交互。
+- en: From this point on, I presume you have successfully deployed the previous `HelloWorld`
+    contract to the CyberMiles mainnet and recorded its deployed contract address.
+    The reason is that production version of the CyberMiles App (CMT wallet) works
+    only with CyberMiles mainnet contracts (see the “CyberMiles App” section).
+  id: totrans-142
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 从这一点开始，我假设您已经成功将之前的`HelloWorld`合约部署到大米链主网，并记录了其部署的合约地址。原因是大米链应用（CMT钱包）的生产版本只与大米链主网合约（参见“大米链应用”部分）一起使用。
+- en: web3-cmt
+  id: totrans-143
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+  zh: web3-cmt
+- en: 'Once Europa is installed, it automatically injects a custom instance of the
+    `web3` object (or `web3.cmt` object) into the page’s JavaScript context. Method
+    calls that require private keys will automatically prompt the user to select an
+    account, and Metamask will use the selected private key to sign the transaction
+    before sending it to the Ethereum network. In addition, all web3 API calls must
+    be asynchronous. So, we use the web3 callback API to handle the return values.
+    The source code for the `helloworld_europa.html` file follows:'
+  id: totrans-144
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 一旦安装了Europa，它将自动向页面的JavaScript上下文中注入`web3`对象的自定义实例（或`web3.cmt`对象）。需要私钥的方法调用将自动提示用户选择一个账户，MetaMask将使用选定的私钥签署交易，然后将其发送到以太坊网络。此外，所有web3
+    API调用都必须是异步的。所以，我们使用web3回调API来处理返回值。`helloworld_europa.html`文件的源代码如下：
+- en: '[Click here to view code image](Images/ch15_images.xhtml#pro15_5)'
+  id: totrans-145
+  prefs: []
+  type: TYPE_NORMAL
+  zh: '[点击此处查看代码图片](Images/ch15_images.xhtml#pro15_5)'
+- en: '[PRE8]'
+  id: totrans-146
+  prefs: []
+  type: TYPE_PRE
+  zh: '[PRE8]'
+- en: The `web3.cmt.contract(...).at("...")` function takes the contract’s deployment
+    address on the blockchain as a parameter. You can find it on the Run tab in Europa.
+    The `contract` function takes a JSON structure known as the contract’s ABI, which
+    you can copy from Europa, as shown in [Figure 15.2](ch15.xhtml#ch15fig2).
+  id: totrans-147
+  prefs: []
+  type: TYPE_NORMAL
+  zh: '`web3.cmt.contract(...).at("...")`函数将区块链上的合约部署地址作为参数。您可以在Europa的运行标签中找到它。`contract`函数采用一个被称为合约的ABI的JSON结构，您可以从Europa复制，如图[15.2](ch15.xhtml#ch15fig2)所示。'
+- en: The web application now allows users to interact with the `HelloWorld` smart
+    contract directly from the Web ([Figure 15.7](ch15.xhtml#ch15fig7)). The “submit
+    new message” action requires Europa to send gas fees since it invokes the `updateMessage()`
+    method on the contract. Notice that all web3 functions are nested and invoked
+    asynchronously.
+  id: totrans-148
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 现在，web应用允许用户直接从Web与`HelloWorld`智能合约交互([图15.7](ch15.xhtml#ch15fig7))。 “提交新消息”操作需要Europa发送燃料费，因为它调用了合约上的`updateMessage()`方法。注意所有web3函数都是嵌套的，异步调用。
+- en: '![image](Images/yuan_f15_07.jpg)'
+  id: totrans-149
+  prefs: []
+  type: TYPE_IMG
+  zh: '![image](Images/yuan_f15_07.jpg)'
+- en: '**Figure 15.7** Using the Europa wallet to write to a contract'
+  id: totrans-150
+  prefs: []
+  type: TYPE_NORMAL
+  zh: '**图15.7** 使用Europa钱包向合约写入'
+- en: Using Europa together with `web3-cmt` is one of the best ways to get started
+    with CyberMiles application development. But for the average user, the process
+    of installing and using Europa is a significant barrier of entry. Next, let’s
+    explore how to run dapps inside the CyberMiles App (CMT wallet) mobile application.
+  id: totrans-151
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 使用Europa与`web3-cmt`一起是目前开始开发CyberMiles应用的最佳方式。但对于普通用户来说，安装和使用Europa的过程是进入的一个显著障碍。接下来，让我们探索如何在大米链应用（CMT钱包）移动应用内运行dapps。
+- en: CyberMiles App
+  id: totrans-152
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+  zh: 大米链应用
+- en: The CyberMiles App is a consumer-grade mobile wallet application that requires
+    no complicated installs. You can get the CyberMiles App at [http://app.cybermiles.io/](http://app.cybermiles.io/).
+  id: totrans-153
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 大米链应用是一个消费级别的移动钱包应用，无需复杂安装。您可以在[http://app.cybermiles.io/](http://app.cybermiles.io/)获取大米链应用。
+- en: To run a dapp from the CyberMiles App, the easiest approach is to create a QR
+    code from the dapp’s URL and then use the wallet application to scan the URL.
+    You can create a QR code for any URL at [www.qr-code-generator.com/](http://www.qr-code-generator.com/).
+    [Figure 15.8](ch15.xhtml#ch15fig8) shows the entire process.
+  id: totrans-154
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 要从 CyberMiles App 运行 dapp，最简单的方法是创建一个由 dapp 的 URL 生成的二维码，然后使用钱包应用程序扫描该 URL。你可以在
+    [www.qr-code-generator.com/](http://www.qr-code-generator.com/) 为任何 URL 创建一个二维码。**图
+    15.8** 显示了整个过程。
+- en: '![image](Images/yuan_f15_08.jpg)'
+  id: totrans-155
+  prefs: []
+  type: TYPE_IMG
+  zh: '![image](Images/yuan_f15_08.jpg)'
+- en: '**Figure 15.8** Scanning a bar code to load a dapp in the CyberMiles App'
+  id: totrans-156
+  prefs: []
+  type: TYPE_NORMAL
+  zh: '**图 15.8** 在 CyberMiles App 中扫描条形码以加载 dapp'
+- en: Alternatively, the dapp could be on a regular web site and redirect to the CyberMiles
+    App when it needs to send transactions to the blockchain. The FairPlay dapp discussed
+    in [Chapter 11](ch11.xhtml#ch11) is a good example of this. [Figure 15.9](ch15.xhtml#ch15fig9)
+    shows another, simpler example.
+  id: totrans-157
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 另外，dapp 可能位于一个普通的网站上，当需要将交易发送到区块链时，它会重定向到 CyberMiles App。在第 11 章中讨论的 FairPlay
+    dapp 是这种情况的一个很好的例子。**图 15.9** 显示了另一个更简单的例子。
+- en: '![image](Images/yuan_f15_09.jpg)'
+  id: totrans-158
+  prefs: []
+  type: TYPE_IMG
+  zh: '![image](Images/yuan_f15_09.jpg)'
+- en: '**Figure 15.9** Using the CyberMiles App to run the dapp and pay for gas fees'
+  id: totrans-159
+  prefs: []
+  type: TYPE_NORMAL
+  zh: '**图 15.9** 使用 CyberMiles App 运行 dapp 和支付燃气费'
+- en: Dapp user experience in the CyberMiles App is one of the advantages CyberMiles
+    has over Ethereum.
+  id: totrans-160
+  prefs: []
+  type: TYPE_NORMAL
+  zh: CyberMiles App 中的 dapp 用户体验是 CyberMiles 优于以太坊的优点之一。
+- en: Conclusion
+  id: totrans-161
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+  zh: 结论
+- en: In this chapter, I reviewed tools for the Ethereum-compatible CyberMiles blockchain.
+    I reviewed the available wallets, web3 library, and development/deployment tools
+    for CyberMiles. In the next chapter, we will put these together and see a few
+    complete example dapps that were developed using Lity and have been deployed on
+    the CyberMiles public blockchain.
+  id: totrans-162
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 在本章中，我回顾了适用于以太坊兼容的 CyberMiles 区块链的工具。我回顾了 CyberMiles 可用的钱包、web3 库以及开发/部署工具。在下一章中，我们将把这些工具结合起来，看看一些使用
+    Lity 开发并部署在 CyberMiles 公共区块链上的完整示例 dapp。
+- en: 16. Example Dapps
+  id: totrans-163
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+  zh: 16. 示例 dapps
+- en: In the previous two chapters, I discussed how to extend the Ethereum protocol
+    and related development tools. But how do those extensions and improvements translate
+    into real-world applications? In this chapter, I will discuss a few complete dapps
+    deployed on CyberMiles to illustrate how Ethereum extensions make it possible
+    for developers to create interactive dapps for the blockchain.
+  id: totrans-164
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 在前两章中，我讨论了如何扩展以太坊协议和相关开发工具。但是，这些扩展和改进如何转化为现实世界的应用呢？在本章中，我将讨论几个在 CyberMiles 上部署的完整
+    dapp，以说明以太坊扩展如何使开发者能够为区块链创建互动式 dapp。
+- en: Everything discussed in this chapter is compatible with Ethereum. But as discussed,
+    CyberMiles offers some important advantages as an Ethereum-compatible development
+    and deployment platform.
+  id: totrans-165
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 本章讨论的一切都与以太坊兼容。但是，正如所讨论的，作为以太坊兼容的开发和部署平台，CyberMiles 提供了一些重要的优势。
+- en: CyberMiles has a much faster transaction confirmation time than Ethereum. That
+    is important for interactive dapp user experience (UX) since it reduces the time
+    needed for operations to be confirmed and recorded on the blockchain.
+  id: totrans-166
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+  zh: CyberMiles 的交易确认时间比以太坊快得多。这对于互动式 dapp 用户体验（UX）很重要，因为它减少了操作被确认和记录在区块链上的时间。
+- en: CyberMiles has a mobile wallet application that can run web3-based JavaScript
+    applications in an embedded mode. The CMT wallet is available in all iOS and Android
+    app stores, and you can load the dapp by scanning a bar code pointing to the JavaScript
+    code.
+  id: totrans-167
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+  zh: CyberMiles 有一个移动钱包应用程序，可以在嵌入模式下运行基于 web3 的 JavaScript 应用程序。CMT 钱包在所有 iOS 和 Android
+    应用商店都可以找到，你可以通过扫描指向 JavaScript 代码的条形码来加载 dapp。
+- en: The CyberMiles blockchain uses the CMT token to pay for gas fees. As the CMT
+    price is much lower ETH, it can accomplish much more with the same amount of money.
+  id: totrans-168
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+  zh: CyberMiles 区块链使用 CMT 代币支付燃气费。由于 CMT 价格远低于 ETH，因此可以用更少的钱完成更多任务。
+- en: Next, let’s get started.
+  id: totrans-169
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 接下来，让我们开始吧。
+- en: 'Case Study 1: Valentines'
+  id: totrans-170
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+  zh: 案例研究 1：情人节
+- en: The Valentines dapp is for people to declare and record their love permanently
+    on the blockchain. Through the CyberMiles App (CMT wallet), anyone can create
+    a love declaration and share the QR code (see [Figure 16.1](ch16.xhtml#ch16fig1)).
+  id: totrans-171
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 情人节 dapp 是为了让人们永久地在区块链上声明和记录他们的爱。通过 CyberMiles App（CMT 钱包），任何人都可以创建一个爱情宣言并分享二维码（见**图
+    16.1**）。
+- en: '![image](Images/yuan_f16_01.jpg)'
+  id: totrans-172
+  prefs: []
+  type: TYPE_IMG
+  zh: '![image](Images/yuan_f16_01.jpg)'
+- en: '**Figure 16-1** Declaring your love'
+  id: totrans-173
+  prefs: []
+  type: TYPE_NORMAL
+  zh: '**图 16-1** 宣告你的爱'
+- en: The recipient of the declaration uses her CyberMiles App to scan the QR code
+    and open the dapp. From there, she can reply to the declaration. Once she replies,
+    she can share the QR code to the world so that anyone can open the dapp and witness
+    the declaration and reply recorded on the blockchain ([Figure 16.2](ch16.xhtml#ch16fig2)).
+  id: totrans-174
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 声明的接收者使用她的CyberMiles App扫描二维码并打开DApp。从那里，她可以回复声明。回复后，她可以向世界分享二维码，这样任何人都可以打开DApp并见证记录在区块链上的声明和回复([图16.2](ch16.xhtml#ch16fig2))。
+- en: '![image](Images/yuan_f16_02.jpg)'
+  id: totrans-175
+  prefs: []
+  type: TYPE_IMG
+  zh: '![image](Images/yuan_f16_02.jpg)'
+- en: '**Figure 16-2** Replying and witnessing the declaration'
+  id: totrans-176
+  prefs: []
+  type: TYPE_NORMAL
+  zh: '**图16-2** 回复和见证声明'
+- en: Next, let’s review the smart contract code behind the Valentines contract and
+    then the JavaScript dapp to interact with the Valentines contract.
+  id: totrans-177
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 接下来，让我们回顾一下情人节合约背后的智能合约代码，然后是用于与情人节合约交互的JavaScript DApp。
+- en: The Valentines Smart Contract
+  id: totrans-178
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+  zh: 情人节智能合约
+- en: 'The Valentines smart contract contains all the declarations and replies (each
+    of them is a valentine) submitted from the dapp. It has two main functions: `declare()`
+    to create a new declaration and `reply()` to reply to an existing declaration.
+    It also has two informational functions (`view` functions), `getDeclaration()`
+    and `getReplies()`, to help dapps retrieve information from the blockchain.'
+  id: totrans-179
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 情人节智能合约包含了从DApp提交的所有声明和回复（每一个都是情人节的礼物）。它有两个主要功能：`declare()`用于创建一个新的声明，`reply()`用于回复一个现有的声明。它还有两个信息函数（`view`函数），`getDeclaration()`和`getReplies()`，帮助DApp从区块链检索信息。
+- en: '[Click here to view code image](Images/ch16_images.xhtml#pro16_1)'
+  id: totrans-180
+  prefs: []
+  type: TYPE_NORMAL
+  zh: '[点击此处查看代码图片](Images/ch16_images.xhtml#pro16_1)'
+- en: '[PRE9]'
+  id: totrans-181
+  prefs: []
+  type: TYPE_PRE
+  zh: '[PRE9]'
+- en: The contract’s four functions are self-explanatory. The `Declaration` struct
+    contains a declaration and its reply. The declaration is mapped to its creator
+    in the `declarations` mapping array. The `replies` array maps each address to
+    the declarations it replied to. Note that each address can make one declaration
+    but can reply to multiple declarations.
+  id: totrans-182
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 合约的四个函数都是自解释的。`Declaration`结构包含一个声明及其回复。声明被映射到其在`declarations`映射数组中的创建者。`replies`数组将每个地址映射到它回复的声明。请注意，每个地址可以发表一个声明，但可以回复多个声明。
+- en: Next, you can deploy the contract to the CyberMiles blockchain and record the
+    deployed contract address. The easiest approach is probably to use the CyberMiles
+    Europa tool or the Second State BUIDL tool configured for CyberMiles. The JavaScript
+    dapp accesses this deployed contract.
+  id: totrans-183
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 然后，您可以将合约部署到CyberMiles区块链，并记录部署的合约地址。最简单的方法可能是使用CyberMiles Europa工具或配置为CyberMiles的Second
+    State BUIDL工具。JavaScript DApp访问这个部署的合约。
+- en: The JavaScript Dapp
+  id: totrans-184
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+  zh: JavaScript DApp
+- en: The dapp is written in JavaScript and runs in the client browser in conjunction
+    with a wallet application. The `getDeclaration()` function in the `declare.js`
+    file calls the smart contract’s `getDeclaration()` function and then uses the
+    results to update the HTML user interface (UI) in the `declare.html` file. The
+    following code snippet shows the `getDeclaration()` function in the JavaScript
+    dapp. Notice that all web3-related operations are done asynchronously since many
+    are remote calls, and we have to guarantee the correct order to execution. The
+    `contract_address` value is the previously mentioned contract address after successful
+    deployment. It is hard-coded into the dapp. The `targetAddress` value is the address
+    from which this declaration was made. The `userAddress` value is the current user’s
+    CMT address.
+  id: totrans-185
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 该DApp用JavaScript编写，在与钱包应用程序结合的客户端浏览器中运行。`declare.js`文件中的`getDeclaration()`函数调用智能合约的`getDeclaration()`函数，然后使用结果更新`declare.html`文件中的HTML用户界面（UI）。以下代码片段显示了JavaScript
+    DApp中的`getDeclaration()`函数。请注意，所有与web3相关的操作都是异步进行的，因为很多都是远程调用，我们必须保证执行的正确顺序。`contract_address`值是在成功部署后提到的合约地址。它被硬编码到DApp中。`targetAddress`值是这个声明是从哪个地址发出的。`userAddress`值是当前用户的CMT地址。
+- en: '[Click here to view code image](Images/ch16_images.xhtml#pro16_2)'
+  id: totrans-186
+  prefs: []
+  type: TYPE_NORMAL
+  zh: '[点击此处查看代码图片](Images/ch16_images.xhtml#pro16_2)'
+- en: '[PRE10]'
+  id: totrans-187
+  prefs: []
+  type: TYPE_PRE
+  zh: '[PRE10]'
+- en: When the user makes a declaration, the contract’s `declare()` function is called.
+    Notice that we have to pay a small gas fee to invoke this function since it saves
+    data on the blockchain. Upon successful return of the contract function call,
+    the JavaScript waits for the transaction to be confirmed on the blockchain (when
+    the block is produced and accepted by the validators) and then reloads the `getDeclaration()`
+    function to update the UI.
+  id: totrans-188
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 当用户做出选择时，会调用合约的 `declare()` 函数。请注意，由于它会在区块链上保存数据，我们必须支付一点燃料费来调用这个函数。在合约函数调用成功返回后，JavaScript
+    会等待交易在区块链上被确认（当区块被生产并被验证者接受），然后重新加载 `getDeclaration()` 函数以更新用户界面。
+- en: '[Click here to view code image](Images/ch16_images.xhtml#pro16_3)'
+  id: totrans-189
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 点击此处查看代码图片](Images/ch16_images.xhtml#pro16_3)
+- en: '[PRE11]'
+  id: totrans-190
+  prefs: []
+  type: TYPE_PRE
+  zh: '[PRE11]'
+- en: When a second user replies to the declaration, the dapp calls the `reply()`
+    function on the contract and updates the UI after the transaction is confirmed
+    on the blockchain.
+  id: totrans-191
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 当第二个用户回复投注声明时，该 DApp 会调用合约的 `reply()` 函数，在区块链上确认交易后在用户界面上更新信息。
+- en: '[Click here to view code image](Images/ch16_images.xhtml#pro16_4)'
+  id: totrans-192
+  prefs: []
+  type: TYPE_NORMAL
+  zh: '[点击此处查看代码图片](Images/ch16_images.xhtml#pro16_4)'
+- en: '[PRE12]'
+  id: totrans-193
+  prefs: []
+  type: TYPE_PRE
+  zh: '[PRE12]'
+- en: So far, we have reviewed the core logic of the Valentines dapp and how it interacts
+    with data and functions on the blockchain via web3\. The dapp uses open source
+    libraries to perform other important tasks. For example, it uses the `qrcode.js`
+    script to generate QR codes on the fly. It uses the `IUToast` script to create
+    messages and alerts for users.
+  id: totrans-194
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 到目前为止，我们已经回顾了 Valentines DApp 的核心逻辑以及它是如何通过 web3 与区块链上的数据和函数交互的。该 DApp 使用开源库来执行其他重要任务。例如，它使用
+    `qrcode.js` 脚本动态生成二维码。它使用 `IUToast` 脚本为用户提供消息和警告。
+- en: The Valentines dapp has only a single web page and a single JavaScript control
+    file. It interacts with an already deployed smart contract. In the next section,
+    we will study a more complex dapp called WeBet.
+  id: totrans-195
+  prefs: []
+  type: TYPE_NORMAL
+  zh: Valentines DApp 只有一个网页和一个JavaScript 控制文件。它与已经部署的智能合约交互。在下一节中，我们将研究一个更复杂的 DApp
+    称为 WeBet。
+- en: 'Case Study 2: WeBet'
+  id: totrans-196
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+  zh: 案例研究 2：WeBet
+- en: The WeBet dapp is a peer-to-peer betting application. It allows anyone to create
+    a bet contract inside the CyberMiles App ([Figure 16.3](ch16.xhtml#ch16fig3))
+    and share the bet ([Figure 16.4](ch16.xhtml#ch16fig4)). The bet is a multiple-choice
+    question.
+  id: totrans-197
+  prefs: []
+  type: TYPE_NORMAL
+  zh: WeBet 去中心化应用（DApp）是一个点对点的投注平台。它允许任何人在 CyberMiles 应用内创建一个投注合约（[图 16.3](ch16.xhtml#ch16fig3)）并分享投注（[图
+    16.4](ch16.xhtml#ch16fig4)）。投注是一个多选题。
+- en: '![image](Images/yuan_f16_03.jpg)'
+  id: totrans-198
+  prefs: []
+  type: TYPE_IMG
+  zh: '![image](Images/yuan_f16_03.jpg)'
+- en: '**Figure 16-3** Creating a new WeBet contract'
+  id: totrans-199
+  prefs: []
+  type: TYPE_NORMAL
+  zh: '**图 16-3** 创建一个新的 WeBet 合约'
+- en: '![image](Images/yuan_f16_04.jpg)'
+  id: totrans-200
+  prefs: []
+  type: TYPE_IMG
+  zh: '![image](Images/yuan_f16_04.jpg)'
+- en: '**Figure 16-4** Sharing a WeBet contract'
+  id: totrans-201
+  prefs: []
+  type: TYPE_NORMAL
+  zh: '**图 16-4** 分享 WeBet 合约'
+- en: Other people can then use their own CyberMiles Apps to place bets ([Figure 16.5](ch16.xhtml#ch16fig5)).
+    They get to the bet by simply scanning the QR code shared by the bet contract’s
+    creator. They each select a choice and send CMTs to the contract as the bet on
+    that choice.
+  id: totrans-202
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 其他人可以使用他们自己的 CyberMiles 应用来下注（[图 16.5](ch16.xhtml#ch16fig5)）。他们通过扫描由投注合约创建者分享的唯一二维码轻松找到投注。他们各自选择一个选项，并将
+    CMT 发送到合约作为对该选项的投注。
+- en: '![image](Images/yuan_f16_05.jpg)'
+  id: totrans-203
+  prefs: []
+  type: TYPE_IMG
+  zh: '![image](Images/yuan_f16_05.jpg)'
+- en: '**Figure 16-5** Placing a bet on a WeBet contract'
+  id: totrans-204
+  prefs: []
+  type: TYPE_NORMAL
+  zh: '**图 16-5** 在 WeBet 合约上下注'
+- en: The creator can declare a winning choice after the bets are placed ([Figure
+    16.6](ch16.xhtml#ch16fig6)). There could be multiple winners since several people
+    could select the same choice.
+  id: totrans-205
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 创建者可以在下注后宣布一个获胜选项（[图 16.6](ch16.xhtml#ch16fig6)）。由于多个人可能选择同一个选项，可能有多个赢家。
+- en: '![image](Images/yuan_f16_06.jpg)'
+  id: totrans-206
+  prefs: []
+  type: TYPE_IMG
+  zh: '![image](Images/yuan_f16_06.jpg)'
+- en: '**Figure 16-6** Declaring a winner choice'
+  id: totrans-207
+  prefs: []
+  type: TYPE_NORMAL
+  zh: '**图 16-6** 宣布获胜选项'
+- en: The winners use their CMT wallets to claim winnings from the bet ([Figure 16.7](ch16.xhtml#ch16fig7)).
+  id: totrans-208
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 获胜者使用他们的 CMT 钱包从投注中领取奖金（[图 16.7](ch16.xhtml#ch16fig7)）。
+- en: '![image](Images/yuan_f16_07.jpg)'
+  id: totrans-209
+  prefs: []
+  type: TYPE_IMG
+  zh: '![image](Images/yuan_f16_07.jpg)'
+- en: '**Figure 16-7** Claiming WeBet winnings'
+  id: totrans-210
+  prefs: []
+  type: TYPE_NORMAL
+  zh: '**图 16-7** 领取 WeBet 奖金'
+- en: Another use case of the WeBet dapp is to create “commitment contracts.” That
+    is, someone can create a personal goal (e.g., to lose 10 pounds in a month) and
+    bet on the goal outcome with a large amount of CMTs (e.g., 10,000 CMTs) as a commitment.
+    Then, friends and family will each bet a small amount (e.g., 1 CMT) on the opposite
+    outcome. If the creator achieves his goal, he will get the commitment CMTs back.
+    If not, friends and family will share the commitment CMTs.
+  id: totrans-211
+  prefs: []
+  type: TYPE_NORMAL
+  zh: WeBet dapp的另一个用例是创建“承诺合约”。也就是说，某人可以创建一个个人目标（例如，一个月内减轻10磅），并用大量CMT（例如，10,000
+    CMT）作为赌注来下注。然后，亲朋好友各自对相反的结果下注一小笔（例如，1 CMT）。如果创建者实现了他的目标，他将得到承诺的CMT。如果没有，亲朋好友将平分承诺的CMT。
+- en: This type of personal betting application is well suited for the public blockchain.
+    The blockchain dapp could potentially provide a much better user experience than
+    a traditional web application.
+  id: totrans-212
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 这类个人投注应用非常适合公链。区块链dapp可能会提供比传统web应用更好的用户体验。
+- en: The smart contracts on the public blockchain guarantee that the application
+    developer or host cannot cheat by changing the betting records, or even running
+    away with the funds. Similarly, it is difficult for governments or other entities
+    to shut down these contracts.
+  id: totrans-213
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+  zh: 公链上的智能合约确保应用开发者或主机无法通过更改投注记录，甚至携款潜逃来作弊。同样，政府或其他实体也很难关闭这些合约。
+- en: It is much easier to transfer “value” on the blockchain. To bet with small amounts
+    of fiat money, you still need the whole banking infrastructure and its high fees.
+    On an established public chain like CyberMiles or Ethereum, the tokens have an
+    established exchange rate with U.S. dollars and are much easier and cheaper to
+    use as payments.
+  id: totrans-214
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+  zh: 在区块链上转移“价值”要容易得多。要用法定货币小额投注，你仍然需要整个银行基础设施以及其高昂的费用。在像CyberMiles或以太坊这样的成熟公链上，代币与美元有确定的汇率，并且作为支付手段要容易得多，费用也低。
+- en: Next, let’s review the smart contract code behind the WeBet contract and then
+    the JavaScript dapp to interact with WeBet contracts.
+  id: totrans-215
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 接下来，让我们回顾一下WeBet合约背后的智能合约代码，然后是用于与WeBet合约交互的JavaScript dapp。
+- en: '**Note**'
+  id: totrans-216
+  prefs: []
+  type: TYPE_NORMAL
+  zh: '**注意**'
+- en: You have probably noticed that the WeBet contract owner must declare the winning
+    choice for the bet. Can the contract owner cheat here? Yes, mapping real-world
+    off-chain information (i.e., whether he lost 10 pounds) onto the blockchain is
+    always a challenge. However, it is also important to note that everything related
+    to the WeBet contract, including the declaration and all the bets, are recorded
+    on the blockchain for everyone to see. If a contract owner does cheat, he forever
+    damages his reputation.
+  id: totrans-217
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 你可能已经注意到，WeBet合约的所有者必须声明投注的获胜选项。合约所有者能在这里作弊吗？是的，将现实世界的离链信息（即他是否减轻了10磅）映射到区块链上总是挑战性的。然而，也需要注意的是，与WeBet合约有关的所有信息，包括声明和所有投注，都记录在区块链上，供所有人查看。如果合约所有者作弊，他将永远损害自己的声誉。
+- en: We could also modify the product to require multiple known “arbiters” to verify
+    the contract owner declaration before it takes effect. However, that makes the
+    product more complex to use.
+  id: totrans-218
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 我们也可以修改产品，要求多个已知的“仲裁者”在合约所有者的声明生效前验证该声明。然而，那样会使产品更复杂难用。
+- en: WeBet Smart Contract
+  id: totrans-219
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+  zh: WeBet智能合约
+- en: The overall structure of the WeBet smart contract written in Solidity is as
+    follows. As discussed, the dapp creates a new instance of the WeBet contract for
+    every new betting contract.
+  id: totrans-220
+  prefs: []
+  type: TYPE_NORMAL
+  zh: WeBet用Solidity编写的智能合约的整体结构如下。正如所讨论的，dapp为每个新的投注合约创建WeBet合约的新实例。
+- en: '[Click here to view code image](Images/ch16_images.xhtml#pro16_5)'
+  id: totrans-221
+  prefs: []
+  type: TYPE_NORMAL
+  zh: '[点击此处查看代码图片](Images/ch16_images.xhtml#pro16_5)'
+- en: '[PRE13]'
+  id: totrans-222
+  prefs: []
+  type: TYPE_PRE
+  zh: '[PRE13]'
+- en: The constructor method creates the contract with all the information needed
+    to set up the betting.
+  id: totrans-223
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 构造函数方法用所有必要的信息创建合约以设置投注。
+- en: 'The `game_desc` string contains the bet’s title, description, and all the choices.
+    They are constructed in a single string with the `;` symbol to delimit various
+    components. For example, the `game_desc` string could be as follows: `bet title;choice
+    1;choice 2;choice 3`. We are not passing and storing choices in string arrays
+    because of Solidity’s limitations on string arrays. The parsing work is left for
+    JavaScript in the dapp as it is not core to the transaction logic of the contract.'
+  id: totrans-224
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+  zh: '`game_desc`字符串包含投注的标题、描述和所有选项。它们用`;`符号构建成一个字符串，以分隔各个组件。例如，`game_desc`字符串可能如下所示：`bet
+    title;choice 1;choice 2;choice 3`。我们没有以字符串数组的形式传递和存储选项，因为Solidity对字符串数组有限制。解析工作留给了dapp中的JavaScript，因为这并不是合约交易逻辑的核心。'
+- en: The `number_of_choices` value specifies the number choices contained in the
+    `game_desc` string. In our example, it would be `3`. This helps the dapp JavaScript
+    parse the information components.
+  id: totrans-225
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+  zh: '`number_of_choices`值指定了`game_desc`字符串中包含的选择数量。在我们示例中，将是`3`。这有助于dapp JavaScript解析信息组件。'
+- en: The `min_bet_amount` value is the minimum amount each user must bet to participate
+    in the game. It is in the unit of CMTs.
+  id: totrans-226
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+  zh: '`min_bet_amount`值是每个用户必须下注的最低金额，以参与游戏。它的单位是CMT。'
+- en: The `allow_user_bet_amount` value is a `boolean` variable that specifies whether
+    a user can bet in an amount greater than `min_bet_amount`.
+  id: totrans-227
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+  zh: '`allow_user_bet_amount`值是一个`boolean`变量，用于指定用户是否可以下注超过`min_bet_amount`的金额。'
+- en: Once the contract is created, the `game_status` variable defaults to `1`, which
+    means the betting has started. Through methods such as `stopGame()`, `resumeGame()`,
+    `endGame()`, and `cancelGame()`, you can change the game status. That allows the
+    contractor owner to stop voting before declaring a winner. For example, a sports
+    bet should stop once the game starts in the real world, and the winner will be
+    declared when the real-world game ends. The `getBetInfo()` function returns the
+    basic information and status of the bet.
+  id: totrans-228
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 一旦合约创建，`game_status`变量默认为`1`，这意味着下注已经开始了。通过诸如`stopGame()`、`resumeGame()`、`endGame()`和`cancelGame()`等方法，你可以改变游戏状态。这允许合约所有者在宣布赢家之前停止投票。例如，体育博彩应该在现实世界的比赛开始时停止，而真正的赢家将在现实世界比赛结束时宣布。`getBetInfo()`函数返回博彩的基本信息和状态。
+- en: The `bets` array in the contract maps an address to `Bet`. Each `Bet` struct
+    in the array is created by a bet. It contains the better’s choice, the amount
+    she bets, and whether this user has claimed her winnings if she wins. The better’s
+    address is the key in the `bets` array.
+  id: totrans-229
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 合约中的`bets`数组将地址映射到`Bet`。数组中的每个`Bet`结构都是由一次下注创建的。它包含了下注者的选择、她下注的金额以及如果她赢了，她是否已经领取了她的奖金。下注者的地址是`bets`数组中的关键。
+- en: The `choice_bet_amounts` array in the contract maps each choice to its aggregated
+    bet amounts (in the unit of CMTs). It allows easy computation of the winning for
+    each betting address. The `checkStatus()` function is called by the dapp to check
+    the bet status and winning of the current user address.
+  id: totrans-230
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 合约中的`choice_bet_amounts`数组将每个选择映射到其汇总下注金额（以CMT为单位）。它允许轻松计算每个下注地址的赢面。`checkStatus()`函数由dapp调用，以检查当前用户地址的博彩状态和赢面。
+- en: '[Click here to view code image](Images/ch16_images.xhtml#pro16_9)'
+  id: totrans-231
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 请点击[此处查看代码图片](Images/ch16_images.xhtml#pro16_9)
+- en: '[PRE14]'
+  id: totrans-232
+  prefs: []
+  type: TYPE_PRE
+  zh: '[PRE14]'
+- en: Now the key function in the entire contract is the `placeBet()` function. It
+    is called by any users who want to place a bet on a choice in this contract. The
+    function is `payable`, meaning that the user can attach a payment to its call.
+    The payment is the bet placed on the choice. It should at least meet the `min_bet_amount`.
+    Once a bet is made, the contract’s `bets` and `choice_bet_amounts` arrays are
+    both updated.
+  id: totrans-233
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 整个合约中的关键功能是`placeBet()`函数。任何想要在这个合约上下注的用户都会调用这个函数。这个函数是`payable`的，意味着用户可以附带支付来进行调用。这个支付就是下注的金额。它至少要满足`min_bet_amount`。一旦下注，合约的`bets`和`choice_bet_amounts`数组都会更新。
+- en: '[Click here to view code image](Images/ch16_images.xhtml#pro16_10)'
+  id: totrans-234
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 请点击[此处查看代码图片](Images/ch16_images.xhtml#pro16_10)
+- en: '[PRE15]'
+  id: totrans-235
+  prefs: []
+  type: TYPE_PRE
+  zh: '[PRE15]'
+- en: A user checks her winnings by calling the `checkStatus()` function from her
+    betting address. If the user wins, she can get paid from the contract by calling
+    the `payMe()` function. Notice that if the `game_status` indicates that the owner
+    has canceled the bet, every better is refunded.
+  id: totrans-236
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 用户通过从她的下注地址调用`checkStatus()`函数来检查她的奖金。如果用户赢了，她可以通过调用`payMe()`函数从合约中获取支付。注意，如果`game_status`表明所有者取消了博彩，每个下注者都将退款。
+- en: '[Click here to view code image](Images/ch16_images.xhtml#pro16_11)'
+  id: totrans-237
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 请点击[此处查看代码图片](Images/ch16_images.xhtml#pro16_11)
+- en: '[PRE16]'
+  id: totrans-238
+  prefs: []
+  type: TYPE_PRE
+  zh: '[PRE16]'
+- en: The Solidity smart contract is deliberately simple. It mostly deals with important
+    application states and automatic transfer of “money” (i.e., CMTs in this case).
+    It is a back-end service for the JavaScript dapp.
+  id: totrans-239
+  prefs: []
+  type: TYPE_NORMAL
+  zh: Solidity智能合约故意设计得很简单。它主要处理重要的应用状态和“资金”（即在此情况下的CMT）的自动转移。它是JavaScript dapp的后端服务。
+- en: WeBet JavaScript Application
+  id: totrans-240
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+  zh: WeBet JavaScript 应用程序
+- en: The WeBet dapp is a JavaScript application that can be executed inside the CyberMiles
+    App or in a Chrome browser with the CyberMiles Venus (Metamask for CMT) extension
+    enabled. In the `browser.js` file, we test if the `web3.cmt` object is `nil`.
+    If it is, the user will be directed to install the CMT wallet on mobile devices
+    or Venus Chrome extension on PCs and then restart the dapp.
+  id: totrans-241
+  prefs: []
+  type: TYPE_NORMAL
+  zh: WeBet dapp是一个可以在CyberMiles App内执行或在启用了CyberMiles Venus（CMT的Metamask扩展）的Chrome浏览器内执行的JavaScript应用程序。在`browser.js`文件中，我们测试`web3.cmt`对象是否为`nil`。如果是，用户将被引导在移动设备上安装CMT钱包或在PC上安装Venus
+    Chrome扩展，然后重新启动dapp。
+- en: Since the dapp is just a collection of static JavaScript and HTML files, the
+    files can be served from any anonymous web server or even be bundled inside the
+    device client. There is no need for a central server to manage the application
+    state. In our example, the dapp files are served from [http://webet.codeislaw.co/](http://webet.codeislaw.co/).
+  id: totrans-242
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 由于dapp只是一个静态JavaScript和HTML文件的集合，这些文件可以由任何匿名Web服务器提供，甚至可以捆绑在设备客户端内部。不需要中心服务器来管理应用程序状态。在我们示例中，dapp文件从[http://webet.codeislaw.co/](http://webet.codeislaw.co/)提供。
+- en: Create a New WeBet Contract
+  id: totrans-243
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+  zh: 创建新的WeBet合约
+- en: 'The `start.html` and `start.js` files in the dapp work in tandem to support
+    the creation and deployment of a new WeBet contract. The HTML file captures the
+    user input about the contract details (e.g., title, choices, minimum bet amount),
+    and the JS file creates the contract on the blockchain. The following is the initialization
+    code for the `start.js` script:'
+  id: totrans-244
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 在dapp中的`start.html`和`start.js`文件协同工作，支持新WeBet合约的创建和部署。HTML文件捕获用户关于合约细节的输入（例如，标题，选项，最低投注金额），而JS文件在区块链上创建合约。以下是`start.js`脚本的初始化代码：
+- en: '[Click here to view code image](Images/ch16_images.xhtml#pro16_12)'
+  id: totrans-245
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 点击此处查看代码图片](Images/ch16_images.xhtml#pro16_12)
+- en: '[PRE17]'
+  id: totrans-246
+  prefs: []
+  type: TYPE_PRE
+  zh: '[PRE17]'
+- en: Notice that every blockchain-related operation is done asynchronously. The app
+    shows a spinner and asks the user to wait while it discovers the user’s current
+    account address from the wallet. The `startGame()` JavaScript function is mapped
+    to the click event when the user hits the Submit button to create a WeBet contract.
+  id: totrans-247
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 注意，所有与区块链相关的操作都是异步完成的。应用程序显示一个加载器，并要求用户在发现用户从钱包中获取当前账户地址时等待。当用户点击提交按钮以创建WeBet合约时，`startGame()`JavaScript函数映射到点击事件。
+- en: '[Click here to view code image](Images/ch16_images.xhtml#pro16_13)'
+  id: totrans-248
+  prefs: []
+  type: TYPE_NORMAL
+  zh: '[点击此处查看代码图片](Images/ch16_images.xhtml#pro16_13)'
+- en: '[PRE18]'
+  id: totrans-249
+  prefs: []
+  type: TYPE_PRE
+  zh: '[PRE18]'
+- en: Aside from the regular input validation and processing code, the main part of
+    the function is nested in two asynchronous blocks. The `estimateGas()` function
+    asks a connected blockchain node to estimate the amount of gas fee needed to create
+    this contract. We multiply the gas by 2 since the estimate is sometimes conservative.
+    Notice that this is the *gas limit*, or the maximum amount gas the user authorizes
+    to use. The user will be charged only for the actual gas used when creating the
+    contract. Then, the `contract.new()` function passes information to the contract’s
+    `constructor()` function and asynchronously returns the newly created contract’s
+    address.
+  id: totrans-250
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 除了常规输入验证和处理代码之外，函数的主要部分嵌套在两个异步块中。`estimateGas()`函数请求连接的区块链节点估计创建此合约所需的燃气费。由于估计有时过于保守，所以我们将燃气费乘以2。请注意，这是*燃气限制*，即用户授权使用的最大燃气量。用户在创建合约时只会有实际使用的燃气费。然后，`contract.new()`函数向合约的`constructor()`函数传递信息，并异步返回新创建的合约地址。
+- en: The dapp UI displays a spinner until the contract address is successfully created
+    and returned. It then calls the `setTheContractAddressAndTurn()` function to navigate
+    to the betting screen.
+  id: totrans-251
+  prefs: []
+  type: TYPE_NORMAL
+  zh: dapp UI在成功创建并返回合约地址之前显示加载器。然后调用`setTheContractAddressAndTurn()`函数导航到投注屏幕。
+- en: '[Click here to view code image](Images/ch16_images.xhtml#pro16_15)'
+  id: totrans-252
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 点击此处查看代码图片](Images/ch16_images.xhtml#pro16_15)
+- en: '[PRE19]'
+  id: totrans-253
+  prefs: []
+  type: TYPE_PRE
+  zh: '[PRE19]'
+- en: The dapp now navigates to the `join.html` screen. The URL with the contract
+    address is how other people access this bet from their CyberMiles App (CMT wallets).
+    The `join.html` screen can create a QR bar code to be shared with friends and
+    potential betters.
+  id: totrans-254
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 现在dapp导航到`join.html`屏幕。带有合约地址的URL是其他人通过他们的CyberMiles App（CMT钱包）从他们的CyberMiles
+    App访问这个赌注的方式。`join.html`屏幕可以创建一个二维码与朋友和潜在的下注者分享。
+- en: Bet on a Choice
+  id: totrans-255
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+  zh: 下注选择
+- en: The `join.html` and `bet.js` files work in tandem to present the betting UI.
+    The `getGameStatus()` function retrieves information from the contract’s `checkStatus()`
+    function. It is a `pure view` function and hence requires no gas to operate. Once
+    the JavaScript `getGameStatus()` function receives the result, it parses the title,
+    choices, the current choice, the current bet, and the user’s award status, and
+    then displays those information items on the `join.html` screen. I will not repeat
+    that code in this book as it is lengthy, but you can see it in the source code
+    listing.
+  id: totrans-256
+  prefs: []
+  type: TYPE_NORMAL
+  zh: '`join.html`和`bet.js`文件协同工作来呈现投注UI。`getGameStatus()`函数从合约的`checkStatus()`函数检索信息。它是一个`pure
+    view`函数，因此无需燃料即可操作。一旦JavaScript `getGameStatus()`函数收到结果，它解析标题、选项、当前选项、当前投注和用户的奖金状态，然后将这些信息项显示在`join.html`屏幕上。我不会在这本书中重复这段代码，因为它很长，但你可以
+    在源代码列表中看到它。'
+- en: The `confirmOptionSubmit()` function is called when the user submits her bet.
+    It calls the contract’s `placeBet()` function asynchronously after estimating
+    gas. The bet is sent to the contract as a value for the payable `placeBet()` function.
+  id: totrans-257
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 当用户提交她的投注时，会调用`confirmOptionSubmit()`函数。在估计燃料后，它异步调用合约的`placeBet()`函数。投注作为可支付`placeBet()`函数的值发送到合约。
+- en: '[Click here to view code image](Images/ch16_images.xhtml#pro16_16)'
+  id: totrans-258
+  prefs: []
+  type: TYPE_NORMAL
+  zh: '[点击此处查看代码图片](Images/ch16_images.xhtml#pro16_16)'
+- en: '[PRE20]'
+  id: totrans-259
+  prefs: []
+  type: TYPE_PRE
+  zh: '[PRE20]'
+- en: Once the `placeBet()` function call returns, the dapp does not wait for the
+    transaction to be confirmed. It just goes ahead and updates the UI to show the
+    current selected choice and a message showing that the bet is submitted. The `getGameStatus()`
+    function refreshes the page every ten seconds to get the latest from the blockchain.
+    Once the transaction is confirmed on the blockchain, the message changes to say
+    that the bet is recorded.
+  id: totrans-260
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 一旦`placeBet()`函数调用返回，dapp不会等待交易被确认。它只是继续更新UI，显示当前选中的选项和显示投注已提交的消息。每十秒刷新一次`getGameStatus()`函数来获取区块链的最新信息。一旦交易在区块链上被确认，消息将更改为显示投注已被记录。
+- en: Declare the Winning Choice
+  id: totrans-261
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+  zh: 声明胜利选项
+- en: When the `bet.js` script displays information retrieved from the WeBet smart
+    contract, it determines whether to display the owner’s control options, such as
+    the options to stop the bet or to declare a winning option.
+  id: totrans-262
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 当`bet.js`脚本从WeBet智能合约中显示信息时，它会确定是否显示所有者的控制选项，例如停止投注或宣布胜利选项等选项。
+- en: '[Click here to view code image](Images/ch16_images.xhtml#pro16_18)'
+  id: totrans-263
+  prefs: []
+  type: TYPE_NORMAL
+  zh: '[点击此处查看代码图片](Images/ch16_images.xhtml#pro16_18)'
+- en: '[PRE21]'
+  id: totrans-264
+  prefs: []
+  type: TYPE_PRE
+  zh: '[PRE21]'
+- en: When the user touches the owner button, she sees a dialog box to declare a winning
+    option. The action is mapped to the `declareBetGame()` function.
+  id: totrans-265
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 当用户触摸所有者按钮时，她会看到一个对话框来声明一个胜利选项。该操作映射到`declareBetGame()`函数。
+- en: '[Click here to view code image](Images/ch16_images.xhtml#pro16_19)'
+  id: totrans-266
+  prefs: []
+  type: TYPE_NORMAL
+  zh: '[点击此处查看代码图片](Images/ch16_images.xhtml#pro16_19)'
+- en: '[PRE22]'
+  id: totrans-267
+  prefs: []
+  type: TYPE_PRE
+  zh: '[PRE22]'
+- en: The contract’s `endGame()` function is called. This allows the contract to compute
+    winnings for each bet participant. After the remote function call returns, the
+    WeBet UI refreshes.
+  id: totrans-268
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 合约的`endGame()`函数被调用。这允许合约为每个投注参与者计算奖金。远程函数调用返回后，WeBet UI将刷新。
+- en: Claim Your Winnings
+  id: totrans-269
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+  zh: 领取你的奖金
+- en: When the user loads the dapp again after the winning choice is declared, she
+    sees whether her bet choice is the winning one. And if she wins, she sees an option
+    to get the reward into her current account address.
+  id: totrans-270
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 当用户在宣布胜利选项后再次加载dapp时，她会看到她的投注选项是否是胜利的那个。如果她赢了，她会看到一个将奖励转入她当前账户地址的选项。
+- en: '[Click here to view code image](Images/ch16_images.xhtml#pro16_21)'
+  id: totrans-271
+  prefs: []
+  type: TYPE_NORMAL
+  zh: '[点击此处查看代码图片](Images/ch16_images.xhtml#pro16_21)'
+- en: '[PRE23]'
+  id: totrans-272
+  prefs: []
+  type: TYPE_PRE
+  zh: '[PRE23]'
+- en: When the user clicks the button to claim her winnings, the contract’s `payMe()`
+    function is called.
+  id: totrans-273
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 当用户点击领取奖金的按钮时，合约的`payMe()`函数被调用。
+- en: '[Click here to view code image](Images/ch16_images.xhtml#pro16_22)'
+  id: totrans-274
+  prefs: []
+  type: TYPE_NORMAL
+  zh: '[点击此处查看代码图片](Images/ch16_images.xhtml#pro16_22)'
+- en: '[PRE24]'
+  id: totrans-275
+  prefs: []
+  type: TYPE_PRE
+  zh: '[PRE24]'
+- en: This design requires the user to come back to her bet and pay the gas fee to
+    claim her winnings. Another option is to automate the contract so that the owner
+    pays the gas fee at `endGame()` and the contract automatically distributes the
+    winnings.
+  id: totrans-276
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 这种设计需要用户回到她的投注并支付燃料费以领取她的奖金。另一种选择是自动化合约，使所有者 在`endGame()`时支付燃料费，合约自动分配奖金。
+- en: With the current WeBet design, the dapp user needs to access her past bets.
+    In our setup, we use data stored locally or on replaceable servers to achieve
+    decentralization. That is the topic of the next section.
+  id: totrans-277
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 目前WeBet的设计中，dapp用户需要访问她的过去投注。在我们设置中，我们使用存储在本地或可替换服务器上的数据来实现去中心化。这是下一节的主题。
+- en: Dapp Off-Chain Operations
+  id: totrans-278
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+  zh: Dapp离线操作
+- en: The WeBet dapp illustrates how to store nonessential application data in off-chain
+    services. The off-chain data is not stored in a central server like with typical
+    web apps. The data belongs to each WeBet dapp user.
+  id: totrans-279
+  prefs: []
+  type: TYPE_NORMAL
+  zh: WeBet dapp展示了如何将非核心应用数据存储在离线服务中。离线数据不是存储在像典型Web应用那样的中心服务器上。数据属于每个WeBet dapp用户。
+- en: The JavaScript Local Storage
+  id: totrans-280
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+  zh: JavaScript本地存储
+- en: The WeBet dapp uses JavaScript’s `localStorage` API for storing data related
+    to the current user. For example, in the `start.js` file, we use the local storage
+    to save the user’s current address and the newly created contract address. They
+    are needed for the next web page, `join.html`, which can be shared with other
+    betting participants.
+  id: totrans-281
+  prefs: []
+  type: TYPE_NORMAL
+  zh: WeBet dapp使用JavaScript的`localStorage` API来存储与当前用户相关的数据。例如，在`start.js`文件中，我们使用本地存储来保存用户的当前地址和新建的合约地址。它们是下一个页面`join.html`所需的，可以与其他投注参与者共享。
+- en: '[Click here to view code image](Images/ch16_images.xhtml#pro16_23)'
+  id: totrans-282
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 请[点击此处查看代码图片](Images/ch16_images.xhtml#pro16_23)
+- en: '[PRE25]'
+  id: totrans-283
+  prefs: []
+  type: TYPE_PRE
+  zh: '[PRE25]'
+- en: The local storage can be used to store data that is private to the current user.
+    It is stored on the device that runs the wallet. Only people who have access to
+    the device can get this data.
+  id: totrans-284
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 本地存储可用于存储仅对当前用户私有的数据。它存储在运行钱包的设备上。只有有权访问该设备的人才能获取这些数据。
+- en: Replaceable Third-Party Services
+  id: totrans-285
+  prefs:
+  - PREF_H5
+  type: TYPE_NORMAL
+  zh: 可替换的第三方服务
+- en: The `my.html` and `my.js` files work together to display a list of WeBet contracts
+    the current user has participated in. The Ethereum protocol does not provide a
+    way to query the blockchain nodes for this type of information. For the WeBet
+    dapp, we build an online service that ingests the blocks from a CyberMiles node,
+    builds a relational database for the data in the blocks (e.g., contracts, owners,
+    and bets), and then provides an API to query the database.
+  id: totrans-286
+  prefs: []
+  type: TYPE_NORMAL
+  zh: '`my.html`和`my.js`文件共同工作，展示当前用户参与过的WeBet合约列表。以太坊协议没有提供查询区块链节点此类信息的方式。对于WeBet
+    dapp，我们构建了一个在线服务，从CyberMiles节点摄入区块，为区块中的数据（例如，合约、所有者和投注）建立关系数据库，然后提供API以查询数据库。'
+- en: 'This database is decentralized because it can be deployed by anyone using open
+    source software. So, the dapp has many potential choices for this data source.
+    There is no single power of failure or control. The following is the relevant
+    code in `my.js`:'
+  id: totrans-287
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 这个数据库是去中心化的，因为任何人都可以使用开源软件部署它。所以，dapp有众多潜在的数据源选择。没有单一的故障点或控制点。以下是`my.js`中的相关代码：
+- en: '[Click here to view code image](Images/ch16_images.xhtml#pro16_24)'
+  id: totrans-288
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 请[点击此处查看代码图片](Images/ch16_images.xhtml#pro16_24)
+- en: '[PRE26]'
+  id: totrans-289
+  prefs: []
+  type: TYPE_PRE
+  zh: '[PRE26]'
+- en: In this case, the service is deployed at `api.cmttracking.io` and allows searching
+    for smart contract addresses via their bytecode signatures.
+  id: totrans-290
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 在这种情况下，该服务部署在`api.cmttracking.io`，允许通过字节码签名搜索智能合约地址。
+- en: Conclusion
+  id: totrans-291
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+  zh: 结论
+- en: In this chapter, using the Valentines and WeBet dapps as examples, I showed
+    how to create complete dapps on the CyberMiles public blockchain.
+  id: totrans-292
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 在本章中，我以Valentines和WeBet为例，展示了如何在CyberMiles公有区块链上创建完整的dapps。
+- en: 17. Business Rules and Contracts
+  id: totrans-293
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+  zh: 17. 业务规则与合约
+- en: The blockchain virtual machine is essentially a state machine that reacts to
+    state changes in the accounts (i.e., the transactions). Of course, as part of
+    the reaction, the virtual machine can also cause additional state changes. In
+    many cases, such state changes can be defined and described by sets of formal
+    rules (“If this, then that,” or ITTT). In fact, in modern computer systems, most
+    machine-to-machine interactions are defined by such rules.
+  id: totrans-294
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 区块链虚拟机本质上是一个状态机，它对账户的状态变化（即交易）做出反应。当然，作为反应的一部分，虚拟机也可以引起额外的状态变化。在许多情况下，这种状态变化可以由一套正式规则定义和描述（“如果这个，那么那个”，即IFTTT）。实际上，在现代计算机系统中，大多数机器间的交互都是由这样的规则定义的。
+- en: However, when we have multiple interacting systems, explicitly coding and executing
+    rules using a general programming language becomes impossible even for seasoned
+    computer programmers. For example, in a typical airline mileage program, the points
+    a person earns depend on complex rules for her account status, account history,
+    the ticket purchased, and the flight taken. Each of those systems has its own
+    rules, and the final execution outcome (the points awarded after this flight)
+    is a “join” operation for all of those rules. Furthermore, those rules should
+    not be programmed or maintained by computer programmers, as they are often changing
+    depending on business requirements. A business analyst must be able to create,
+    validate, and maintain those rules. That had given rise to the business rules
+    engine (BRE).
+  id: totrans-295
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 然而，当我们有多个相互作用的系统时，即使是经验丰富的计算机程序员使用通用编程语言显式编码和执行规则也是不可能的。例如，在典型的航空公司里程计划中，一个人赚取的积分取决于她账户状态、账户历史、购买的机票和乘坐的航班的复杂规则。每个系统都有自己的规则，最终执行结果（这次航班后获得的积分）是所有这些规则的“连接”操作。此外，这些规则不应该由计算机程序员编写或维护，因为它们通常根据业务需求而变化。业务分析师必须能够创建、验证和维护这些规则。这催生了业务规则引擎（BRE）。
+- en: A typical BRE consists of a specialized computer programming language (formal
+    rules language), runtime to execute rules, and optional visual tools to create
+    and manage rules. BREs are available in almost any programming language and are
+    widely available from commercial and open source providers. Examples of well-known
+    BREs include Drools, Jess, Pega, ILOG, and InRule. Lity, the programming language
+    and virtual machine, is the first blockchain-based BRE.
+  id: totrans-296
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 典型的BRE包括一个专门的计算机编程语言（正式规则语言）、运行时执行规则和可选的视觉工具创建和管理规则。BRE几乎在每种编程语言中都可以找到，并且广泛由商业和开源提供商提供。知名BRE的例子包括Drools、Jess、Pega、ILOG和InRule。Lity编程语言和虚拟机是基于区块链的第一个BRE。
+- en: Supporting the rules language and tools in blockchain smart contracts could
+    help bring a large number of business analysts/programmers and their existing
+    rules applications into the blockchain ecosystem. A BRE allows people to build
+    decentralized financial, e-commerce, and other applications using familiar tools.
+    On the other hand, the blockchain provides a secure and verifiable platform to
+    execute business rules and could bring a new level of trust to a BRE.
+  id: totrans-297
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 支持区块链智能合约中的规则语言和工具可以帮助将大量业务分析师/程序员和他们现有的规则应用带入区块链生态系统。业务规则引擎（BRE）允许人们使用熟悉的工具构建去中心化的金融、电子商务和其他应用。另一方面，区块链提供了一个安全和可验证的平台来执行业务规则，并可能为BRE带来一个新的信任层次。
+- en: In this chapter, we will explore how the Lity smart contract language and the
+    CyberMiles public blockchain support formal business rules in the smart contract
+    itself.
+  id: totrans-298
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 在本章中，我们将探讨Lity智能合约语言和CyberMiles公共区块链如何支持智能合约中的正式业务规则。
+- en: An Example
+  id: totrans-299
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+  zh: 示例
+- en: The Lity rules definition is simple. The overall approach is to first define
+    when the rule should be triggered and then define the triggered actions.
+  id: totrans-300
+  prefs: []
+  type: TYPE_NORMAL
+  zh: Lity规则定义很简单。总体方法是首先定义规则何时应被触发，然后定义被触发的动作。
+- en: Let’s examine a rule that will give retirees their stipend when there is available
+    budget. The BRE has a “working memory” space to store personal profiles, as well
+    as the budget. When the rule is fired, the execution engine in the Lity virtual
+    machine goes through all the objects in the working memory and identifies the
+    combinations that meet the `when` clause. It executes the `then` clause and updates
+    the state of the objects in the working memory. The virtual machine executes this
+    rule over all objects in the working memory until the `when` clause can match
+    no object in the working memory anymore.
+  id: totrans-301
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 让我们来看一个规则，该规则在有可用的预算时给退休者发放养老金。BRE有一个“工作内存”空间来存储个人简介以及预算。当规则被触发时，Lity虚拟机中的执行引擎将遍历工作内存中的所有对象，并识别满足`when`子句的组合。它执行`then`子句并更新工作内存中对象的状态。虚拟机对这个规则对工作内存中的所有对象执行，直到`when`子句无法再匹配工作内存中的任何对象。
+- en: '[Click here to view code image](Images/ch17_images.xhtml#pro17_1)'
+  id: totrans-302
+  prefs: []
+  type: TYPE_NORMAL
+  zh: '[点击此处查看代码图片](Images/ch17_images.xhtml#pro17_1)'
+- en: '[PRE27]'
+  id: totrans-303
+  prefs: []
+  type: TYPE_PRE
+  zh: '[PRE27]'
+- en: In the previous code snippet, the Lity virtual machine matches a person who
+    is older than 60 and is eligible for the stipend. It then checks whether the budget
+    is still available. If both conditions are met, the `when` clause finds a match,
+    and the `then` clause is triggered. The `then` clause sends the fund to the person
+    and reduces the budget. One of the `then` actions is to change the person’s `eligible`
+    attribute to `false` so that this person will not be matched by the `when` clause
+    again because, as described, the rules engine runs the rule over and over again
+    until no more match can be found.
+  id: totrans-304
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 在前面的代码片段中，Lity虚拟机匹配一个年龄超过60岁且有资格获得补贴的人。然后它检查预算是否仍然可用。如果满足这两个条件，`when`子句找到匹配项，然后触发`then`子句。`then`子句将资金发送给该人并减少预算。`then`动作之一是将该人的`eligible`属性更改为`false`，这样此人将不再被`when`子句匹配，因为如前所述，规则引擎会反复运行规则，直到找不到更多的匹配项。
+- en: Now, how do we get the `Person` objects and the Budget object into the working
+    memory of the Lity rules engine? This is done via the `factInsert` and `factDelete`
+    statements in Lity. The following code listing shows the contract in its entirety.
+    The `Budget` object is inserted into the working memory when the contract is created.
+    The `addPerson()` function adds a `Person` object to the working memory. It keeps
+    a reference to the person in the `ps` array so that the person can be removed
+    from the working memory later if needed. The `pay()` function fires the rule against
+    all objects in the working memory.
+  id: totrans-305
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 现在，我们如何将`Person`对象和`Budget`对象放入Lity规则引擎的工作内存中呢？这是通过Lity中的`factInsert`和`factDelete`声明来完成的。下面的代码清单展示了整个合约。当合约创建时，`Budget`对象被插入到工作内存中。`addPerson()`函数将一个`Person`对象添加到工作内存中。它保留了在`ps`数组中对该人物的引用，这样如果需要的话，以后可以将其从工作内存中移除。`pay()`函数对工作内存中的所有对象触发规则。
+- en: '[Click here to view code image](Images/ch17_images.xhtml#pro17_2)'
+  id: totrans-306
+  prefs: []
+  type: TYPE_NORMAL
+  zh: '[点击此处查看代码图片](Images/ch17_images.xhtml#pro17_2)'
+- en: '[PRE28]'
+  id: totrans-307
+  prefs: []
+  type: TYPE_PRE
+  zh: '[PRE28]'
+- en: You can type this contract into CyberMiles’ Europa online integrated development
+    environment (IDE) and deploy it to the live CyberMiles public blockchain network
+    ([Figure 17.1](ch17.xhtml#ch17fig1)). You can use the Europa UI to directly interact
+    with contract methods such as `addPerson()` and `pay()` to see the rules execution
+    in action.
+  id: totrans-308
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 您可以将此合约输入到CyberMiles的Europa在线集成开发环境（IDE）中，并将其部署到CyberMiles的公有区块链网络上（[图17.1](ch17.xhtml#ch17fig1)）。您可以使用Europa
+    UI直接与合约方法（如`addPerson()`和`pay()`）交互，以查看规则执行的实际效果。
+- en: '![image](Images/yuan_f17_01.jpg)'
+  id: totrans-309
+  prefs: []
+  type: TYPE_IMG
+  zh: '![image](Images/yuan_f17_01.jpg)'
+- en: '**Figure 17-1** Deploying the rules contract via Europa on the CyberMiles public
+    blockchain'
+  id: totrans-310
+  prefs: []
+  type: TYPE_NORMAL
+  zh: '**图17-1** 通过Europa在CyberMiles公有区块链上部署规则合约'
+- en: '**Note**'
+  id: totrans-311
+  prefs: []
+  type: TYPE_NORMAL
+  zh: '**注意**'
+- en: The BUIDL IDE can also compile and deploy Lity smart contracts with embedded
+    rules. Try it!
+  id: totrans-312
+  prefs: []
+  type: TYPE_NORMAL
+  zh: '**BUIDL IDE**也能编译并部署内嵌规则的Lity智能合约。试试看！'
+- en: Now you have seen a simple example of the Lity rules smart contract. In this
+    example, the functionality can be easily implemented using regular `if-then` statements.
+    In the next sections, let’s look into the rules language and more common rules
+    use cases.
+  id: totrans-313
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 现在您已经看到了Lity规则智能合约的一个简单示例。在这个例子中，功能可以通过普通的`if-then`语句很容易地实现。在下一节中，让我们深入了解规则语言和更常见的规则用例。
+- en: Rules Language
+  id: totrans-314
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+  zh: 规则语言
+- en: Modern BREs including Lity use the Rete algorithm to construct, evaluate, and
+    then execute a network of interfering rules.
+  id: totrans-315
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 现代BREs（包括Lity）使用Rete算法来构建、评估，然后执行一个相互干扰的规则网络。
+- en: 'All rules can be sequenced into a series of nesting `if-then` statements. However,
+    when the rules are complex, the `if-then` structure could become complicated.
+    Consider the following simple rules for airline rewards:'
+  id: totrans-316
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 所有规则都可以序列化为一系列嵌套的`if-then`语句。然而，当规则复杂时，`if-then`结构可能会变得复杂。考虑以下简单的航空公司奖励规则：
+- en: The customer is given silver status when the number of award miles reaches 25,000
+    miles.
+  id: totrans-317
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+  zh: 当奖励里程达到25,000英里时，客户获得银卡地位。
+- en: The customer is given gold status when the number of award miles reaches 50,000
+    miles.
+  id: totrans-318
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+  zh: 当奖励里程达到50,000英里时，客户获得金卡地位。
+- en: Silver customers get a 10 percent bonus of award miles from any flight.
+  id: totrans-319
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+  zh: 银卡客户可以从任何航班中获得10%的奖励里程。
+- en: Gold customers get a 20 percent bonus of award miles from any flight.
+  id: totrans-320
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+  zh: 金卡客户可以从任何航班中获得20%的奖励里程。
+- en: This example involves only two sets of simple inferencing rules, the customer
+    status and the flight awards. Now, consider the rules to compute awards for all
+    customers on a flight. Some customers might reach the silver or gold status on
+    the flight. So, the `if-then` sequence will need to first compute award miles,
+    then update the status, and then recompute the award miles for some customers
+    again.
+  id: totrans-321
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 这个例子只涉及两套简单的推理规则，即客户状态和航班奖励。现在，考虑计算航班上所有客户的奖励规则。一些客户可能在航班上达到银牌或金牌状态。因此，`if-then`序列需要首先计算奖励里程，然后更新状态，然后再次为一些客户重新计算奖励里程。
+- en: If the rules are more complex and include a few more inferencing rule sets,
+    the `if-then` sequence could be exponentially more complex. Each rule set will
+    need to be evaluated and executed again and again inside every combination of
+    other rule sets. The deeply nested sequence cannot be built by hand and is impossible
+    to test and validate. Furthermore, if the rules are changed by business requirements,
+    the entire sequence of evaluation, revaluation, and execution would need to be
+    rebuilt.
+  id: totrans-322
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 如果规则更复杂，并且包含几个更多的推理规则集，`if-then`序列可能会复杂得多。每个规则集都需要在其它规则集的每一种组合内部进行评估和执行。深层嵌套的序列无法手工构建，也无法测试和验证。此外，如果根据业务需求更改规则，那么需要重新构建整个评估、重新评估和执行的序列。
+- en: Rete Algorithm
+  id: totrans-323
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+  zh: Rete算法
+- en: The Rete algorithm, invented by Dr. Charles Forgy, solves this problem elegantly.
+    Without going into details of the algorithm, it allows us to declare individual
+    rules as nodes in a network (known as the Rete network) and connect the nodes
+    via inference relationships between rules. Once a Rete network is defined, the
+    algorithm automatically applies to a collection of objects in working memory (i.e.,
+    the customer and flight objects in the airline example). The Rete algorithm efficiently
+    evaluates and re-evaluates the objects by traversing the network nodes and then
+    executes the rules.
+  id: totrans-324
+  prefs: []
+  type: TYPE_NORMAL
+  zh: Rete算法由查尔斯·福格博士发明，优雅地解决了这个问题。不详细讨论算法的具体细节，它允许我们将个别规则作为网络中的节点（称为Rete网络）并将规则之间的推理关系连接起来。一旦定义了Rete网络，该算法自动应用于工作记忆中的对象集合（即航空公司的例子中的客户和航班对象）。Rete算法通过遍历网络节点高效地评估和重新评估对象，然后执行规则。
+- en: For developers and business analysts, we can simply declare the rules and place
+    objects into the working memory. We no longer need to build the highly nested
+    `if-then` sequence and can now rely on computers to execute the Rete algorithm
+    on the rules and objects.
+  id: totrans-325
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 对于开发人员和业务分析师，我们可以简单地声明规则并将对象放入工作记忆中。我们不再需要构建高度嵌套的`if-then`序列，并且现在可以依靠计算机在规则和对象上执行Rete算法。
+- en: 'The Lity rules engine implements the Rete algorithm. The overall syntax of
+    the Lity rules is as follows:'
+  id: totrans-326
+  prefs: []
+  type: TYPE_NORMAL
+  zh: Lity规则引擎实现了Rete算法。Lity规则的总体语法如下：
+- en: '[Click here to view code image](Images/ch17_images.xhtml#pro17_4)'
+  id: totrans-327
+  prefs: []
+  type: TYPE_NORMAL
+  zh: '[点击此处查看代码图片](Images/ch17_images.xhtml#pro17_4)'
+- en: '[PRE29]'
+  id: totrans-328
+  prefs: []
+  type: TYPE_PRE
+  zh: '[PRE29]'
+- en: Next, let’s look into the structure of the rules.
+  id: totrans-329
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 接下来，让我们看看规则的结构。
+- en: Rule Attribute
+  id: totrans-330
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+  zh: 规则属性
+- en: A rule can have the following attributes.
+  id: totrans-331
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 规则可以有以下属性。
+- en: The `salience` attribute indicates the activation priority of a rule. A contract
+    can have multiple rules, and they are ordered by `salience`. The higher `salience`
+    rules are evaluated and executed first. It defaults to integer value 0\. In the
+    following example, the second rule is evaluated first.
+  id: totrans-332
+  prefs: []
+  type: TYPE_NORMAL
+  zh: '`salience`属性表示规则的激活优先级。一个合同可以有多个规则，它们按`salience`排序。优先级越高的规则首先进行评估和执行。它默认为整数值0。在以下示例中，首先评估第二个规则。'
+- en: '[Click here to view code image](Images/ch17_images.xhtml#pro17_5)'
+  id: totrans-333
+  prefs: []
+  type: TYPE_NORMAL
+  zh: '[点击此处查看代码图片](Images/ch17_images.xhtml#pro17_5)'
+- en: '[PRE30]'
+  id: totrans-334
+  prefs: []
+  type: TYPE_PRE
+  zh: '[PRE30]'
+- en: When true, the `no_loop` attribute forbids a rule to activate itself with the
+    same set of facts. This is for the purpose of preventing an infinite loop. It
+    defaults to `false`. In the following example, the rule is fired only once for
+    every `Person` in working memory.
+  id: totrans-335
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 当`no_loop`属性为真时，它禁止使用相同的事实集激活规则。这是为了防止无限循环。它默认为`false`。在以下示例中，对于工作记忆中的每个`Person`，规则只触发一次。
+- en: '[Click here to view code image](Images/ch17_images.xhtml#pro17_6)'
+  id: totrans-336
+  prefs: []
+  type: TYPE_NORMAL
+  zh: '[点击此处查看代码图片](Images/ch17_images.xhtml#pro17_6)'
+- en: '[PRE31]'
+  id: totrans-337
+  prefs: []
+  type: TYPE_PRE
+  zh: '[PRE31]'
+- en: When true, the `lock_on_active` attribute forbids a rule to be activated more
+    than once with the same set of facts. This is stronger than `no_loop` because
+    it also prevents the reactivation of the rule even if it is caused by another
+    rule’s actions.
+  id: totrans-338
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 当`lock_on_active`属性为真时，它禁止使用相同的事实集激活规则多次。这比`no_loop`更强，因为它还可以防止即使是由其他规则的操作引起的规则重新激活。
+- en: Rule Filters
+  id: totrans-339
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+  zh: 规则筛选
+- en: The filter statements specify how to match the facts (struts and objects) against
+    the rule. It is a series of statements joined by `AND`, meaning that all of them
+    must be satisfied for a combination of objects to be matched and filtered.
+  id: totrans-340
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 筛选语句指定了如何将事实（结构和对象）与规则匹配。它是一系列用`AND`连接的语句，意味着它们都必须满足，一组对象才能匹配并筛选。
+- en: Each statement specifies an object type and filter criteria for its attributes.
+    It starts with pattern binding, which specifies the fact identifier referred to
+    in this rule scope. After binding, the pattern type specifies the type of the
+    fact object. Then, a set of constraints describes conditions of this fact. The
+    constraints must be `boolean` expressions.
+  id: totrans-341
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 每个语句指定了一个对象类型及其属性的筛选条件。它从模式绑定开始，指定了在此规则作用域内引用的的事实标识符。绑定后，模式类型指定了事实对象类型。然后，一系列约束描述了这一事实的条件。这些约束必须是`boolean`表达式。
+- en: '[Click here to view code image](Images/ch17_images.xhtml#pro17_7)'
+  id: totrans-342
+  prefs: []
+  type: TYPE_NORMAL
+  zh: '[点击此处查看代码图片](Images/ch17_images.xhtml#pro17_7)'
+- en: '[PRE32]'
+  id: totrans-343
+  prefs: []
+  type: TYPE_PRE
+  zh: '[PRE32]'
+- en: The previous pattern describes a fact `p` with the `Person` type; its constraints
+    are that the `age` must be greater or equal to `65` and that `eligible` must be
+    `true`.
+  id: totrans-344
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 前一个模式描述了一个类型为`Person`的事实`p`；它的约束是`age`必须大于或等于`65`，且`eligible`必须是`true`。
+- en: Rule Actions
+  id: totrans-345
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+  zh: 规则动作
+- en: 'The action statements specify the functions to be called on the filtered facts.
+    For example, the following code in the action block calls `transfer()` and then
+    updates the person’s eligibility:'
+  id: totrans-346
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 动作语句指定了对筛选的事实调用的函数。例如，动作块中的以下代码调用`transfer()`，然后更新人的资格：
+- en: '[Click here to view code image](Images/ch17_images.xhtml#pro17_8)'
+  id: totrans-347
+  prefs: []
+  type: TYPE_NORMAL
+  zh: '[点击此处查看代码图片](Images/ch17_images.xhtml#pro17_8)'
+- en: '[PRE33]'
+  id: totrans-348
+  prefs: []
+  type: TYPE_PRE
+  zh: '[PRE33]'
+- en: The `update` keyword in the actions block is a special keyword for the rules
+    language. The update object statement informs the rule engine that this object
+    may be modified and the rules may need to be reevaluated.
+  id: totrans-349
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 动作块中的`update`关键词是规则语言的一个特殊关键词。更新对象语句通知规则引擎这个对象可能会被修改，规则可能需要重新评估。
+- en: Rule Inheritance
+  id: totrans-350
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+  zh: 规则继承
+- en: Rules can be inherited. Sometimes constraints of a rule are based on constraints
+    of another rule. In this case, this rule can extend another rule.
+  id: totrans-351
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 规则可以被继承。有时一个规则的约束是基于另一个规则的约束。在这种情况下，这个规则可以扩展另一个规则。
+- en: 'For example, a department store wants to give elder customers a 10 percent
+    discount and their cars free parking. The discount rule is described as follows:'
+  id: totrans-352
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 例如，一个百货商店想要给年长的顾客提供10%的折扣和免费停车。折扣规则如下所述：
+- en: '[Click here to view code image](Images/ch17_images.xhtml#pro17_9)'
+  id: totrans-353
+  prefs: []
+  type: TYPE_NORMAL
+  zh: '[点击此处查看代码图片](Images/ch17_images.xhtml#pro17_9)'
+- en: '[PRE34]'
+  id: totrans-354
+  prefs: []
+  type: TYPE_PRE
+  zh: '[PRE34]'
+- en: 'The free parking rule can extend the constraint of elder customers (older than
+    60). Then this rule can be written as follows:'
+  id: totrans-355
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 免费停车规则可以扩展60岁以上顾客的约束（年龄大于60岁）。然后这个规则可以写成如下：
+- en: '[Click here to view code image](Images/ch17_images.xhtml#pro17_10)'
+  id: totrans-356
+  prefs: []
+  type: TYPE_NORMAL
+  zh: '[点击此处查看代码图片](Images/ch17_images.xhtml#pro17_10)'
+- en: '[PRE35]'
+  id: totrans-357
+  prefs: []
+  type: TYPE_PRE
+  zh: '[PRE35]'
+- en: The inheritance allows developers and analysts to build on complex libraries
+    of rules based on past work.
+  id: totrans-358
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 继承允许开发人员和分析师基于过去的工作构建复杂规则库。
+- en: Working Memory
+  id: totrans-359
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+  zh: 工作内存
+- en: As we have seen in the example, the `factInsert` and `factDelete` statements
+    are used to manage facts in the working memory for rules to filter and act on.
+  id: totrans-360
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 正如我们在示例中看到的那样，`factInsert`和`factDelete`语句用于管理工作内存中规则筛选和执行的动作的事实。
+- en: 'The `factInsert` operator takes an object with a storage data location and
+    evaluates to a fact handle, which has type `uint256`. Insert the reference to
+    the storage object into working memory. An example is as follows:'
+  id: totrans-361
+  prefs: []
+  type: TYPE_NORMAL
+  zh: '`factInsert`操作符接受一个具有存储数据位置的对象，并评估为事实处理，其类型为`uint256`。将存储对象的引用插入工作内存。例如如下：'
+- en: '[Click here to view code image](Images/ch17_images.xhtml#pro17_11)'
+  id: totrans-362
+  prefs: []
+  type: TYPE_NORMAL
+  zh: '[点击此处查看代码图片](Images/ch17_images.xhtml#pro17_11)'
+- en: '[PRE36]'
+  id: totrans-363
+  prefs: []
+  type: TYPE_PRE
+  zh: '[PRE36]'
+- en: Note that `factInsert fact(0)`; cannot be compiled. The reason is that `fact(0)`
+    is a reference with memory data location, which is not persistent and thus cannot
+    be inserted into working memory.
+  id: totrans-364
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 请注意`factInsert fact(0)`；不能编译。原因是`fact(0)`是一个具有内存数据位置的引用，它不是持久的，因此不能插入工作内存。
+- en: The `factDelete` operator takes a fact handle (a `uint256`) and evaluates to
+    `void`. It removes the reference of the fact from working memory.
+  id: totrans-365
+  prefs: []
+  type: TYPE_NORMAL
+  zh: '`factDelete`操作符接受一个事实处理（一个`uint256`）并评估为`void`。它将事实的引用从工作内存中移除。'
+- en: Finally, `fireAllRules` is a special statement that launches the Lity rule engine
+    execution.
+  id: totrans-366
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 最后，`fireAllRules`是一个特殊的声明，它启动了Lity规则引擎的执行。
+- en: More Business Examples
+  id: totrans-367
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+  zh: 更多商业案例
+- en: There are many applications for rules in smart contracts. You have already seen
+    a simple example of an airline points program. In general, public blockchains
+    are great platforms for such points programs since they provide transparency in
+    the supply, issuance, and use of such points, and they could allow the points
+    from different merchants to be exchanged and traded. In this section, I will go
+    over a few more simplified examples to give you some ideas of real-world application
+    use cases for rules.
+  id: totrans-368
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 智能合约中有很多应用规则的例子。你已经看到了一个简单的航空公司积分计划的例子。一般来说，公共区块链是这类积分计划的好平台，因为它们在供应、发行和使用这些积分方面提供了透明度，并且可以使来自不同商家的积分得以交换和交易。在本节中，我将通过一些更简单的例子向您介绍一些规则的实际应用用例。
+- en: Insurance Claim
+  id: totrans-369
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+  zh: 保险理赔
+- en: 'Consider a travel insurance company that provides a claim for flight delays
+    as follows:'
+  id: totrans-370
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 考虑一家提供航班延误索赔的旅行保险公司：
+- en: If the flight is delayed for more than four hours, everyone receives at least
+    $100.
+  id: totrans-371
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+  zh: 如果航班延误超过四小时，每个人都至少获得100美元。
+- en: If the flight is delayed for more than six hours, everyone receives up to $300
+    in accountable expenses.
+  id: totrans-372
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+  zh: 如果航班延误超过六小时，每个人都可获得最多300美元的报销。
+- en: 'The first rule (four hours or more) is represented as follows:'
+  id: totrans-373
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 第一个规则（四小时或更多）表示如下：
+- en: '[Click here to view code image](Images/ch17_images.xhtml#pro17_12)'
+  id: totrans-374
+  prefs: []
+  type: TYPE_NORMAL
+  zh: '[点击此处查看代码图片](Images/ch17_images.xhtml#pro17_12)'
+- en: '[PRE37]'
+  id: totrans-375
+  prefs: []
+  type: TYPE_PRE
+  zh: '[PRE37]'
+- en: For the second rule (six hours or more), $100 in compensation is implied in
+    the first rule, so we need to consider only the limited expense here.
+  id: totrans-376
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 对于第二个规则（六小时或更多），第一个规则中已经暗示了100美元的补偿，因此我们在这里只需要考虑有限的费用。
+- en: '[Click here to view code image](Images/ch17_images.xhtml#pro17_13)'
+  id: totrans-377
+  prefs: []
+  type: TYPE_NORMAL
+  zh: '[点击此处查看代码图片](Images/ch17_images.xhtml#pro17_13)'
+- en: '[PRE38]'
+  id: totrans-378
+  prefs: []
+  type: TYPE_PRE
+  zh: '[PRE38]'
+- en: The rules engine can be useful in evaluation insurance claims as the payouts
+    are all the rules written into the insurance contracts.
+  id: totrans-379
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 规则引擎在评估保险索赔方面可能很有用，因为所有的赔偿金都在保险合同中的规则中。
+- en: Taxes
+  id: totrans-380
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+  zh: 税收
+- en: 'This example illustrates how to calculate taxes using a rule engine. In most
+    countries, tax rates are divided into brackets. That is, certain income ranges
+    are taxed at corresponding rates. Often, more income indicates higher tax rates.
+    For example, in the 2018 U.S. federal tax system, single filers pay the following
+    rates based on their income:'
+  id: totrans-381
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 这个例子说明了如何使用规则引擎计算税费。在大多数国家，税率是分级的。也就是说，一定的收入范围对应着相应的税率。通常，收入越高，税率也越高。例如，在2018年的美国联邦税系统中，单身申报者根据他们的收入支付以下税率：
+- en: '*$0 to $9,525*: 10 percent'
+  id: totrans-382
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+  zh: '*$0至$9,525*：10%'
+- en: '*$9,526 to $38,700*: 12 percent'
+  id: totrans-383
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+  zh: '*$9,526至$38,700*：12%'
+- en: '*$38,701 to $82,500*: 22 percent'
+  id: totrans-384
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+  zh: '*$38,701至$82,500*：22%'
+- en: '*$82,501 to $157,500*: 24 percent'
+  id: totrans-385
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+  zh: '*$82,501至$157,500*：24%'
+- en: '*$157,501 to $200,000*: 32 percent'
+  id: totrans-386
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+  zh: '*$157,501至$200,000*：32%'
+- en: '*$200,001 to $500,000*: 35 percent'
+  id: totrans-387
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+  zh: '*$200,001至$500,000*：35%'
+- en: '*$500,001 or more*: 37 percent'
+  id: totrans-388
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+  zh: '*$500,001或更高*：37%'
+- en: The rates are marginal rates, meaning that the tax payer pays that rate only
+    on the amount of her income that falls into the specified range. For example,
+    if you have $10,000 in taxable income, the first $9,525 is subject to the 10 percent
+    rate, and the remaining $475 is subject to the tax rate of the next bracket, which
+    is 12 percent. Now, let’s look at the rules. For the first tax bracket, the net
+    income from $0 to $9,525 is taxed at 10 percent.
+  id: totrans-389
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 这些税率是边际税率，意味着纳税人仅在她收入落入指定范围的金额上支付该税率。例如，如果您有10,000美元的应税收入，前9,525美元适用10%的税率，剩下的475美元适用下一个税级的税率，即12%。现在，让我们来看看规则。对于第一个税级，从0美元至9,525美元的净收入按10%征税。
+- en: '[Click here to view code image](Images/ch17_images.xhtml#pro17_14)'
+  id: totrans-390
+  prefs: []
+  type: TYPE_NORMAL
+  zh: '[点击此处查看代码图片](Images/ch17_images.xhtml#pro17_14)'
+- en: '[PRE39]'
+  id: totrans-391
+  prefs: []
+  type: TYPE_PRE
+  zh: '[PRE39]'
+- en: Similarly, the net income from $9,526 to $38,700 is taxed at 12 percent in the
+    second tax bracket. Note that $9,525 of income has already been taxed in the first
+    tax bracket, so $9,525 should be subtracted from the amount taxed here.
+  id: totrans-392
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 同样，第二个税级的$9,526至$38,700的净收入按12%征税。请注意，$9,525的收入已经在第一个税级中征过税了，所以在这里应该从应税金额中减去$9,525。
+- en: '[Click here to view code image](Images/ch17_images.xhtml#pro17_15)'
+  id: totrans-393
+  prefs: []
+  type: TYPE_NORMAL
+  zh: '[点击此处查看代码图片](Images/ch17_images.xhtml#pro17_15)'
+- en: '[PRE40]'
+  id: totrans-394
+  prefs: []
+  type: TYPE_PRE
+  zh: '[PRE40]'
+- en: 'In the same way, the rest of the brackets are represented as follows:'
+  id: totrans-395
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 同样地，其他税级如下表示：
+- en: '[Click here to view code image](Images/ch17_images.xhtml#pro17_16)'
+  id: totrans-396
+  prefs: []
+  type: TYPE_NORMAL
+  zh: '[点击此处查看代码图片](Images/ch17_images.xhtml#pro17_16)'
+- en: '[PRE41]'
+  id: totrans-397
+  prefs: []
+  type: TYPE_PRE
+  zh: '[PRE41]'
+- en: Of course, the tax code has many other rules to adjust a person’s taxable income,
+    categorize income into additional rate brackets (e.g., all capital gains are taxed
+    at 10 percent), and refund some taxes when certain rules are met. The tax code
+    is a compelling use case for rules engine!
+  id: totrans-398
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 当然，税法有许多其他规则来调整个人的应税收入，将收入分类到额外税率区间（例如，所有资本收益都按10%征税），并在满足某些规则时退还部分税款。税法是规则引擎的一个很有说服力的用例！
+- en: Product Combos
+  id: totrans-399
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+  zh: 产品组合
+- en: 'Finally, let’s look at an example of commerce applications. It’s common practice
+    for online and offline stores to offer discounts when a customer orders multiple
+    products at the same time. Consider restaurants, for example; a hamburger costs
+    $11 and a drink costs $3, and these sum up to $14\. This summation rule could
+    be simply represented as follows:'
+  id: totrans-400
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 最后，让我们看看一个商业应用的例子。网上和线下商店提供顾客同时订购多个产品的折扣是常见的做法。考虑餐馆为例；汉堡的价格为 $11，饮料的价格为 $3，这些加起来
+    $14。这个求和规则可以简单地表示如下：
+- en: '[Click here to view code image](Images/ch17_images.xhtml#pro17_17)'
+  id: totrans-401
+  prefs: []
+  type: TYPE_NORMAL
+  zh: '[点击此处查看代码图片](Images/ch17_images.xhtml#pro17_17)'
+- en: '[PRE42]'
+  id: totrans-402
+  prefs: []
+  type: TYPE_PRE
+  zh: '[PRE42]'
+- en: 'However, many restaurants offer a meal combo discount. For example, a drink
+    with a hamburger is discounted by $2\. With a rules engine, this discount rule
+    can be automatically applied as follows:'
+  id: totrans-403
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 然而，许多餐馆提供套餐折扣。例如，汉堡和饮料的组合折扣为 $2。借助规则引擎，此折扣规则可以如下自动应用：
+- en: '[Click here to view code image](Images/ch17_images.xhtml#pro17_18)'
+  id: totrans-404
+  prefs: []
+  type: TYPE_NORMAL
+  zh: '[点击此处查看代码图片](Images/ch17_images.xhtml#pro17_18)'
+- en: '[PRE43]'
+  id: totrans-405
+  prefs: []
+  type: TYPE_PRE
+  zh: '[PRE43]'
+- en: '`nCombo` is the number of combos in a bill, and the `combo` value of a burger/drink
+    denotes the combo number (`-1` denotes no combo) that the burger/drink belongs
+    to. Each burger or drink belongs to at most one combo to prevent duplicate discounts.'
+  id: totrans-406
+  prefs: []
+  type: TYPE_NORMAL
+  zh: '`nCombo` 是账单中的组合数，汉堡/饮料的 `combo` 值表示组合编号（`-1` 表示没有组合） that the汉堡/饮料属于。每个汉堡或饮料至多属于一个组合，以防止重复折扣。'
+- en: Conclusion
+  id: totrans-407
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+  zh: 结论
+- en: Blockchain smart contracts are a natural fit for formal rules. Smart contracts
+    are just sets of rules executed by computers without human intervention when certain
+    conditions are met. Conversely, the blockchain guarantees the correct execution
+    of the rules.
+  id: totrans-408
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 区块链智能合约非常适合正式规则。智能合约是在满足某些条件时由计算机自动执行的一组规则。反过来，区块链保证了规则的正确执行。
+- en: In this chapter, I discussed the Lity rules language and engine. It enables
+    formal business rules to be constructed and executed in blockchain smart contracts.
+    Note that many examples in this chapter originally appeared in the Lity documentation.
+  id: totrans-409
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 在本章中，我讨论了 Lity 规则语言和引擎。它使正式的业务规则可以在区块链智能合约中构建和执行。请注意，本章中出现的许多示例最初出现在 Lity 文档中。
+- en: 18. Building an Application-Specific EVM
+  id: totrans-410
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+  zh: 18. 构建应用特定的 EVM
+- en: One of the key features of Lity is the libENI facility. It allows developers
+    to add native C/C++ functions to the Lity virtual machine. While Solidity and
+    Lity are both Turing complete languages, they are inefficient. And that translates
+    to slow performance and high gas costs for many common computer operations on
+    the blockchain, such as string manipulation and encryption/decryption. The libENI
+    native functions allow developers to support those operations in blockchain smart
+    contracts in a highly efficient manner. The importance of libENI is twofold.
+  id: totrans-411
+  prefs: []
+  type: TYPE_NORMAL
+  zh: '**Lity** 的一个关键特性是 **libENI** 设施。它允许开发者向 Lity 虚拟机添加本地的 C/C++ 函数。虽然 Solidity
+    和 Lity 都是图灵完备的语言，但它们效率不高。这转化为在区块链上进行许多常见计算机操作（如字符串操作和加密/解密）时的低性能和高燃料成本。**libENI**
+    本机函数允许开发者以一种高度有效的方式在区块链智能合约中支持这些操作。**libENI** 的重要性有两点。'
+- en: If you are building your own blockchain, you can customize it for specific application
+    use cases by bundling a selected library of libENI functions. For example, if
+    you are building a blockchain specifically for the exchange of privacy data, you
+    could bundle libENI functions commonly used for data encryption. Commercial providers,
+    such as the Second State, provide tools for you to create custom libENI bundles
+    for your own blockchains.
+  id: totrans-412
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+  zh: 如果你正在建立自己的区块链，你可以通过捆绑选定的 **libENI** 函数库来为特定的应用用例进行定制。例如，如果你正在建立一个专门用于交换隐私数据的区块链，你可以捆绑常用于数据加密的
+    **libENI** 函数。商业提供商，如 Second State，为您提供创建自定义 **libENI** 捆绑包的工具。
+- en: If you are developing smart contracts on a Lity-enabled public blockchain, such
+    as the CyberMiles public blockchain, you could add new system-wide functions via
+    libENI. On the CyberMiles blockchain, the libENI modules and functions can be
+    developed by anyone and added to the blockchain virtual machine via the consensus
+    of the validators. It is the most democratic way to extend the blockchain virtual
+    machine.
+  id: totrans-413
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+  zh: 如果你正在一个支持Lity的公共区块链上开发智能合约，比如CyberMiles公共区块链，你可以通过libENI添加新的系统级函数。在CyberMiles区块链上，libENI模块和函数可以由任何人开发，并通过验证者的共识添加到区块链虚拟机中。这是扩展区块链虚拟机最民主的方式。
+- en: '**Note**'
+  id: totrans-414
+  prefs: []
+  type: TYPE_NORMAL
+  zh: '**注意**'
+- en: The Ethereum road map also calls for native and precompiled contracts. These
+    contracts are developed by Ethereum core developers and deployed with Ethereum
+    software updates. The libENI extensions for public blockchains, on the other hand,
+    can be developed by anyone and need to be approved only by the underlying blockchain’s
+    consensus.
+  id: totrans-415
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 以太坊路线图还呼吁实现本机和预编译合约。这些合约由以太坊核心开发者开发，并通过以太坊软件更新部署。另一方面，面向公共区块链的libENI扩展可以由任何人开发，只需得到底层区块链共识的批准。
+- en: For example, on the CyberMiles blockchain, anyone can propose to add a libENI
+    function to the blockchain through a governance TX. The CyberMiles validators
+    or super nodes vote on the governance TX to approve or reject it. That enables
+    dynamic and democratic extension to the virtual machine outside of the software
+    development cycle and outside of the “core” developer community. The community-developed
+    libENI functions can be added to virtual machines without stopping, forking, or
+    restarting the blockchain.
+  id: totrans-416
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 例如，在CyberMiles区块链上，任何人都可以通过治理交易提出向区块链添加libENI函数的提案。CyberMiles的验证者或超级节点会对治理交易进行投票，以批准或拒绝它。这使得虚拟机可以在软件开发生命周期之外，在“核心”开发者社区之外实现动态和民主的扩展。由社区开发的libENI函数可以在不停止、分叉或重新启动区块链的情况下添加到虚拟机中。
+- en: In this chapter, I will explain how to use, develop, and deploy libENI functions.
+    We will use CyberMiles as an example to demonstrate how libENI on-chain governance
+    works. The Lity team is adding to libENI implementations on a regular basis. It
+    is developing complete sets of string libraries, encryption libraries, JSON libraries,
+    and other common utilities as highly efficient and optional libENI functions to
+    the Lity virtual machine.
+  id: totrans-417
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 在本章中，我将解释如何使用、开发和部署libENI函数。我们将使用CyberMiles作为例子，展示libENI链上治理是如何工作的。Lity团队正在定期增加对libENI实现的补充。它正在为Lity虚拟机开发完整套的字符串库、加密库、JSON库等常用工具，作为高效且可选的libENI函数。
+- en: Using libENI Functions
+  id: totrans-418
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+  zh: 使用libENI函数
+- en: The CyberMiles blockchain software comes with a few simple libENI functions
+    already pre-installed. They allow us to experiment with libENI functions in our
+    smart contracts immediately. But first, you will need to install the `lityc` compiler
+    to build smart contracts written in the Lity programming language.
+  id: totrans-419
+  prefs: []
+  type: TYPE_NORMAL
+  zh: CyberMiles区块链软件已经预装了几个简单的libENI函数。它们允许我们立即在智能合约中实验libENI函数。但首先，你需要安装`lityc`编译器以构建用Lity编程语言编写的智能合约。
+- en: 'You can choose to build the `lityc` compiler from source or directly download
+    a binary build for one of its supported OS platforms. The binary distribution
+    page is on GitHub at [https://github.com/CyberMiles/lity/releases](https://github.com/CyberMiles/lity/releases).
+    But if you are inclined to build your own, use the following:'
+  id: totrans-420
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 你可以选择从源代码构建`lityc`编译器，或者直接下载其支持的一个操作系统平台的可执行文件。可执行文件的发布页面在GitHub上，链接为[https://github.com/CyberMiles/lity/releases](https://github.com/CyberMiles/lity/releases)。但如果你倾向于自己构建，请使用以下内容：
+- en: '[Click here to view code image](Images/ch18_images.xhtml#pro18_1)'
+  id: totrans-421
+  prefs: []
+  type: TYPE_NORMAL
+  zh: '[点击此处查看代码图片](Images/ch18_images.xhtml#pro18_1)'
+- en: '[PRE44]'
+  id: totrans-422
+  prefs: []
+  type: TYPE_PRE
+  zh: '[PRE44]'
+- en: Now that you have `lityc` installed, we will go through a couple of examples
+    to see how libENI functions are used in smart contracts.
+  id: totrans-423
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 现在你已经安装了`lityc`，我们将通过几个示例来了解如何在智能合约中使用libENI函数。
+- en: The String Reversing Example
+  id: totrans-424
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+  zh: 字符串反转示例
+- en: This example shows a rather trivial libENI function that reverses any string
+    it receives. The following is an example contract. As you can see, it is similar
+    to a regular Solidity contract. However, the keyword `eni` is not available in
+    Solidity, and it will not compile using a regular Solidity compiler.
+  id: totrans-425
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 这个示例展示了一个相当简单的libENI函数，它可以反转任何接收到的字符串。以下是一个示例合约。正如你所见，它与普通的Solidity合约类似。然而，在Solidity中并不存在`eni`这个关键字，因此它不能使用普通的Solidity编译器编译。
+- en: '[Click here to view code image](Images/ch18_images.xhtml#pro18_2)'
+  id: totrans-426
+  prefs: []
+  type: TYPE_NORMAL
+  zh: '[点击此处查看代码图片](Images/ch18_images.xhtml#pro18_2)'
+- en: '[PRE45]'
+  id: totrans-427
+  prefs: []
+  type: TYPE_PRE
+  zh: '[PRE45]'
+- en: The keyword `eni` is followed by two parameters. `reverse` is the name of the
+    libENI function. Each libENI function added to the virtual machine must have a
+    unique name. The string parameter `input` is the parameter passed into the `reverse`
+    libENI function. You can pass any number of parameters into your libENI functions.
+  id: totrans-428
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 关键字`eni`后面跟着两个参数。`reverse`是libENI函数的名称。添加到虚拟机的每个libENI函数都必须有一个独特的名称。字符串参数`input`是传递给`reverse`libENI函数的参数。您可以向您的libENI函数传递任意数量的参数。
+- en: Let’s save the code in a file named `Reverse.lity`. You must use the `lityc`
+    compiler to compile the source to generate the bytecode and application binary
+    interface (ABI) definition.
+  id: totrans-429
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 让我们将代码保存到一个名为`Reverse.lity`的文件中。您必须使用`lityc`编译器编译源代码以生成字节码和应用程序二进制接口（ABI）定义。
+- en: '[Click here to view code image](Images/ch18_images.xhtml#pro18_3)'
+  id: totrans-430
+  prefs: []
+  type: TYPE_NORMAL
+  zh: '[点击此处查看代码图片](Images/ch18_images.xhtml#pro18_3)'
+- en: '[PRE46]'
+  id: totrans-431
+  prefs: []
+  type: TYPE_PRE
+  zh: '[PRE46]'
+- en: On the travis client’s web3-cmt console (similar to the GETH console on Ethereum),
+    you can now deploy the contract bytecode and ABI to the CyberMiles node you run.
+  id: totrans-432
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 在travis客户端的web3-cmt控制台（类似于以太坊上的GETH控制台）上，您可以现在将合约字节码和ABI部署到您运行的CyberMiles节点。
+- en: '[Click here to view code image](Images/ch18_images.xhtml#pro18_4)'
+  id: totrans-433
+  prefs: []
+  type: TYPE_NORMAL
+  zh: '[点击此处查看代码图片](Images/ch18_images.xhtml#pro18_4)'
+- en: '[PRE47]'
+  id: totrans-434
+  prefs: []
+  type: TYPE_PRE
+  zh: '[PRE47]'
+- en: Once the contract is deployed with a confirmation from the blockchain, you will
+    see its contract address printed on the console. You can call its `reverse` method.
+  id: totrans-435
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 一旦合约在区块链上部署并获得确认，您将在控制台上看到其合约地址。您可以调用其`reverse`方法。
+- en: '[Click here to view code image](Images/ch18_images.xhtml#pro18_5)'
+  id: totrans-436
+  prefs: []
+  type: TYPE_NORMAL
+  zh: '[点击此处查看代码图片](Images/ch18_images.xhtml#pro18_5)'
+- en: '[PRE48]'
+  id: totrans-437
+  prefs: []
+  type: TYPE_PRE
+  zh: '[PRE48]'
+- en: Since most libENI functions require the blockchain nodes to perform work, they
+    typically require gas fees. That is why we have a `from` account to pay gas fees
+    for this libENI function call.
+  id: totrans-438
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 由于大多数libENI函数需要区块链节点执行工作，它们通常需要燃料费。这就是为什么我们有`from`账户来支付此libENI函数调用的燃料费。
+- en: The RSA Example
+  id: totrans-439
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+  zh: RSA示例
+- en: The RSA example shows how to use a pair of RSA public and private keys to encrypt
+    and decrypt data inside a smart contract. Such functions enable blockchain accounts
+    to exchange private information via smart contracts. They are crucial building
+    blocks for a wide range of applications including data marketplaces and content
+    distribution.
+  id: totrans-440
+  prefs: []
+  type: TYPE_NORMAL
+  zh: RSA示例展示了如何在智能合约内使用一对RSA公钥和私钥来加密和解密数据。此类功能使区块链账户能够通过智能合约交换私人信息。它们是包括数据市场和内容分发在内的广泛应用的关键构建块。
+- en: '**Note**'
+  id: totrans-441
+  prefs: []
+  type: TYPE_NORMAL
+  zh: '**注意**'
+- en: An interesting RSA application is a data marketplace. Let’s use a marketplace
+    for medical records to illustrate how an RSA re-encryption scheme works in this
+    context. Patients own their own medical records, and they authorize Bob (the data
+    broker or the hospital) to aggregate and sell the medical records on their behalf.
+    Alice (the data user or researcher) buys the patients’ data from Bob. And Bob
+    distributes the profit back to the patients. How do we automate and record the
+    whole process on-chain?
+  id: totrans-442
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 一个有趣的RSA应用是一个数据市场。让我们用一个医疗记录市场来说明在这个背景下RSA重新加密方案是如何工作的。患者拥有自己的医疗记录，并授权鲍勃（数据经纪人或医院）代表他们聚合和出售医疗记录。爱丽丝（数据用户或研究人员）从鲍勃那里购买患者的数据。然后鲍勃将利润分发给患者。我们如何能在链上自动化并记录整个过程？
+- en: Bob sets up three RSA keys (a public encryption key 1, a public re-encryption
+    key 2, and a private decryption key 3) and sets up a smart contract for the transaction.
+    The smart contract contains both public keys 1 and 2.
+  id: totrans-443
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 鲍勃设置三个RSA密钥（一个公钥1加密，一个公钥2重新加密，一个私钥3解密）并设置一个智能合约进行交易。智能合约包含公钥1和2。
+- en: An individual patient authorizes Bob to sell her records by encrypting the records
+    using key 1 and uploading the encrypted data to the contract. Alice agrees to
+    buy the data from Bob and makes a payment to the smart contract. The smart contract
+    re-encrypts all the records using key 2 and makes them publically available. Bob
+    then sends private key 3 directly to Alice off-chain, which allows Alice to decrypt
+    all the records held in the contract. Alice acknowledges receiving the private
+    key 3 to the contract, and the contract automatically distributes the payments
+    to patients and Bob.
+  id: totrans-444
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 患者通过使用密钥1加密记录并将其上传到合约，授权鲍勃出售她的记录。爱丽丝同意从鲍勃那里购买数据并向智能合约付款。智能合约使用密钥2重新加密所有记录并使其公开可用。鲍勃然后将私钥3直接离线发送给爱丽丝，这使得爱丽丝能够解密合约中持有的所有记录。爱丽丝确认收到私钥3，合约自动将付款分发给患者和鲍勃。
+- en: In this process, Alice and Bob are the only ones who can decrypt the whole data
+    set. All patients know their own data. The public can verify the transaction,
+    including all the monetary payments, but cannot see any data.
+  id: totrans-445
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 在这个过程中，Alice和Bob是唯一可以解密整个数据集的人。所有患者都知道自己的数据。公众可以验证交易，包括所有的货币支付，但无法看到任何数据。
+- en: 'The following code illustrates a simple contract that encrypts a plaintext
+    string using an RSA public key and then decrypts it using an RSA private key:'
+  id: totrans-446
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 以下代码展示了一个简单的合约，它使用RSA公钥加密一个明文字符串，然后使用RSA私钥进行解密：
+- en: '[Click here to view code image](Images/ch18_images.xhtml#pro18_6)'
+  id: totrans-447
+  prefs: []
+  type: TYPE_NORMAL
+  zh: '[点击此处查看代码图片](Images/ch18_images.xhtml#pro18_6)'
+- en: '[PRE49]'
+  id: totrans-448
+  prefs: []
+  type: TYPE_PRE
+  zh: '[PRE49]'
+- en: In this example, you can see that the libENI functions `rsa_encrypt` and `rsa_decrypt`
+    take multiple input parameters. In this section, I will show you how to use `lityc`
+    to generate the bytecode and ABI interface in one go.
+  id: totrans-449
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 在这个例子中，你可以看到libENI函数`rsa_encrypt`和`rsa_decrypt`采取了多个输入参数。在本节中，我将向您展示如何使用`lityc`一次性生成字节码和ABI接口。
+- en: '[Click here to view code image](Images/ch18_images.xhtml#pro18_7)'
+  id: totrans-450
+  prefs: []
+  type: TYPE_NORMAL
+  zh: '[点击此处查看代码图片](Images/ch18_images.xhtml#pro18_7)'
+- en: '[PRE50]'
+  id: totrans-451
+  prefs: []
+  type: TYPE_PRE
+  zh: '[PRE50]'
+- en: Next, deploy the bytecode and ABI to a local or testnet CyberMiles blockchain
+    and receive a contract address upon successful deployment.
+  id: totrans-452
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 接下来，将字节码和ABI部署到本地或测试网CyberMiles区块链，并在部署成功后收到合约地址。
+- en: '[Click here to view code image](Images/ch18_images.xhtml#pro18_8)'
+  id: totrans-453
+  prefs: []
+  type: TYPE_NORMAL
+  zh: '[点击此处查看代码图片](Images/ch18_images.xhtml#pro18_8)'
+- en: '[PRE51]'
+  id: totrans-454
+  prefs: []
+  type: TYPE_PRE
+  zh: '[PRE51]'
+- en: To use the RSA functions, you call the smart contract methods and pass in the
+    key and data.
+  id: totrans-455
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 要使用RSA函数，你需要调用智能合约方法，并传入密钥和数据。
+- en: '[Click here to view code image](Images/ch18_images.xhtml#pro18_9)'
+  id: totrans-456
+  prefs: []
+  type: TYPE_NORMAL
+  zh: '[点击此处查看代码图片](Images/ch18_images.xhtml#pro18_9)'
+- en: '[PRE52]'
+  id: totrans-457
+  prefs: []
+  type: TYPE_PRE
+  zh: '[PRE52]'
+- en: Of course, in the real world, we cannot call smart contract methods using the
+    private key since all such transactions are public records. This example is for
+    illustration only.
+  id: totrans-458
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 当然，在现实世界中，我们无法使用私钥调用智能合约方法，因为所有这些交易都是公共记录。这个例子只是为了说明。
+- en: The Scrypt Example
+  id: totrans-459
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+  zh: Scrypt示例
+- en: This scrypt example is to verify Dogecoin blockchain headers in a Lity smart
+    contract. Why would anyone do this? The reason is that Dogecoin is a clone of
+    the Bitcoin blockchain. Verifying a Dogecoin block header allows the smart contract
+    to further verify the transactions inside that block. By extending this computation
+    to the Bitcoin, we can develop Ethereum smart contracts that can automatically
+    verify and respond to Bitcoin transactions, making cross-chain asset exchanges
+    a possibility.
+  id: totrans-460
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 这个scrypt示例是为了在Lity智能合约中验证Dogecoin区块链头部。为什么有人会这样做呢？原因是Dogecoin是比特币区块链的一个克隆。验证Dogecoin区块头部使智能合约能够进一步验证该区块内的交易。通过将此计算扩展到比特币，我们可以开发能够在跨链资产交换中自动验证和响应比特币交易的以太坊智能合约。
+- en: Yet, the verification of a Dogecoin header requires the smart contract to perform
+    a scrypt operation, which is computationally expensive for Solidity and the EVM.
+    Vitalik Buterin estimates that it requires 390 million units of Ethereum gas to
+    perform and far exceeds the block gas limit of Ethereum. To address this problem,
+    there is a bounty of $250,000 set up by the Ethereum and Dogecoin communities
+    to award the first viable solution to perform a scrypt operation on Ethereum to
+    verify a Dogecoin block. In this section, we will show that libENI provides such
+    a solution at a low cost on a fully Ethereum-compatible blockchain virtual machine.
+  id: totrans-461
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 然而，验证Dogecoin头部需要智能合约执行scrypt操作，这对于Solidity和EVM来说计算成本很高。Vitalik Buterin估计，执行此操作需要3.9亿以太坊单位气体，远远超过以太坊的区块气体限制。为了解决这个问题，以太坊和Dogecoin社区设立了一个25万美元的赏金，以奖励第一个提出在以太坊上执行scrypt操作验证Dogecoin区块的有效解决方案的人。在本节中，我们将展示libENI在一个完全兼容以太坊的区块链虚拟机上以低成本提供此类解决方案。
+- en: '**Note**'
+  id: totrans-462
+  prefs: []
+  type: TYPE_NORMAL
+  zh: '**注意**'
+- en: BTCRely is a community service to verify Bitcoin transactions on Ethereum. It
+    is set up as an Ethereum smart contract, which allows other contracts to request
+    verification and pay a fee. The fee is used to incentivize a community of off-chain
+    workers to perform the verification on their own computers and submit the results.
+    The Truebit project has a similar approach for off-chain verification. However,
+    in the end, those off-chain schemes are cryptoeconomic games that rely on incentives
+    for “good behavior.” They are expensive, slow, tedious, and not reliable.
+  id: totrans-463
+  prefs: []
+  type: TYPE_NORMAL
+  zh: BTCRely是一个社区服务，用于在以太坊上验证比特币交易。它被设置为以太坊智能合约，允许其他合约请求验证并支付费用。这笔费用用于激励一群离线工作者在自己的电脑上进行验证，并提交结果。Truebit项目对于离线验证也有类似的方法。然而，最终，这些离线方案都是依赖“良好行为”激励的加密经济游戏。它们既昂贵、又慢、又繁琐，并且不可靠。
+- en: 'The full source code of the scrypt example is available on the Lity documentation
+    site at [http://lity.readthedocs.io/en/latest/verify-dogecoin-block-on-travis.html](http://lity.readthedocs.io/en/latest/verify-dogecoin-block-on-travis.html).
+    Here, you can see the key part of the smart contract that calls the libENI function
+    `scrypt` to perform the work:'
+  id: totrans-464
+  prefs: []
+  type: TYPE_NORMAL
+  zh: '`scrypt`示例的完整源代码可在Lity文档网站上找到，网址为[http://lity.readthedocs.io/en/latest/verify-dogecoin-block-on-travis.html](http://lity.readthedocs.io/en/latest/verify-dogecoin-block-on-travis.html)。在这里，你可以看到智能合约调用`libENI`函数`scrypt`执行工作的关键部分：'
+- en: '[Click here to view code image](Images/ch18_images.xhtml#pro18_10)'
+  id: totrans-465
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 点击此处查看代码图片[链接](Images/ch18_images.xhtml#pro18_10)
+- en: '[PRE53]'
+  id: totrans-466
+  prefs: []
+  type: TYPE_PRE
+  zh: '[PRE53]'
+- en: Again, we use `lityc` to generate the bytecode and ABI interface in one go.
+  id: totrans-467
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 再次，我们使用`lityc`一次性生成字节码和ABI接口。
+- en: '[Click here to view code image](Images/ch18_images.xhtml#pro18_11)'
+  id: totrans-468
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 点击此处查看代码图片[链接](Images/ch18_images.xhtml#pro18_11)
+- en: '[PRE54]'
+  id: totrans-469
+  prefs: []
+  type: TYPE_PRE
+  zh: '[PRE54]'
+- en: We can now deploy the bytecode and ABI to the blockchain and receive a contract
+    address upon successful deployment.
+  id: totrans-470
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 现在，我们可以将字节码和ABI部署到区块链上，成功部署后获得合约地址。
+- en: '[Click here to view code image](Images/ch18_images.xhtml#pro18_12)'
+  id: totrans-471
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 点击此处查看代码图片[链接](Images/ch18_images.xhtml#pro18_12)
+- en: '[PRE55]'
+  id: totrans-472
+  prefs: []
+  type: TYPE_PRE
+  zh: '[PRE55]'
+- en: To call the contract and verify a Dogecoin block header, we need the following
+    pieces of information. They are algorithmically linked together to form a valid
+    blockchain header. All of them are public information readily available from the
+    Dogecoin blockchain explorer. In the following example, we use block 2 from the
+    Dogecoin blockchain.
+  id: totrans-473
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 要调用合约并验证Dogecoin区块头，我们需要以下信息。它们通过算法链接在一起，形成一个有效的区块链头。所有这些信息都可以从Dogecoin区块链浏览器中轻松获取。在以下示例中，我们使用Dogecoin区块链中的区块2。
+- en: 'Version: `1`'
+  id: totrans-474
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+  zh: 版本：`1`
+- en: 'Previous block hash: `82bc68038f6034c0596b6e313729793a887fded6e92a31fbdf70863f89d9bea2`'
+  id: totrans-475
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+  zh: 前一个区块哈希：`82bc68038f6034c0596b6e313729793a887fded6e92a31fbdf70863f89d9bea2`
+- en: 'Transaction Merkle root hash: `3b14b76d22a3f2859d73316002bc1b9bfc7f37e2c3393be9b722b62bbd786983`'
+  id: totrans-476
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+  zh: 交易Merkle根哈希：`3b14b76d22a3f2859d73316002bc1b9bfc7f37e2c3393be9b722b62bbd786983`
+- en: 'Timestamp: `1386474933` (converted from `2013-12-07 19:55:33 -0800`)'
+  id: totrans-477
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+  zh: 时间戳：`1386474933`（从`2013-12-07 19:55:33 -0800`转换而来）
+- en: 'Difficulty (bits): `1e0ffff0`'
+  id: totrans-478
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+  zh: 难度(位)：`1e0ffff0`
+- en: 'Nonce: `3404207872`'
+  id: totrans-479
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+  zh: 非ce：`3404207872`
+- en: We can now call the `verifyBlock` method on the contract using the previous
+    data.
+  id: totrans-480
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 现在，我们可以使用之前的数据在合约上调用`verifyBlock`方法。
+- en: '[Click here to view code image](Images/ch18_images.xhtml#pro18_13)'
+  id: totrans-481
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 点击此处查看代码图片[链接](Images/ch18_images.xhtml#pro18_13)
+- en: '[PRE56]'
+  id: totrans-482
+  prefs: []
+  type: TYPE_PRE
+  zh: '[PRE56]'
+- en: While it is beyond the scope of this book, the native `scrypt` function lays
+    the foundation for decentralized cross-chain operations with the Bitcoin blockchain.
+  id: totrans-483
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 虽然超出了本书的范围，但原生的`scrypt`函数为基于比特币区块链的去中心化跨链操作奠定了基础。
+- en: Writing a libENI Function
+  id: totrans-484
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+  zh: 编写`libENI`函数
+- en: Now we have seen how to use the libENI functions. In this section, I will discuss
+    how to program your own libENI functions that can be dynamically deployed to the
+    CyberMiles blockchain as virtual machine extensions. Let’s use the simple `reverse`
+    libENI function as an example. The entire example is available in CyberMiles’
+    libENI public GitHub repository.
+  id: totrans-485
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 现在我们已经了解了如何使用`libENI`函数。在本节中，我将讨论如何编写自己的`libENI`函数，该函数可以动态部署到CyberMiles区块链作为虚拟机扩展。让我们以简单的`reverse`
+    `libENI`函数为例。整个示例可在CyberMiles的`libENI`公共GitHub仓库中找到。
+- en: 'The libENI functions are written in C++ as OS native library functions. You
+    need to use `#include <eni.h>`, create a subclass of `eni::EniBase`, and implement
+    the following functions:'
+  id: totrans-486
+  prefs: []
+  type: TYPE_NORMAL
+  zh: '`libENI`函数是用C++编写的，作为操作系统本地库函数。你需要使用`#include <eni.h>`，创建`eni::EniBase`的子类，并实现以下函数：'
+- en: A constructor that takes a string as its parameter. Remember to pass the string
+    to the constructor of the superclass, `eni::EniBase`, which will convert the raw
+    string into a `json::Array` containing the arguments for your ENI operation.
+  id: totrans-487
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+  zh: 一个接受字符串作为参数的构造函数。请记得将字符串传递给超类`eni::EniBase`的构造函数，它将原始字符串转换为包含您ENI操作参数的`json::Array`。
+- en: A destructor.
+  id: totrans-488
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+  zh: 一个析构函数。
+- en: The `parse` virtual function to parse the arguments.
+  id: totrans-489
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+  zh: 用于解析参数的`parse`虚拟函数。
+- en: The `gas` virtual function to calculate gas consumption from the arguments.
+  id: totrans-490
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+  zh: 用于从参数计算燃料消耗的`gas`虚拟函数。
+- en: The `run` virtual function to execute your ENI operation with the arguments.
+  id: totrans-491
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+  zh: 用于执行您的ENI操作的`run`虚拟函数和参数。
+- en: 'The skeleton code for the `reverse` function is as follows:'
+  id: totrans-492
+  prefs: []
+  type: TYPE_NORMAL
+  zh: '`reverse`函数的骨架代码如下：'
+- en: '[Click here to view code image](Images/ch18_images.xhtml#pro18_14)'
+  id: totrans-493
+  prefs: []
+  type: TYPE_NORMAL
+  zh: '[点击此处查看代码图片](Images/ch18_images.xhtml#pro18_14)'
+- en: '[PRE57]'
+  id: totrans-494
+  prefs: []
+  type: TYPE_PRE
+  zh: '[PRE57]'
+- en: Next, let’s look into the implementation of these three virtual functions.
+  id: totrans-495
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 接下来，让我们来看看这三个虚拟函数的实现。
+- en: Parsing Arguments
+  id: totrans-496
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+  zh: 解析参数
+- en: The parse function takes a `json::Array` containing the arguments given to your
+    libENI operation. To ensure the other two functions, `gas` and `run`, process
+    the arguments in the same way, please validate, preprocess, and store the arguments
+    into member variables in the `parse` function.
+  id: totrans-497
+  prefs: []
+  type: TYPE_NORMAL
+  zh: '`parse`函数接受一个包含给您的libENI操作的参数的`json::Array`。为了确保其他两个函数`gas`和`run`以相同的方式处理参数，请在`parse`函数中验证、预处理并将参数存储到成员变量中。'
+- en: The `parse` function should return `true` when all arguments are good and return
+    `false` otherwise (e.g., lacking arguments, or the wrong type).
+  id: totrans-498
+  prefs: []
+  type: TYPE_NORMAL
+  zh: '`parse`函数在所有参数都正确时应返回`true`，否则返回`false`（例如，缺少参数或类型错误）。'
+- en: 'In this example, the `json::Array` constructed by `eni::EniBase` contains only
+    the argument string for the libENI operation `reverse`. The following is the implementation
+    of `parse`:'
+  id: totrans-499
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 在这个示例中，由`eni::EniBase`构造的`json::Array`只包含用于libENI操作`reverse`的参数字符串。以下是`parse`的实现：
+- en: '[Click here to view code image](Images/ch18_images.xhtml#pro18_15)'
+  id: totrans-500
+  prefs: []
+  type: TYPE_NORMAL
+  zh: '[点击此处查看代码图片](Images/ch18_images.xhtml#pro18_15)'
+- en: '[PRE58]'
+  id: totrans-501
+  prefs: []
+  type: TYPE_PRE
+  zh: '[PRE58]'
+- en: Estimating Gas
+  id: totrans-502
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+  zh: 预估燃料
+- en: Before your libENI function can run, you need to estimate how much gas it will
+    cost. Override the virtual function `gas` and return your estimated gas cost.
+    In this example, we use the string length as its gas consumption.
+  id: totrans-503
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 在您的libENI函数运行之前，您需要预估它将消耗多少燃料。重写虚拟函数`gas`并返回您预估的燃料成本。在这个示例中，我们用字符串长度作为其燃料消耗。
+- en: '[Click here to view code image](Images/ch18_images.xhtml#pro18_16)'
+  id: totrans-504
+  prefs: []
+  type: TYPE_NORMAL
+  zh: '[点击此处查看代码图片](Images/ch18_images.xhtml#pro18_16)'
+- en: '[PRE59]'
+  id: totrans-505
+  prefs: []
+  type: TYPE_PRE
+  zh: '[PRE59]'
+- en: You can return `0` for gas calculation errors. The virtual machine will not
+    execute the libENI function if `gas` returns `0`.
+  id: totrans-506
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 您可以为燃料计算错误返回`0`。如果`gas`返回`0`，虚拟机将不会执行libENI函数。
+- en: Executing the Function
+  id: totrans-507
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+  zh: 执行函数
+- en: Override the virtual function `run` and push the result of your libENI function
+    back into the `json::Array` as the return value.
+  id: totrans-508
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 重写`run`虚拟函数，并将您的libENI函数的结果推回到`json::Array`作为返回值。
+- en: '[Click here to view code image](Images/ch18_images.xhtml#pro18_17)'
+  id: totrans-509
+  prefs: []
+  type: TYPE_NORMAL
+  zh: '[点击此处查看代码图片](Images/ch18_images.xhtml#pro18_17)'
+- en: '[PRE60]'
+  id: totrans-510
+  prefs: []
+  type: TYPE_PRE
+  zh: '[PRE60]'
+- en: Mapping to libENI Function Name
+  id: totrans-511
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+  zh: 映射到libENI函数名称
+- en: Finally, we need to map the reverse C++ class to the reverse libENI function
+    name. To do that, we export a C interface with `ENI_C_INTERFACE(OP, CLASS)`, where
+    `OP` is your libENI function name (i.e., `reverse` in this example), and `CLASS`
+    is the name of implemented class (i.e., `Reverse` in this example).
+  id: totrans-512
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 最后，我们需要将反向C++类映射到反向libENI函数名称。为此，我们使用`ENI_C_INTERFACE(OP, CLASS)`导出C接口，其中`OP`是您的libENI函数名称（即，在这个示例中的`reverse`），`CLASS`是实现类的名称（即，在这个示例中的`Reverse`）。
+- en: '[PRE61]'
+  id: totrans-513
+  prefs: []
+  type: TYPE_PRE
+  zh: '[PRE61]'
+- en: That’s it. You have written a C++ program for the libENI function. In the next
+    section, we will review how to build the function into a shared library file and
+    deploy the file to a running blockchain.
+  id: totrans-514
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 就这样。您已经为libENI函数编写了一个C++程序。在下一节中，我们将回顾如何将该函数构建成共享库文件，并将该文件部署到运行中的区块链上。
+- en: Deploying the libENI Function
+  id: totrans-515
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+  zh: 部署libENI函数
+- en: 'We use the GCC to build libENI classes into binary library files. You can look
+    into the `Makefile` in the `examples/eni/reverse` directory in libENI public GitHub
+    repository. Here are the key compiler settings:'
+  id: totrans-516
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 我们使用GCC将libENI类构建成二进制库文件。您可以查看libENI公共GitHub仓库中`examples/eni/reverse`目录下的`Makefile`。以下是关键编译器设置：
+- en: '[Click here to view code image](Images/ch18_images.xhtml#pro18_18)'
+  id: totrans-517
+  prefs: []
+  type: TYPE_NORMAL
+  zh: '[点击此处查看代码图片](Images/ch18_images.xhtml#pro18_18)'
+- en: '[PRE62]'
+  id: totrans-518
+  prefs: []
+  type: TYPE_PRE
+  zh: '[PRE62]'
+- en: '`${LIBENI_PATH}` is the path to locate libENI support libraries on your development
+    machine. See the details in the GitHub documentation. Once you run `make all`,
+    you should have the `reverse.so` library file built for your OS.'
+  id: totrans-519
+  prefs: []
+  type: TYPE_NORMAL
+  zh: '`${LIBENI_PATH}`是在您的开发机器上定位libENI支持库的路径。具体细节请查阅GitHub文档。一旦您运行`make all`，应为您的操作系统生成`reverse.so`库文件。'
+- en: CyberMiles Governance
+  id: totrans-520
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+  zh: CyberMiles治理
+- en: To deploy the `reverse` libENI function to a running CyberMiles blockchain,
+    we will use the CyberMiles governance transactions. First, you need to set up
+    a CyberMiles blockchain node and then connect to it using the travis client (see
+    [Appendix A](app.xhtml#app) for details).
+  id: totrans-521
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 要向正在运行的CyberMiles区块链部署`reverse` libENI函数，我们将使用CyberMiles治理交易。首先，您需要设置一个CyberMiles区块链节点，然后使用travis客户端连接到它（具体操作请参阅[附录A](app.xhtml#app)）。
+- en: 'From the travis client console, you have access to the web3-cmt JavaScript
+    module. You can now create a new transaction to propose a new libENI function.
+    The transaction includes a brief description of the library function and the location
+    to download the library binary files for people to try. It also includes the MD5
+    hash of those files. Here is an example:'
+  id: totrans-522
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 从travis客户端控制台，您可以访问web3-cmt JavaScript模块。现在，您可以创建一个新的交易来提出一个新的libENI函数。该交易包括对库函数的简短描述以及下载库二进制文件的位置，供人们尝试。它还包括这些文件的MD5散列值。以下是一个示例：
+- en: '[Click here to view code image](Images/ch18_images.xhtml#pro18_19)'
+  id: totrans-523
+  prefs: []
+  type: TYPE_NORMAL
+  zh: '[点击此处查看代码图片](Images/ch18_images.xhtml#pro18_19)'
+- en: '[PRE63]'
+  id: totrans-524
+  prefs: []
+  type: TYPE_PRE
+  zh: '[PRE63]'
+- en: Once the `proposeDeployLibEni` transaction is processed, all nodes on the CyberMiles
+    blockchain will download and cache the library files and start a seven-day voting
+    period. The voting period can be customized by the `expireBlockHeight` or `expireTimestamp`
+    parameter in the `proposeDeployLibEni` transaction. During the voting period,
+    all validator nodes can vote on the proposal. `proposalId` is the result value
+    from the `proposeDeployLibEni` transaction.
+  id: totrans-525
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 一旦处理了`proposeDeployLibEni`交易，CyberMiles区块链上的所有节点都将下载并缓存库文件，并开始七天的投票期。投票期可以通过`proposeDeployLibEni`交易中的`expireBlockHeight`或`expireTimestamp`参数进行自定义。在投票期间，所有验证节点都可以对提案进行投票。`proposalId`是`proposeDeployLibEni`交易的结果值。
+- en: '[Click here to view code image](Images/ch18_images.xhtml#pro18_20)'
+  id: totrans-526
+  prefs: []
+  type: TYPE_NORMAL
+  zh: '[点击此处查看代码图片](Images/ch18_images.xhtml#pro18_20)'
+- en: '[PRE64]'
+  id: totrans-527
+  prefs: []
+  type: TYPE_PRE
+  zh: '[PRE64]'
+- en: If at least two-thirds voting power voted yes for `proposalId`, all nodes will
+    deploy the new libENI function and make it available at the seven-day mark or
+    at the specified `expireBlockHeight` or `expireTimestamp`.
+  id: totrans-528
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 如果至少有三分之二投票权的人对`proposalId`投了赞成票，所有节点都将部署新的libENI函数，并在七天后或指定的`expireBlockHeight`或`expireTimestamp`时使其可用。
+- en: Conclusion
+  id: totrans-529
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+  zh: 结论
+- en: In this chapter, we discussed how to create and deploy new libENI functions
+    to extend the Etheruem Virtual Machine (EVM). It allows developers or even the
+    public chain community to dynamically extend the virtual machines with new functionalities
+    without stopping or forking the blockchain.
+  id: totrans-530
+  prefs: []
+  type: TYPE_NORMAL
+  zh: 在本章中，我们讨论了如何创建并部署新的libENI函数以扩展以太坊虚拟机（EVM）。这使得开发者甚至公链社区能够在不停止或分叉区块链的情况下，动态地扩展虚拟机的新功能。
