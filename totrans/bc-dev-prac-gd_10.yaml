@@ -1,0 +1,536 @@
+- en: © Elad Elrom 2019Elad ElromThe Blockchain Developer[https://doi.org/10.1007/978-1-4842-4847-8_10](https://doi.org/10.1007/978-1-4842-4847-8_10)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '10. Build Dapps with Angular: Part II'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Elad Elrom^([1](#Aff2) )(1)New York, NY, USA
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the previous chapter, you started developing your dapp. Specifically, you
+    learned about dapp classifications and projects and that you can break your own
+    dapp project into five steps. You then looked at why to use Angular and its benefits.
+    Next, you created an Angular project, first ensuring the prerequisites were installed
+    and then installing the Angular CLI. You looked at the pieces that make up Angular
+    such as components, modules, and directives. You also learned how to style a dapp
+    by understanding Angular-style architecture and working with Angular Material.
+    You started building your own custom components and creating content; you split
+    your app into a footer, header, and body and created a custom transfer component
+    that you will be using in this chapter.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In this chapter, I will cover the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Creating the dapp’s smart contract with Truffle
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Integrating a smart contract in your dapp’s Angular project
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Linking and connecting your dapp to the Ethereum network
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'You will be utilizing the tools I have been covering so far: the Angular CLI,
+    Truffle, ganache-cli, and MetaMask. You will create a smart contract that you
+    will use for your dapp with Truffle, and then you’ll use the web3 library to connect
+    to the Ethereum local network and call the smart contract’s functions and events.
+    MetaMask will be used to manage and connect to your account.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Tip
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: It’s recommended that you complete the previous chapter and Chapter [5](475651_1_En_5_Chapter.xhtml)
+    prior to going through this chapter in order to fully understand the examples
+    here, which build on the concepts, tools, and installed libraries from Chapters
+    [9](475651_1_En_9_Chapter.xhtml) and [5](475651_1_En_5_Chapter.xhtml).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Transfer a Smart Contract
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: You already have the front-end logic to transfer tokens in your app from the
+    previous chapter; however, you don’t have a smart contract to interact with the
+    blockchain. Smart contracts can be created before the front-end portion, after,
+    or in parallel (if you work with a team of developers).
+  prefs: []
+  type: TYPE_NORMAL
+- en: You already created an Ethereum smart contract in Chapter [5](475651_1_En_5_Chapter.xhtml),
+    so the steps in this section should be familiar to you. Feel free to revisit Chapter
+    [5](475651_1_En_5_Chapter.xhtml) to refresh your memory, as I won’t go into much
+    detail regarding the tools and commands used in this chapter.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To get started, you will create a new folder in your ethdapp project to hold
+    the Truffle project. You can download the latest step, where you left off from,
+    here: [https://github.com/Apress/the-blockchain-developer/chapter9/step5.zip](https://github.com/Apress/the-blockchain-developer/chapter9/step5.zip)
+    .'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In real-life projects with multiple developers, the smart contract could be
+    a separate project. For simplicity, you will be including it in your project so
+    you can utilize the WebStorm Terminal window’s bottom tab to run commands.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Start by creating a folder called truffle inside your project and initialize
+    Truffle to create the project. You can see the expected output in Figure [10-1](#Fig1).>
+    mkdir ethdapp/truffle> cd truffle> truffle init![../images/475651_1_En_10_Chapter/475651_1_En_10_Fig1_HTML.jpg](../images/475651_1_En_10_Chapter/475651_1_En_10_Fig1_HTML.jpg)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 10-1
+  prefs: []
+  type: TYPE_NORMAL
+- en: Output of creating a Truffle project
+  prefs: []
+  type: TYPE_NORMAL
+- en: Tip
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'If you get errors such as “Error: Truffle Box,” uninstall Truffle, and then
+    re-install it and try again.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: To re-install truffle in case of error messages, remove truffle globally and
+    install it again.> npm uninstall -g truffleIf you do not have Truffle installed
+    or need to re-install Truffle globally, run the install command  .> npm install
+    -g truffleAfter re-installing or performing a fresh install, run the truffle init
+    command again and make sure you run the test in a new Terminal window to ensure
+    the changes were applied.> truffle compile> truffle migrate> truffle testYou can
+    compare your results with mine, shown in Figure [10-2](#Fig2).![../images/475651_1_En_10_Chapter/475651_1_En_10_Fig2_HTML.jpg](../images/475651_1_En_10_Chapter/475651_1_En_10_Fig2_HTML.jpg)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 10-2
+  prefs: []
+  type: TYPE_NORMAL
+- en: Truffle compiling, migrating, and testing your project
+  prefs: []
+  type: TYPE_NORMAL
+- en: Create a Smart Contract
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'You’ll create a smart contract and call it Transfer.sol; put it here: truffle/contracts/Transfer.sol.
+    The contract will allow you to transfer funds from one account to another. First
+    navigate to the location of the contracts in Truffle and use an editor to create
+    a new file.>  cd ethapp/truffle/contracts> vim Transfer.solThe complete Transfer.sol
+    code  is listed here:pragma solidity ^0.5.0;contract Transfer {  address payable
+    from;  address payable to;  constructor() public {    from = msg.sender;  }  event
+    Pay(address _to, address _from, uint amt);  function pay( address payable _to
+    ) public payable returns (bool) {      to = _to;      to.transfer(msg.value);      emit
+    Pay(to, from, msg.value);      return true;  }}Let’s walk through the code. First
+    you need to define the solidity version  you will be using and the contract name.pragma
+    solidity ^0.5.0;contract Transfer {Next, define the from and to addresses and
+    the constructor.  address payable from;  address payable to;  constructor() public
+    {    from = msg.sender;  }You will be using a Pay event  that will be dispatched
+    once the pay function is used.  event Pay(address _to, address _from, uint amt);The
+    pay function uses the Pay event to interact with the network and do the actual
+    transfer.  function pay( address payable _to ) public payable returns (bool) {      to
+    = _to;      to.transfer(msg.value);      emit Pay(to, from, msg.value);      return
+    true;  }}'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'That’s it. You kept it basic and simple with only one event and one function.
+    You can download this step from here: [https://github.com/Apress/the-blockchain-developer/chapter10/step1.zip](https://github.com/Apress/the-blockchain-developer/chapter10/step1.zip)
+    .'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Create the Truffle Development Network
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'The next step is to replace the truffle/truffle-config.js file with the following
+    configuration:module.exports = {  networks: {    development: {      host: "127.0.0.1",      port:
+    8545,      network_id: "*",      gas: 5000000,      gasPrice: 100000000000    }  }};'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Notice that you point to port 8545, which will help you when you run MetaMask
+    later in this chapter.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Deploy the Smart Contract
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The other configuration file you need is the deploy contract file. Create a
+    deployment file and call it truffle/migrations/2_deploy_contracts.js. In this
+    config file all you do is point to the Transfer smart contract SOL code you created.var
+    Transfer = artifacts.require("./Transfer.sol");module.exports = function(deployer)
+    {  deployer.deploy(Transfer);};Now you are ready to create your network on port
+    8545 with Ganache, so navigate to the Truffle project, and run this command:>
+    cd ethdapp/truffle> ganache-cli -p 8545
+  prefs: []
+  type: TYPE_NORMAL
+- en: Tip
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: If you get any errors such as “NODE_MODULE_VERSION mismatch,” uninstall and
+    re-install ganache-cli. Then open a new Terminal window and ensure it’s running
+    correctly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To re-install ganache-cli if needed, run this:> npm uninstall -g ganache-cli>
+    npm install -g ganache-cliTo ensure it’s running correctly, run this:> ganache-cli
+    helpNext, in a new Terminal window, let’s compile and deploy your contract while
+    ganache  is still running.> truffle compileThe compile output should provide success,
+    creating your contract in the Contract folder.Compiling ./contracts/Transfer.sol...Writing
+    artifacts to ./build/contractsThe file that was created is Transfer.json, which
+    you will be using in your dapp to interact with the network. Next, you will deploy
+    your contract with the migrate command  .> truffle migrate --network developmentThe
+    output should confirm the contract was migrated to the network, as shown in Figure
+    [10-3](#Fig3).![../images/475651_1_En_10_Chapter/475651_1_En_10_Fig3_HTML.jpg](../images/475651_1_En_10_Chapter/475651_1_En_10_Fig3_HTML.jpg)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 10-3
+  prefs: []
+  type: TYPE_NORMAL
+- en: Truffle migrate project
+  prefs: []
+  type: TYPE_NORMAL
+- en: The output summary should also show that the deployment went well and a charge.Summary=======>
+    Total deployments:   2> Final cost:          0.0525573 ETH
+  prefs: []
+  type: TYPE_NORMAL
+- en: Truffle Console
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Now that you have the contract compiled and deployed, to interact with the network,
+    start a console, as shown here:> truffle console --network development
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A good resource for the commands you can run against the Truffle CLI is at
+    the Ethereum JavaScript API wiki page here: [https://github.com/ethereum/wiki/wiki/JavaScript-API](https://github.com/ethereum/wiki/wiki/JavaScript-API)
+    .'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Accounts
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: If you run getAccounts, you’ll get a list of accounts associated with your wallet.truffle(development)>
+    web3.eth.getAccounts()[ '0x1eFf25A40C82EA65BC88E45d02368897EC922FEf',  '0xC135058b33d5df78636Cf14b74F281f95c4a407c',  '0xe682300Ef633F7d4f0d8Cb07c1bAD5d9B4eaE974'....]You
+    can then define address1 and address2 as the first and second accounts.truffle(development)>
+    web3.eth.getAccounts().then( function(a){address1=a[0]})undefinedtruffle(development)>
+    web3.eth.getAccounts().then( function(a){address2=a[1]})undefinedNow that they
+    are defined, you can call them and get the first and second accounts in the output.truffle(development)>
+    address1'0x1eFf25A40C82EA65BC88E45d02368897EC922FEf'truffle(development)> address2'0xC135058b33d5df78636Cf14b74F281f95c4a407c'You
+    can also use getBalance to get the balance you have in these addresses.truffle(development)>
+    web3.eth.getBalance(address1)'99942134400000000000'truffle(development)> web3.eth.getBalance(address2)'100000000000000000000'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Test the Transfer of a Smart Contract
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: 'Now that you have defined two addresses and you know the balance in these accounts,
+    you can define your contract and pass some funds between the accounts. To do so,
+    first define the contract and call it transferSmartContract.truffle(development)>
+    Transfer.deployed().then(function(instance){transferSmartContract = instance;})undefinedNext,
+    run the transferSmartContract variable you defined to ensure it worked and show
+    the object value.> transferSmartContractNow you can transfer funds with your smart
+    contract between the two accounts. Account 2 holds a nice round number, so you
+    will transfer 5 eth.> transferSmartContract.pay(address2, {from: address1, value:
+    5});The command output shows information about the transaction and mining. Now
+    you are able to see the balance updated.> web3.eth.getBalance(address1);''99942134399999999995''>
+    web3.eth.getBalance(address2);''100000000000000000005'''
+  prefs: []
+  type: TYPE_NORMAL
+- en: As you can see, the balance changed, and you were able to transfer tokens between
+    two addresses.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Link with the Ethereum Network
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: You got your contract working in Terminal; the next step is for your dapp to
+    interact with the contract. This is done via web3.js, which is a collection of
+    libraries allowing you to interact with a local or remote Ethereum node using
+    an HTTP or IPC connection. First navigate back into your Angular project folder
+    and then install web3.js with the flag --save to save the library you are installing.>
+    cd ethdapp/> npm install web3 –save+ web3@1.0.0-beta.55
+  prefs: []
+  type: TYPE_NORMAL
+- en: If installation went well, you will see in the output that the version did install.
+    At the time of writing, web3 is at version 1.0.0-beta55.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You also need to install truffle-contract, which provides wrapper code that
+    makes interaction with your contract easier. At the time of writing, the latest
+    is version 4.0.7 but will probably change by the time you are reading this book.>  npm
+    install truffle-contract –save+ truffle-contract@4.0.15
+  prefs: []
+  type: TYPE_NORMAL
+- en: Tip
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: web3 version 1.0.0 beta and truffle-contract version 4.0.15 are the latest versions
+    and compatible with Angular 7.3.x. However, this can change, so watch the version
+    you are installing to ensure it’s compatible and to avoid errors. Re-install with
+    exact @[version], for instance @4.0.15, if you run into compatibility issues.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Transfer Service
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Now that you have your libraries installed, you can continue. In this section,
+    you will create and write a service class. A service class is going to be your
+    front-end middle layer to interact with web3. To get started, you can utilize
+    the ng s flag, which stands for “service.”> ng g s services/transfer --module=app.moduleCREATE
+    src/app/services/transfer.service.spec.tsCREATE src/app/services/ transfer.service.tsYou
+    will replace the service class’s initial code with logic to interact with web3.
+    First you will define the libraries you will be using, which are the Angular core
+    and the truffle-contract and web3 libraries you installed.import { Injectable
+    } from ''@angular/core'';const Web3 = require(''web3'');import * as TruffleContract
+    from ''truffle-contract'';Next, you will define three variables you will be using
+    later: require, window, and tokenAbi. Notice that tokenAbi points to the ABI file
+    you compiled from the contract SOL file.declare let require: any;declare let window:
+    any;const tokenAbi = require(''../../../truffle/build/contracts/Transfer.json'');You
+    need access to root to interact with web3, so you need to inject it into your
+    project.@Injectable({  providedIn: ''root''})Next, define the class definition,
+    the account and web3 variables, and init web3  .export class TransferService {  private
+    _account: any = null;  private readonly _web3: any;  constructor() {    if (typeof
+    window.web3 !== ''undefined'') {      this._web3 = window.web3.currentProvider;    }
+    else {      this._web3 = new Web3.providers.HttpProvider(''http://localhost:8545'');    }    window.web3
+    = new Web3(this._web3);    console.log(''transfer.service :: this._web3'');    console.log(this._web3);  }'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Notice that you wrapped console.log messages around the code so you can see
+    the messages in the browser console messages section under developer tool mode
+    to help you understand what’s happening. To do so open the browser in a developer
+    tool mode. For Chrome, select View Developer View ➤ Developer ➤ Developer Tools.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'You need an async method  to get the account address and balance, so you can
+    use a promise function. If your account was not retrieved previously, you’ll call
+    web3.eth.getAccounts just as you did in Terminal to retrieve the data. You also
+    need error code if something goes wrong.private async getAccount(): Promise<any>
+    {    console.log(''transfer.service :: getAccount :: start'');    if (this._account
+    == null) {      this._account = await new Promise((resolve, reject) => {        console.log(''transfer.service
+    :: getAccount :: eth'');        console.log(window.web3.eth);        window.web3.eth.getAccounts((err,
+    retAccount) => {          console.log(''transfer.service :: getAccount: retAccount'');          console.log(retAccount);          if
+    (retAccount.length > 0) {            this._account = retAccount[0];            resolve(this._account);          }
+    else {            alert(''transfer.service :: getAccount :: no accounts found.'');            reject(''No
+    accounts found.'');          }          if (err != null) {            alert(''transfer.service
+    :: getAccount :: error retrieving account'');            reject(''Error retrieving
+    account'');          }        });      }) as Promise<any>;    }    return Promise.resolve(this._account);  }Similarly,
+    you need a service method to interact with and get the balance of the account.
+    You use web3.eth.getBalance just as you did in Terminal and wrap some error checking.
+    You also set this as a promise. The reason you need a promise is that these calls
+    are async  , and JavaScript is not.  public async getUserBalance(): Promise<any>
+    {    const account = await this.getAccount();    console.log(''transfer.service
+    :: getUserBalance :: account'');    console.log(account);    return new Promise((resolve,
+    reject) => {      window.web3.eth.getBalance(account, function(err, balance) {        console.log(''transfer.service
+    :: getUserBalance :: getBalance'');        console.log(balance);        if (!err)
+    {          const retVal = {account: account, balance: balance};          console.log(''transfer.service
+    :: getUserBalance :: getBalance :: retVal'');          console.log(retVal);          resolve(retVal);        }
+    else {          reject({account: ''error'', balance: 0});        }      });    })
+    as Promise<any>;  }Last, you need a method to pass the values from your form and
+    transfer payment from one account to another. Use the contract pay method  and
+    wrap some error checking.  transferEther(value) {    const that = this;    console.log(''transfer.service
+    :: transferEther to: '' + value.transferAddress + '', from: '' + that._account
+    + '', amount: '' + value.amount);    return new Promise((resolve, reject) => {      console.log(''transfer.service
+    :: transferEther :: tokenAbi'');      console.log(tokenAbi);      const transferContract
+    = TruffleContract(tokenAbi);      transferContract.setProvider(that._web3);      console.log(''transfer.service
+    :: transferEther :: transferContract'');      console.log(transferContract);      transferContract.deployed().then(function(instance)
+    {        return instance.pay(          value.transferAddress,          {            from:
+    that._account,            value: value.amount          });      }).then(function(status)
+    {        if (status) {          return resolve({status: true});        }      }).catch(function(error)
+    {        console.log(error);        return reject(''transfer.service error'');      });    });  }}'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now that you have the transfer service complete, you can connect transfer.component
+    to get the user’s account address and balance and be able to transfer funds once
+    the form is filled in.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'First you need to define the service component you created. Open src/app/component/transfer/transfer.component.ts
+    and add the import statement at the top of the document.import {TransferService}
+    from ''../../services/transfer.service'';For the component definition, add TransferService
+    as a provider.@Component({..  providers: [TransferService]})Also, add TransferService
+    to the constructor so you can use it in your class.constructor(private fb: FormBuilder,              private
+    transferService: TransferService) { }Next, update the getAccountAndBalance method  to
+    include a call to the service class and retrieve the user actual account and balance.  getAccountAndBalance
+    = () => {    const that = this;    this.transferService.getUserBalance().then(function(retAccount:
+    any) {      that.user.address = retAccount.account;      that.user.balance = retAccount.balance;      console.log(''transfer.components
+    :: getAccountAndBalance :: that.user'');      console.log(that.user);    }).catch(function(error)
+    {      console.log(error);    });  }Lastly, update submitForm to call transferEther
+    to transfer and pay. Replace the submitForm TODO comments shown here with the
+    call to the service calls:// TODO: service callThen pass the data the user submitted:this.transferService.transferEther(this.userForm.value).then(function()
+    {      }).catch(function(error) {        console.log(error);      });});'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'You can download the complete step from here: [https://github.com/Apress/the-blockchain-developer/chapter10/step2.zip](https://github.com/Apress/the-blockchain-developer/chapter10/step2.zip)
+    .'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Connect to MetaMask
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: At this point, your dapp code is complete. However, if you test your dapp now,
+    web3 won’t be able to connect to an account. What you need to do is connect to
+    MetaMask. There is a privacy issue related to dapps where malicious web sites
+    are able to inject code to view users’ activities and Ethereum addresses and then
+    find the balance, transaction history, and personal information.
+  prefs: []
+  type: TYPE_NORMAL
+- en: These malicious sites are then able to initiate unwanted transactions on a user’s
+    behalf, and the user accidentally may approve an unauthorized transaction and
+    lose funds.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To avoid these issues and to connect your Angular service, you will connect
+    the browser to the network via MetaMask.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You have already used MetaMask, so you should have it installed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s back up for a second. As you’ll recall, you started a network via ganache-cli
+    on port 8545.> ganache-cli -p 8545And you connected Truffle to the network.> truffle
+    migrate --network development
+  prefs: []
+  type: TYPE_NORMAL
+- en: Then you were able to connect on port 8545 and run commands in Terminal.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can now connect MetaMask in a browser. To connect, select MetaMask and select
+    Localhost 8545 in the drop-down menu. See Figure [10-4](#Fig4).![../images/475651_1_En_10_Chapter/475651_1_En_10_Fig4_HTML.jpg](../images/475651_1_En_10_Chapter/475651_1_En_10_Fig4_HTML.jpg)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 10-4
+  prefs: []
+  type: TYPE_NORMAL
+- en: Connecting MetaMask to a private network on port 8545
+  prefs: []
+  type: TYPE_NORMAL
+- en: Notice that you picked port 8545 earlier in this chapter. It’s the default port
+    on MetaMask, so it’s easy to connect to on your private network by selecting the
+    drop-down menu item instead of pointing to a custom port.
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, when you check the list of accounts, you don’t see any accounts. The
+    reason you don’t see accounts is that every time you start your network, you need
+    to update the accounts. There are two ways to update MetaMask with the list of
+    accounts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Option 1*: When you run Ganache, use the m flag to pass the mnemonic that
+    represents the private keys you had in Ganache. For instance, the command will
+    look like this:> ganache-cli -p 8545 -m ''journey badge medal slender behind junk
+    develop produce spy enemy transfer room''*Option 2*: When you run ganache-cli,
+    you will see the list of accounts, private keys, and mnemonics.> ganache-cli -p
+    8545Look for this output and copy the mnemonic.HD Wallet==================Mnemonic:
+    journey badge medal slender behind junk develop produce spy enemy transfer roomBase
+    HD Path:  m/44''/60''/0''/0/{account_index}Then, log out of MetaMask and paste
+    the mnemonic manually. Click the right button and select “Log out,” as shown in
+    Figure [10-5](#Fig5).![../images/475651_1_En_10_Chapter/475651_1_En_10_Fig5_HTML.jpg](../images/475651_1_En_10_Chapter/475651_1_En_10_Fig5_HTML.jpg)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 10-5
+  prefs: []
+  type: TYPE_NORMAL
+- en: MetaMask logout of account
+  prefs: []
+  type: TYPE_NORMAL
+- en: After logging out, the welcome screen comes back with a link under it that says,
+    “Import using account seed phrase.” Click that link, as shown in Figure [10-6](#Fig6).![../images/475651_1_En_10_Chapter/475651_1_En_10_Fig6_HTML.jpg](../images/475651_1_En_10_Chapter/475651_1_En_10_Fig6_HTML.jpg)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 10-6
+  prefs: []
+  type: TYPE_NORMAL
+- en: MetaMask welcome page
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now you can paste the mnemonic by selecting a password and clicking Restore,
+    as shown in Figure [10-7](#Fig7).![../images/475651_1_En_10_Chapter/475651_1_En_10_Fig7_HTML.jpg](../images/475651_1_En_10_Chapter/475651_1_En_10_Fig7_HTML.jpg)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 10-7
+  prefs: []
+  type: TYPE_NORMAL
+- en: Restoring MetaMask account using a mnemonic
+  prefs: []
+  type: TYPE_NORMAL
+- en: Test Your Dapp Functionality
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Now you are finally ready to test your dapp. Once the browser gets refreshed,
+    you will see the address and balance.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Next, fill in the form and initialize a transfer. Notice that MetaMask opens
+    to confirm the transfer. This is an extra measurement of security to ensure only
+    authorized transfers get approved.
+  prefs: []
+  type: TYPE_NORMAL
+- en: See Figure [10-8](#Fig8).![../images/475651_1_En_10_Chapter/475651_1_En_10_Fig8_HTML.jpg](../images/475651_1_En_10_Chapter/475651_1_En_10_Fig8_HTML.jpg)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 10-8
+  prefs: []
+  type: TYPE_NORMAL
+- en: MetaMask notification to complete a transfer
+  prefs: []
+  type: TYPE_NORMAL
+- en: Where to Go from Here
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Continue working and improving the dapp you created. For instance, you could
+    do the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Create a user service class and a shared service class to hold users’ information
+    and shared information
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Create a login/logout service
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Create an option to switch between accounts
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Create a side menu to better navigate the app
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Update the smart contract and add more methods and events
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In this chapter, you created a transfer smart contract and Truffle development
+    project as well as connected to the Ganache local development network. You learned
+    how to work with the Ethereum network via Truffle and how to test your smart contract.
+    You test the transfer of funds using your smart contract via the command line.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Lastly, you linked your dapp with the Ethereum network using an Angular TransferService
+    component that you created. Using the web3 library, you made some service calls.
+    Lastly, you connected to MetaMask to manage your accounts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the next chapter, you will learn about blockchain security and compliance.
+  prefs: []
+  type: TYPE_NORMAL

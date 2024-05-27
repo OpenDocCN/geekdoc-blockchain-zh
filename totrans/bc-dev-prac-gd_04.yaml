@@ -1,0 +1,1255 @@
+- en: © Elad Elrom 2019Elad ElromThe Blockchain Developer[https://doi.org/10.1007/978-1-4842-4847-8_4](https://doi.org/10.1007/978-1-4842-4847-8_4)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 4. Bitcoin Wallets and Transactions
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Elad Elrom^([1](#Aff2) )(1)New York, NY, USA
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this chapter, you will be diving deep into bitcoin’s core RPC and learn about
+    wallets and transactions. You will learn how to utilize legacy and SegWit’s bitcoin
+    wallets. You will extract a wallet’s public and private keys.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The majority of this chapter will deal with transactions, from sending funds
+    in a simple way utilizing bitcoin’s testing blockchain to more complex transactions.
+    Additionally, you will learn how to send coins via bitcoin’s core wallet GUI,
+    and you will learn how to view transactions in the Block Explorer and understand
+    confirmations. You will look into raw transactions and learn how to create a raw
+    transaction with one output as well as how to create transactions with multiple
+    users signing them. Additionally, you will replace your transaction and set a
+    lock time. You will also learn the difference between pay options and fees.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Lastly, I will cover how to pass data in a raw transaction. By the end of this
+    chapter, you will have a much better understanding of transactions, wallets, fees,
+    payment options, and bitcoin’s core RPC.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Bitcoin Core RPC Resources
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: You learned how to interact with bitcoin core utilizing the bitcoin daemon and
+    bitcoin core function as an HTTP JSON-RPC server, and you are now able to make
+    calls and receive JSON responses. In this section, you will build on these skills
+    to understand wallets and transactions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The first step is to initialize and run the bitcoin daemon.> bitcoind –printtoconsoleThen
+    in a different Terminal window, you can view the available RPC commands by running
+    the help command.> bitcoin-cli helpYou can also request help on any command you
+    run by adding help before the command. For instance, add help before the getnewaddress
+    command like this:> bitcoin-cli help getnewaddress
+  prefs: []
+  type: TYPE_NORMAL
+- en: At the time of writing, the latest RPC version is bitcoin core version v0.18.99.0-56376f336
+    (release build); as new versions of bitcoin core are released, the commands in
+    this chapter may change, so it’s useful to check [https://bitcoincore.org/en/doc/](https://bitcoincore.org/en/doc/)
+    for the latest RPC commands.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note that documentation for v0.18 is not live at the time of writing; v0.17
+    is the latest doc ( [https://bitcoincore.org/en/doc/0.17.0/](https://bitcoincore.org/en/doc/0.17.0/)
+    ). In the menu on the right, select RAWTRANSACTIONS and WALLET for a list of RPC
+    commands relevant to this chapter.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: In addition to bitcoin core documentation, there are two free web resources
+    that can help you better understand the bitcoin RPC command line beyond what is
+    covered in this chapter. They are [https://github.com/ChristopherA/Learning-bitcoin-from-the-Command-Line](https://github.com/ChristopherA/Learning-bitcoin-from-the-Command-Line)
+    and [http://learnmeabitcoin.com/guide/transactions](http://learnmeabitcoin.com/guide/transactions)
+    .
+  prefs: []
+  type: TYPE_NORMAL
+- en: Bitcoin Wallet
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In Chapter [2](475651_1_En_2_Chapter.xhtml), you queried a wallet’s available
+    funds via the getbalance command, and you created a new bitcoin wallet utilizing
+    the getnewaddress command.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In Chapter [3](475651_1_En_3_Chapter.xhtml), you created your very own blockchain
+    wallet for your blockchain; you did so by creating a wallet.js file utilizing
+    the Elliptic Curve Cryptography Node.js library and generating a private-public
+    key combo that you then were able to expose using a CLI. In this section, I will
+    expand on this knowledge by looking at bitcoin’s core and how wallets and transactions
+    are generated.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Bitcoin allows users to send and receive coins. A user can generate a wallet,
+    which holds a public key, and the sender will send the coins to the receiver’s
+    wallet’s public key address.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Sending coins follows the same process but in reverse. The receiver provides
+    the sender with a wallet’s public key address where they expect to be paid, and
+    the sender sends coins to that public key address. The wallet address is the public
+    key that was generated by the public/private key hashing algorithm. The receiver
+    can generate a new public key every time the user expects payment. Users who don’t
+    need to be anonymous can use just one public key for multiple transactions; however,
+    bitcoin’s original vision encourages users to give a different public key for
+    each transaction, as well as set many private keys that correspond with many public
+    keys. The private keys are stored in a wallet, and each public key represents
+    a wallet address.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Create a Legacy Wallet Address and Retrieve Private Keys
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The most common bitcoin address and the type you generated in Chapter [2](475651_1_En_2_Chapter.xhtml)
+    is called a Pay to PubKey Hash (P2PKH)  address. P2PKH is the public key, and
+    the public key address gets hashed by an algorithm.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Bitcoin also supports the P2SH-SEGWIT protocol, which I will discuss later in
+    this chapter.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Segregated Witness (SegWit) was an addition to bitcoin core code via a soft
+    fork that increased bitcoin’s block size limit by removing the signature data
+    that unlocks the transaction. When the unlocking code is removed, the additional
+    space is used to include more transactions in the chain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To generate an address with P2SH-SEGWIT and P2PKH support, just run the following:>
+    bitcoin-cli getnewaddress2N96AMUEX4VMNTApPAbUaA6wzP4V9QrbveKTo generate the P2PKH
+    address, you will be using the legacy flag.> bitcoin-cli getnewaddress "" legacy13oWKiVQ7C5Ewwjv6KRpP3Xm5YstzqFixTAs
+    you can see, the commands return the public keys. The wallet’s private keys can
+    be viewed via dumping the keys into a file, as you did previously, or just by
+    using the dumpprivkey command.> bitcoin-cli dumpprivkey "13oWKiVQ7C5Ewwjv6KRpP3Xm5YstzqFixT"L5gDpFvfEkUSFeMSQb92kueD1BuX4JeZLAhQkXoEtjcZMog3uXB4
+  prefs: []
+  type: TYPE_NORMAL
+- en: Private keys should not be shared with anyone, as they unlock the funds associated
+    with the public address. With that said, I am sharing this one with you here as
+    a learning example.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Protect your private keys. If your private keys are lost, you lose your coins/funds.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'As you know, you are able to dump the private keys into a text file.> bitcoin-cli
+    dumpwallet ~/mywallet.txt{  "filename": "/Users/Eli/mywallet.txt"}Then, you can
+    get the location of the wallet and can view your keys.> vim /Users/[location]/mywallet.txt'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The data file you saved contains not only the public and private keys but also
+    transactions related to your wallet.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Another useful RPC feature, as you might recall, is that you can query the bitcoin
+    daemon for a specific wallet’s funds.> bitcoin-cli getbalance 1Mr2G632PfQuq4uJXRBNWLoRKH71Qwor51To
+    get the available funds in your wallet, you just run the getbalance command, which
+    returns a 0 balance because you have not deposited any funds yet.> bitcoin-cli
+    getbalance0.00000000
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Pay to Witness a Public Key Hash (P2WPKH): SegWit Soft Fork'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Bitcoin (BTC) and bitcoin cash (BCH) have hard-forked mainly over a disagreement
+    of the block size, meaning how much data can be included in each block  . In 2017,
+    bitcoin core code was hard-forked into bitcoin cash and allowed to increase the
+    block’s size limit. In 2019, bitcoin cash forked once again because of a dispute
+    over several new features for each fork.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The block size limitation in bitcoin means transactions sometimes have to wait
+    to be included in a block; however, because of the 1 MB limitation, they might
+    not be included in the next block, causing slow transaction times when there too
+    many transactions in the network, resulting in an increase of miner fees. To correct
+    this, bitcoin open source developers created a soft fork and included Segregated
+    Witness (SegWit). SegWit increased bitcoin’s block size limit by removing the
+    signature data that unlocks the transaction. When the unlocking code is removed,
+    the additional space can be used to include more transactions in the chain. This
+    method increases the block size to 4 MB.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: SegWit is a process where the block size limit on a blockchain is increased
+    by removing the signature data from bitcoin transactions. This process frees up
+    space and allows you to add more transactions. SegWit uses a Bech32 address defined
+    in BIP173\. It is 90 characters and consists of a human-readable part, separator,
+    and data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The unlocking validation code is the *witness* data. You can say that the new
+    code “segregated the witness.” That’s where the name came from.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the build we are using, v17.0, there is a Witness Public Key Hash option
+    in a wallet and transaction to replace the scriptSig parameters and check the
+    transaction validity. The old legacy code still works, as this is a soft fork.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You have seen this in the getaddressinfo command, which includes both scriptPubKey
+    to support the legacy addresses as well as iswitness. You can run the getaddressinfo
+    command and see these parameters.> bitcoin-cli getaddressinfo $address1
+  prefs: []
+  type: TYPE_NORMAL
+- en: Prior to bitcoin core v0.16, you would have had to use the addwitnessaddress
+    command to turn a legacy address into a P2WPKH. Since bitcoin core v0.16.0, an
+    address accommodates both P2SH and P2WPKH. Thus, the wallet is a P2SH-P2WPKH.
+    If you are using v0.18, you can see that getaddressinfo addresses have both parameters
+    for legacy scriptSig and for SegWit.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Elliptic Curve Digital Signature Algorithm
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Bitcoin core allows you to create a signature by utilizing the Elliptic Curve
+    Digital Signature Algorithm (ECDSA)  . This can be achieved by utilizing the signmessage
+    command. Adding a signature allows you to prove that you own the private keys
+    of the wallet and thus adds another security layer for the sender to ensure they
+    are sending the funds to the correct address.> bitcoin-cli signmessage "13oWKiVQ7C5Ewwjv6KRpP3Xm5YstzqFixT"
+    "John Doe"This command outputs a hash:HzicuTXMl1COVh7Xw9ky9A/cl7ZjMSWNH10Y/invAgHWa74gS8EOvio3FJkofpH0nunIA7pJoGwWLRa0UdD7dc8=The
+    sender can verify the wallet prior to sending the funds.> bitcoin-cli verifymessage
+    "13oWKiVQ7C5Ewwjv6KRpP3Xm5YstzqFixT" "HzicuTXMl1COVh7Xw9ky9A/cl7ZjMSWNH10Y/invAgHWa74gS8EOvio3FJkofpH0nunIA7pJoGwWLRa0UdD7dc8="
+    "John Doe"The verify command will output a true or false response. In this case,
+    it will respond with this:true
+  prefs: []
+  type: TYPE_NORMAL
+- en: This allows users to confirm they actually own a wallet. This is useful, for
+    instance, on the code level, because the P2PKH address will be utilizing the private
+    key to generate a signature. A P2PKH address is a hash of the public key corresponding
+    to the private key that made the signature.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: ECDSA is the cryptographic algorithm utilized by bitcoin to ensure ownership
+    of funds. It is used to generate the public/private keys and can also include
+    the signature in the algorithm.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The ECDSA signature can be checked against up to four possible ECDSA public
+    keys. These public keys will be reconstructed from the signature hash; each key
+    is hashed and compared against the P2PKH wallet address provided for a match.
+    The result is either true or false. As you saw earlier, the example received a
+    true once you ran the verifymessage command.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: QR code is an image representation of a string. QR readers are used for things
+    such as reading URLs or encoding a wallet’s public key address.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'You can generate QR code via the Chart Google API: [https://chart.googleapis.com](https://chart.googleapis.com)
+    . For instance to generate a QR code for address: 13oWKiVQ7C5Ewwjv6KRpP3Xm5YstzqFixT
+    in the amount of 0.00016 BTC you would generate the following URL:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[https://chart.googleapis.com/chart?chs=250x250&cht=qr&chl=bitcoin:13oWKiVQ7C5Ewwjv6KRpP3Xm5YstzqFixT?&amount=0.00016](https://chart.googleapis.com/chart%253Fchs%253D250x250%2526cht%253Dqr%2526chl%253Dbitcoin:13oWKiVQ7C5Ewwjv6KRpP3Xm5YstzqFixT%253F%2526amount%253D0.00016)
+    . See Figure [4-1](#Fig1).![../images/475651_1_En_4_Chapter/475651_1_En_4_Fig1_HTML.jpg](../images/475651_1_En_4_Chapter/475651_1_En_4_Fig1_HTML.jpg)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 4-1
+  prefs: []
+  type: TYPE_NORMAL
+- en: Bitcoin QR code via Chart.googleapi.com
+  prefs: []
+  type: TYPE_NORMAL
+- en: Transactions
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In this section, I will cover transactions. You will learn how to send coins
+    with bitcoin’s daemon on a testnet utilizing both the command line and the bitcoin
+    core wallet GUI. You will learn how to use the bitcoin explorer to view your transactions.
+    Then I will cover more advanced creation of transactions by showing how to create
+    a raw transaction with one output as well as more complex transactions with utilizing
+    Multisignature (multisig), which is requesting more than a single key to authorize
+    a transaction. Additionally, I will cover how to change other options such as
+    replacing a transaction for a change of fee as well as setting a locktime. You
+    will learn the difference between P2PKH and P2SH-SEGWIT. Lastly, you will learn
+    how to attach other data than just coins with bitcoin using OP_RETURN params.
+    Let’s get started.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Simple Command
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The first transaction in a block is called the *coinbase* transaction  ; this
+    transaction consists of the transaction fees paid by transactions included in
+    the block. To send a transaction, you need to pay a transaction fee to the miners.
+    If there is a low fee or no fee is paid, the transaction may get stuck for a long
+    period of time or even forever in the P2P network until the fee is changed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To set the transaction fee, you can add a parameter to the bitcoin.conf file
+    with a default fee. First, you need to find the file location. To do so, right
+    after you run the daemon, you can track down the location of the file.> bitcoind
+    –printtoconsoleAfter a few seconds, stop this service by pressing Control+C. The
+    command shows the bitcoin.conf file location. It returns the location of the configuration
+    file. Then you can open the file and modify it by adding the default fee. In this
+    case, it was nested inside the Application Support folder./Users/[my user]/Library/Application
+    Support/Bitcoin/bitcoin.conf
+  prefs: []
+  type: TYPE_NORMAL
+- en: When you open the file, you can see that the default transaction fee is set
+    to 0.00000020 (mintxfee=0.00000020).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'There are other fees and settings in bitcoind. You can modify transactions
+    you send (paytxfee), maximum total fees (maxtxfee), fallback fees, and so on.
+    Visit this bitcoin page for all the available options: [https://en.bitcoin.it/wiki/Running_Bitcoin](https://en.bitcoin.it/wiki/Running_Bitcoin)
+    .'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Monitor and updating the bitcoin transaction fee can ensure the funds being
+    sent get changed by market forces. There are web sites, apps, and forms that can
+    try to predict the fee that needs to be paid. There are many sites that help calculate
+    transaction fee prediction, such as this API, that you can call from your code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[https://bitcoinfees.earn.com/api/v1/fees/recommended](https://bitcoinfees.earn.com/api/v1/fees/recommended)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The API returned at the time of writing a fee of 20 satoshis.{"fastestFee":20,"halfHourFee":20,"hourFee":18}
+  prefs: []
+  type: TYPE_NORMAL
+- en: Another example is [https://bitcoinfees.net/](https://bitcoinfees.net/) . This
+    site shows a majority of transactions are at five to six satoshis at less than
+    six hours, or 49 to 50 satoshis for less than 20 minutes at the time of writing.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'A satoshi is a hundredth of a millionth BTC and is named after Satoshi Nakamoto.
+    It’s the smallest fraction of a bitcoin that can be sent: 0.00000001 BTC. A faster
+    fee would be 50 satoshi at the time of writing.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now that you know the fee, you can modify the config file with the minimum fee
+    to a higher fee such as 50 satoshis.> vim '/[location]/bitcoin/bitcoin.conf'mintxfee=0.00000050txconfirmtarget=3
+  prefs: []
+  type: TYPE_NORMAL
+- en: The mintxfee value sets a minimum transaction fee of 50 satoshis, or 0.00000050
+    ฿. That will set a 20 satoshis/byte of data in your transaction. This means the
+    floating fee needs to figure out a good amount to get the transaction into the
+    next three blocks. As you recall, each block takes about 10 minutes to hash, so
+    it will aim at 30 minutes to include your transaction.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Once you have modified the config file, remember to restart bitcoind.> bitcoind
+    –printtoconsole
+  prefs: []
+  type: TYPE_NORMAL
+- en: Testnet
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: In this section, you will learn more about transactions, and to understand transactions
+    better, you will need to send and receive bitcoins. To get bitcoins on mainnet
+    (the actual production chain), you would need to either mine coins or trade them.
+    However, you don’t want to handle actual coins as you learn, because you would
+    have to pay fees as well as risk losing coins if you make mistakes. Also, the
+    price of the bitcoin may go down.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Luckily, bitcoin offers an alternative blockchain that is used for testing;
+    it’s called *testnet* . This alternative blockchain enables you to experiment
+    without using real bitcoins or abusing the bitcoin chain. You can start a bitcoin
+    core instance with the -testnet flag. On testnet, this is done through *faucets*,
+    the pretend coins. You connect to the testnet blockchain instead of the main blockchain
+    by stopping the bitcoin core demon and restarting it with the testnet flag.> bitcoind
+    –testnet
+  prefs: []
+  type: TYPE_NORMAL
+- en: Keep in mind that just as with bitcoin’s mainnet chain, the syncing and indexing
+    portions may take hours, depending on your Internet connection. Run the command
+    and take a long coffee break if you want to start working with blocks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The BTC testnet offers you free faucet bitcoins that you can use for testing.
+    Testnet requests that you return these coins once you complete testing as this
+    service is free, and returning these coins will benefit the next developer who
+    needs them.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'You can read more about testnet here: [https://en.bitcoin.it/wiki/Testnet](https://en.bitcoin.it/wiki/Testnet)
+    . At the time of writing, testnet3 is the latest blockchain used for testing.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: You will be using coinfaucet.eu, which can be found at [https://coinfaucet.eu/en/btc-testnet/](https://coinfaucet.eu/en/btc-testnet/)
+    . However, there are other faucets in case this one ceases to exist. The first
+    step is to send coins to your wallet. First generate a new P2PKH wallet address
+    using the following command:> bitcoin-cli getnewaddress "" legacymnMs77edsGV8VKwtB3d7fsnvrNuZ8ECKfhAs
+    you can see, the output you receive is the public key that you can use to receive
+    funds. Next, paste that address into [https://coinfaucet.eu](https://coinfaucet.eu)
+    , choose “Bitcoin testnet,” verify you are not a robot, and click the “Get bitcoins!”
+    button, as shown in Figure [4-2](#Fig2).![../images/475651_1_En_4_Chapter/475651_1_En_4_Fig2_HTML.jpg](../images/475651_1_En_4_Chapter/475651_1_En_4_Fig2_HTML.jpg)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 4-2
+  prefs: []
+  type: TYPE_NORMAL
+- en: Coin testnet faucet, requesting funds for testing
+  prefs: []
+  type: TYPE_NORMAL
+- en: Once the coins have been sent to your wallet, you receive a confirmation with
+    the tx number, as shown in Figure [4-3](#Fig3).![../images/475651_1_En_4_Chapter/475651_1_En_4_Fig3_HTML.jpg](../images/475651_1_En_4_Chapter/475651_1_En_4_Fig3_HTML.jpg)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 4-3
+  prefs: []
+  type: TYPE_NORMAL
+- en: Coin testnet faucet, bitcoins have been sent
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Keep in mind that these faucet testnet sites often go offline, and you may
+    need to find a new faucet testnet site. For your convenience, here is another
+    one that is working at the time of writing: [https://testnet-faucet.mempool.co/](https://testnet-faucet.mempool.co/)
+    .'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Viewing Transactions on Block Explorer
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: On the testnet faucet, you can monitor the bitcoins that have been sent just
+    as can be done on the maintest production bitcoin’s blockchain. This is done in
+    the testnet Blockchain Explorer; see the “tx” link, as shown in Figure [4-3](#Fig3).
+    As you recall, “tx ID” stands for the transaction ID. Alternatively, you can paste
+    that transaction ID directly into the Block Explorer at [https://live.blockcypher.com/btc-testnet/](https://live.blockcypher.com/btc-testnet/)
+    . See Figure [4-4](#Fig4).![../images/475651_1_En_4_Chapter/475651_1_En_4_Fig4_HTML.jpg](../images/475651_1_En_4_Chapter/475651_1_En_4_Fig4_HTML.jpg)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 4-4
+  prefs: []
+  type: TYPE_NORMAL
+- en: Viewing transaction information on live.blockcypher.com
+  prefs: []
+  type: TYPE_NORMAL
+- en: In fact, every transaction that ever occurs on the blockchain is publicly available
+    to view by anyone in the Blockchain Explorer; that includes all the transaction
+    data except for the users’ private keys. Although the transaction data is publicly
+    available, the identifying information about the owner is not public information
+    and is not needed to perform transactions. What connects the user to the coins
+    you send is the private key associated with the public key.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Similarly, you can do the same check of information via the RPC command line.
+    You already know how to check your wallet’s balance, as shown here:> bitcoin-cli
+    getbalance0.0000000
+  prefs: []
+  type: TYPE_NORMAL
+- en: When coins have been received, they will not be available to spend until the
+    transaction has been confirmed by the mined blocks’ confirmations. That’s why
+    if you check your balance right away, it will still show 0.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You will be able to see the coins as unconfirmed via the getunconfirmedbalance
+    command right after your transaction is included in the next block. To check,
+    run the getunconfirmedbalance command.> bitcoin-cli getunconfirmedbalance0.10413028
+  prefs: []
+  type: TYPE_NORMAL
+- en: Once you have enough confirmations, the getbalance command will show your new
+    balance, and getunconfirmedbalance will show 0.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Similarly, you can be more specific and request the minimum confirmations to
+    be 2.> bitcoin-cli getbalance "*" 2
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: A transaction stays “unconfirmed” until the next new block is created. Once
+    the new block is created, the new transaction is verified and included in that
+    block. Now, the transaction will have one confirmation. About ten minutes pass,
+    and a new block is created, and the transaction is confirmed again. Each confirmation
+    increases the safety of the transaction, and the chances of the transaction being
+    reversed decrease. The norm on exchanges is that four to six confirmations are
+    required to allow you to use the coins; it may be wise to wait for even sixty
+    confirmations for large amounts of coins, which takes about ten hours.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Another useful command is the listtransactions command; it provides the full
+    list of transaction data related to your wallet.> bitcoin-cli listtransactions[  {    "address":
+    "mnMs77edsGV8VKwtB3d7fsnvrNuZ8ECKfh",    "category": "receive",    "amount": 0.10413028,    "label":
+    "",    "vout": 0,    "confirmations": 420,    "blockhash": "0000000000125d2714882704562c8442a6700c58a41cad0b4108305474be3bb1",    "blockindex":
+    4,    "blocktime": 1541783585,    "txid": "645a34a5cbdd66b126e6f81560dc79957c6e1a175a68f8ad23ca7fd38046df85",    "walletconflicts":
+    [    ],    "time": 1541783585,    "timereceived": 1541890511,    "bip125-replaceable":
+    "no"  }]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Sending Testnet Coins via the Bitcoin Core Wallet GUI
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: You initialized a bitcoin core instance with the testnet flag; however, there
+    is another even easier way to send and receive coins. Bitcoin core includes a
+    GUI wallet you can use. You will be utilizing the GUI software that comes out
+    of the box with bitcoin core. To get started, terminate the bitcoind daemon in
+    Terminal by pressing Control+C and then run bitcoin-qt in a command-line terminal
+    with the testnet flag so you connect to testnet and not mainnet.> bitcoin-qt –testnetThis
+    command opens a new window and then syncs with the testnet blockchain. Just as
+    before, if you did not complete a testnet sync, it may take hours, depending on
+    your Internet connection, as shown in Figure [4-5](#Fig5). However, at the wallet
+    GUI, you will see an estimated time for how long the sync will take.![../images/475651_1_En_4_Chapter/475651_1_En_4_Fig5_HTML.jpg](../images/475651_1_En_4_Chapter/475651_1_En_4_Fig5_HTML.jpg)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 4-5
+  prefs: []
+  type: TYPE_NORMAL
+- en: Bitcoin wallet testnet GUI sync with testnet network
+  prefs: []
+  type: TYPE_NORMAL
+- en: As before, you need to wait for the sync to complete; only then can you retrieve
+    your wallet’s public key address and spend your coins. In the Overview menu you
+    will see the balances, including the confirmed (Available) funds and the unconfirmed
+    (Pending) funds. You can also get a list of transactions by clicking the Transactions
+    button at the top. See Figure [4-6](#Fig6).![../images/475651_1_En_4_Chapter/475651_1_En_4_Fig6_HTML.jpg](../images/475651_1_En_4_Chapter/475651_1_En_4_Fig6_HTML.jpg)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 4-6
+  prefs: []
+  type: TYPE_NORMAL
+- en: Bitcoin core wallet overview screen
+  prefs: []
+  type: TYPE_NORMAL
+- en: To create a new wallet’s public key address, click Receive at the top and then
+    click the Request Payment button. This will generate an address for your wallet,
+    as shown in Figure [4-7](#Fig7).![../images/475651_1_En_4_Chapter/475651_1_En_4_Fig7_HTML.jpg](../images/475651_1_En_4_Chapter/475651_1_En_4_Fig7_HTML.jpg)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 4-7
+  prefs: []
+  type: TYPE_NORMAL
+- en: Bitcoin core wallet, receive coins screen
+  prefs: []
+  type: TYPE_NORMAL
+- en: As you can see, the GUI created a QR code for your convenience. You can scan
+    it when you send coins, where this feature is supported. Now, let’s go ahead and
+    send some more coins to your wallet via the testnet faucet at [https://live.blockcypher.com/btc-testnet/](https://live.blockcypher.com/btc-testnet/)
+    *.*
+  prefs: []
+  type: TYPE_NORMAL
+- en: As you can see, you can then receive coins just as you did via the command line.
+    Next, you will send some coins.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You will be sending 0.01 BTC back to the testnet faucet for other developers
+    to use. To do so, click the Send button at the top of the GUI and paste in the
+    testnet faucet wallet address that was provided to you when you sent coins to
+    your wallet.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Notice that there is a Choose button next to Transaction Fee in the bitcoin
+    core wallet GUI. This allows you to select the fee, as well as the number of confirmations.
+    It also includes a way to enable a “replace by” fee. This feature allows you to
+    change the fee in case the fee is too low and the transaction is not getting included
+    in the block. See Figure [4-8](#Fig8).![../images/475651_1_En_4_Chapter/475651_1_En_4_Fig8_HTML.jpg](../images/475651_1_En_4_Chapter/475651_1_En_4_Fig8_HTML.jpg)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 4-8
+  prefs: []
+  type: TYPE_NORMAL
+- en: Bitcoin core wallet send screen
+  prefs: []
+  type: TYPE_NORMAL
+- en: The testnet faucet sends coins to the wallet address you provided. When you
+    send and receive coins, you get a notification pop-up from the GUI and an updated
+    balance on the overview screen. Click the Transactions button to see the transaction’s
+    information. You can also click each transaction to see the actual transaction
+    data. This is similar to what you saw with the listtransactions command. See Figure
+    [4-9](#Fig9).![../images/475651_1_En_4_Chapter/475651_1_En_4_Fig9_HTML.jpg](../images/475651_1_En_4_Chapter/475651_1_En_4_Fig9_HTML.jpg)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 4-9
+  prefs: []
+  type: TYPE_NORMAL
+- en: Bitcoin core wallet transaction
+  prefs: []
+  type: TYPE_NORMAL
+- en: Raw Transaction
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: So far you have received one transaction into your wallet via the command line
+    as well as coins using the bitcoin core GUI. You also were able to view confirmations,
+    the fees balance, and transactions. If you send funds back to the testnet faucet
+    and receive coins, things are simple. This is called a one-input, one-output transaction,
+    as you have one sender and one receiver, and you spent the same amount you received
+    (minus the fees). In real life, transactions can become more complex as there
+    are many use cases where there are one input and multiple outputs or multiple
+    inputs and multiple outputs. Bitcoin core provides you with sets of commands to
+    access a raw transaction (RawTransaction) so you can have more granular control
+    over your transaction.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You will start with the simple one-input, one-output transaction via the RPC
+    command line.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Creating and understanding RawTransaction is useful for building software, as
+    you have full granular control over your transaction. However, making mistakes
+    can result in a catastrophic outcome and loss of coins, so use caution and double-check
+    everything before sending any funds.
+  prefs: []
+  type: TYPE_NORMAL
+- en: When you receive a transaction, the transaction stays in a state called *unspent
+    transaction output* (UTXO)  in your wallet. To send a one-input, one-output transaction,
+    you need your amount to be equal to the funds you want to send. You can then generate
+    a new UTXO for the receiver you are sending the coins to. The receiver can use
+    these UTXOs to send transactions to a new receiver or receivers, and this process
+    can continue endlessly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: A UTXO is an individual incoming coin transaction in your wallet. When you receive
+    multiple transactions to one or multiple wallets’ addresses, each stays as a UTXO,
+    so you will have multiple UTXOs. To create a new outgoing transaction, you collect
+    one or more UTXOs as needed depending on how much you are trying to send.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now, what if your UTXO includes a larger amount than you would like to spend?
+    Then you would need to send the remaining of the coins back to your wallet. To
+    get a list of unspent coins, you can use the listunspent command.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Close the bitcoin core GUI wallet via Control+C and start the daemon again with
+    the testnet flag.> bitcoind -testnetWhen you run the getbalance command, you get
+    your wallet’s balance, which includes the two transactions you received from [https://live.blockcypher.com/btc-testnet/](https://live.blockcypher.com/btc-testnet/)
+    less the transaction you sent back to the testnet faucet.> bitcoin-cli getbalance0.18505841I
+    would like to point out that at any time you can use the -named flag instead of
+    using order arguments. The named argument is useful to ensure you are not making
+    mistakes when working with mainnet. For instance, a getbalance command with the
+    named argument would look as follows:> bitcoin-cli -named getbalance minconf=20.18505841
+  prefs: []
+  type: TYPE_NORMAL
+- en: Next, let’s take a look at the listunspent command. As the name suggests, it
+    returns JSON with transactions for coins you did not spend, in other words, your
+    UTXOs. The listunspent command also returns JSON with a variable called vout ,
+    which represents the index number of the output in a transaction.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The vout value represents the index number of the output of a transaction. You
+    will be using a txid and a vout to select the existing output as the input of
+    a new transaction.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'bitcoin-cli listunspent[  {    "txid": "50e91c9b73a90bd883f4a9a8a51be729770df20fae0445a9090b80a8621f4538",    "vout":
+    0,    "address": "2N67MKgL5rYcbuySDFUdypU5DvKjmwZoYEb",    "label": "",    "redeemScript":
+    "0014c27b4e6bd8eb821ee80a239e0edd59070f57233d",    "scriptPubKey": "a9148d1c6e108c60cfdfa61565ac328be6624591404b87",    "amount":
+    0.09092813,    "confirmations": 17,    "spendable": true,    "solvable": true,    "safe":
+    true  },  {    "txid": "be05d068d1245f1c60ea4229c00eb5e96f2a5c5527f1deb7c6de5e1e20a4b4db",    "vout":
+    1,    "address": "2MveVhMe6PTzuhsJHx5zXAjDBwQvzdyqGjM",    "redeemScript": "00142e29123ba343c577ab9517ede9b74f047d2c2ea3",    "scriptPubKey":
+    "a914254f0e95fb26c0f29975f866e69543519bf565e787",    "amount": 0.09413028,    "confirmations":
+    16,    "spendable": true,    "solvable": true,    "safe": true  }]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: These UTXOs show you a property called txid, which is included in bitcoin’s
+    blocks. The txid property allows you to track transactions, as you saw via the
+    Blockchain Explorer.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Notice that the index starts at 0, and because you have two transactions, it
+    is now 0 and then 1\. If you had more transactions, this index would continue.
+    Figure [4-10](#Fig10) illustrates the listunspent result if you have two UTXOs.![../images/475651_1_En_4_Chapter/475651_1_En_4_Fig10_HTML.jpg](../images/475651_1_En_4_Chapter/475651_1_En_4_Fig10_HTML.jpg)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 4-10
+  prefs: []
+  type: TYPE_NORMAL
+- en: vout index illustration
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'You can get all the data regarding the transaction via the getrawtransaction
+    command. Here I picked the first tx property  from the UTXO you received, and
+    then I added the 1 flag to decode the hex-encoded transaction data; take a look
+    at the command and entire output, shown here:> bitcoin-cli getrawtransaction 50e91c9b73a90bd883f4a9a8a51be729770df20fae0445a9090b80a8621f4538
+    1{  "txid": "50e91c9b73a90bd883f4a9a8a51be729770df20fae0445a9090b80a8621f4538",  "hash":
+    "e420b350f5b95e29f51b722a5bd44ea2e9d27a7239d2e17da02f28e04c757b14",  "version":
+    2,  "size": 248,  "vsize": 166,  "weight": 662,  "locktime": 1443113,  "vin":
+    [    {      "txid": "2645c128d68194640a7207eeae6ea42e8e528bcba2369eec0ba572566228b507",      "vout":
+    0,      "scriptSig": {        "asm": "00143bfa0326c076fa6cab0d23aea170bac38ac9a164",        "hex":
+    "1600143bfa0326c076fa6cab0d23aea170bac38ac9a164"      },      "txinwitness": [        "3045022100fb7f0fc2cf99c8174eb3d14169e1c206157d434d8290b2efbefa5a37d0773923022065f0b671c0596816c062b9bdc7b30931edfd99a846a0f1633d301bfb7c03db3c01",        "02d208ff6da0583b99392d30e33c5a12da61b9d9de4c35bb0d20c33ba3bfc49302"      ],      "sequence":
+    4294967294    }  ],  "vout": [    {      "value": 0.09092813,      "n": 0,      "scriptPubKey":
+    {        "asm": "OP_HASH160 8d1c6e108c60cfdfa61565ac328be6624591404b OP_EQUAL",        "hex":
+    "a9148d1c6e108c60cfdfa61565ac328be6624591404b87",        "reqSigs": 1,        "type":
+    "scripthash",        "addresses": [          "2N67MKgL5rYcbuySDFUdypU5DvKjmwZoYEb"        ]      }    },    {      "value":
+    1453.63689543,      "n": 1,      "scriptPubKey": {        "asm": "OP_HASH160 f4eb3fe1578076853a774d36f193684f86f71d5f
+    OP_EQUAL",        "hex": "a914f4eb3fe1578076853a774d36f193684f86f71d5f87",        "reqSigs":
+    1,        "type": "scripthash",        "addresses": [          "2NFaEgWoTNL5akkTuGtYQhzTvWhUaCbxBtL"        ]      }    }  ],  "hex":
+    "0200000000010107b528625672a50bec9e36a2cb8b528e2ea46eaeee07720a649481d628c1452600000000171600143bfa0326c076fa6cab0d23aea170bac38ac9a164feffffff02cdbe8a000000000017a9148d1c6e108c60cfdfa61565ac328be6624591404b8747e059d82100000017a914f4eb3fe1578076853a774d36f193684f86f71d5f8702483045022100fb7f0fc2cf99c8174eb3d14169e1c206157d434d8290b2efbefa5a37d0773923022065f0b671c0596816c062b9bdc7b30931edfd99a846a0f1633d301bfb7c03db3c012102d208ff6da0583b99392d30e33c5a12da61b9d9de4c35bb0d20c33ba3bfc4930229051600",  "blockhash":
+    "00000000000000321b56aece3932b187927ac3e7dc4532f8811aa612bcfa639a",  "confirmations":
+    17,  "time": 1542029870,  "blocktime": 1542029870}'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Notice that you have information about the block, confirmation, in, out, and
+    much more.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Generating Raw Transactions with One Output
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Transactions can get complicated easily because there is often a need for more
+    than one input or more than one output. For instance, if you want to send the
+    unspent coins back to your wallet, as well as send coins to multiple addresses,
+    it starts to get complicated. Using RawTransaction, you get full access to where
+    the coins go and are able to achieve complex transactions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You will start by creating a simple RawTransaction by sending one UTXO from
+    one wallet to another. Previously, you sent coins back to the testnet faucet via
+    the bitcoin core wallet GUI. Let’s do the same thing but with the RawTransaction
+    command.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To get started, let’s confirm your wallet’s balance prior to sending coins.>
+    bitcoin-cli getbalance0.18505841Next, let’s pick the UTXO you will be using to
+    fund the transaction. As you recall, you can get a list of UTXOs, via the listunspent
+    command, and then look at the JSON response and pick the transaction txid. Pick
+    a transaction that has enough funds to feed your new transaction and a transaction
+    that has been confirmed.> utxo_txid="50e91c9b73a90bd883f4a9a8a51be729770df20fae0445a9090b80a8621f4538"As
+    you probably recall, vout is the index number for an output in a transaction.
+    In this example, I will be pointing to a vout and generating a new transaction.
+    The new transaction can include multiple other vouts, as illustrated in Figure
+    [4-11](#Fig11).![../images/475651_1_En_4_Chapter/475651_1_En_4_Fig11_HTML.jpg](../images/475651_1_En_4_Chapter/475651_1_En_4_Fig11_HTML.jpg)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 4-11
+  prefs: []
+  type: TYPE_NORMAL
+- en: vout new transaction illustration
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In this example, you will set the first index for vout.> utxo_vout="0"The last
+    but most important variable you need to set is the recipient address. Here, you
+    will be using the same wallet address as you used previously to send your coins.>
+    recipient="mv4rnyY3Su5gjcDNzbMLKBQkBicCtHUtFB"Lastly, you can use the echo command
+    to verify and double-check that you set your variables correctly.> echo $utxo_txid>
+    echo $utxo_vout> echo $recipientNow that you have your variables set, you can
+    generate a RawTransaction object via the createrawtransaction command. You do
+    that by including all the variables you set and declaring the amount you would
+    like to spend. You are using 0.xxx, but you need to use the UTXO less the fee
+    you would like to pay to send the entire coins you have in the UTXO.> rawtxhex=$(bitcoin-cli
+    createrawtransaction "''[ { "txid": "''$utxo_txid''", "vout": ''$utxo_vout'' }
+    ]"'' "''{ "''$recipient''": 0.xxx }"'')Next, you can extract the rawtxhex value.>
+    echo $rawtxhex020000000138451f62a8800b09a94504ae0ff20d7729e71ba5a8a9f483d80ba9739b1ce9500000000000ffffffff0140420f00000000001976a9149f9a7abd600c0caa03983a77c8c3df8e062cb2fa88ac00000000The
+    rawtxhex value  includes your new transaction information as a hex-encoded data.
+    The following decoderawtransaction command will return some JSON output with decoded
+    data for your transaction:> bitcoin-cli decoderawtransaction $rawtxhex{  "txid":
+    "91d4e108f8957251d2997e1f8dcdd0eec97192e8accf85a9e81f772f586118af",  "hash": "91d4e108f8957251d2997e1f8dcdd0eec97192e8accf85a9e81f772f586118af",  "version":
+    2,  "size": 85,  "vsize": 85,  "weight": 340,  "locktime": 0,  "vin": [    {      "txid":
+    "50e91c9b73a90bd883f4a9a8a51be729770df20fae0445a9090b80a8621f4538",      "vout":
+    0,      "scriptSig": {        "asm": "",        "hex": ""      },      "sequence":
+    4294967295    }  ],  "vout": [    {      "value": 0.01000000,      "n": 0,      "scriptPubKey":
+    {        "asm": "OP_DUP OP_HASH160 9f9a7abd600c0caa03983a77c8c3df8e062cb2fa OP_EQUALVERIFY
+    OP_CHECKSIG",        "hex": "76a9149f9a7abd600c0caa03983a77c8c3df8e062cb2fa88ac",        "reqSigs":
+    1,        "type": "pubkeyhash",        "addresses": [          "mv4rnyY3Su5gjcDNzbMLKBQkBicCtHUtFB"        ]      }    }  ]}'
+  prefs: []
+  type: TYPE_NORMAL
+- en: As you have seen, to create a transaction, you generate a signature from the
+    wallet’s public hash and the private key hash. The transaction output script takes
+    the public key and the signature and checks to see whether you have a match to
+    the public key hash. If results are true, you are able to spend the coins; otherwise,
+    you can’t.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: A public key visible in the transaction is a type of transaction called Pay
+    to Pubkey (P2PK). A hidden public key as you have been using is a type of transaction
+    called Pay to PubKey Hash (P2PKH).
+  prefs: []
+  type: TYPE_NORMAL
+- en: You will sign your transaction via P2PKH to match your wallet’s type. There
+    are two ways to sign the transaction; you can use signrawtransactionwithkey or
+    signrawtransactionwithwallet.
+  prefs: []
+  type: TYPE_NORMAL
+- en: These two signed methods are available in 0.18.0 RPC, including inputs for raw
+    transactions in a serialized hex-encoded format.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The signrawtransactionwithwallet command format is as follows:signrawtransactionwithwallet
+    "hexstring" ( [{"txid":"id","vout":n,"scriptPubKey":"hex","redeemScript":"hex"},...]
+    sighashtype )
+  prefs: []
+  type: TYPE_NORMAL
+- en: Notice that the signrawtransactionwithwallet command allows you to include a
+    second argument called “prevtxs”. “prevtxs” is formatted as an array that includes
+    the previous transaction outputs. If you decide to utilize and insert value for
+    “prevtxs” the transaction will depends on the previous transaction that may not
+    even be in the blockchain yet. In case you don’t need this feature just set “prevtxs”
+    to null.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The signrawtransactionwithkey command format is as follows:signrawtransactionwithkey
+    "hexstring" ["privatekey1",...]
+  prefs: []
+  type: TYPE_NORMAL
+- en: Notice that the second argument is a base58-encoded array of private keys that
+    will be the only keys used to sign the transaction. The third optional argument
+    is an array of previous transaction outputs that this transaction depends on but
+    may not yet be in the blockchain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In our case, you will not include the second argument because your transaction
+    does not need to depend on other conditions.> bitcoin-cli signrawtransactionwithwallet
+    $rawtxhex{  "hex": "0200000000010138451f62a8800b09a94504ae0ff20d7729e71ba5a8a9f483d80ba9739b1ce9500000000017160014c27b4e6bd8eb821ee80a239e0edd59070f57233dffffffff0140420f00000000001976a9149f9a7abd600c0caa03983a77c8c3df8e062cb2fa88ac0247304402205cc4b04859e34aa6b1e924745f33a7643fbe45fcd6e900fdaa29281feae3f8f6022059d4083a3cf81c3bb82267931660afb8ffc4bae87ede8dfa11efcb6af6a14ac90121028926735fcd5bf6580e6f669c240da8975dddf23a6d4015e4e0bc1ca3f1d2b7f100000000",  "complete":
+    true}The previous command returned signed, hex-encoded data in the JSON response.
+    Use that data to set the hex for the signedtx variable.> signedtx="0200000000010138451f62a8800b09a94504ae0ff20d7729e71ba5a8a9f483d80ba9739b1ce9500000000017160014c27b4e6bd8eb821ee80a239e0edd59070f57233dffffffff0140420f00000000001976a9149f9a7abd600c0caa03983a77c8c3df8e062cb2fa88ac0247304402205cc4b04859e34aa6b1e924745f33a7643fbe45fcd6e900fdaa29281feae3f8f6022059d4083a3cf81c3bb82267931660afb8ffc4bae87ede8dfa11efcb6af6a14ac90121028926735fcd5bf6580e6f669c240da8975dddf23a6d4015e4e0bc1ca3f1d2b7f100000000"That’s
+    it; you can now send your transaction via the sendrawtransaction command.> bitcoin-cli
+    sendrawtransaction $signedtxff75dbb08da6f4dc6463dd32d8f9b1a4781e1eeee338e93e82820d0fdfbd43ffThe
+    output gets you a txid response that you can check in the Blockchain Explorer
+    as you did before. You can also verify that the funds were removed from your account
+    via the getbalance command.> bitcoin-cli getbalance0.09413028As well as listunspent
+    command.> bitcoin-cli listunspent[  {    "txid": "be05d068d1245f1c60ea4229c00eb5e96f2a5c5527f1deb7c6de5e1e20a4b4db",    "vout":
+    1,    "address": "2MveVhMe6PTzuhsJHx5zXAjDBwQvzdyqGjM",    "redeemScript": "00142e29123ba343c577ab9517ede9b74f047d2c2ea3",    "scriptPubKey":
+    "a914254f0e95fb26c0f29975f866e69543519bf565e787",    "amount": 0.09413028,    "confirmations":
+    86,    "spendable": true,    "solvable": true,    "safe": true  }]Additionally,
+    you can view the transaction via the listtransactions command.> bitcoin-cli listtransactions[...  {    "address":
+    "mv4rnyY3Su5gjcDNzbMLKBQkBicCtHUtFB",    "category": "send",    "amount": -0.01000000,    "label":
+    "",    "vout": 0,    "fee": -0.08092813,    "confirmations": 1,    "blockhash":
+    "0000000000000016ba1c314375d9bb17b6a857e091fd4924bda5c9d7d9a2fd15",    "blockindex":
+    1,    "blocktime": 1542070705,    "txid": "ff75dbb08da6f4dc6463dd32d8f9b1a4781e1eeee338e93e82820d0fdfbd43ff",    "walletconflicts":
+    [    ],    "time": 1542070656,    "timereceived": 1542070656,    "bip125-replaceable":
+    "no",    "abandoned": false  }]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Transactions that Require Multisignature
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: So far you have been doing standard “single-signature transactions,” as you
+    needed only one signee with one signature to sign a transaction and perform the
+    transfer. However, the bitcoin network supports a more complicated transaction.
+    These transactions can be set to require a signature of multiple signees. For
+    instance, institutions, partners, spouses, or programmed scripts may want to have
+    all parties sign instead of just one. These cases would need all the users’ private
+    keys before funds could be sent.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To do a multiple-signees transaction, you will create two separate wallets for
+    testing. You can run bitcoin core on two separate machines and use the RPC calls
+    to generate a new public address for each wallet, or you can download the Electrum
+    wallet at [https://electrum.org/#download](https://electrum.org/%2523download)
+    and run it in testnet mode to generate your second wallet.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As a first example, you will run Electrum because you can use its built-in multisignature
+    wallet to understand this process. Once you complete downloading Electrum, run
+    Electrum as testnet via the command line.> open -n /Applications/Electrum.app
+    --args –testnet
+  prefs: []
+  type: TYPE_NORMAL
+- en: Setting Electrum with a Multisignature Wallet
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: After Electrum starts, select “Multi-signature wallet” for the create wallet
+    option and then click Next. See Figure [4-12](#Fig12).![../images/475651_1_En_4_Chapter/475651_1_En_4_Fig12_HTML.jpg](../images/475651_1_En_4_Chapter/475651_1_En_4_Fig12_HTML.jpg)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 4-12
+  prefs: []
+  type: TYPE_NORMAL
+- en: Electrum multisignature wallet
+  prefs: []
+  type: TYPE_NORMAL
+- en: On the next screen, you can select how many cosigners are required and how many
+    signatures are needed. These transactions are often referred to as *M-of-N transactions*,
+    for instance, a 2-of-3 scenario. A 2-of-3 would mean you need at least two private
+    keys (signatures) from three cosigners to authorize the transaction. You can move
+    the sliders to better understand this feature, as shown in Figure [4-13](#Fig13).![../images/475651_1_En_4_Chapter/475651_1_En_4_Fig13_HTML.jpg](../images/475651_1_En_4_Chapter/475651_1_En_4_Fig13_HTML.jpg)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 4-13
+  prefs: []
+  type: TYPE_NORMAL
+- en: Electrum multisignature wallet cosigners and signatures
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here, select a 2-of-2 multisignature wallet, which means two cosigners and two
+    signatures. Then click the Next button. On the following screen, click “Create
+    a new seed” and click the Next button.
+  prefs: []
+  type: TYPE_NORMAL
+- en: On the following screen, you can choose the seed type. Standard means P2PKH
+    or SegWit, which means a P2SH-SEGWIT, so select Standard and click Next.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For the next step, you are given a seed that represents your private key. Store
+    your seed and be careful not to share it with anyone. You are then provided with
+    what Electrum calls your *master* public key, and you are asked to share it with
+    your cosigners, as shown in Figure [4-14](#Fig14).![../images/475651_1_En_4_Chapter/475651_1_En_4_Fig14_HTML.jpg](../images/475651_1_En_4_Chapter/475651_1_En_4_Fig14_HTML.jpg)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 4-14
+  prefs: []
+  type: TYPE_NORMAL
+- en: Electrum install wizard master public key
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The Electrum public master key is part of the Electrum Hierarchical Deterministic
+    (HD) wallet that generates an address for you based on a master seed that can
+    be used to back up all your funds. The seed consists of words used to retrieve
+    your wallet’s private keys; losing your seeds would mean losing your private keys.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Click Next, and you can enter a cosigner’s public key or private key. See Figure
+    [4-15](#Fig15).![../images/475651_1_En_4_Chapter/475651_1_En_4_Fig15_HTML.jpg](../images/475651_1_En_4_Chapter/475651_1_En_4_Fig15_HTML.jpg)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 4-15
+  prefs: []
+  type: TYPE_NORMAL
+- en: Electrum install wizard cosigner key
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'On the next screen of the wizard, you will be using the master private key
+    of your bitcoin core’s wallet to allow Electrum to sign the second wallet on your
+    behalf. You can retrieve the private key from inside your private key backup file.
+    It shows under extended private masterkey.> vim /Users/[location]/mywallet.txt#
+    extended private masterkey: [key]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Electrum wizard sets your cosigners for you, and the next step of the install
+    wizard asks you to set up your password, if you like, for extra security.
+  prefs: []
+  type: TYPE_NORMAL
+- en: That’s it. Now that the wizard has completed setting up your account, you can
+    send and receive funds from and to your cosigner wallet. Click Receive at the
+    top to get your wallet address, as shown in Figure [4-16](#Fig16).![../images/475651_1_En_4_Chapter/475651_1_En_4_Fig16_HTML.jpg](../images/475651_1_En_4_Chapter/475651_1_En_4_Fig16_HTML.jpg)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 4-16
+  prefs: []
+  type: TYPE_NORMAL
+- en: Electrum wallet receive address and QR code
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'You will be using Coinfaucet.eu again to fund your new wallet: [https://coinfaucet.eu/en/btc-testnet/](https://coinfaucet.eu/en/btc-testnet/)
+    .'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Then you can send these coins back to the Coinfaucet.eu wallet’s address after
+    the coins have been confirmed; here is Coinfaucet.eu wallet’s address:2N7RzS3j2eKHVj1E5yV7iGuwfgUtobrCnrc
+  prefs: []
+  type: TYPE_NORMAL
+- en: Since you have been providing both of the cosigner’s private keys, this transaction
+    will be happening using the send command. However, in case you set two accounts
+    and provide only one public key, the second cosigner would need to approve this
+    transaction on his account before the send command will actually send the coins.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Similarly, you can do this transaction via the RPC command line.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To get started, click File ➤ Delete at the top of Electrum to create a standard
+    wallet instead of a cosigner wallet.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Once this wallet is removed, you can start over and create a new Standard (P2PKH)
+    wallet that you will be using as the second cosigner. To retrieve your wallet’s
+    address, click the View link at the top and then click Addresses.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Next, right-click an address for which you’d like to see its public key. This
+    will show the address public key. See Figure [4-17](#Fig17).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here is the example’s wallet address: mxaFFFW5CFfJi6fbhn1qFDi8gv6eFsSBKQ'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Here is the example’s public key: 038e6fb8b842c750eb68bfccfd0fa1aa1ce8e455d58137e260a067e6d2fb853ea6'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '![../images/475651_1_En_4_Chapter/475651_1_En_4_Fig17_HTML.jpg](../images/475651_1_En_4_Chapter/475651_1_En_4_Fig17_HTML.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 4-17
+  prefs: []
+  type: TYPE_NORMAL
+- en: Electrum Standard wallet address and public key
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Next, you will create a new address for your cosigner via command-line RPC.>
+    bitcoin-cli getnewaddress2Msggcttx7wDDbcib6yD8ng2oKRdq8Bz4wVNext, you can set
+    the two cosigners’ addresses.> address1=2Msggcttx7wDDbcib6yD8ng2oKRdq8Bz4wV> address2=mxaFFFW5CFfJi6fbhn1qFDi8gv6eFsSBKQEnsure
+    the address is correct via the validateaddress command.> bitcoin-cli validateaddress
+    $address2You need both cosigners’ public keys to create your cosigner wallet.
+    You already have the Electrum wallet’s public key; now you need bitcoin core’s
+    RPC public key. To get this, you use the getaddressinfo command to take a look
+    at the RPC JSON response and pubkey variable.> bitcoin-cli getaddressinfo $address1{  "address":
+    "2Msggcttx7wDDbcib6yD8ng2oKRdq8Bz4wV",  "scriptPubKey": "a91404d0a132b5796d4462f39865d56af4ff7255d1b287",  "ismine":
+    true,  "iswatchonly": false,  "isscript": true,  "iswitness": false,  "script":
+    "witness_v0_keyhash",  "hex": "001440bbb1a949badb3a12a941a44bc994f7127c595c",  "pubkey":
+    "034ffed96ffc416b90daa97df5c09b618d7fbf99076ed8100900cfa0890e763ac0",  "embedded":
+    {    "isscript": false,    "iswitness": true,    "witness_version": 0,    "witness_program":
+    "40bbb1a949badb3a12a941a44bc994f7127c595c",    "pubkey": "034ffed96ffc416b90daa97df5c09b618d7fbf99076ed8100900cfa0890e763ac0",    "address":
+    "tb1qgzamr22fhtdn5y4fgxjyhjv57uf8ck2u4glnj9",    "scriptPubKey": "001440bbb1a949badb3a12a941a44bc994f7127c595c"  },  "label":
+    "",  "timestamp": 1541782726,  "hdkeypath": "m/0''/0''/9''",  "hdseedid": "572deaa922cbf31076701942878c3e5fc2e23b60",  "hdmasterkeyid":
+    "572deaa922cbf31076701942878c3e5fc2e23b60",  "labels": [    {      "name": "",      "purpose":
+    "receive"    }  ]}Now, you are ready to create your cosigners’ multisigned address
+    via the createmultisig command because you have both cosigners’ public keys.>
+    bitcoin-cli -named createmultisig nrequired=2 keys="''["034ffed96ffc416b90daa97df5c09b618d7fbf99076ed8100900cfa0890e763ac0","038e6fb8b842c750eb68bfccfd0fa1aa1ce8e455d58137e260a067e6d2fb853ea6"]"''{  "address":
+    "2MtBkhgVLJ6VA1nFbjam36iUY1dCiWFf4ix",  "redeemScript": "5221034ffed96ffc416b90daa97df5c09b618d7fbf99076ed8100900cfa0890e763ac021038e6fb8b842c750eb68bfccfd0fa1aa1ce8e455d58137e260a067e6d2fb853ea652ae"}Next,
+    you need to pick a UTXO txid and vout to sign your transaction, just as you did
+    in previous raw transactions.> bitcoin-cli listunspent[  {    "txid": "ea3fb46ab103d15120e02ed6b60e3d83b265fed26794e3ed739496b62445410b",    "vout":
+    0,    ...]Then you set the utxo_txid property.> utxo_txid=ea3fb46ab103d15120e02ed6b60e3d83b265fed26794e3ed739496b62445410b>
+    utxo_vout=0> recipient="mv4rnyY3Su5gjcDNzbMLKBQkBicCtHUtFB"> rawtxhex=$(bitcoin-cli
+    -named createrawtransaction inputs="''[ { "txid": "''$utxo_txid''", "vout": ''$utxo_vout''
+    } ]"'' outputs="''{ "''$recipient''": 0.001}"'')Now decode and set the hexstring
+    property.> bitcoin-cli -named decoderawtransaction hexstring=$rawtxhex> bitcoin-cli
+    signrawtransactionwithwallet $rawtxhex{  "hex": "020000000001010b414524b6969473ede39467d2fe65b2833d0eb6d62ee02051d103b16ab43fea0000000017160014040c578cf60bf00980bfde1920f54459eaab3a09ffffffff01a0860100000000001976a9149f9a7abd600c0caa03983a77c8c3df8e062cb2fa88ac024730440220603883ace41bdf5cf85c87e80f7362b45e35949114f46ac5e5b89f5e13d8d95002205c5eb45ca7de8b2da88c41c4311711beb14e8e0d679e40d1fbc2cb8e81e053fb01210205e848e0f22dfe0c428d02c356d0c9a8d064a789a6bbcaa43a245d701948aba200000000",  "complete":
+    true}Lastly, sign your transaction via the signedtx command.> signedtx="020000000001010b414524b6969473ede39467d2fe65b2833d0eb6d62ee02051d103b16ab43fea0000000017160014040c578cf60bf00980bfde1920f54459eaab3a09ffffffff01a0860100000000001976a9149f9a7abd600c0caa03983a77c8c3df8e062cb2fa88ac024730440220603883ace41bdf5cf85c87e80f7362b45e35949114f46ac5e5b89f5e13d8d95002205c5eb45ca7de8b2da88c41c4311711beb14e8e0d679e40d1fbc2cb8e81e053fb01210205e848e0f22dfe0c428d02c356d0c9a8d064a789a6bbcaa43a245d701948aba200000000"You
+    are ready to send your transaction using sendrawtransaction value.> bitcoin-cli
+    sendrawtransaction $signedtx'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Replaceable Transactions and Locktime
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'When creating a RawTransaction with the createrawtransaction command you can
+    includes two more variables you can utilize: locktime and replaceable.createrawtransaction
+    [{"txid":"id","vout":n},...] [{"address":amount},{"data":"hex"},...] ( locktime
+    ) ( replaceable )'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'You can learn more about these arguments here:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[https://bitcoincore.org/en/doc/0.17.0/rpc/rawtransactions/createrawtransaction/](https://bitcoincore.org/en/doc/0.17.0/rpc/rawtransactions/createrawtransaction/)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: As the name suggests, replaceable allows a raw transaction to be replaced by
+    a new transaction with higher fees. This happens when the fee you set is too low,
+    causing the transaction not to go through. For instance, if the fee you are trying
+    to pay is too high, you can get the following error message:absurdly-high-fee,
+    11563419 > 10000000 (code 256)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Bitcoin core supports the locktime argument  in the raw transaction; this argument
+    allows you to send transactions at some time in the future, and until they’re
+    sent, the sender can cancel the transaction.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are two options. Block height is used for small numbers, and UNIX timestamps
+    are used for big numbers. These arguments mean that the transaction is not inserted
+    into the block until the conditions are met.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Block height is the number of blocks in the chain between any specific block
+    and the first chain block on the chain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Bitcoin Colored Coins
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Bitcoin transactions hold a property called OP_RETURN. This property can be
+    used to hold up to 80 bytes of data, which can be used for passing data. This
+    may not seem much, but it’s enough for proof of ownership or passing small pieces
+    of data to authenticate. Utilizing the OP_RETURN property  is done by setting
+    data code word in the vout property of the transaction. To pass the data we want
+    to include in your transaction, you still need to send funds for the transaction
+    to be included in the blockchain, but you can set the recipient to be your own
+    wallet in case you don’t want to pay someone. That way you get to store data in
+    the Bitcoin persistence Blockchain and you only need to pay the transaction fee
+    as you don’t pay anyone.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: OP_RETURN is the opcode script that defines the transaction as valid or invalid;
+    it can be used to insert data into the transaction that will result in storing
+    that data in the bitcoin blockchain. Keep in mind that there are different opinions
+    about whether it’s okay to utilize this property. Some believe that storing noncurrency
+    data in the blockchain is a bad idea; because there are less costly and more efficient
+    ways to store data, it really depends on usage.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Sending a Transaction with OP_RETURN
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Before you set your transaction, you will want to introduce a small lightweight
+    utility program called jq to streamline creating a RawTranaction object. This
+    is a command-line JSON processor that you can use to process your RPC JSON in
+    the terminal. You can download it from [https://stedolan.github.io/jq/download](https://stedolan.github.io/jq/download)
+    .
+  prefs: []
+  type: TYPE_NORMAL
+- en: Install it with Brew.> brew install jq
+  prefs: []
+  type: TYPE_NORMAL
+- en: The jq utility allows you to retrieve pieces of the returned JSON so you will
+    be able to stream your transaction quicker and with fewer mistakes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Next, you can set some data to send via the OP_RETURN param. This example will
+    create an MD5 for a file. In real life, this can be a version of a contract between
+    parties or any piece of code you need.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The Message-Digest 5 (MD5) algorithm is a function that generates a 128-bit
+    hash value. It’s common to create a file that holds checksum files and that ensures
+    the integrity of data because each file change would result in a new MD5 result.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can pick one of bitcoin’s core files such as config.log to generate an MD5
+    hash and set the op_return_data variable.> md5 config.logMD5 (config.log) = 634ef85e038cea45bd20900fc97e09dc>
+    op_return_data="634ef85e038cea45bd20900fc97e09dc"As you saw previously in this
+    chapter, you can use the listunspent command  to select your UTXO that you want
+    to spend.> bitcoin-cli listunspentNow using the jq utility, you can stream the
+    process, so you don’t need to do a copy and paste and can avoid errors.> utxo_txid=$(bitcoin-cli
+    listunspent | jq -r '.[0] | .txid')> utxo_vout=$(bitcoin-cli listunspent | jq
+    -r '.[0] | .vout')> recipient=$(bitcoin-cli getrawchangeaddress)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Notice a few things here. You set the first JSON item [0] here, but you can
+    set any item you want, such as [1] or [2]. Also, notice that you need to run the
+    listunspent command to find out the “amount” the UTXO has. For this example, the
+    amount is 0.1166341, and since you want to pay 0.00000200 for fees (200 satoshis),
+    you will be sending 0.1166321 in total.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If you don’t set the fee correctly, you may end up spending too much on fees
+    or getting an error message such as the following:-    min relay fee not met,
+    29 < 161 (code 66)-    absurdly-high-fee, 24432219 > 10000000 (code 256)You can
+    use the echo command to ensure your variable is set correctly. Then you can continue
+    and set your transaction’s data.> rawtxhex=$(bitcoin-cli -named createrawtransaction
+    inputs="''[ { "txid": "''$utxo_txid''", "vout": ''$utxo_vout'' } ]"'' outputs="''{
+    "data": "''$op_return_data''", "''$recipient''": 0.1166321}"'')Next, you need
+    to sign and send the transaction.> signedtx=$(bitcoin-cli signrawtransactionwithwallet
+    $rawtxhex | jq -r ''.hex'')> bitcoin-cli sendrawtransaction $signedtx43a14c3b1ac446e4774c5338e5ae4e23839ab65a38c45da8b790f4449b090ae5'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Now, you can track the RawTransaction object on the testnet Blockchain Explorer
+    ledger, as shown in Figure [4-18](#Fig18). Here’s the URL:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[https://live.blockcypher.com/btc-testnet/tx/43a14c3b1ac446e4774c5338e5ae4e23839ab65a38c45da8b790f4449b090ae5/](https://live.blockcypher.com/btc-testnet/tx/43a14c3b1ac446e4774c5338e5ae4e23839ab65a38c45da8b790f4449b090ae5/)![../images/475651_1_En_4_Chapter/475651_1_En_4_Fig18_HTML.jpg](../images/475651_1_En_4_Chapter/475651_1_En_4_Fig18_HTML.jpg)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 4-18
+  prefs: []
+  type: TYPE_NORMAL
+- en: Block Explorer testnet, transaction with data
+  prefs: []
+  type: TYPE_NORMAL
+- en: As you can see in Figure [4-18](#Fig18), you are getting the message “Data Embedded
+    in Transaction with Unknown Protocol.” If you were to design some software that
+    uses this method on a regular basis, you would want to include a keyword to identify
+    your data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Bitcoin’s Colored Coins
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The colored coins name stuck from bitcoin core’s older implementations of the
+    EPOBC protocol where an asset is associated with satoshis (thus “coloring”). Now
+    you are able to achieve coloring with the OP_RETURN param  .
+  prefs: []
+  type: TYPE_NORMAL
+- en: OP_RETURN colored  your coins and provided a new capability for bitcoin’s blockchain,
+    as you were able to embed data that provided proof of ownership. You can also
+    set other conditions to happen at a specific time or pass data related to the
+    transaction you inserted into the blockchain. OP_RETURN is powerful, and later
+    in this book you will see how OP_RETURN is utilized in production-grade projects
+    to solve all sorts of issues.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In this chapter, you dove deep into the bitcoin core RPC. You generated a legacy
+    and SegWit bitcoin wallets, and you were able to retrieve the wallet’s private
+    keys and better understand the Elliptic Curve Digital Signature Algorithm (ECDSA)
+    and how the public and private keys are created.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You spent the majority of this chapter looking into transactions; you sent coins
+    with bitcoin’s daemon on testnet as well as utilizing bitcoin’s core wallet GUI
+    to send coins. After coins were sent, you learned how to view your transactions
+    in bitcoin’s Block Explorer. You continued by looking into RawTransaction and
+    learned how to generate transactions with one output as well as more complex transactions
+    with multiple signers via Electrum as well as the command line.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Additionally, you learned other options such as replacing your transaction for
+    a change of fee as well as setting the locktime variable. You learned the difference
+    between P2PKH and P2SH-SEGWIT. Lastly, I covered how to pass data using the OP_RETURN
+    params, which can be used for bitcoin colored coins or just to pass additional
+    data utilizing bitcoin’s blockchain for more than spending coins. In the next
+    chapter, you will take a closer look at Ethereum and how to write smart contracts.
+  prefs: []
+  type: TYPE_NORMAL

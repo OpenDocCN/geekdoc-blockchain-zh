@@ -1,0 +1,1393 @@
+- en: © Elad Elrom 2019Elad ElromThe Blockchain Developer[https://doi.org/10.1007/978-1-4842-4847-8_6](https://doi.org/10.1007/978-1-4842-4847-8_6)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 6. EOS.IO Wallets and Smart Contracts
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Elad Elrom^([1](#Aff2) )(1)New York, NY, USA
+  prefs: []
+  type: TYPE_NORMAL
+- en: In Chapter [2](475651_1_En_2_Chapter.xhtml), I introduced EOS.IO when I covered
+    bitcoin, altcoins, and different consensus mechanisms. Specifically, I covered
+    how EOS.IO is an example of altcoins that turn into tokens; you created an EOS
+    block producer and were able to create a full node capable of mining EOS tokens.
+    Ethereum was the beginning of your blockchain smart contract development, and
+    you learned to use the Solidity language to write smart contracts and dapps. EOS.IO
+    has created a more robust architecture than Ethereum for smart contract and dapp
+    development.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this chapter, I will expand on the EOS.IO blockchain and show how to build
+    a EOS.IO smart contract that can be used in decentralized applications (dapps).
+    You will set up a local testnet environment and learn how to configure the EOS.IO
+    tools and libraries. You will learn about EOS.IO wallets and how to create, delete,
+    and back up wallets as well as perform operations such as opening, locking, and
+    unlocking a wallet. I will cover the wallet’s key pairs and how to spin up and
+    re-spin up a local testnet block producer. You will learn about permissions and
+    single-signature and multisignature options.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To better understand EOS.IO smart contracts, you will create a “HelloWorld”
+    smart contract and smart contract token. You will create accounts, write smart
+    contract C++ code, compile code, and generate WebAssembly and ABI files as well
+    as Ricardian contracts. You then will learn how to deploy your smart contracts
+    and interact with them, as well as issue tokens and transfer tokens to another
+    user.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Lastly, you will connect to a public testnet block producer for testing in a
+    more realistic environment as well as connecting and publishing on a mainnet block
+    producer.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: EOS is the native cryptocurrency (token) that powers the EOS.IO software. EOS.IO
+    is an industrial-scale, fully customized blockchain architecture protocol that
+    enables decentralized applications by providing access to the parts that make
+    up the blockchain. Think of EOS.IO as a blockchain OS as it emulates a real computer
+    and enables access to resources such as the CPU, GPU, RAM, and hard disk. EOS.IS
+    does not charge transaction fees while performing millions of transactions per
+    second. An EOS token is a utility token, and owning the token (staking) provides
+    bandwidth and storage on the EOS.IO blockchain. You receive resources in proportion
+    to the total stake you own to the total stake (owning 1 percent of EOS tokens
+    gives usage up to 1 percent of total EOS.IO bandwidth).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*“* *EOS.IO* *software introduces a new blockchain architecture designed to
+    enable vertical and horizontal scaling of decentralized applications. This is
+    achieved by creating an operating system-like construct upon which applications
+    can be built. The software provides accounts, authentication, databases, asynchronous
+    communication, and the scheduling of applications across many of CPU cores or
+    clusters. The resulting technology is a blockchain architecture that may ultimately
+    scale to millions of transactions per second, eliminates user fees, and allows
+    for quick and easy deployment and maintenance of decentralized applications, in
+    the context of a governed blockchain.”*'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: —EOS.IO block.one white paper
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: As mentioned in Chapter [2](475651_1_En_2_Chapter.xhtml), EOS.IO is built on
+    the delegated proof of stake (DPoS) consensus. EOS.IO is able to handle low latency
+    and tens of millions of active users daily (bypassing Ethereum). This is achieved
+    by the DPoS consensus as well as EOS.IO running as multithreaded (running on multiple
+    computer cores) and acting as an OS.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This type of scalability can enable adoption of blockchain technology by large
+    businesses. EOS.IO offers many additional features such as the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Free rate-limited transactions
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Low-latency transactions (such as 0.25 seconds broadcast time or 0.5 block time)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Recovery of stolen keys
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Parallel execution of applications
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Atomic transactions with multiple accounts
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: I encourage you to read the EOS.IO white paper and visit the GitHub page for
+    a full list of features.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[https://github.com/EOSIO/eos](https://github.com/EOSIO/eos)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[https://github.com/EOSIO/Documentation/blob/master/TechnicalWhitePaper.md](https://github.com/EOSIO/Documentation/blob/master/TechnicalWhitePaper.md)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Financially speaking, EOS was developed by a private company called block.one
+    and was able to raise an astonishing $4 billion in initial coin offering (ICO)
+    via an ERC-20 tokens sale. At the time of writing, EOS’s price is selling around
+    $2 to $8, and it has a total market capitalization of around $2 billion, which
+    makes EOS the seventh largest cryptocurrency by market cap.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'EOS offers a few repositories to help with the development of EOS.IO contracts;
+    they are listed at [https://github.com/EOSIO](https://github.com/EOSIO) and include
+    the following: eos, eosio.cdt, eosjs, demux-js, and eosio.contracts. You will
+    be installing the EOS and EOSIO.CDT libraries in this chapter. The EOS library
+    is an open source smart contract platform, and the EOSIO.CDT library is a suite
+    of tools for building EOS.IO contracts.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: At the time of writing, the EOS.IO platform has a steep learning curve. The
+    code keeps changing, and the documentation and examples of EOS.IO are not being
+    updated in timely manner, so it may feel like chasing a moving target at times.
+    This results in code sometimes not compiling, commands not working, and documentation
+    and examples containing code and commands that have been deprecated. It’s easy
+    to find yourself stumped a few times while developing a contract; however, once
+    you understand EOS.IO, it’s easy to overcome these obstacles.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Setting Up a Testnet Environment
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Before jumping into coding, let’s start by installing EOS.IO and EOSIO.CDT.
+    You will build your EOS.IO version and set up a local testnet block producer.
+    Then you will learn about the EOS.IO tools called cleos, keosd, and nodeos and
+    how to configure them and create and manage a wallet with cleos. These tools and
+    libraries are necessary for development.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Install EOS.IO
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The easiest way to install EOS.IO  on macOS is with Brew.> brew tap eosio/eosio>
+    brew install eosio
+  prefs: []
+  type: TYPE_NORMAL
+- en: The current EOS.IO is version 1.7.3\. I recommend checking the repo and issues
+    section on GitHub ( [https://github.com/eosio/eos](https://github.com/eosio/eos)
+    ) or doing a Google search in case you encounter errors when installing or building
+    EOS.IO. Also see [https://github.com/EOSIO/eos/issues](https://github.com/EOSIO/eos/issues)
+    .
+  prefs: []
+  type: TYPE_NORMAL
+- en: Once the installation is complete, you will see the message in Figure [6-1](#Fig1)
+    in Terminal.![../images/475651_1_En_6_Chapter/475651_1_En_6_Fig1_HTML.jpg](../images/475651_1_En_6_Chapter/475651_1_En_6_Fig1_HTML.jpg)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 6-1
+  prefs: []
+  type: TYPE_NORMAL
+- en: EOS.IO successfully built
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Next, add the EOS.IO binaries location to your environment, so you can run
+    nodeos from anywhere.> export PATH=$PATH:/usr/local/eosio/binThis will set the
+    path variable on this Terminal session, but you want to set the path environment
+    variable permanently, so add it to your bash_profile file by opening the file
+    with vim or your favorite text editor.> vim ~/.bash_profileNext, insert the following
+    lines:# Setting PATH for EOSIOPATH="/usr/local/eosio/bin:${PATH}"Lastly, run bash_profile
+    to commit the changes.> . ~/.bash_profileEOS.IO comes out of the box with built-in
+    tools and programs; they are here: /usr/local/eosio/. Figure [6-2](#Fig2) shows
+    an architecture diagram of these tools.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'nodeos: This is the core EOS.IO daemon that enables you to run a blockchain
+    node component. nodeos can be configured with plugins. Additionally, nodeos can
+    be configured to run a block producer in a local development environment or on
+    dedicated endpoints. It interacts with a blockchain by creating blocks.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'cleos: This is the main command-line tool for EOS.IO. It interfaces with the
+    REST API exposed by nodeos. It can also access wallets as it interacts with keosd.
+    For a list of cleos commands, just run the following:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: cleos
+  prefs:
+  - PREF_IND
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'keosd: This is the wallet daemon to load and manage the wallet’s keys. It does
+    this by loading wallet-related plugins, such as the HTTP interface and the RPC
+    API.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'eosio-launcher: This tool will help you deploy a multinode blockchain network.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '![../images/475651_1_En_6_Chapter/475651_1_En_6_Fig2_HTML.jpg](../images/475651_1_En_6_Chapter/475651_1_En_6_Fig2_HTML.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 6-2
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Basic architecture of EOS. Photo credit: developers.eos.io.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Install EOSIO.CDT
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: You installed EOS.IO. The other important library you need is EOSIO.CDT (CDT
+    stands for “contract development toolkit”). EOSIO.CDT is the suite of tools used
+    to build EOS.IO contracts. To get the library installed, you will be using Brew.>
+    brew tap eosio/eosio.cdt> brew install eosio.cdtThe latest EOSIO.CDT at the time
+    of writing is version 1.6.1\. Run brew update if you have an older version.> brew
+    upgrade eosio.cdtTo ensure installation went well, run the eosio-cpp command with
+    the help argument  .> eosio-cpp --help
+  prefs: []
+  type: TYPE_NORMAL
+- en: As you recall, you used Truffle and Remix to generate the Ethereum’s application
+    binary interface (ABI) files. For EOS.IO smart contracts, you use eosio-cpp, which
+    is a compiler that generates a WebAssembly (.wasm) file, which is the ABI that
+    is needed to be uploaded to the blockchain for the smart contract. eosio-cpp also
+    generates helper functions that serialize/deserialize the types defined in the
+    ABI code for the smart contract development.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'You can find more information about EOSIO.CDT on the GitHub page: [https://github.com/EOSIO/eosio.cdt](https://github.com/EOSIO/eosio.cdt)
+    .'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the future, if you need to remove EOSIO and EOSIO.CDT, run the following
+    commands:> brew remove eosio> brew remove eosio.cdt
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: eosio-cpp is the replacement for eosiocpp, which has been deprecated. Originally
+    eosiocpp was part of the EOS.IO installation, but now it’s part of CDT.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Build EOS.IO
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: A good way to visually understand EOS.IO and the tools associated with EOS.IO
+    is to look at Figure [6-2](#Fig2).
+  prefs: []
+  type: TYPE_NORMAL
+- en: keosd and nodeos Configuration Files
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'The default ports for keosd and nodeos utilize the same port: 8888.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: To configure nodeos, see this config file:> vim "/Users/[user]/Library/Application
+    Support/eosio/nodeos/config/config.ini"
+  prefs: []
+  type: TYPE_NORMAL
+- en: Inside the config.ini file, a notable variable to change is the plugins list
+    that you load. You won’t make changes, but as you advance in your development,
+    you may need to make changes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Like with nodeos, you can configure keosd by editing this config file:> vim
+    ~/eosio-wallet/config.ini
+  prefs: []
+  type: TYPE_NORMAL
+- en: Once you open the file, note that there is a variable named http-server-address
+    that can be used to change from port 8888 in case you need that port for other
+    software. Here let’s set it to any port you like.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The variable is commented out. To set it to port 9000, change it from this:#
+    http-server-address =to the following:http-server-address = http://127.0.0.1:9000
+  prefs: []
+  type: TYPE_NORMAL
+- en: You could use the default port; however, it’s good to know how to configure
+    EOS.IO.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Create and Manage a Wallet with cleos
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: In the previous section, I introduced some EOS.IO built-in programs and tools.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'As mentioned, cleos provides a REST API interface that is exposed by nodeos.
+    The cleos reference guide can be found here: [https://developers.eos.io/eosio-cleos/reference](https://developers.eos.io/eosio-cleos/reference)
+    .'
+  prefs: []
+  type: TYPE_NORMAL
+- en: To find the cleos --version number, run the --version client command. At the
+    time of writing, you get to build d4ffb4eb.> cleos version clientd4ffb4ebAs mentioned,
+    to get a list of commands, just type cleos. or cleos --help;.> cleos --helpIf
+    you don’t remember a specific subcommand, type the command and get the subcommands
+    list in the output; for instance, the get command outputs the subcommands list
+    such as info for your block producer’s info.> cleos get> cleos get infoFailed
+    to connect to nodeos at http://127.0.0.1:8888/; is nodeos running?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Notice that as you don’t have a node running, you get no results and an error
+    message; however, later in this chapter, when you spin up nodeos, you will get
+    information about your block producer.
+  prefs: []
+  type: TYPE_NORMAL
+- en: EOS.IO Wallets
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The EOS.IO wallets use keys and offer a locked (encrypted) state and an unlocked
+    (decrypted) state to protect the keys. The lock and unlock commands need the high
+    entropy password that is provided to you once you create a wallet. The wallet’s
+    keys can be associated with an account to provide permission to the account’s
+    tokens, but it’s not necessary for the creation of a wallet.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The wallet’s software uses cleos as the intermediary layer between keosd key
+    retrieval operations and the nodeos blockchain actions. For instance, you can
+    use cleos to access an account as it requires signatures to be generated from
+    the keys. To create the default wallet, just run the create wallet command. Use
+    the --to-console flag to get the master key (password).> cleos wallet create --to-consoleCreating
+    wallet: defaultSave password to use in the future to unlock this wallet.Without
+    password imported keys will not be retrievable."[ DEFAULT_MASTER_KEY]"Make sure
+    you store the password. Now you can check that the wallet was created and run
+    the wallet list command, and you will be able to see an array that lists the wallets
+    and includes the default wallet you created.> cleos wallet listWallets:[  "default
+    ∗"]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Notice that once you create your default wallet, there is an asterisk next to
+    the wallet’s name. The asterisk means that it’s unlocked. You’ll learn more about
+    the lock and unlock states in the next section.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Delete and Back Up Wallets
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'To remove the wallet you created, you need to remove the actual wallet’s file;
+    it’s located here: ~/eosio-wallet.> rm -rf ~/eosio-walletRun the wallet list command,
+    and you can see that the wallet array is empty.> cleos wallet list"/usr/local/eosio/bin/keosd"
+    launchedWallets:[]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: To back up the wallet, copy the wallet’s files and store them in a safe location.
+  prefs: []
+  type: TYPE_NORMAL
+- en: EOS.IO Wallet with Custom Name
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'So far, you created the default wallet. Now let’s say you want to create another
+    wallet and name it mywallet. All you have to do is utilize the -n or --name flag.
+    Choose a name and be careful about the strict name restrictions (a–z and 1–5 are
+    allowed only, with a length of 12). I am choosing mywallet.> cleos wallet create
+    -n mywallet --to-consoleCreating wallet: mywalletSave password to use in the future
+    to unlock this wallet.Without password imported keys will not be retrievable."[DEFAULT_MASTER_KEY]"'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'EOS.IO: Open, Lock, and Unlock a Wallet'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'When you created your wallet, you got a high entropy master key, which is your
+    password. This password is used to encrypt (lock) and decrypt (unlock) your wallet
+    file. To lock and unlock your wallet, use the following commands:> cleos wallet
+    lock -n mywallet> cleos wallet unlock -n mywalletpassword: [DEFAULT_MASTER_KEY]password:
+    Unlocked: mywallet'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The lock and unlock commands enable your wallet to set a state of encryption
+    and decryption that is protected by your password. What you are protecting are
+    the wallet’s keys.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To unlock the default wallet, just run the following:> cleos wallet unlockAlso,
+    to perform operations on your wallets, you need to first open the wallet. When
+    keosd gets restarted, the wallet will be closed. Run the open command to open
+    the wallet as needed.> cleos wallet openOpened: default'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Generating EOS.IO Keys
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Just as in other blockchains, EOS.IO stores keys in a wallet. You generate
+    these keys and assign them to an EOS.IO account. There are multiple ways to create
+    keys. You will be using cleos here. First let’s re-create the default wallet,
+    in case you deleted it previously.> cleos wallet create --to-consoleCreating wallet:
+    defaultSave password to use in the future to unlock this wallet.Without password
+    imported keys will not be retrievable.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '"[DEFAULT_MASTER_KEY]"'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Running wallet list should show you two wallets.> cleos wallet listWallets:[  "default",  "mywallet
+    ∗"]Next, to create two public/private key pairs, run the create key command.>
+    cleos create key --to-consolePrivate key: [PRIVATE_KEY_1]Public key: [PUBLIC_KEY_1]>
+    cleos create key --to-consolePrivate key: [PRIVATE_KEY_2]Public key: [PUBLIC_KEY_2]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'As you noticed, you ran the create key command twice. This is not a typo; you
+    need to have two keys: one for the active user and one for the owner. You’ll learn
+    more about this concept once you create an account.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The command you ran output key pairs of public and private keys. Notice that
+    the public key starts with the EOS keyword. These arbitrary key pairs are meaningless
+    by themselves because they have no authority (they do not belong to any wallet
+    or account). To assign these key pairs to a wallet, you can import these keys
+    into your wallet.> cleos wallet import --private-key [PRIVATE_KEY_1]imported private
+    key for:[PRIVATE_KEY_1]imported private key for: [key]> cleos wallet import --private-key
+    [PRIVATE_KEY_2]imported private key for: [PRIVATE_KEY_2]In the output of your
+    command, you received a confirmation message from the command line that the key
+    pairs were added. However, you can also confirm that the key pairs were added
+    by calling the wallet keys command  .> cleos wallet keys[PUBLIC_KEY_1, PUBLIC_KEY_2]Additionally,
+    you can request to view the key pairs.> cleos wallet private_keys --password [DEFAULT_MASTER_KEY][[PUBLIC_KEY_1,
+    PRIVATE_KEY_2],[ PUBLIC_KEY_1, PUBLIC_KEY_2]]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the previous command, you passed the --password argument instead of waiting
+    for the command line to ask that you enter your master password.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Lastly, you need to import a special EOS.IO parent account. This special parent
+    account is used to bootstrap the EOS.IO nodes. Without this private key, you won’t
+    be able to create your account. EOS.IO accounts need a parent account to create
+    another account; that’s how EOS.IO allocates resources and protects against spam
+    and hackers.> cleos wallet import --private-key 5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3imported
+    private key for: EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: At the time of writing, the parent wallet works; however, this can change, and
+    you may need to find a parent wallet that can be used to bootstrap the EOS.IO
+    wallet.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Take a look at your output in case you would like to compare yours with mine;
+    see Figure [6-3](#Fig3).![../images/475651_1_En_6_Chapter/475651_1_En_6_Fig3_HTML.jpg](../images/475651_1_En_6_Chapter/475651_1_En_6_Fig3_HTML.jpg)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 6-3
+  prefs: []
+  type: TYPE_NORMAL
+- en: Setting up EOS.IO wallet keys with a special parent account
+  prefs: []
+  type: TYPE_NORMAL
+- en: Spin Up a node with nodeos
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Transactions  are attached to a block, and you need a block producer to be able
+    to pass these transactions to the network.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can skip creating an EOS node (nodeos) if you connect directly to a public
+    testnet or the mainnet; however, it’s better to first run your smart contracts
+    on a local testnet network before committing your code to a public testnet or
+    mainnet.
+  prefs: []
+  type: TYPE_NORMAL
+- en: At this point, you should be used to this process as you did the same thing
+    when you developed a smart contract for Ethereum. Feel free to revisit Figure
+    [6-2](#Fig2), where you can see the diagram of nodeos and the EOS.IO blockchain
+    relationship.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To start your own single-node local blockchain block producer, in a separate
+    terminal, run nodeos.> nodeos -e -p eosio --plugin eosio::chain_api_plugin --plugin
+    eosio::history_api_plugin --contracts-consoleThis command starts the block producer
+    and should display the process on the console.info  2019-04-28T19:03:34.776 thread-0  chain_plugin.cpp:333          plugin_initialize    ]
+    initializing chain plugininfo  2019-04-28T19:03:34.811 thread-0  block_log.cpp:134          open                 ]
+    Log is nonemptyinfo  2019-04-28T19:03:34.820 thread-0  block_log.cpp:161          open                 ]
+    Index is nonemptyinfo  2019-04-28T19:03:34.878 thread-0  http_plugin.cpp:422          plugin_initialize    ]
+    configured http to listen on 127.0.0.1:8888.........
+  prefs: []
+  type: TYPE_NORMAL
+- en: As you can see, the console shows that your local network starts producing blocks.
+    Notice the command you used sets the plugins, and also you set the --contracts-console
+    flag.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This flag is necessary to be able to see messages you print to the console while
+    in development mode.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: You can also set the --contracts-console flag inside the config.ini file instead
+    of passing this argument with nodeos every time.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'As you recall, you previously were running the cleos get info command and getting
+    no results, as you did not have a block producer running; now if you run the same
+    command in a new Terminal, you can observe information about your blocks.> cleos
+    get info{  "server_version": "d4ffb4eb",  "chain_id": "cf057bbfb72640471fd910bcb67639c22df9f92470936cddc1ade0e2f2e7dc4f",  "head_block_num":
+    73699,  "last_irreversible_block_num": 73698,  "last_irreversible_block_id": "00011fe2a80bf11315396c85e70860122dddc24ac083911fba31f7ee2d64eb3e",  "head_block_id":
+    "00011fe36fab1fc2d4885067e1391c72782895d43f14cf7970ac282ddef17d67",  "head_block_time":
+    "2019-04-28T19:04:06.500",  "head_block_producer": "eosio",  "virtual_block_cpu_limit":
+    200000000,  "virtual_block_net_limit": 1048576000,  "block_cpu_limit": 199900,  "block_net_limit":
+    1048576,  "server_version_string": "v1.5.1-dirty"}'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Re-spin Up a Testnet Local node (nodeos)
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: If you want to clear the block producer’s history, delete all the blocks, and
+    re-spin up your local testnet, you will use what is called a *hard replay* by
+    using the following flags:--delete-all-blocks --delete-state-history --hard-replayThese
+    arguments will clear the accounts on the local testnet as well as the blocks.
+    The complete command will look as follows:> nodeos -e -p eosio --plugin eosio::chain_api_plugin
+    --plugin eosio::history_api_plugin --delete-all-blocks --delete-state-history
+    --hard-replay --contracts-console
+  prefs: []
+  type: TYPE_NORMAL
+- en: EOS.IO Accounts
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: EOS.IO accounts hold a human-readable name that is stored on the EOS.IO blockchain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To create an account on the mainnet, someone with an EOS.IO account needs to
+    create it for you. The reasons behind this regulated process are spam and hacker
+    prevention and resource allocation. By default, the account holds two native names/permissions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Owner: This is used to recover other permissions, which is useful in the event
+    that the permission has been compromised.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Active: This is used for high-level account changes such as transferring funds
+    or voting for block producers.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: When you created your testnet account, you imported a special EOS.IO parent
+    account key to bootstrap. Each permission name needs a “parent.” The parent authority
+    is to be able to make changes to any of the permission settings for all of its
+    children. EOS.IO provides a special account’s parent key for the local testnet
+    that you imported in order to create your account. See Figure [6-4](#Fig4).![../images/475651_1_En_6_Chapter/475651_1_En_6_Fig4_HTML.jpg](../images/475651_1_En_6_Chapter/475651_1_En_6_Fig4_HTML.jpg)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 6-4
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Account high-level architecture and permission structure. Photo credit: hackernoon.com.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: For a transaction to be valid and signed, each named permission needs conditions
+    to be met such as a client with an unlocked wallet, and the wallet has to grant
+    authority permission for the account. If you don’t meet these conditions, the
+    transaction will fail.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now that you understand accounts, you are ready to create your own account.
+    You already created a wallet and imported the parent key. To create an account,
+    you run the following command’s syntax:> cleos create account eosio [ACCOUNT_NAME]
+    [OWNER_PUBLIC_KEY] [ACTIVE_PUBLIC_KEY]
+  prefs: []
+  type: TYPE_NORMAL
+- en: The OWNER_KEY value is the public key of the account owner authority, and the
+    ACTIVE_KEY value is the public key of the account’s active authority.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this example, let’s call the account myaccount and use the two keys you created.
+    The command will look like so (see Figure [6-5](#Fig5) for the expected output):>
+    cleos create account eosio myaccount [PUBLIC_KEY_1] [PUBLIC_KEY_2]![../images/475651_1_En_6_Chapter/475651_1_En_6_Fig5_HTML.jpg](../images/475651_1_En_6_Chapter/475651_1_En_6_Fig5_HTML.jpg)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 6-5
+  prefs: []
+  type: TYPE_NORMAL
+- en: Creating your first EOS.IO account called myaccount
+  prefs: []
+  type: TYPE_NORMAL
+- en: You generated two keys, so it doesn’t matter which key you decide to use as
+    your active and which one as an owner; just remember which key you used for which.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To see the list of the account, use this:> cleos get accounts [PUBLIC_KEY_1]{  "account_names":
+    [    "myaccount"  ]}'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'You may get an error message while trying to create the account if you missed
+    any of the steps provided in this chapter. The error is “Error 3090003: provided
+    keys, permissions, and delays do not satisfy declared authorizations.”'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Wallets, Keys, and Accounts: Complete Commands'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'To ensure you fully understand the process, here is a summary of how to create
+    an account:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 1.Ensure nodeos is running in a separate Terminal window.> nodeos -e -p eosio
+    --plugin eosio::chain_api_plugin --plugin eosio::history_api_plugin --delete-all-blocks
+    --delete-state-history --hard-replay --contracts-console
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '2.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Ensure your wallet is unlocked. Run > cleos wallet list (check that there is
+    an asterisk next to the wallet’s name).
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '3.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The EOS.IO special account’s parent key (5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3)
+    was imported to bootstrap the EOS.IO.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: cleos wallet import --private-key 5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '4.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Check the key’s list using > cleos wallet keys. It should output an array with
+    the keys you imported.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: To summarize what you have done so far or to redo the entire process of creating
+    an account, here are the complete steps:> rm -rf ~/eosio-wallet> cleos wallet
+    create --to-console> cleos wallet open> cleos wallet unlock --password [DEFAULT_MASTER_KEY]>
+    cleos create key --to-console> cleos create key --to-console> cleos wallet import
+    --private-key [PRIVATE_KEY_1]> cleos wallet import --private-key [PRIVATE_KEY_2]>
+    cleos wallet import --private-key 5KQwrPbwdL6PhXujxW37FSSQZ1JiwsST4cqQzDeyXtP79zkvFD3>
+    cleos wallet keys> cleos create account eosio myaccount [EOS∗ OWNER_KEY] [EOS∗
+    ACTIVE_KEY]
+  prefs: []
+  type: TYPE_NORMAL
+- en: Custom, Single Signature (Single-Sig), and Multisignature (Multisig)
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: By default, you configured your account with a single signature (aka single-sig)
+    because it’s authorized for actions with the default (active and owner) permissions.
+    However, it’s possible to configure your accounts with a multisignature (aka multisig)
+    or with custom permissions. For instance, you can configure your account with
+    multiple keys to authorize specific owner actions and active actions. You could
+    use this feature, for instance, to create a permission called “publish” and give
+    this permission to an account to allow only published smart contracts without
+    the ability to withdraw tokens.
+  prefs: []
+  type: TYPE_NORMAL
+- en: “HelloWorld” Smart Contract
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: You will be writing a smart contract with the minimal code. You will call your
+    smart contract “HelloWorld.”
+  prefs: []
+  type: TYPE_NORMAL
+- en: “HelloWorld” Smart Contract Accounts
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: To get started, you will create two accounts for your smart contract, one to
+    publish your smart contract and one for interacting with a user. See the output
+    in Figure [6-6](#Fig6).> cleos create account eosio helloworld [PUBLIC_KEY]> cleos
+    create account eosio john [PUBLIC_KEY]![../images/475651_1_En_6_Chapter/475651_1_En_6_Fig6_HTML.jpg](../images/475651_1_En_6_Chapter/475651_1_En_6_Fig6_HTML.jpg)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 6-6
+  prefs: []
+  type: TYPE_NORMAL
+- en: Creating your accounts for the “HelloWorld” smart contract
+  prefs: []
+  type: TYPE_NORMAL
+- en: “HelloWorld” C++ Code
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: EOS selected C++, which resulted in mixed reviews from the blockchain development
+    community. C++ is a low-level language, and it allows better management of resources
+    such as memory pointers and operator overloading. This can result in better performance;
+    however, it comes with a cost of increased code effort, especially if you are
+    not familiar with C++.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The EOS.IO infrastructure is written in C++, so it should not be a surprise
+    that C++ was selected by EOS.IO’s team. EOS.IO smart contracts are written in
+    C++ saved as the CPP file format; then you compile the C++ code to WebAssembly
+    that is then used for deployment.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'EOS.IO smart contract source files can be broken into three: CPP, HPP, and
+    Ricardian. The HPP file defines the smart contract class, actions, and tables.
+    The CPP file is the C++ code, which implements the action logic. The Ricardian
+    file is the digital document (more about this in the next section).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Start by creating the helloworld contract  directory by navigating into the
+    directory.> mkdir ~/Desktop/helloworld && cd $_Notice that you used your desktop
+    but can use any directory you like. Next, paste the helloworld.cpp code with vim
+    or your favorite text editor.> vim helloworld.cpp#include <eosiolib/eosio.hpp>using
+    namespace eosio;class helloworld : public contract {  public:      using contract::contract;      [[eosio::action]]      void
+    hello( name user ) {         print( "World: User: ", user);      }};EOSIO_DISPATCH(helloworld,
+    (hello))'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The code imports EOS.IO libraries. The class HelloWorld is of type contract,
+    and you create a method called hello. The method is your action; you pass the
+    user and print the word *world* and the username. Once a user interacts with your
+    contract and calls the hello action, they will get world with the user’s name.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Notice that in this example you included the eosio.hpp file. To debug the EOS.IO
+    smart contract, you need to use old-fashioned caveman debugging.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Caveman debugging, aka printf() debugging, is nothing more than adding print
+    statements around your code. The EOS.IO Print API supports the char array, 64-bit
+    and 128-bit unsigned integer, and others. The print is done by wrapping the C++
+    code printi, prints_l, printi128, and others in print.hpp, which includes the
+    import eosio.hpp library statement.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Smart Contract IDE
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Using Terminal is perfectly acceptable, but as the code becomes more complex,
+    using a professional IDE can be helpful for code completion, highlights, and readability.
+    You can use the IDE of your liking. As you already used WebStorm, you can continue
+    and import the project to WebStorm. WebStorm already includes a C++ plugin, so
+    there’s no need to install any special plugin. Figure [6-7](#Fig7) shows HelloWorld
+    project open in WebStorm.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To import your project, select File ➤ Open and navigate to the project’s location:
+    ~/Desktop/helloworld.![../images/475651_1_En_6_Chapter/475651_1_En_6_Fig7_HTML.jpg](../images/475651_1_En_6_Chapter/475651_1_En_6_Fig7_HTML.jpg)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 6-7
+  prefs: []
+  type: TYPE_NORMAL
+- en: HelloWorld project imported into WebStorm version 2018.2.4
+  prefs: []
+  type: TYPE_NORMAL
+- en: Compile a Contract and Generate an ABI
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: As mentioned, the eosio-cpp tool takes C++ code and outputs WebAssembly and
+    ABI. This is done by running the following command:> eosio-cpp -o helloworld.wasm
+    helloworld.cpp --abigen
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Notice that in the command you specify the output file’s name, which is helloworld.wasm.
+    After running this command, the compiler generates the following files: helloworld.wasm
+    and helloworld.abi.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: To ensure the compiler worked as expected, you should be able to see these two
+    files; see Figure [6-7](#Fig7).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Ricardian Contracts
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Once you generate your WASM and ABI files, notice that you are getting more
+    than 20 warnings. Among these warnings, you should find the following warnings
+    in the output:Warning, empty ricardian clause fileWarning, empty ricardian clause
+    fileWarning, action <hello> does not have a ricardian contract
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Ricardian contracts were invented by Ian Grigg in 1996 to help bridge the gap
+    between software application and court of law. The Ricardian contracts file in
+    EOS is a digital document in Markdown Language format (.md, .markdown) and defines
+    the terms and conditions of the interaction between the parties. It is set as
+    parameters but written as readable text. EOS uses cryptographically to sign and
+    verify the Ricardian contracts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To help generate the Ricardian contracts, you can copy a Python script and
+    template from a contributor that generates the files automatically: [https://github.com/EOS-Mainnet/governance](https://github.com/EOS-Mainnet/governance)
+    .'
+  prefs: []
+  type: TYPE_NORMAL
+- en: As it’s just three files, instead of using clone, you can use wget to download
+    these files.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Check that you have wget installed on your machine.> wget --helpIn case it’s
+    not installed, install wget on macOS via Ruby and Brew.> ruby -e "$(curl -fsSL
+    https://raw.githubusercontent.com/Homebrew/install/master/install)" < /dev/null
+    2> /dev/null> brew install wget> brew upgrade wgetNext, inside your helloworld
+    project, create the directory and download the files you need.> cd ~/desktop/helloworld>
+    mkdir rc && cd $_> wget https://raw.githubusercontent.com/EOS-Mainnet/governance/master/scripts/abi_to_rc/abi_to_rc.py>
+    wget https://raw.githubusercontent.com/EOS-Mainnet/governance/master/scripts/abi_to_rc/rc-action-template.md>
+    wget https://raw.githubusercontent.com/EOS-Mainnet/governance/master/scripts/abi_to_rc/rc-overview-template.mdNext,
+    run the Python script.> cd ../> python rc/abi_to_rc.py helloworld.abi
+  prefs: []
+  type: TYPE_NORMAL
+- en: The script generates for you automatically helloworld-rc.md and helloworld-hello-rc.md
+    already formatted in the Markdown language. If you view these files, you will
+    notice that the Python script used the templates you downloaded to generate your
+    files, and you can fill in the terms and conditions about your smart contract.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can lay out the guidelines of what exactly your users are purchasing/exchanging
+    and allow better trust between parties; it can include terms and conditions such
+    as intent, warranty, remedies, force majeure, dispute resolution, governing law,
+    and many others. Pay close attention to the terms you set as these can be enforced
+    in a court of law. These terms allow skipping middlemen such as attorneys to have
+    the smart contract set the terms and conditions that both parties agree to.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Deploy a Contract
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: To deploy your smart contract to your local testnet network, the set contract
+    command is used to upload the contract. See Figure [6-8](#Fig8) for the expected
+    output.> cleos set contract helloworld ~/Desktop/helloworld -p helloworld@active![../images/475651_1_En_6_Chapter/475651_1_En_6_Fig8_HTML.jpg](../images/475651_1_En_6_Chapter/475651_1_En_6_Fig8_HTML.jpg)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 6-8
+  prefs: []
+  type: TYPE_NORMAL
+- en: Terminal output of deploying your smart contract
+  prefs: []
+  type: TYPE_NORMAL
+- en: Interact with a Smart Contract Action
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Now that you have your smart contract deployed on your local blockchain, you
+    can interact with the hello action you created. You will call the hello action  and
+    pass your username to the user’s active key. See the output in Figure [6-9](#Fig9).>
+    cleos push action helloworld hello '["john"]' -p john@active![../images/475651_1_En_6_Chapter/475651_1_En_6_Fig9_HTML.jpg](../images/475651_1_En_6_Chapter/475651_1_En_6_Fig9_HTML.jpg)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 6-9
+  prefs: []
+  type: TYPE_NORMAL
+- en: Terminal output of push action on a smart contract
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'You can download the entire smart contract project from here: [https://github.com/Apress/the-blockchain-developer/chapter6/helloworld/](https://github.com/Apress/the-blockchain-developer/chapter6/helloworld/)
+    .'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Smart Contact Tokens
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The EOS.IO GitHub project has a library of smart contracts as examples that
+    can be used. One of these libraries is a smart contract called eosio.token . This
+    contract enables developers to create other tokens as well as transfer a token.
+    You will be using these libraries to create your own tokens. To get started, you
+    will create a new smart contract project and call it eosio.token.**> mkdir ~/Desktop/eosio.token
+    && cd $_**
+  prefs: []
+  type: TYPE_NORMAL
+- en: Create Accounts
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Token gets issued by an “issuer” account. You will start off by creating the
+    “issuer” account and an account called jane that you can use to transfer some
+    tokens.> cleos create account eosio eosio.token [public key]> cleos create account
+    eosio jane [public key]
+  prefs: []
+  type: TYPE_NORMAL
+- en: Compile wasm with the Latest eosio.token Code
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'To issue eosio.token, you will be using the eosio.token.hpp file that defines
+    the contract’s class, actions, and tables, as well as eosio.token.cpp that holds
+    the logic and coding. You can find these files and the entire SmartContract project
+    here: [https://github.com/Apress/the-blockchain-developer/chapter6/eosio.token/](https://github.com/Apress/the-blockchain-developer/chapter6/eosio.token/)
+    .'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Next, ensure you change the include statement in the CPP code to point to the
+    HPP file you downloaded from GitHub using vim or your favorite text editor.> vim
+    eosio.token.cppChange the eosio.token.cpp file on line 6 to point to the location
+    of eosio.token.hpp file  ; in this case, it’s here:include "~/Desktop/eosio.token/eosio.token.hpp"
+  prefs: []
+  type: TYPE_NORMAL
+- en: Deploy eosio.token
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Equipped with eosio.token.hpp and eosio.token.cpp, you have all the files needed.
+    You can compile the latest HPP and CPP files to generate the .wasm code with the
+    eosio-cpp command, just as you did in the HelloWorld smart contract example.>
+    eosio-cpp -o eosio.token.wasm eosio.token.cpp --abigenNext, deploy the eosio.token
+    contract using the set contract command.> cleos wallet unlock --password [DEFAULT_MASTER_KEY]>
+    cleos set contract eosio.token ~/Desktop/eosio.token --abi eosio.token.abi -p
+    eosio.token@active
+  prefs: []
+  type: TYPE_NORMAL
+- en: Create the EOS.IO Token
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: To create your new token, you utilize the create action. You will be passing
+    the symbol_name type, which includes two parameters.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Maximum supply float*: In this example, you’ll set this to 20 million as your
+    max tokens: 20000000.0000.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Symbol*: For symbol_name, you need to pick a name. The name must be capital
+    alpha characters only; in this example, select the name TOKEN  .'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The “issuer” account has the authority to make a call issue action or any other
+    actions such as recalling, freezing, and whitelisting owners.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To create a new token action, run the following command. See Figure [6-10](#Fig10)
+    for the expected output.> cleos wallet unlock --password [DEFAULT_MASTER_KEY]>
+    cleos push action eosio.token create '[ "eosio", "20000000.0000 TOKEN"]' -p eosio.token@active![../images/475651_1_En_6_Chapter/475651_1_En_6_Fig10_HTML.jpg](../images/475651_1_En_6_Chapter/475651_1_En_6_Fig10_HTML.jpg)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 6-10
+  prefs: []
+  type: TYPE_NORMAL
+- en: Expected output for creating an eosio.token action
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'You can confirm the tokens were issued by calling the currency stats command.>
+    cleos get currency stats eosio.token TOKEN{  "TOKEN": {    "supply": "0.0000 TOKEN",    "max_supply":
+    "20000000.0000 TOKEN",    "issuer": "eosio"  }}'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Issue Tokens
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Let’s create another account that you can use to send some of the tokens you
+    issued. We’ll call this account jane.> cleos create account eosio jane [public
+    key]Next, call the “issue” action to issue tokens. In this example, you will issue
+    jane 500 tokens.> cleos push action eosio.token issue '[ "jane", "500.0000 TOKEN",
+    "move tokens to Jane" ]' -p eosio@activeTo see the TOKEN balance in the jane account,
+    you can use the get currency command  .> cleos get currency balance eosio.token
+    jane TOKEN500.0000 TOKEN
+  prefs: []
+  type: TYPE_NORMAL
+- en: Transfer Tokens
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: To transfer tokens, you run the transfer action. As an example, let’s transfer
+    tokens from Jane’s account to John’s account.> cleos push action eosio.token transfer
+    '[ "jane", "john", "100.0000 TOKEN", "transfer tokens" ]' -p jane@activeYou can
+    confirm John’s account received the tokens by running the currency balance command
+    on both accounts to ensure the math adds up.> cleos get currency balance eosio.token
+    jane TOKEN  400.0000 TOKEN> cleos get currency balance eosio.token john TOKEN  100.0000
+    TOKENFigure [6-11](#Fig11) shows the expected output.![../images/475651_1_En_6_Chapter/475651_1_En_6_Fig11_HTML.jpg](../images/475651_1_En_6_Chapter/475651_1_En_6_Fig11_HTML.jpg)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 6-11
+  prefs: []
+  type: TYPE_NORMAL
+- en: Expected output for creating, transferring, and balancing eosio.token actions
+  prefs: []
+  type: TYPE_NORMAL
+- en: Connecting to a Public Testnet Block Producer
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: At the time of writing, EOS.IO provides two public testnets so you can test
+    in a more realistic environment before committing your code to mainnet.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Jungle2.0*: [https://jungletestnet.io/](https://jungletestnet.io/)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Kylin*: [https://www.cryptokylin.io/](https://www.cryptokylin.io/)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: I chose Jungle2.0 for the public testnet in this example, but feel free to test
+    both; it’s the same process just with different endpoints.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To get started, visit the Jungle project’s GitHub page here: [https://github.com/CryptoLions/EOS-Jungle-Testnet](https://github.com/CryptoLions/EOS-Jungle-Testnet)
+    .'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The EOS Jungle testnet is almost identical to your local testnet. You just need
+    to set up the Jungle API endpoint and generate EOS faucet tokens to pay for the
+    account’s creation and RAM usage.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The testnet API endpoint is [https://jungle.eosio.cr:443](https://jungle.eosio.cr:443)
+    ; just add the endpoint so your previous commands will work.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Always test on testnet before publishing your code to mainnet. In September
+    2018 alone, $240,000 worth of EOS tokens were stolen from EOSBet’s smart contract
+    accounts, and it was because of a smart contracts programming bug that was exploited
+    by hackers and not bugs in the EOS.IO platform itself. You’ll learn more about
+    security in Chapter [10](475651_1_En_10_Chapter.xhtml).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To create an account, you will generate the two default permissions: owner
+    and active. You can do this at [https://nadejde.github.io/eos-token-sale/](https://nadejde.github.io/eos-token-sale/)
+    or by running the same command line you used before twice.> cleos create key --to-consolePrivate
+    key: [key]Public key: [key]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Next, you need to create an account. You can create an account by visiting
+    the Jungle page and using the public keys you generated: [https://monitor.jungletestnet.io/#account](https://monitor.jungletestnet.io/%2523account)
+    .'
+  prefs: []
+  type: TYPE_NORMAL
+- en: I picked a random name of liontestaa11, but feel free to use any name you want.
+    Just be careful of the strict name restrictions (a–z and 1–5 are allowed only,
+    with a length of 12). If you don’t comply with this strict name restriction, your
+    account won’t get created. See Figure [6-12](#Fig12).![../images/475651_1_En_6_Chapter/475651_1_En_6_Fig12_HTML.jpg](../images/475651_1_En_6_Chapter/475651_1_En_6_Fig12_HTML.jpg)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 6-12
+  prefs: []
+  type: TYPE_NORMAL
+- en: Jungle2.0’s  liontestaa11 account was created
+  prefs: []
+  type: TYPE_NORMAL
+- en: Notice that you get the same warning as you got on your local testnet regarding
+    the transaction being executed, but it’s not confirmed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To get information about the testnet, you can run the same get info command
+    you ran for your local testnet. Just add the Jungle endpoint URL argument.> cleos
+    --url https://jungle.eosio.cr:443 get infoAll the cleos commands need the URL
+    endpoint argument; you can edit your bash file to point cleos to the URL you want.
+    Edit the bash profile and point to the public testnet for the block producer,
+    while still pointing to your local machine for the wallet.> vim ~/.bash_profileAdd
+    the following line:alias cleos-testnet='cleos --url https://jungle.eosio.cr:443
+    --wallet-url http://localhost:8888'You did not set the config.ini file here with
+    a custom port, but you are changing the port to 8888\. Remember, to run the bash
+    profile to commit the changes, run this:> . ~/.bash_profileNow you can run the
+    all the commands with cleos-testnet.> cleos-testnet get info
+  prefs: []
+  type: TYPE_NORMAL
+- en: Buy Resource Allocation on the Public Testnet Block Producer
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Now you will be publishing your “HelloWorld” smart contract you created in the
+    previous section.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you were publishing your contract on mainnet, you would need to buy RAM and
+    pay to create your account so you could publish your smart contract. EOS tokens
+    are used to purchase resources. In the public testnet, you don’t need to spend
+    actual money for your resources. You get fake faucet tokens that can be used for
+    the Jungle block producer to purchase your resources.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To get these tokens, all you need is your account name. Type your account name
+    to get tokens from the Jungle faucet: [http://monitor.jungletestnet.io/#faucet](http://monitor.jungletestnet.io/%2523faucet)
+    . See Figure [6-13](#Fig13).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: I’ll explain resource allocation in more detail in the next section when you
+    ready to publish to mainnet.![../images/475651_1_En_6_Chapter/475651_1_En_6_Fig13_HTML.jpg](../images/475651_1_En_6_Chapter/475651_1_En_6_Fig13_HTML.jpg)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 6-13
+  prefs: []
+  type: TYPE_NORMAL
+- en: Jungle2.0 gets tokens through the Jungle faucet
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can check the account balance with the get account command; see the output
+    in Figure [6-14](#Fig14).> cleos --url https://jungle.eosio.cr:443 get account
+    liontestaa11![../images/475651_1_En_6_Chapter/475651_1_En_6_Fig14_HTML.jpg](../images/475651_1_En_6_Chapter/475651_1_En_6_Fig14_HTML.jpg)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 6-14
+  prefs: []
+  type: TYPE_NORMAL
+- en: Jungle faucet account balance
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now that you have EOS tokens, you can run the cleos system buyram command to
+    purchase RAM so you can publish your smart contract.> cleos --url https://jungle.eosio.cr:443
+    system buyram liontestaa11 liontestaa11 "10 EOS"
+  prefs: []
+  type: TYPE_NORMAL
+- en: Publish Your HelloWorld Contract on the Public Testnet
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Now that you have tokens, you can publish your HelloWorld smart contract on
+    the public testnet. Run the set contract command.> cleos --url https://jungle.eosio.cr:443
+    set contract liontestaa11 ~/Desktop/helloworldYou can confirm the code was published
+    using the get code command  . You can see the entire expected output in Figure
+    [6-15](#Fig15).> cleos --url https://jungle.eosio.cr:443 get code liontestaa11![../images/475651_1_En_6_Chapter/475651_1_En_6_Fig15_HTML.jpg](../images/475651_1_En_6_Chapter/475651_1_En_6_Fig15_HTML.jpg)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 6-15
+  prefs: []
+  type: TYPE_NORMAL
+- en: Expected output when publishing contract on public testnet
+  prefs: []
+  type: TYPE_NORMAL
+- en: Connecting to Mainnet
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The EOS.IO  mainnet is almost the same as the testnet; you just need to use
+    a different API endpoint and actually pay for the accounts and RAM with real EOS
+    tokens.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'There are three main ways to get EOS tokens:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Mine*: This creates a block producer and mines EOS.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Purchase EOS tokens*: They can be purchased on crypto exchanges.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Gift*: This gets an EOS as a gift from someone.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: As you saw in previous chapters, creating a block producer and getting selected
+    by the EOS.IO network is not an easy process or guaranteed, and as you just need
+    coins to buy RAM for opening an account and getting resources, you don’t need
+    too many coins. At this point, it’s easy to just purchase these tokens.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You would need to first purchase bitcoin, Ethereum, or other coins on a fiat
+    exchange such as Coinbase, CEX.io, or Coinmama. Then use exchanges such as Binance
+    or Changelly to change your coins to EOS tokens. The reason is that there is no
+    known exchange available at the time of writing that can directly change your
+    fiat to EOS.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Next, you need an endpoint. The 21 selected block producers are able to provide
+    you with an endpoint. You can find all the available block producers and other
+    data regarding the blocks being mined here:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[http://eosnetworkmonitor.io/](http://eosnetworkmonitor.io/)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[https://eostracker.io/producers](https://eostracker.io/producers)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Once you find a block producer you would like to use, you append /bp.json to
+    the end of the URL to find the endpoint. Here’s an example: [https://api.eosnewyork.io/bp.json](https://api.eosnewyork.io/bp.json)
+    .'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The JASON output gives you the block producer’s information and ensures it’s
+    ready for usage. To set the URL, just adjust the --url flag to the block producer
+    you would like to connect to; the rest of the commands are all the same as the
+    public testnet.> cleos --url https://api.eosnewyork.io:443 get infoAs before,
+    you can edit the bash profile file as you did with the public testnet.alias cleos-mainnet='cleos
+    --url https://api.eosnewyork.io:443 --wallet-url http://localhost:8888'Your bash
+    profile should look like this:PATH="/usr/local/eosio/bin:${PATH}"alias cleos-testnet='cleos
+    --url https://jungle.eosio.cr:443 --wallet-url http://localhost:8888'alias cleos-mainnet='cleos
+    --url https://api.eosnewyork.io:443 --wallet-url http://localhost:8888'Confirm
+    it works by running the get info command.> cleos-mainnet get info
+  prefs: []
+  type: TYPE_NORMAL
+- en: I’ll spare you from repeating the same steps as in the public testnet section
+    and spending actual tokens on the “HelloWorld” sample smart contract. However,
+    I will cover resource allocation, as you need a good understanding of it to publish
+    smart contracts on mainnet.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Resource Allocation Explained
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: I spoke a bit about resource allocation when I covered testnets, as you needed
+    to get EOS tokens to publish your smart contract on a public testnet.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For mainnet, you need actual EOS tokens to buy RAM and create your account.
+    There are three types of resources consumed by EOS.IO accounts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Disk*: Bandwidth and log storage (disk)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*CPU*: Staking computation and computational backlog (CPU)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Ram*: Staking state storage'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Buy RAM on Mainnet
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'To free up RAM, you need to delete data from the account state mechanism, and
+    then the RAM can be sold on the RAM marketplace at the current RAM price. The
+    RAM marketplace price can be found here: [https://www.feexplorer.io/EOS_RAM_price](https://www.feexplorer.io/EOS_RAM_price)
+    .'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Create an EOS.IO Account on Mainnet
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: EOS.IO accounts are necessary, as they are needed to interact with the EOS.IO
+    network and create an account. As I explained previously, someone who already
+    has an account needs to vouch for creating new accounts. If you don’t have someone
+    with an EOS account who can create your account, you can get an account created
+    with third-party providers. The third-party providers normally charge you a fee.
+    For instance, you can download EOS Lynx on your phone and pay $2 to create an
+    EOS.IO account.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Change Your Account’s Public and Private Keys
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Once you get a mainnet account, you are not done. You need to make sure you
+    change your private key before funding your account, as the service that creates
+    your account could just store your private keys and take your funds. You are already
+    familiar with all these steps; the only new command here is remove_key, which
+    removes the old key from your wallet. You create a new key, unlock your wallet,
+    reset the permissions with the new key, and remove the old public key as well
+    as import the new private key. Follow these steps:> cleos create key> cleos wallet
+    unlock> cleos set account permission [ACCOUNT NAME] active [PUBLIC KEY] owner
+    -p [ACCOUNT NAME]@owner> cleos set account permission MYACCOUNT owner [PUBLIC
+    KEY] -p [ACCOUNT NAME]@owner> cleos wallet remove_key [OLD PUBLIC KEY]> cleos
+    wallet import [PRIVATE KEY]
+  prefs: []
+  type: TYPE_NORMAL
+- en: CPU and Bandwidth Allocations
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: To get bandwidth and CPU, you need to allocate EOS tokens, and the resource
+    will be available automatically for you proportional to the amount held in the
+    staking contract period.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For instance, during the staking window, say you would like to consume 1 CPU
+    unit. To do so, you would need to compete with other accounts so you have 0.1
+    percent of all CPU-staked tokens under your account or have someone else delegate
+    these tokens to your account.
+  prefs: []
+  type: TYPE_NORMAL
+- en: After the staking period, the consumed resources free up, and you can reuse
+    the same staked tokens, so there’s no need to keep purchasing more EOS tokens
+    each time. The EOS tokens can be undelegated after you are done.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Where to Go from Here
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'EOS.IO offers an online resource with links; see [https://developers.eos.io](https://developers.eos.io)
+    . The developer resource provides valuable documentation as well as information
+    about other tools I did not cover such as these:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*State handler*: demux-js'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*JavaScript library:* eosjs'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: I also recommend exploring the EOS GitHub smart contracts examples, which can
+    help you learn about all the functionally and what’s possible with EOS.IO.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In this chapter, I covered the EOS.IO blockchain in more detail. You set up
+    a local testnet environment by installing the EOS.IO and EOSIO.CDT libraries and
+    learned how to configure keosd and nodeos. You learned about EOS.IO wallets, including
+    how to create, delete, and back up wallets as well as how to create a wallet with
+    custom names and perform operations such as opening, locking, and unlocking a
+    wallet.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Next, I covered a wallet’s key pairs and how to spin and re-spin up a local
+    node (nodeos) to run a local block producer. You learned about active and owner
+    permissions as well as single-signature (single-sig) and multisignature (multisig)
+    are accounts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To understand EOS.IO smart contracts, you created a “HelloWorld” smart contract
+    and tokens by first creating accounts and then writing C++ code. You then compiled
+    and generated WebAssembly and ABI files as well as Ricardian contracts. You then
+    learned how to deploy the contracts you created and interact with them. Once your
+    tokens were generated, you were able to issue and transfer tokens between accounts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You continued by connecting to a public testnet block producer to test your
+    smart contracts in a more realistic environment, and lastly you learned how to
+    connect and publish on mainnet and learned about resource allocations on an EOS.IO
+    network.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the next chapter, I will cover NEO blockchain wallets and NEO smart contracts.
+  prefs: []
+  type: TYPE_NORMAL
