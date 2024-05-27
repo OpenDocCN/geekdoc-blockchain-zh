@@ -1,0 +1,896 @@
+- en: '[Chapter 4](contents.xhtml#re_chapter4)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[Consensus Algorithms – A Survey](contents.xhtml#re_chapter4)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: R. Indrakumari, T. Poongodi, Kavita Saini, and B. Balamurugan
+  prefs: []
+  type: TYPE_NORMAL
+- en: Contents
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[4.1 Introduction](chapter4.xhtml#ch-4-sec-1)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[4.2 Consensus](chapter4.xhtml#ch-4-sec-2)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[4.3 Lottery-Based Algorithms](chapter4.xhtml#ch-4-sec-3)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[4.3.1 Proof of Work](chapter4.xhtml#ch-4-sec-4)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[4.3.2 Proof of eXercise (PoX)](chapter4.xhtml#ch-4-sec-5)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[4.3.3 Proof of Useful Work](chapter4.xhtml#ch-4-sec-6)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[4.3.4 Proof of Stake](chapter4.xhtml#ch-4-sec-7)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[4.3.5 Delegated Proof of Stake (DPoS)](chapter4.xhtml#ch-4-sec-8)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[4.3.6 Leased Proof of Stake (LPoS)](chapter4.xhtml#ch-4-sec-9)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[4.3.7 Proof of Elapsed Time](chapter4.xhtml#ch-4-sec-10)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[4.3.8 Proof of Luck (PoL)](chapter4.xhtml#ch-4-sec-11)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[4.3.9 Proof of Space or Proof of Storage](chapter4.xhtml#ch-4-sec-12)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[4.3.9.1 Theory](chapter4.xhtml#ch-4-sec-13)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[4.3.9.2 Burstcoin](chapter4.xhtml#ch-4-sec-14)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[4.3.9.3 SpaceMint](chapter4.xhtml#ch-4-sec-15)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[4.4 Voting-Based Consensus](chapter4.xhtml#ch-4-sec-16)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[4.4.1 Byzantine Fault Tolerance-Based Consensus](chapter4.xhtml#ch-4-sec-17)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[4.4.2 Crash Fault Tolerance-Based Consensus](chapter4.xhtml#ch-4-sec-18)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[4.5 Conclusions](chapter4.xhtml#ch-4-sec-19)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[References](chapter4.xhtml#b-9781000175257-bib3)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[4.1 Introduction](chapter4.xhtml#re_ch-4-sec-1)'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Blockchain is considered one of the technologies with the most potential [[1](#re_TNF-CH004_CIT00001)].
+    Bitcoin, proposed by Nakamoto [[2](#re_TNF-CH004_CIT00002)], attracted researchers
+    and industrialist attention towards blockchain as it has the capacity to eradicate
+    the limitations of the traditional payment method which depends on a third party.
+    In conventional payment methods, while making a payment people trust a third party
+    who verifies the validity of their transactions. In most cases, the third party
+    is not trustworthy as every transaction is based on a single organization, causing
+    insufficient trust. This can be addressed by using many independent organizations,
+    which changes the view from centralization to decentralization. Satoshi introduced
+    the ledger design that is called block, and contains a verified transaction. Genesis
+    block [[3](#re_TNF-CH004_CIT00003)], considered as the first block, contains the
+    first transactions of Bitcoin.
+  prefs: []
+  type: TYPE_NORMAL
+- en: When a transaction occurs its validity is verified by some nodes. Validity here
+    refers to the sufficiency of money with the sender and the digital signature of
+    the sender [[4](#re_TNF-CH004_CIT00004)]. After verifying the validity, the block
+    holding the transaction is added to the chain which can be identified by all other
+    nodes. A node can append a block holding various transactions by distributing
+    it to other node which requested to add this node to the current chain. The limitation
+    in this method is that, if every node requests its preferable node, then there
+    exists a mess in the situation. To avoid this, the consensus algorithm is introduced,
+    which holds an agreement made between all nodes about which blocks should be appended,
+    and which nodes are permitted to append their proposed blocks. Many versions of
+    the consensus algorithm have been proposed to date.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this chapter, various variants of the consensus algorithm in blockchain are
+    discussed with two main types. Initially, the proof-based consensus algorithm
+    is discussed followed by the voting-based consensus algorithm.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[4.2 Consensus](chapter4.xhtml#re_ch-4-sec-2)'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The consensus algorithm is considered as a decision-making procedure for a group
+    in that individuals participate actively to make and support decisions that fit
+    well for the rest. In other words it can be thought of as a resolution where the
+    individuals are supporting the decision. The consensus algorithm is an active
+    research topic around the world that updates the distributed shared state in a
+    secure manner. In a traditional distributed system, fault tolerance is achieved
+    by distributing the shared state across multiple replicas in the network. Based
+    upon the preset state transition protocol framed by the state machine the updating
+    of replicated shared state occurs, which is referred to as state machine replication.
+    The concept behind replication is if one or more node crashes, it will not lose
+    anything. The main task of the state machine is to make sure that nodes with the
+    same inputs will produce the same outputs. These replicas contact each other to
+    construct consensus and consent the finality of the state after a state change
+    is executed. In blockchain-based applications, the shared state is the blockchain.
+    Consensus can be implemented through various ways such as lottery-based algorithms
+    like proof of work (PoW) and proof of elapsed time (PoET) or by voting-based methods
+    which include Paxos and Redundant Byzantine Fault Tolerance (RBFT). These methods
+    depend upon various fault-tolerance models and network requirements.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In lottery-based algorithms, the winner can be scaled to a huge number of nodes
+    as they recommend a block and send it to the remaining nodes of the network for
+    validation. When two or more winners propose a block, the forking method is invoked
+    to analyze which results in a longer time to finality. In voting-based algorithms,
+    the result is based on low latency finality. Here, the nodes transfer the message
+    to other nodes and hence take more time to attain consensus, resulting in a trade-off
+    between speed and scalability.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[4.3 Lottery-Based Algorithms](chapter4.xhtml#re_ch-4-sec-3)'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The lottery-based algorithm is otherwise known as the Nakamoto consensus, after
+    the founder of Bitcoin. Here a validator is elected, to make decision about the
+    next node to be appended. The lottery-based algorithm is not an equiprobable distribution
+    technique, as it has its own probability distribution to the winner. Various algorithms
+    based on the lottery-based method are discussed as follows.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[4.3.1 Proof of Work](chapter4.xhtml#re_ch-4-sec-4)'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Proof of work (PoW) [[5](#re_TNF-CH004_CIT00005)] is the initial consensus
+    protocol used for cryptocurrency that permits the blockchain users to obtain consensus
+    in Bitcoin. This protocol particularly involves the SHA-256 hashing algorithm,
+    Merkle tree and peer-to-peer (P2P) network to create, broadcast and verify blocks
+    in the blockchain network. PoW also incurs costly digital computation since it
+    includes various techniques to complete the process. The properties of PoW are
+    described below:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: PoW is developed for permission-less public distributed ledgers and for mining
+    processes; it consumes more computational resources.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: To construct a new block, a cryptographic puzzle must be solved by the miner,
+    and the user who solves the puzzle first will avail the reward by broadcasting
+    the result in the network.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The protocol maintains the transactions in each block in a linear fashion and
+    a block consists of the set of transactions.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The cryptographically signed transaction will be accepted only if the signature
+    is validated and verified in the network.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The challenge-response computation process is known as mining.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A reward is distributed fairly in this protocol. If the miner is determined
+    with ‘p’ fraction of whole computation power, they would have a probability ‘p’
+    to mine the subsequent blocks.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If any conflict arises, then the protocol releases multiple branches of blocks;
+    however the longer one is retained as the trusted branch.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The main objective of PoW lies in managing the consensus; a newly entered node
+    can spot the current state of the network based on the protocol rules [[6](#re_TNF-CH004_CIT00006)].
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'PoW introduces mining that involves a step for validating a block (group of
+    transactions) in the network by displaying the computational proof of the completed
+    work. Once a transaction is started, the available miners in the network compete
+    each other to become first by solving a cryptographic puzzle and form the block.
+    The miner who solves the puzzle successfully broadcasts the solution to the block
+    among other peers, and the solution is verified to make the new block acceptable
+    on the chain. Some of the implementation details are described below:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'a) Bitcoin: It is the first P2P cryptocurrency that permits two participants
+    to exchange their payments without any third-party intervention. From the beginning,
+    it inspired many sectors such as healthcare, governance, the financial sector,
+    etc. The payments in Bitcoin are exchanged with identity anonymity and trivial
+    fees. As it is decentralized, it avoids the risk of counterparties and is not
+    influenced by any of the policies of financial organizations. Micropayment channels
+    are allowed in Bitcoin via the native protocol library [[7](#re_TNF-CH004_CIT00007)]
+    and offline lightening network [[8](#re_TNF-CH004_CIT00008)]. The computational
+    data can also be sold through zero knowledge proof to obtain the maximum trust
+    during a transaction [[9](#re_TNF-CH004_CIT00009)]. A multi-signature transaction
+    is also supported to improve the security level [[10](#re_TNF-CH004_CIT00010),
+    [11](#re_TNF-CH004_CIT00011), ].'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: b) Litecoin [[12](#re_TNF-CH004_CIT00012)] is an open-source P2P cryptocurrency
+    implementation based on proof of work. It utilizes enhanced security algorithms
+    that are both memory- and computationally intensive. Scyrpt is used to prevent
+    counterfeiting in the consensus protocol.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: c) Other cryptocurrencies implementing PoW are Primecoin, Zcash, Monero, Vertcoin,
+    etc.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Analysis:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: PoW is a power-consuming protocol that needs a huge amount of computation power
+    which is merely a wastage of resources as many efficient protocols are available.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In PoW, the difficulty level also increases and with it the power required to
+    solve the cryptographic puzzle. Moreover, it becomes inaccessible for solo miners
+    to actively participate in the network.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The protocol is perceived as wasting immense resources due to the extensive
+    power consumption. Other consensus protocols are preferably recommended for better
+    output and efficient processing.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The requirement of high computational power by PoW also guarantees a high level
+    of security. An attacker requires 51% of computational power which is simply impossible
+    considering the difficulty level of this protocol. However, the PoW is highly
+    vulnerable to Sybil attacks, denial-of-service (DoS) attacks and selfish mining
+    attacks.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: An application-specific integrated circuit (ASIC) is the hardware that manages
+    the mining process, and it offers an unfair edge when compared to others in the
+    network due to its expense ([Figure 4.1](chapter4.xhtml#fig4.1)).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '![](../images/fig4.1.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 4.1 Structure of proof of work.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[4.3.2 Proof of eXercise (PoX)](chapter4.xhtml#re_ch-4-sec-5)'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: It is a conceptual consensus protocol designed for the distributed ledger which
+    consumes huge computational resources of the system. An attempt is being made
+    to transform the hash-based PoW puzzle-mining process into a useful output in
+    order to avoid wastage of resources. A variant of PoW solves real-world computational
+    problems by considering matrices as an exercise. Several matrix-based real-world
+    scientific problems in various applications include DNA-RNA matching, image processing,
+    data mining, etc.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[4.3.3 Proof of Useful Work](chapter4.xhtml#re_ch-4-sec-6)'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The conceptual idea was proposed to solve scientific problems focusing on orthogonal
+    vectors (OV) as the proof of work, and it also integrates zero-knowledge proof
+    concept. With this, the miners can provide only the proof of the solution, not
+    the solution itself, to the delegated task. The solution becomes available only
+    after the certain pre-set condition is met in the network.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[4.3.4 Proof of Stake](chapter4.xhtml#re_ch-4-sec-7)'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Proof of stake (PoS) is a consensus protocol that selects the validator based
+    on economic stake (refers the amount of coins that particular validator owns)
+    and coin age. It is available in so many variants with significant changes in
+    the base protocol. The different protocols differ in minimizing the centralization
+    issue and double spending.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The various properties of PoS are described below:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The computational challenge-response process in the protocol is known as minting.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Initially, it was designed for permission-based public distributed ledgers and
+    focuses on economical based puzzle solutions.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The new coins are not being generated in PoS, hence there is no block reward
+    and only the transaction fee will be taken by the miner in PoS.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A new node always requires rules, protocol messages and recent state to reach
+    the current state of the blockchain network.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The miner for a specific block is chosen based on the economic stake in the
+    network.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In PoS, the probability ‘p’ of a validator is directly proportional to the fraction
+    ‘p’ of the stake that the miner owns out of all in the round.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In PoS, the distributed ledger keeps track of the validators with their respective
+    stake in the network. The validators in PoS invest stake to gain chances to mine
+    the next block. The chances are higher for the validator who has the higher stake.
+    The validators will be chosen randomly for block creation. For any cheating attempt,
+    the stake will get debited in the system. Moreover, the block creation process
+    in PoW is straightforward, and computational power is not significantly required.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Ethereum [[13](#re_TNF-CH004_CIT00013)] is an open-source blockchain influenced
+    by PoS to reach the consensus. Initially, it was based on PoW cryptocurrency;
+    later the consensus mechanism was shifted to Proof of Stake, and it became more
+    secure and energy-efficient. Smart contract is available to perform the operation
+    in the blockchain network. The Ethereum platform provides a blockchain development
+    stack, in which the developers can construct and deploy distributed apps (DApps).
+    Huge opportunities are available to form unlimited ideas by using this promising
+    technology in the blockchain. Other PoS-based cryptocurrencies are Peercoin, Navvcoin,
+    Neo, Decred, Dash, PivX and Reddcoin.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Analysis:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: PoS is energy-efficient and profitable for many stakeholders.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: It is an eco-friendly protocol since it requires a negligible amount of computation.
+    In addition, it does not need any specialized hardware for active participation.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In PoS, more than 50 percent of power is required by an attacker to corrupt
+    the network, and it is easier when compared to obtaining 51% in PoW. To prevent
+    such security attacks, an economic penalty approach is followed in PoS to penalize
+    the colluding participant. In fact, it is very effective because only major stakeholders
+    can influence the network, and they will try to avoid penalties in the network.
+    The penalty scheme is successfully implemented in the Ethereum platform; others
+    have followed different strategies in order to solve this problem.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[4.3.5 Delegated Proof of Stake (DPoS)](chapter4.xhtml#re_ch-4-sec-8)'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Delegated proof of stake (DPoS): It is viewed as the common variation of PoS,
+    where the validators are elected by the stakeholders rather being validated by
+    themselves. DPoS works based on representative democracy whereas PoS follows the
+    direct democracy. The person who is holding wallet can vote for the validator
+    in order to create a new block. Validators can be combined with each other to
+    create a new block instead of competing with each other as in PoS and PoW. It
+    encourages better opportunities for the distribution of reward as voting for a
+    normal delegate, who in turn will give rewards back to them, thus results in decentralization.
+    The voters should ensure the honest attitude of the validator in order to ensure
+    the guarantee of the stake. BitShares and Steem are the most popular implementations
+    of DPoS.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[4.3.6 Leased Proof of Stake (LPoS)](chapter4.xhtml#re_ch-4-sec-9)'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: It is the least commonly used variant of PoS focusing on the ‘rich get richer’
+    issue. It motivates the participants to lease the stake to vote for the node and
+    the new block would be created by the node which has more stake. Then the received
+    reward will be distributed amongst all leasing participants. The system also motivates
+    the number of leasing participants to achieve rewards, hence improving the protocol’s
+    security.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Use-cases: The technology is best suited for developing a public transaction
+    system. It is more secure and efficient for the construction of public cryptocurrencies.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[4.3.7 Proof of Elapsed Time](chapter4.xhtml#re_ch-4-sec-10)'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Proof of elapsed time (PoET) [[14](#re_TNF-CH004_CIT00014)] is an efficient
+    consensus protocol that influences the utilization of a trusted execution environment
+    (TEE). It extends proof of ownership and proof of time in order to enhance the
+    efficiency of the mining process by incorporating a fair lottery system. Random
+    waiting time is enforced for block creation by leveraging the capabilities of
+    TEE. PoET uses Intel-based hardware (e.g. Intel SGX), and it is specifically designed
+    for permission-less public distributed ledgers. The participants’ and transaction
+    logs are transparent and verifiable, showing more reliability of the network.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The systematic procedure of this protocol is similar to PoW, but it consumes
+    less computational resources. The nodes compete among themselves in order to solve
+    a cryptographic puzzle and search the next block. In the PoET protocol, each validator
+    is assigned ‘T’ a random wait time to construct the block and it is tracked by
+    it. The validator who has successfully completed the waiting time can create and
+    publish the block in the network. The protocol follows both first come first serve
+    (FCFS) and a random lottery scheme. The entire process relies on Software Guard
+    Extensions (SGX) which assure trusted code execution in a safe environment (i.e.
+    Intel Software Guard Extension).
+  prefs: []
+  type: TYPE_NORMAL
+- en: PoET reaches consensus by maintaining the anonymity of the network participants.
+    A monotonic counter-type hardware is maintained in TEE to protect the system from
+    malicious activities which also ensures that only one instance is currently executing
+    in a single CPU. There may be the chance of creating multiple instances of ‘T’
+    wait time by the participants in order to boost their luck. The protocol is highly
+    susceptible to various security attacks and lacks security analysis [[10](#re_TNF-CH004_CIT00010)].
+    Particularly, Intel Software Guard Extension is vulnerable to rollback attacks
+    [[15](#re_TNF-CH004_CIT00015)].
+  prefs: []
+  type: TYPE_NORMAL
+- en: Hyperledger Sawtooth [[16](#re_TNF-CH004_CIT00016)] is a modular blockchain
+    introduced by Intel, and it follows the PoET consensus algorithm for implementing
+    a leader election lottery system. Parallel processing is followed in transactions
+    for block creation and validation by using ‘Advance Transaction Execution Engine’.
+    The protocol is highly capable in providing efficient throughput among a huge
+    network population. Moreover, it is an enterprise grade protocol that enables
+    the development process of general-purpose smart contracts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[4.3.8 Proof of Luck (PoL)](chapter4.xhtml#re_ch-4-sec-11)'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Proof of luck (PoL) is a conceptual permissioned consensus protocol based on
+    trusted execution environments (TEEs) (i.e. Intel SGX) [[17](#re_TNF-CH004_CIT00017)].
+    It extends the functionality of proof of ownership and proof of time, addressing
+    the issues such as centralization of available consensus protocol (PoS, PoW) and
+    extensive energy consumption. Moreover, it exhibits low latency of transaction
+    validation, and the block confirmation time is 15 seconds greater when compared
+    to Ethereum and significantly 10 minutes less than Bitcoin.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The protocol signals the participants in each round to commit all the available
+    uncommitted transactions to a new block and the version block is assigned a numeric
+    value. Later, the voting process is started in which the participants vote for
+    a number randomly and the node with the highest vote wins the luckiest block.
+    The other participants in the network stop the mining process and their own block
+    is broadcasted as soon as the luckiest block is received; hence the network congestion
+    can be minimized.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[4.3.9 Proof of Space or Proof of Storage](chapter4.xhtml#re_ch-4-sec-12)'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Proof of space or proof of storage [[18](#re_TNF-CH004_CIT00018)] is an ecofriendly
+    protocol developed to avoid abuse of resources [[19](#re_TNF-CH004_CIT00019)].
+    It is similar to proof of work but instead of computation it involves disk consumption.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Proof of space is meant for public distributed ledgers, and the free disk storage
+    is considered as the resource.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The influence of a miner’s power over the network is directly proportional to
+    the amount of disk space being contributed.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[4.3.9.1 Theory](chapter4.xhtml#re_ch-4-sec-13)'
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Proof of storage utilizes disk space to mine a block. It verifies the honesty
+    of a remote file by distributing a copy of data to a server and computing a challenge-response
+    protocol to ensure the integrity of the data. The actors in the proof-of-storage
+    algorithm are the Provers and the Verifiers. Provers are actors who store data,
+    and Verifiers are actors who authenticate that the Provers are storing the data.
+    Verifiers usually provide a challenge to the Provers, who in turn solve the challenge
+    with a proof to the exact proof-of-storage scheme.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Proof of storage generates random solutions called plots in advance using the
+    Shabal algorithm and saves it on hard drive. This process is called plotting.
+    Following the plotting process, the miners compare the solutions with the recent
+    puzzle [[20](#re_TNF-CH004_CIT00020)].
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[4.3.9.2 Burstcoin](chapter4.xhtml#re_ch-4-sec-14)'
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Burstcoin is a mineable coin implemented with an eco-friendly proof-of-space
+    algorithm in 2014\. It is a decentralized cryptocurrency and payment system that
+    depends on space when mining resources [[21](#re_TNF-CH004_CIT00021)]. Burstcoin
+    mining is inexpensive, and it can be performed on a mobile device [[22](#re_TNF-CH004_CIT00022)].
+    The first Turing complete smart contract which solves computing problems is implemented
+    using proof-of-space protocol.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[4.3.9.3 SpaceMint](chapter4.xhtml#re_ch-4-sec-15)'
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: SpaceMint is a cryptocurrency, replacing energy-intensive computations associated
+    with cryptocurrencies by proof of space. Here miners invest disk space instead
+    of computing power. The mining process takes place in two phases, initialization
+    and mining. In initializing, the miners contribute N bits of space and create
+    secret key pairs. The miners publish its space commitment through a special transaction.
+    In the mining phase, mining is incentivized through block rewards and transaction
+    fees. Once initialized, each miner attempts to add a block to the blockchain every
+    time period. SpaceMint holds three types of transactions, namely, payment, space
+    commitments and penalties. Each transaction is signed by the users and sent to
+    miners to be added to the block.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[4.4 Voting-Based Consensus](chapter4.xhtml#re_ch-4-sec-16)'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In voting-based consensus algorithms, the verifying network should be adjustable
+    and explicitly known in order to exchange the message without any complication.
+    In proof-based consensus algorithms, the nodes are allowed freely to unite and
+    pullout from the network.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The nodes in the voting-based consensus algorithm communicate with each other
+    prior to adding their own blocks into the chain. The execution process is same
+    as the conventional fault tolerance method incorporated in the distributed system
+    [[23](#re_TNF-CH004_CIT00023)].
+  prefs: []
+  type: TYPE_NORMAL
+- en: As in any fault-tolerance method, the voting-based consensuses are intended
+    to work when there is a crash in the nodes and sometimes the nodes are subverted.
+  prefs: []
+  type: TYPE_NORMAL
+- en: When the node crashes, it waits for the information passed by other nodes. In
+    some cases, the waiting node will not receive any proper message or guidance from
+    other nodes to make a decision. To prevent this, there should be n + 1 nodes instead
+    of n nodes to perform uninterrupted operation [[24](#re_TNF-CH004_CIT00024)].
+  prefs: []
+  type: TYPE_NORMAL
+- en: In contrast to this, the subverting nodes perform outlandish operations, resulting
+    in imprecise output. These issues can be addressed by a classical problem, popularly
+    called the Byzantine Generals Problem developed by Lamport et al. [[25](#re_TNF-CH004_CIT00025)].
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here, the concept is that Byzantine generals have occupied an enemy’s camp by
+    dividing their army force into N groups under N generals, who are capable of attacking
+    the enemies from various sites. To win, the N groups of armies should attack at
+    the same time. Before commencing the attack, they should come to an agreement
+    about the time of attacking by exchanging proper messages, and the decision is
+    taken by the majority. Regrettably, there is some conspirator among the general
+    group whose intention is to cheat the other generals by passing diverse decision
+    to others which causes failure in the attack as some generals are not participating
+    in the attack.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The solution for this issue is proposed by Lamport et al. that to tolerate the
+    n subverted generals, there should be at least 2n + 1 generals to accompany them.
+    The same scenario is applicable in blockchain in that some nodes can be subverted
+    when executing the consensus work by propagating diverse results to other nodes.
+    These bad situations lead to the classification of voting-based consensus algorithms
+    into
+  prefs: []
+  type: TYPE_NORMAL
+- en: 1\. Byzantine fault tolerance-based consensus which avoids the occurrence of
+    crashing and subverted nodes.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 2\. Crash fault tolerance-based consensus which prevents the cases of crashing
+    nodes.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The consensus algorithms under these sub-categories make an assumption that
+    among N nodes, there should be at least t nodes (t < N) operating normally. While
+    in crash fault tolerance-based consensus, t is usually set equal to [N/2 + 1],
+    in Byzantine fault tolerance-based consensus, t is usually assigned equal to [2N/3
+    + 1].
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[4.4.1 Byzantine Fault Tolerance-Based Consensus](chapter4.xhtml#re_ch-4-sec-17)'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Byzantine fault tolerance-based consensus is based on the popular Hyperledger
+    Blockchain platform [[26](#re_TNF-CH004_CIT00026)] used by many enterprises, especially
+    IBM [[27](#re_TNF-CH004_CIT00027)]. Castro and Liskov [[28](#re_TNF-CH004_CIT00028)]
+    proposed a variant of Byzantine fault tolerance called the Practical Byzantine
+    Fault Tolerance (PBFT) intended for Hyperledger Fabric [[29](#re_TNF-CH004_CIT00029)].
+    In Byzantine fault tolerance, there exist two sorts of nodes, namely, a leader
+    node and validating peers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Formerly, the validating peers receive the request from the clients to validate
+    the transactions. After validating, the results are sent to the leader and other
+    peers. Here the threshold is the batch size is maintained. Based on the time of
+    creation, the leader arranges the transactions and puts them into a block.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Symbiont [[30](#re_TNF-CH004_CIT00030)] and R3 Corda [[31](#re_TNF-CH004_CIT00031)]
+    are famous blockchain platforms based on Byzantine fault-tolerance consensus algorithms
+    proposed by Bessani et al. [[32](#re_TNF-CH004_CIT00032)]. In addition to the
+    procedure of execution, Bessani et al. developed a replica for storing the log
+    of executed operations in a single machine, which is used for gaining the last
+    current state, when a node fails, and needs to restart.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[4.4.2 Crash Fault Tolerance-Based Consensus](chapter4.xhtml#re_ch-4-sec-18)'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Paxos [[33](#re_TNF-CH004_CIT00033)] and Raft [[34](#re_TNF-CH004_CIT00034)]
+    is a crash fault tolerance-based consensus used by Quorum [[35](#re_TNF-CH004_CIT00035)]
+    to tolerate crashes. Raft is based on an assumption that every time, [n/2 + 1]
+    of the total nodes work normally. In the Raft consensus algorithm, the verifying
+    nodes take the role of follower, candidate and leader. The communication among
+    the nodes is made by messages: RequestVote for voting a leader node, and AppendEntries
+    for transferring the requests to other nodes.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: During execution, the requested transactions from the clients are received by
+    the leader who in turn saves them to a list called log entry. After receiving
+    the request, the leader sends the AppendEntries message to all followers which
+    contains the transaction log along with previous transaction index. For instance,
+    if the leader sends the nth transaction, then he should attach the (n – 1)th transaction
+    details.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chain [[36](#re_TNF-CH004_CIT00036)], a blockchain platform, uses an algorithm
+    called federated which is based on the crash fault-tolerance consensus algorithm.
+    Here there are n nodes in the verifying network; among them there are two nodes
+    called the block generator and block signers. The transactions received from the
+    clients are verified by the block generator and the valid one is saved in a temporary
+    list. The block generator considers some requested transactions sequentially and
+    puts them into the blocks and circulates to all block signers. The blocks received
+    by the signers are verified, and the valid blocks are signed and sent back to
+    the block generator. If a block is signed by a majority of block signers, then
+    it is considered as a trustworthy block and the same is appended to the chain
+    maintained by the block generator. Since more than one block signer acknowledges
+    the block, if there exists any crash then the chain could resist the crash fault.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[4.5 Conclusions](chapter4.xhtml#re_ch-4-sec-19)'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: This chapter provides a survey of some consensus algorithms applicable in blockchain.
+    The algorithms are categorized into two types, namely, proof-based algorithms
+    and vote-based algorithms. In the proof-based algorithms, the nodes have to prove
+    its majority to append the blocks which it requires. In the vote-based algorithm,
+    an agreement is made among nodes regarding the blocks to be appended to the ledger.
+    The applications of these two types of algorithms are discussed elaborately in
+    the chapter.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[References](chapter4.xhtml#re_b-9781000175257-bib3)'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[1](#TNF-CH004_CIT00001). S. Haber and W. S. Stornetta, “How to time-stamp
+    a digital document,” Journal of Cryptology, vol. 3, no. 2, pp. 99–111, 1991.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[2](#TNF-CH004_CIT00002). S. Nakamoto, “Bitcoin: a peer-to-peer electronic
+    cash system,” 2008 [Online]. Available: [https://bitcoin.org/](https://bitcoin.org)
+    bitcoin.pdf.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[3](#TNF-CH004_CIT00003). Bitcoinwiki, “Genesis block,” 2017 [Online]. Available:
+    [https://en.bitcoin.it/wiki/Genesis_block](https://en.bitcoin.it).'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[4](#TNF-CH004_CIT00004). E. Robert, “Digital signatures,” 2017 [Online]. Available:
+    [http://cs.stanford.edu/people/eroberts/courses/](http://cs.stanford.edu) soco/projects/public-key-cryptography/dig_sig.html.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[5](#TNF-CH004_CIT00005). S. Nakamoto, “Bitcoin: a peer-to-peer electronic
+    cash system (white paper),” 2008\. [Online]. Available: [https://bitcoin.org/bitcoin.pdf](https://bitcoin.org).'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[6](#TNF-CH004_CIT00006). R. Greenfield, “Vulnerability: proof of work vs.
+    proof of stake,” 27/08/2017\. [Online]. Available: [https://medium.com/@robertgreenfieldiv](https://medium.com)/vulnerabilit
+    y-proof-of-work-vs-proof-of-stake-f0c44807d18c.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[7](#TNF-CH004_CIT00007). J. Poon and T. Dryja, “The Bitcoin lightning network:
+    scalable off-chain instant payments,” 26/01/2016\. [Online]. Available: [https://lightning.network/lightning-networkpaper.pdf](https://lightning.network).'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[8](#TNF-CH004_CIT00008). Bitcoinj Community, “Working with micropayment channels,”
+    [Online]. Available: [https://bitcoinj.github.io/](https://bitcoinj.github.io).'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[9](#TNF-CH004_CIT00009). Gmaxwell, “Zero knowledge contingent payment,” 02/2016\.
+    [Online]. Available: [https://en.bitcoin.it/wiki/Zero_Knowledge_Contingen](https://en.bitcoin.it)
+    t_Payment.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[10](#TNF-CH004_CIT00010). M. Rosenfeld, “What are multi-signature transactions?”
+    18/05/2012\. [Online]. Available: [https://bitcoin.stackexchange.com/questions/3718/wh](https://bitcoin.stackexchange.com)
+    at-are-multi-signature-transactions.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[11](#TNF-CH004_CIT00011). Belcher, “Multisignature,” 12/2018\. [Online]. Available:
+    [https://en.bitcoin.it/wiki/Multisignature](https://en.bitcoin.it).'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[12](#TNF-CH004_CIT00012). Litecoin Project Community, “About LiteCoin,” 2018\.
+    [Online]. Available: [https://litecoin.org/](https://litecoin.org).'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[13](#TNF-CH004_CIT00013). J. Ray, “Ethereum (Whitepaper),” 26/05/2018\. [Online].
+    Available: [https://github.com/ethereum/wiki/wiki/White-Paper](https://github.com).'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[14](#TNF-CH004_CIT00014). L. Chen, L. Xu, N. Shah, W. Shi, Z. Gao and Y. Lu,
+    “Security analysis of Proof-of-Elapsed-Time (PoET),” In SSS 2017, Boston, MA,
+    2017.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[15](#TNF-CH004_CIT00015). M. Brandenburger, C. Cachin, M. Lorenz and R. Kapitza,
+    “Rollback and forking detection for trusted execution environments using lightweight
+    collective memory,” In Conference: 2017 47th Annual IEEE/IFIP International Conference
+    on Dependable Systems and Networks (DSN), 2017.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[16](#TNF-CH004_CIT00016). K. Olson, M. Bowman, J. Mitchell, S. Amundson, D.
+    Middleton and C. Montgomery, “Hyperledger Sawtooth (whitepaper),” 01/2018\. [Online].
+    Available: [https://www.hyperledger.org/wpcontent/uploads/2018/01/Hyperledger_Sawtooth_Wh](https://www.hyperledger.org)
+    itePaper.pdf.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[17](#TNF-CH004_CIT00017). M. Milutinovic, W. He, H. Wu and M. Kanwal, “Proof
+    of luck: an efficient blockchain consensus protocol,” In Middleware Conference,
+    Italy, 2016.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[18](#TNF-CH004_CIT00018). S. Dziembowski, S. Faust, V. Kolmogorov and K. Pietrzak,
+    “Proof of space,” In International Association for Cryptologic Research (IACR),
+    2013.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[19](#TNF-CH004_CIT00019). gmaxwell, “Proof of Storage to make distributed
+    resource consumption costly,” 10/2013\. [Online]. Available: [https://bitcointalk.org/index.php?topic=310323.0](https://bitcointalk.org).'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[20](#TNF-CH004_CIT00020). P. Andrew, “What is proof of capacity? An eco-friendly
+    mining solution,” 31/01/2018\. [Online]. Available: [https://coincentral.com/what-is-proof-ofcapacity/](https://coincentral.com).'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[21](#TNF-CH004_CIT00021). S. Gauld, F. V. Ancoina and R. Stadler, “The burst
+    Dymaxion,” 27/12/2017\. [Online]. Available: [https://www.burst-coin.org/wpcontent/uploads/2017/07/The-Burst-Dymaxion-1.00.pdf](https://www.burst-coin.org).'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[22](#TNF-CH004_CIT00022). P. Andrew, “What is Burstcoin?” 31/01/2018\. [Online].
+    Available: [https://coincentral.com/what-isburstcoin-beginners-guide/](https://coincentral.com).'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[23](#TNF-CH004_CIT00023). W. L. Heimerdinger and C. B. Weinstock, “A conceptual
+    framework for system fault tolerance,” Defense Technical Information Center, Technical
+    Report CMU/SEI-92-TR-033, 1992.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[24](#TNF-CH004_CIT00024). L. Lamport, “Paxos made simple,” ACM SIGACT News,
+    vol. 32, no. 4, pp. 18–25, 2014.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[25](#TNF-CH004_CIT00025). L. Lamport, R. Shostak and M, Pease, “The Byzantine
+    generals problem,” ACM Transactions on Programming Languages and Systems, vol.
+    4, no. 3, pp. 382–401, 1982.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[26](#TNF-CH004_CIT00026). Hyperledger [Online]. Available: [http://hyperledger.org/](http://hyperledger.org).'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[27](#TNF-CH004_CIT00027). Hyperledger fabric [Online]. Available: [https://github.com/hyperledger/fabric](https://github.com).'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[28](#TNF-CH004_CIT00028). M. Castro and B. Liskov, “Practical Byzantine fault
+    tolerance,” In Proceedings of the Third Symposium on Operating Systems Design
+    and Implementation, New Orleans, LA, 1999, pp. 173–186.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[29](#TNF-CH004_CIT00029). C. Cachin, “Architecture of the hyperledger blockchain
+    fabric,” In Proceedings of ACM Workshop on Distributed Cryptocurrencies and Consensus
+    Ledgers, Chicago, IL, 2016.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[30](#TNF-CH004_CIT00030). Symbiont [Online]. Available: [https://symbiont.io/](https://symbiont.io).'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[31](#TNF-CH004_CIT00031). Corda [Online]. Available: [https://www.corda.net/](https://www.corda.net).'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[32](#TNF-CH004_CIT00032). Bessani, J. Sousaand E. E. P. Alchieri, “State machine
+    replication for the masses with BFT-SMART,” In Proceedings of 2014 44th Annual
+    IEEE/IFIP International Conference on Dependable Systems and Networks, Atlanta,
+    GA, 2014, pp. 355–362.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[33](#TNF-CH004_CIT00033). L. Lamport, “Paxos made simple,” ACM SIGACT News,
+    vol. 32, no. 4, pp. 18–25, 2014.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[34](#TNF-CH004_CIT00034). D. Ongaro and J. K. Ousterhout, “In search of an
+    understandable consensus algorithm,” In Proceedings of 2014 USENIX Annual Technical
+    Conference, Philadelphia, PA, 2014, pp. 305–319.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[35](#TNF-CH004_CIT00035). Raft-based consensus for Ethereum/Quorum [Online].
+    Available: [https://github.com/jpmorganchase/](https://github.com) quorum/blob/master/raft/doc.md.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[36](#TNF-CH004_CIT00036). Federated Consensus [Online]. Available: [https://chain.com/docs/1.2/protocol/papers/federated-consensus](https://chain.com).'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
