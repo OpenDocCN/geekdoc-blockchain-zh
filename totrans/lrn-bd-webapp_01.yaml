@@ -1,0 +1,725 @@
+- en: © Santiago Palladino 2019S. PalladinoEthereum for Web Developers[https://doi.org/10.1007/978-1-4842-5278-9_1](https://doi.org/10.1007/978-1-4842-5278-9_1)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 1. Blockchains
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Santiago Palladino^([1](#Aff2) )(1)Ciudad Autónoma de Buenos Aires, Argentina
+  prefs: []
+  type: TYPE_NORMAL
+- en: We will begin our journey with a brief introduction to Ethereum and blockchain
+    technology in general, starting with Bitcoin. We will explain what makes a blockchain
+    and when it makes sense to use one. We will also cover some cryptography basics
+    before we start and later provide an overview of decentralized application development
+    before we implement our first one in Chapter [2](476252_1_En_2_Chapter.xhtml).
+  prefs: []
+  type: TYPE_NORMAL
+- en: A Refresher on Cryptography
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Before we go into blockchains, we will go over two cryptography concepts that
+    are key building blocks in most blockchains: hashes and public key cryptography.
+    Feel free to skip this section if you are already familiar with them.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Hash Functions
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: A *cryptographic hash function* is a pure deterministic function that maps inputs
+    from a large space to outputs in a fixed set. These outputs are usually called
+    the *digest* of the input. For instance, the input could be the entire text of
+    the prologue of this book, and its digest could be the hexadecimal 01cc88cda97d50346743ae58bb3ebe75
+    from the space of 128-bit values.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Without going into formalisms, a secure hash function should be *collision
+    resistant*. This means that it should be practically impossible to find out two
+    different inputs that yield the same digest. Hash functions should also be *non-invertible*:
+    given only the digest, it should be practically impossible to find out an input
+    that yields that digest. Also, a small change to the input should yield a large
+    change to the output digest – two similar inputs should have very different digests.
+    Hash functions should also be relatively fast to calculate from their input, so
+    verifying that an input matches with its digest is an easy task.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Hash functions are at the core of maintaining a blockchain’s integrity and also
+    form the basis for the proof-of-work consensus mechanism. We will see both uses
+    in a few pages.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Public Key Cryptography
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '*Public key* or *asymmetric cryptography* is an encryption system that relies
+    on pairs of keys: a private key, known only to its owner, and a corresponding
+    public key, shared with the world. A string encrypted with the public key can
+    only be decrypted with the private key. Anyone who wants to send a secret message
+    to a user can use the recipient’s public key to encrypt it, knowing that only
+    the holder of the private key can decrypt it.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Key pairs can also be used inversely as *digital signatures*. A user can send
+    a message, along with its digest encrypted with his private key. Any recipient
+    can then use the public key to verify that the digest was signed by the owner
+    of the private key.
+  prefs: []
+  type: TYPE_NORMAL
+- en: These signatures are the authentication mechanism in public blockchains. Every
+    public key has an associated private key that should be kept secure by its owner
+    and grants access to the owned assets in the blockchain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Public key cryptography can be implemented via many different algorithms, one
+    of the most popular ones being Rivest–Shamir–Adleman (better known as RSA). Ethereum,
+    however, relies on an Elliptic Curve Digital Signature Algorithm, or ECDSA. This
+    algorithm also allows to *recover* the public key, given a message and its signature.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Armed with these two cryptography concepts, we can now finally get started and
+    take on how a blockchain is built.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Blockchain 101
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'A blockchain is a decentralized indelible public digital ledger. We can think
+    of a blockchain as a distributed database, where, once a record has been confirmed,
+    it can never be removed or altered and where no single authority has control over
+    this database, which is replicated across all nodes in a peer-to-peer network.
+    What is actually stored in this database may vary: it could be a currency, a registry
+    of assets, or even executable code.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Transactions and Blocks
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: In a blockchain, every state change is part of a *transaction*. Think of a transaction
+    as an atomic write operation from a user in the global database that may alter
+    one or more records. Any user in the network can submit a transaction to be executed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'How transactions are processed is part of the blockchain *state transition
+    rules*. The blockchain transitions from one state to another by processing each
+    transaction it receives. For instance, a blockchain that manages a currency may
+    process transactions as transfers of its currency between two accounts: it reduces
+    the sender’s balance and increases the recipient’s by the same amount. Other blockchains
+    even allow transactions to create and execute full programs on the chain.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: When a user sends a transaction, they must cryptographically *sign* it with
+    their private key. This way, the blockchain can enforce that only a specific user
+    can move a certain asset or alter a certain record. This introduces a notion of
+    *ownership* by the holder of a key.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Public blockchains do not require their users to sign up. They can just create
+    a new key pair to start signing transactions to participate in the network. However,
+    they may require their users to have a currency associated to the blockchain for
+    their transactions to be processed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Transactions are batched together in *blocks*, which are then chained together
+    to form the actual blockchain. The blocks constitute the history of the blockchain,
+    each of them packing a set of transactions that change its state. How transactions
+    are chosen and ordered in each block depends on the blockchain *consensus rules*,
+    which we will see in a few pages.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'When a block is added to the blockchain, it is propagated through the peer-to-peer
+    network to all nodes. Each node will re-execute all transactions in the block
+    locally in order to check if they are indeed valid, rejecting the block if they
+    notice any illegal change. This means that each transaction is actually executed
+    once per every single node in the entire network. This allows the blockchain to
+    be completely decentralized, since each node checks all transactions that are
+    run. However, it comes at a cost: the computational overhead imposes a cap on
+    the number of transactions that can be processed per second by the network. In
+    other words, performance is traded in exchange for decentralization.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Given this high cost of processing a change in a blockchain, all transactions
+    require a *fee* to be paid. This fee is usually paid in a currency native to the
+    blockchain (such as bitcoin in the Bitcoin network^([1](#Fn1)) or ether in Ethereum).
+    Regardless of who is the beneficiary of this fee, which we will see in a few pages,
+    the goal of the fee is to prevent attackers from flooding the network with transactions
+    that need to be processed by every single node, and to provide an incentive to
+    the nodes that add new blocks to the chain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chain of Hashes
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Blockchains are resistant to changes by keeping a *digest* of their entire history
+    on every block. Each block in the chain is identified by a hash computed over
+    its own transactions, as well as over the hash of the previous block (Figure [1-1](#Fig1)).![../images/476252_1_En_1_Chapter/476252_1_En_1_Fig1_HTML.png](../images/476252_1_En_1_Chapter/476252_1_En_1_Fig1_HTML.png)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 1-1
+  prefs: []
+  type: TYPE_NORMAL
+- en: How a blockchain is constructed. Each block is identified by a hash of the previous
+    block, plus all its own transactions. We will see the role of the nonce in the
+    next section. Image from the Bitcoin paper ^([2](#Fn2))
+  prefs: []
+  type: TYPE_NORMAL
+- en: With this scheme, any change on any transaction on any block in the chain will
+    cause all subsequent hashes to change, making any modification trivial to detect.
+    For instance, if an attacker tried to alter a transaction that happened ten blocks
+    ago, not only the digest of that block would change but also that of the next
+    block (since it is calculated based on the previous block hash) and so forth until
+    the head of the chain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, for this mechanism to be useful to prevent an attacker from modifying
+    the blockchain and distributing a spurious copy in the network, it must be *difficult*
+    for the attacker to regenerate all blocks. That’s where the proof-of-work comes
+    in.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Reaching Consensus
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: How the transactions are ordered and included in the blockchain’s blocks will
+    depend on the *consensus algorithm* of the network. Since we are dealing with
+    a decentralized database, we need a way for all actors to agree on how changes
+    are added to the chain. For instance, if a seller is offering an asset on the
+    blockchain and two buyers rush to purchase it, how can a decentralized network
+    decide who got first? Even worse, how do we prevent the seller from telling both
+    buyers that they made the purchase and cash in twice?^([3](#Fn3)) We need a way
+    to determine how transactions are chosen and ordered in order to have a single
+    state of the blockchain. In other words, we need a way to establish a *consensus*
+    on which blocks are added to the chain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Many public blockchains like Bitcoin or Ethereum rely on a consensus algorithm
+    known as *proof-of-work*. A proof-of-work is a cryptographic proof that a significant
+    amount of CPU cycles were spent performing a computation; in this case, computing
+    a difficult number based on a block. In order for a block to be added to the blockchain,
+    it must be accompanied by its proof-of-work. Any node can propose a new block
+    and, if they submit it with its proof-of-work, it gets added to the blockchain.
+    The node that gets to add a block receives a reward in return for their effort.^([4](#Fn4))
+    Nodes that fulfill this role in the network are called *miners* *,*^([5](#Fn5))
+    and whenever a new block is added, they all race to try and add the next to capture
+    the corresponding reward.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The mechanism for these proofs is actually quite simple. The identifier for
+    every block in the chain is a hash that includes the identifier of the previous
+    block, all transactions in the block, and a *nonce*. By changing the nonce, the
+    calculated block’s digest will be completely different. In order to add a new
+    block to the chain, this identifier must have a certain structure (begin with
+    N zeros). Since it is not possible to predict what a digest will look like, a
+    miner can only try calculating the block hash repeatedly while changing the nonce
+    until he hits a digest that matches the requirements. This requires many attempts
+    and is hence considered a proof-of-work.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Remember that the entire infrastructure runs over a peer-to-peer decentralized
+    network. This allows nodes to join and leave the network as they wish without
+    requiring a centralized server. Here, the proof-of-work algorithm provides a way
+    for new nodes to know which is the actual chain: they just need to look for the
+    chain with the largest accumulated computing power invested.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This also prevents a malicious actor from just altering a record on the chain
+    and recomputing all subsequent block hashes, as we were discussing in the previous
+    section. In order to do this, the attacker would need to solve all proof-of-works
+    from the block he changed onward, which requires more computing power than the
+    rest of the miners in the network.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: There are other mechanisms for consensus besides proof-of-work. In Chapter [8](476252_1_En_8_Chapter.xhtml),
+    we will review with proof-of-authority and proof-of-stake as alternatives for
+    building faster and smaller chains.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The consensus algorithm is closely tied to the *finality* of the network. We
+    say a transaction is *final* when we know it has been included in the blockchain
+    and will not change. A transaction added in the most recent block is far from
+    being considered final: if a miner manages to mine two blocks on a row starting
+    from the next to last, they may generate a new chain that replaces the latest
+    block and does not include that transaction.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is called a *reorganization* , and it is not uncommon in proof-of-work
+    chains. To know that a transaction is final, we need to wait for several blocks
+    to be mined on top of the one in which it was included, to ensure it will not
+    change. The number of blocks will depend on the particular chain and how much
+    confidence we need.
+  prefs: []
+  type: TYPE_NORMAL
+- en: On Throughput
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Solving a proof-of-work is computationally expensive by design. This by itself
+    enforces a limit on the throughput of a blockchain, by forcing to solve a difficult
+    puzzle every time a batch of transactions is to be added.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'However, there is another reason for limiting the number and complexity of
+    transactions per second added to the chain: verifiability. In order to keep the
+    blockchain decentralized, every node in the network needs to be able to verify
+    that every transaction was legitimate and was carried out according to the established
+    rules. If the network accepts a very large number of transactions per second,
+    then only powerful devices would be able to verify the chain, leaving out of the
+    network to any user that cannot access the necessary hardware. Thus, low throughput
+    is related to guaranteeing public access to the blockchain.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In particular, Ethereum is designed to handle about 15 transactions per second.
+    Note that transactions can be more or less complex in Ethereum, since they may
+    execute arbitrary computations, so this cap is actually related to how much effort
+    is required to run and verify each of block’s transactions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note that these few transactions per second are shared among all users and applications
+    in the network, which is a very low limit even for a single traditional web application.
+    We will see some approaches around this limitation in Chapter [8](476252_1_En_8_Chapter.xhtml).
+  prefs: []
+  type: TYPE_NORMAL
+- en: From Bitcoin to Ethereum
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: We have so far defined a blockchain as a public database, but we have not gone
+    into *what* that database may contain. The first famous blockchain is used to
+    track ownership of a digital currency, the bitcoin.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Most of what we understand as a blockchain today was introduced in 2008 by
+    Satoshi Nakamoto^([6](#Fn6)) in his “Bitcoin: A Peer-to-Peer Electronic Cash System”
+    paper.^([7](#Fn7)) The paper is short and easy to read, and it packs most of the
+    blockchain concepts used today. It introduces a “purely peer-to-peer version of
+    electronic cash”, without any centralized owner or issuer.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: All in all, the Bitcoin blockchain is a public decentralized database that keeps
+    track of the balance in bitcoin of its users and supports transactions for moving
+    funds from one address to another. It is an implementation of a decentralized
+    electronic payments platform.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It’s worth mentioning that, besides plain transfers, Bitcoin also supports a
+    limited scripting language. This language allows for constructs such as timelocks,
+    which restrict a transfer from being executed until a certain time in the future,
+    or multisignature transactions, which require multiple accounts to be in agreement
+    to move an asset. However, what can be built with this language is still limited.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It is with the goal to support arbitrary computation in the network that Ethereum
+    came up.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Smart Contracts
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Ethereum was introduced by Vitalik Buterin in 2013, and first launched in 2015.^([8](#Fn8))
+    Its main differentiator was the concept of arbitrary code that could be executed
+    in the blockchain in the form of smart contracts. A smart contract is a short
+    program uploaded to the blockchain, which can react to transactions sent to it
+    by executing arbitrary logic. Each smart contract has its own arbitrary state
+    as well, which can be updated on any transaction and can keep any data whatsoever.
+    And of course, a smart contract can also hold ETH, the native currency of the
+    Ethereum network.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In other words, the Ethereum network holds both a digital currency (the ether)
+    and executable code (the smart contracts) with their own state.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This flexibility allows Ethereum to implement many different constructs. For
+    instance, a whole new coin can be easily implemented as a smart contract. The
+    contract only needs to keep track of the balance of each user, and provide methods
+    for securely transferring them. This allows new cryptocurrencies to be created
+    on top of Ethereum with little effort.^([9](#Fn9))
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, remember that all transactions are re-executed by all nodes in the
+    network in order to be verified. This means that, while smart contracts may execute
+    arbitrary code, this code must be *deterministic*. It must always yield the same
+    result, no matter when or where it is run. It also cannot depend on any sources
+    external to the blockchain; otherwise, the validity of the blockchain becomes
+    dependent on those external sources. A smart contract may only query or interact
+    with other smart contracts within the Ethereum network.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Gas Fees
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Allowing any user to send a transaction with arbitrary code that will be executed
+    on every single node in the network is potentially dangerous. A malicious user
+    could submit a piece of code extremely expensive to execute or one that never
+    finishes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To guard against this, Ethereum introduces a concept called *gas*. Think of
+    gas  as the measure of the computing power required to process a transaction.
+    In a transaction, complex operations will consume more gas than simpler ones.
+    For instance, altering the storage of the contract is much more expensive than
+    a simple arithmetic expression.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A transaction sent to the network requires a gas allocation in order to be sent.
+    This gas is paid for using ETH. Every line of code executed by the transaction
+    consumes a bit of its gas, and if it drops to zero, the processing is immediately
+    stopped, and the transaction fails. Nevertheless, its sender is still charged
+    for the hassle of processing such a long-running process.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The sender of a transaction can also set the gas price, indicating that they
+    are willing to pay more (or less) than other users for the execution of their
+    transaction. This is a way to get their transaction included in the blockchain
+    faster (or cheaper) than other users, by making it more (or less) attractive to
+    miners.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Decentralized Applications
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Smart contracts allow the building of *decentralized applications*, which will
+    be our main focus throughout this book. Decentralized applications, or DApps,
+    are client-side single-page web applications backed not by a server, but by a
+    set of smart contracts on the blockchain. Instead of sending HTTP requests to
+    a web server, users of the application send transactions to a smart contract on
+    the Ethereum network. It is even possible to host the web application itself on
+    a decentralized file storage system,^([10](#Fn10)) making the application completely
+    independent of any centralized infrastructure.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Instead of querying data from a centralized data store, decentralized applications
+    use the blockchain as the source of truth. Data used to populate the app is either
+    stored on the blockchain or on a remote storage location that is referred to from
+    the blockchain. Likewise, the business logic of the application is encoded in
+    a set of smart contracts. Users perform persistent actions on the app by sending
+    transactions to its smart contracts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: User Experience
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: How does a DApp look and feel to a user? Some DApps will favor decentralization
+    over ease of use and require users to access them with a specialized browser or
+    browser extension. These extensions act as wallets, holding the user’s keys, and
+    also as a gateway to the blockchain by providing a connection to an Ethereum node.
+    Under the hood, they inject a javascript object that provides low-level methods
+    for accessing blockchain data and sending transactions on behalf of the user.
+    Whenever the application requests to send a transaction, the user is presented
+    with a pop-up to approve it. This moves much complexity from the DApp onto the
+    extension, but also requires a large effort from the user to get set up, by installing
+    the extension, creating and backing up an account, and purchasing ETH to begin
+    operating. We will use this approach to build our first DApp in Chapter [2](476252_1_En_2_Chapter.xhtml)
+    and revisit it more in-depth in Chapter [5](476252_1_En_5_Chapter.xhtml) as we
+    see the details of sending transactions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Other DApps have a more user-friendly approach, managing the keys on behalf
+    of the user. It’s even possible for a user to be using a DApp without even noticing,
+    if all its complexity is handled behind the scenes. However, this also means that
+    the user is no longer in control of their own keys, but delegates this on the
+    app. Also, if each app manages its own set of keys, interoperability is much more
+    difficult, since the user will have a different identity on each service. We will
+    explore user-friendly approaches, along with the challenges they pose, in Chapter
+    [6](476252_1_En_6_Chapter.xhtml). All in all, good apps offer different experiences
+    to different users, depending on how familiar they are with Ethereum.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Regardless of key management, all DApps need to account for the long confirmation
+    times of the network. In traditional web apps, an action in the form of an HTTP
+    request takes a few milliseconds to get to the web server and back. However, in
+    Ethereum, a transaction may take several seconds to be mined, and even more to
+    be confirmed. DApps need to take this into account when designing their interfaces
+    and be prepared to handle reorganizations as well. We will learn more about these
+    challenges in Chapters [4](476252_1_En_4_Chapter.xhtml) and mostly 5.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Degrees of Decentralization
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: 'As we mentioned, a DApp can be fully decentralized: it can be hosted on a decentralized
+    storage location, load its data from the blockchain, and rely on smart contracts
+    for any business logic. Once launched, there is no centralized party that can
+    stop or alter the application and no service that could go down preventing access
+    to it. These applications are even resistant to censorship by any agent.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, this comes at a cost. Decentralized storage may be slow or occasionally
+    unavailable if there are not enough replicas of the content. Running queries on
+    the Ethereum network can be too slow for some use cases. And in some scenarios,
+    even the hurdle of setting up an Ethereum account can be a show-stopper for our
+    users. Fortunately, we can trade in some degrees of decentralization in exchange
+    for improving the user experience.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For instance, instead of loading data from the blockchain itself, we can set
+    up a centralized server that acts as a cache, providing much faster access to
+    the data we need on the client. The web application can still fall back to the
+    chain itself if this server goes down or even validate the data it provides against
+    the blockchain when needed for a critical operation. We will explore these solutions
+    in Chapter [6](476252_1_En_6_Chapter.xhtml).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Another example is relaying our users’ transactions to the network, so they
+    do not need to set up an account, purchase ETH to pay for gas fees, or even interact
+    with the Ethereum network at all. We can create an ephemeral key for the client-side
+    and use it to sign transactions that we submit to the blockchain on their behalf
+    from a dedicated server. This alleviates many of the pains around user onboarding.
+    We will explore this and other alternatives in Chapter [8](476252_1_En_8_Chapter.xhtml).
+  prefs: []
+  type: TYPE_NORMAL
+- en: We can even build fully centralized applications that interact with a decentralized
+    protocol powered by smart contracts on the Ethereum blockchain. The value of the
+    blockchain here is not on the application layer, but on the protocol. By managing
+    our users’ assets on a decentralized layer, we guarantee that their data is safe,
+    and they can at any time transparently migrate to another application on top of
+    the same trustless^([11](#Fn11)) protocol.
+  prefs: []
+  type: TYPE_NORMAL
+- en: All in all, the takeaway is that decentralization is not all or nothing. We
+    can and have to choose the appropriate degree of decentralization to implement
+    in our applications, knowing that it comes at a trade-off with its ease of use.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Why Blockchain?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The first question you should ask yourself when implementing a blockchain-based
+    system is *whether you actually need a blockchain.*^([12](#Fn12))
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'It is easy in technology to get carried away by hype cycles: you may be using
+    a Kubernetes cluster to horizontally scale the load over your web application
+    that would perfectly run on a single box, or you may be using state-of-the-art
+    machine learning algorithms to infer trends from your dataset with less than 100
+    entries that would better be visualized in an Excel spreadsheet. Millions have
+    been spent in developing native mobile apps for presenting static info, since
+    it was cooler than *just* a plain responsive web site.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Blockchain is no exception to hype, with the aggravating factor that it can
+    be used as an instrument for financial speculators as well. Always remember that
+    just because you have a shiny new hammer on your hands, not everything becomes
+    a nail. You should not try to hammer a blockchain into every system, but rather
+    design a solution and then consider whether it would actually benefit from a blockchain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Advantages and Use Cases
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: After the preceding disclaimer, we can now focus on where blockchains do shine
+    and some suitable use cases for public blockchains or Ethereum in particular.^([13](#Fn13))
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Decentralized finance* is one of the most popular use cases.^([14](#Fn14))
+    The first blockchain, Bitcoin, was built as a decentralized payments platform,
+    but financial applications of a blockchain can go much further. Smart contracts
+    can be used to support many kinds of financial workflows, such as decentralized
+    exchanges, derivatives, margin trading, insurance, credits, lending, investing,
+    prediction markets, and so on. These artifacts traditionally required users to
+    place their trust and their assets in a centralized institution – this increased
+    the barrier of entry, and the institution often took a hefty fee for their services.
+    Now, a smart contract in a public auditable blockchain can act as the institution
+    supporting these financial services, acting on cryptocurrencies within the chain.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In general, blockchains shine in scenarios where there was a need for a *trusted
+    third party* , since they act as a credible neutral platform for several participants
+    to interact securely. This holds not just on financial applications but also whenever
+    there is a need to publicly verify the transparency of a process. For instance,
+    in an online auction, it is possible to verify that bids from all participants
+    are processed by having them submitted (encrypted) to the blockchain. If a participant
+    sees that their bid was not considered, they can just show proof of their bid
+    on the blockchain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'By removing the need for a trusted third party, smart contracts can be used
+    to create trustless *platforms* or *protocols.* Instead of building on top of
+    a proprietary layer, where the rules of the game may be changed unilaterally by
+    the owner, you could build on top of a decentralized platform. A good example
+    is a marketplace: traditional big companies that operate application and services
+    marketplaces can alter their terms and conditions (and their cut!) at any time.
+    On the other hand, a marketplace coordinated by a smart contract is immutable
+    and run by no one but the blockchain itself.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Blockchains can also be used to prove existence of a piece of data.^([15](#Fn15))
+    By submitting a signed digest of a document to the blockchain, anyone can then
+    prove that certain data was published by a certain date. But, more interestingly,
+    blockchains also allow to verify that a certain piece of data was *not* published.
+    For instance, if a blockchain is used to store certificate revocations, then anyone
+    can easily prove that a certificate was *not* revoked by just showing that the
+    revocation was never uploaded to the chain, which acts as a neutral global database.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Another advantage of a blockchain is that of *permanence* . If you, as a user,
+    hold something of value on a digital system and the maintainer of such system
+    disappears, along goes your stuff. This can be true not just for currencies but
+    also for digital assets, such as collectibles or online achievements. Having digital
+    assets registered on a blockchain guarantees that they are maintained independently
+    of the organization that created them. It can even enable trading of those assets
+    across the boundaries of the system where it was originally created.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Some groups are also exploring new governance mechanisms by building *decentralized
+    autonomous organizations* (DAOs) on Ethereum. In a DAO, a set of participants
+    hold some form of voting power and can submit proposals which are then decided
+    via a mechanism coded into the DAO smart contract.^([16](#Fn16)) The blockchain
+    ensures the absolute transparency of the process and allows for rapidly experimenting
+    with new ways of organizing groups around a common purpose.
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, for all the advantages that come from a public blockchain, there are
+    also major limitations imposed on what can be built.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Limitations
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'One of the major limitations imposed by a public blockchain, as we already
+    mentioned, is *transaction throughput* . Processing a dozen transactions per second
+    is often not enough for a single application, much less for all applications built
+    on the same chain to share. This is, however, the cost of decentralization. As
+    Vitalik Buterin himself puts it: “Blockchains are NOT about cutting computational
+    costs (at least relative to centralized servers). Blockchains are about incurring
+    a sacrifice in the form of increased computational costs to achieve a decrease
+    in social costs.”^([17](#Fn17))'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Nevertheless, there is much work toward scaling public blockchains. If a dozen
+    transactions per second is too few to share among all applications in a blockchain,
+    then we can build more blockchains and interconnect them. Or we can process batches
+    of transactions outside the blockchain and then settle them all together in a
+    single transaction. We will explore more about these approaches in Chapter [8](476252_1_En_8_Chapter.xhtml),
+    regarding scaling.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Another major challenge for blockchains is that of *user onboarding* . While
+    decentralization offers many benefits in terms of decreasing social costs, removing
+    third parties, and providing privacy, it also makes approaching the platform more
+    difficult. There is no central authority to hold your hand as you jump onto the
+    platform and no one to ask for your help if you misplaced your private keys and
+    lost all your funds. Furthermore, in order to interact with the Ethereum network,
+    you first need to have ether in your possession, not to mention a wallet to hold
+    them, which makes the setup process longer and more cumbersome than most users
+    are willing to accept.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Onboarding  is being tackled as one of the major pain points in the usage of
+    cryptocurrencies in applications, with many companies offering centralized solutions
+    or acting as custodians for end users’ assets. Decentralized applications are
+    also experimenting with smoother user onboarding flows, so users do not fall out
+    of the funnel when asked to download a dedicated browser extension to interact
+    with the app. We will go through many of these techniques to ease user onboarding
+    in Chapter [7](476252_1_En_7_Chapter.xhtml).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note that the limitations and use cases we have defined so far apply to blockchains
+    that are public in nature, that is, networks where any participant can join to
+    verify history, submit transactions, query the current data, or even act as a
+    miner. However, there is another set of blockchains we have not explored so far.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Non-public Blockchains
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: When we first defined a blockchain, we described it as a *public* digital ledger.
+    However, ever since Bitcoin appeared, there has been extensive work on *permissioned*
+    blockchains, which challenge our preceding definition by removing the public nature
+    of the chain. These blockchains limit which nodes are allowed to join the network
+    or which are allowed to act as miners or send transactions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For instance, a growing pattern in the enterprise world is that of *federated*
+    or *consortium* blockchains. These blockchains are managed by a group (consortium)
+    of different institutions. Each member of the consortium controls a node in the
+    network that acts as a whitelisted *validator* node and participates in a vote-based
+    consensus algorithm for adding new blocks.^([18](#Fn18)) This removes the need
+    of a proof-of-work, since consensus is reached by voting among a predefined set
+    of nodes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: These permissioned blockchains may also limit not only the nodes that act as
+    miners but also which nodes join the network and are able to verify the transactions,
+    or which accounts are able to submit transactions for processing.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Some companies are taking this one step further and go with fully *private blockchains*,
+    which are internal to the company, and only a single node has the permission to
+    add new blocks. These chains are used mostly for auditability and tracing purposes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: These changes allow federated blockchains to have a much higher transaction
+    throughput than public blockchains. Also, by restricting the set of nodes that
+    can participate in the network, they are automatically protected against spam,
+    and can drop the requirement of paying for transaction fees.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This allows permissioned blockchains to cater for a different set of use cases.
+    For instance, federated chains are often used to settle global transactions among
+    the different companies that form the consortium, without the restrictions on
+    the number of transactions per second imposed by public blockchains. Here, the
+    value of the blockchain lies in its auditability, and in removing the need of
+    a *single* trusted party to hold the data shared among the consortium.
+  prefs: []
+  type: TYPE_NORMAL
+- en: While there are some disagreements on whether these permissioned chains can
+    be considered *true blockchains* or not, the fact is that blockchain technology
+    is making its way to the enterprise world. However, throughout this book we will
+    focus on public blockchains only, specifically Ethereum. Nevertheless, much of
+    the learning from public blockchains can be applied to the permissioned space
+    as well.^([19](#Fn19))
+  prefs: []
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Hopefully, this chapter served as an introduction to the world of blockchain
+    and Ethereum. You should now have a basic understanding on what a blockchain is,
+    when it makes sense to use one, and what are its limitations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We introduced basic concepts to which we will constantly return throughout the
+    book, such as smart contracts, transactions, blocks, reorganizations, consensus,
+    and nodes. We went from Bitcoin onto Ethereum and briefly mentioned permissioned
+    blockchains as an alternative to the public chains.
+  prefs: []
+  type: TYPE_NORMAL
+- en: After all this theory, in the next chapter we will go fully hands-on, by implementing
+    our first Ethereum DApp. This will give you a better understanding of the concept
+    of a decentralized application that we presented in this chapter, and we will
+    then go in-depth on its different aspects in the entire book.
+  prefs: []
+  type: TYPE_NORMAL

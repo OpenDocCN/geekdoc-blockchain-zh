@@ -1,0 +1,1732 @@
+- en: © Santiago Palladino 2019S. PalladinoEthereum for Web Developers[https://doi.org/10.1007/978-1-4842-5278-9_3](https://doi.org/10.1007/978-1-4842-5278-9_3)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3. A Crash Course on Smart Contracts
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Santiago Palladino^([1](#Aff2) )(1)Ciudad Autónoma de Buenos Aires, ArgentinaSmart
+    contracts are the key component in Ethereum. They hold the logic to be executed
+    on the network, keep track of their own state, and can interact with other smart
+    contracts as well. However, they have some limitations, such as restricted computation
+    per transaction and expensive storage costs. They also cannot initiate new transactions –
+    they depend on external accounts to trigger them. And since they run on the Ethereum
+    network, they cannot directly interact with anything outside it. In this chapter,
+    we will
+  prefs: []
+  type: TYPE_NORMAL
+- en: Define Ethereum smart contracts, as opposed to externally owned accounts
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Identify the components of a transaction, such as data, gas limit, and price
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Learn how to write a contract in Solidity
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Go through Solidity modifiers, data types, and events
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Review how inheritance works in Solidity
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Present the ERC20 and ERC721 widely used token standards
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: What is a Smart Contract?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The concept of smart contract was coined by Nick Szabo in the 1990s,^([1](#Fn1))
+    referring to self-executing code in a public network that could capture the concept
+    of a real-life contract and enforce it via code.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*The basic idea behind smart contracts is that many kinds of contractual clauses
+    (such as collateral, bonding, delineation of property rights, etc.) can be embedded
+    in the hardware and software we deal with, in such a way as to make breach of
+    contract expensive (if desired, sometimes prohibitively so) for the breacher.*'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: —Nick Szabo
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: In the Ethereum network, a smart contract is represented as code, deployed at
+    an address, with its own state. The code is executed on every transaction sent
+    to it and can perform arbitrary computation, read and write to its own storage,
+    and potentially call other contracts in the network. A smart contract can also
+    hold and transfer ETH, just like any other Ethereum address.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Since smart contracts are powered by code that can execute any computation,
+    they are not actually limited to financial contractual clauses. For instance,
+    they can be used to express different kinds of agreement or consensus, or even
+    governance mechanisms.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A good analogy for a smart contract in software is an *actor*. In the actor
+    model, a system is composed of stand-alone units called actors that receive messages
+    and execute code in response to it, modifying their own internal state and potentially
+    interacting with other actors in the system. Smart contracts can also be thought
+    of as *reducer functions* in functional terms: given a transaction and the contract’s
+    state, the smart contract returns an updated state.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: External Accounts vs. Smart Contracts
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'When a smart contract is deployed on the Ethereum network, it is created at
+    a new *address*. This address acts as an identifier for a smart contract: whenever
+    a user (or another contract) wants to interact with it, they send a *transaction*
+    to that particular address.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Externally owned accounts* (often abbreviated EOAs),  on the other hand, are
+    accounts owned by real-life users – or by any agent outside the network. They
+    are also represented by addresses, which use the exact same format as the ones
+    that identify smart contracts. As such, references to a user or a smart contract
+    are equal in Ethereum: they are just addresses. This allows sending ETH to a recipient,
+    without needing to differentiate whether it is an address backed by a smart contract
+    or managed by an end user.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'However, there are a few differences between smart contract and externally
+    owned accounts that are worth mentioning:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: First and foremost, a smart contract account has *code* that is executed on
+    every transaction. Sending a transaction to an externally owned account does not
+    trigger any execution on the network.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Smart contract accounts cannot initiate transactions. A smart contract can only
+    react to an incoming message, and potentially call into other contracts in the
+    process, but they cannot start a new transaction by themselves. A contract that
+    needs to execute on a timely basis (similar to a cron job) or upon an event (such
+    as balance being moved between certain addresses) needs an EOA to call into it
+    to trigger the operation.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Only externally owned accounts have a corresponding *private key*. Private keys
+    are used for signing new transactions sent to the network as a means of authentication.
+    Smart contracts cannot initiate new transactions, so there is need for them to
+    sign any operation.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: An implication of this last difference is that only externally owned accounts
+    can *sign* arbitrary messages. A private key can be used not only to sign Ethereum
+    transactions but also plain text messages with any information. For example, a
+    user may sign a message attesting his identity (such as “I am spalladino on Github”),
+    and anyone (even a contract) can recover the Ethereum address that corresponds
+    to that signature. This allows them to verify that the owner of that account is
+    who wrote that message.^([2](#Fn2)) The fact that a smart contract does not have
+    a private key means that it is not possible for it to sign a message.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Code and State
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'A smart contract has two main properties: its code and its state. A contract’s
+    state is composed of its ETH balance (since all Ethereum addresses have an associated
+    balance) and its storage (where the value of its variables is persisted).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Code in a smart contract is typically short, since its execution “time” has
+    a tight upper bound, defined by the Ethereum network. The code is run every time
+    a transaction is received by the contract, and has access to the contract’s local
+    storage, and the transaction’s context.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'The code of a smart contract is immutable. This means that once deployed, a
+    smart contract cannot be changed. While this is in line with the original concept
+    of real-life contracts made software, it poses some challenges around development.
+    It makes iterative development particularly difficult, and the contract must also
+    be bug-free before being pushed to the production network. This is why security
+    in smart contracts is such a critical issue: not only are smart contracts sitting
+    in a public network where any attacker can freely interact with them, but if a
+    vulnerability is found, there is no way for the original developer to patch it.
+    If the prospect of this limitation seems daunting, fear not, for there are workarounds^([3](#Fn3))
+    that can be used for upgrading smart contracts even if their code is immutable.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: All Ethereum code is not run natively, but executed by Ethereum nodes on the
+    Ethereum Virtual Machine, or EVM. The EVM executes a low-level stack-based assembly
+    that operates with 32-byte words, typically referred to as *EVM assembly*. This
+    assembly has opcodes for traditional arithmetic and logic operations, basic control
+    flow, and some Ethereum-specific operations such as accessing storage and memory,
+    or querying and managing ETH balance. There are also primitives for computing
+    hashes or working with elliptic curve signatures.^([4](#Fn4)) It is worth mentioning
+    that the EVM has no support for floating-point arithmetic, and all operations
+    are done on 256-bit integers used as fixed point decimals, to minimize the risk
+    of numerical errors.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: At the time of this writing, a second back end based on WebAssembly, named eWASM,
+    is under development, as an alternative environment for executing Ethereum code.
+    Since it is based on existing WebAssembly technology, it will be possible to leverage
+    the toolchain and optimizations already available instead of having to reimplement
+    them from scratch. Ethereum nodes will be expected to accept and execute smart
+    contract code in either format.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The execution model of the EVM is designed to favor simplicity over performance.
+    All transactions are executed in a serial fashion (i.e. one after the other) and
+    always in a single execution thread. This makes reasoning on smart contracts much
+    easier: while a contract is executing a piece of code in response to a transaction,
+    you can be sure that it will not receive a simultaneous transaction that could
+    affect the current thread.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'However, since contracts can call other contracts, the EVM does allow *reentrant
+    calls*.  For instance, if contract A calls contract B, nothing prevents B to call
+    back into A during the same transaction. Reentrancy can be tricky to reason about
+    and has been the source of some major hacks in the ecosystem. The famous DAO hack
+    in 2016, which prompted the chain to fork into Ethereum and Ethereum Classic when
+    it was decided to return the funds to the hacked users, was possible due to a
+    reentrancy bug:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Special care is required in reviews of Ethereum code to make sure that any
+    functions moving value occur after any state updates whatsoever, otherwise these
+    state values will be necessarily vulnerable to reentrancy.*'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: —Phil Daian, “Analysis of the DAO exploit”^([5](#Fn5))
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: As in most platforms, it is rare that you will find yourself coding smart contracts
+    directly in assembly, unless you are working in some particularly obscure feature.
+    There are several high-level languages, built specifically for smart contracts,
+    that compile to EVM code. The most popular of them is Solidity, which we will
+    review in the upcoming sections.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'State  in a smart contract is comprised of its storage and balance. The latter
+    is the most straightforward of the two: all address types in Ethereum, regardless
+    of being externally owned accounts or smart contracts, have an associated balance
+    in ETH. Ethereum provides primitives for querying such balances (both from within
+    a smart contract and from outside the network), and for easily transferring it.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'As for the storage space in a smart contract, it is extremely large: it is
+    an addressable space of 2^256 slots of 32 bytes each. However, writing to storage
+    in the EVM is very costly, so it should always be used with care.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Since storage usage is expensive, the EVM also provides another 256-bit-addressable
+    transient space called the *memory*, which is equivalent to a memory heap in other
+    environments, and is guaranteed to be cleared in-between transactions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Gas Usage
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Executing code in the Ethereum network costs *gas*. Every operation run by a
+    smart contract consumes a predefined amount of gas, where more complex operations
+    consume more gas than simpler ones. All in all, gas is just a measure of execution
+    cost, designed to prevent excessively complex computations on Ethereum. Since
+    every transaction needs to be executed by every full node on the network to verify
+    it, it is critical to keep them as simple as possible. This is also why operations
+    that create new data on the blockchain, such as writing to storage or creating
+    a new contract, are among the most costly ones in terms of gas.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How is gas obtained? The process is handled automatically on every transaction.
+    Whenever a user sends a new transaction, they specify a *gas price*, which is
+    the conversion rate between ETH and gas. After the transaction is run, the total
+    amount of gas used is calculated, which gets converted to ETH using this gas price,
+    and then deducted from the sender’s balance. Note that there are no requirements
+    on gas price, and it can be nearly arbitrarily high or low. However, transactions
+    with a very high gas price will be extremely costly to send; on the other hand,
+    transactions with a very low gas price will be unattractive to miners, and will
+    most likely never be included in the blockchain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: There are some services, such as the ETH gas station,^([6](#Fn6)) which provide
+    real-time statistics on gas price costs for the Ethereum network. This provides
+    you with info on the average gas price to use to send a transaction.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Additionally to the gas price, the transaction sender must specify a maximum
+    gas allowance to be used during execution. If the transaction reaches a point
+    where it has used all the gas allowed, it stops running and reports an out-of-gas
+    error. This allows a user to control up to how much they are willing to spend
+    on a transaction. Conversely, this also allows the network to check that a user
+    has enough ETH for paying forexecution before actually running the code by checking
+    that the sender’s balance is at least the maximum gas allowance times the specified
+    gas price.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note that Ethereum nodes can be used to query an estimation of the gas required
+    to run a transaction, assuming the context where it runs does not change. This
+    allows dynamic calculation of how much gas should be attached to a transaction
+    instead of needing to hard-code it for every call issues by your system.
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, since the amount of gas used depends on which operations were executed,
+    which in turn depend on the context where the transaction is run, the estimation
+    performed by a node may not always be representative. For example, given the following
+    pseudocode for a smart contract:if balance > 1ETH:    run_expensive_operationelse:    return
+    true
+  prefs: []
+  type: TYPE_NORMAL
+- en: If the estimation is run when the contract’s balance is below 1 ETH, then the
+    gas estimation will be low, and the user may send the transaction to the network
+    using that value. However, before the transaction is actually picked up by a miner,
+    another transaction may front-run the original one and increase the contract’s
+    balance to be over 1 ETH. This would cause the original transaction to actually
+    require a much higher amount of gas, and end up failing with an out-of-gas error.
+    You should be aware of these situations when coding interactions with the network
+    by always adding a reasonable buffer to the gas allowance on top of the estimated
+    amounts and retrying transactions with updated estimations if needed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Transactions
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: To recap, in order to interact with a smart contract, an external account must
+    sign and broadcast a transaction directed to the contract’s address. The network
+    then executes the smart contract’s code, with all data contained in the transaction
+    (and the contract’s state) as context.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A transaction is a message with the following properties:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A sender address, which is always an externally owned account
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A destination address
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: An amount of ETH to transfer, which can be zero
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A binary data field, which packs the arguments for the smart contract to execute
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A nonce
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Maximum gas allowance
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Gas price, for converting between gas and ETH
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Transactions can also be sent to another externally owned account. In these
+    cases, data is typically left empty, as the purpose is only to transfer ETH between
+    accounts. However, they also consume gas, albeit a small amount compared to those
+    sent to smart contracts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: At the lowest level, the transaction does not actually include the sender address
+    as a property. It is retrieved from the transaction’s signature.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The only field in a transaction that we have not yet reviewed is the *nonce*.
+    This is an incremental integer value that ensures that all transactions sent from
+    an account are processed in order: a nonce cannot skip a value and is always equal
+    to the number of executed plus pending transactions sent from the address. It
+    is also part of the network’s replay protection. Typically, you will not need
+    to deal with nonces explicitly.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The lifecycle of a transaction is a bit complex, since transactions need to
+    be picked up by a miner and confirmed in order to be considered final (Figure
+    [3-1](#Fig1)).![../images/476252_1_En_3_Chapter/476252_1_En_3_Fig1_HTML.png](../images/476252_1_En_3_Chapter/476252_1_En_3_Fig1_HTML.png)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 3-1
+  prefs: []
+  type: TYPE_NORMAL
+- en: Lifecycle of an Ethereum transaction
+  prefs: []
+  type: TYPE_NORMAL
+- en: The first step in a transaction’s lifecycle is to be sent to an Ethereum node.
+    This could be a private node owned by the user or a public node with no accounts
+    associated. On the former, signing is typically handled by the node, which holds
+    the user’s private keys; on the latter, transactions are signed by client software
+    and then sent to the node. In either case, the node checks that the transaction
+    is valid by trying to execute it locally, and if it is, it broadcasts it to the
+    network.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Broadcasted transactions are said to be *pending*, since they have not yet been
+    included in a block, but are waiting on what is called the *mempool*.  The time
+    until the transaction is processed by a miner and added to the blockchain will
+    typically depend on network congestion and the gas price of the transaction itself –
+    as we mentioned before, higher gas prices lead to more attractive transactions
+    which are mined faster.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Pending transactions can be *replaced* before they are mined. After a transaction
+    is broadcasted, and before it is picked up by a miner, you may send another transaction
+    with the same nonce and a higher gas price. Upon seeing both pending transactions,
+    miners will prefer the new one, which will render the original one invalid since
+    it has an outdated nonce. Replacing transactions is used to correct a mistake
+    or to increase the gas price of the same transaction to speed up its confirmation,
+    but it is not a technique very widely used. We will review this in Chapter [5](476252_1_En_5_Chapter.xhtml).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Eventually, the transaction is *mined* and included in a block. However, due
+    to how the consensus algorithm in Ethereum works, it is still possible that a
+    chain *reorganization* occurs, and the block that included this transaction is
+    replaced by a different one. This is only likely to occur in very recently mined
+    blocks. With every new block mined on top of it, the chance of a block being plucked
+    out of the chain gets slimmer. A dozen confirmations (i.e., new blocks mined)
+    is good enough for most scenarios, but you may want to wait for even more depending
+    on your use case.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It is possible for a single account to have multiple pending transactions, since
+    it is not required by the protocol to wait for a transaction to be mined or confirmed
+    before sending the next one. The nonce ensures that all pending transactions will
+    be processed by miners in the correct order.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Transactions in Ethereum may not always be successful. A transaction can fail
+    due to a variety of reasons, such as running out of gas during execution, or because
+    of a failed precondition check in the smart contract code. Smart contracts can
+    enforce checks on the parameters with which they are called, which may cause a
+    transaction to fail if it does not pass all preconditions. Transactions are atomic,
+    meaning that they are all or nothing in terms of changes to state. In other words,
+    a failing transaction will not persist any changes to the blockchain, except for
+    the deduction of the gas execution fee from the sender’s balance. As such, when
+    a transaction you sent fails, you can be confident that the state of your contracts
+    on-chain was not altered in any way.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Failed transactions are either ABORT’ed or REVERT’ed. The difference between
+    the two is that the former will consume all gas up to the maximum allowance of
+    the transaction, whereas the latter only consumes the gas used up to the point
+    where the transaction failed. Smart contracts usually fire a REVERT when a precondition
+    check fails, so as not to waste user’s gas.
+  prefs: []
+  type: TYPE_NORMAL
+- en: During execution, a transaction may *log* arbitrary information. These logs
+    cannot be accessed from another smart contract and are only visible from outside
+    the Ethereum network itself, such as from a front-end interface. Logged data may
+    be structured and even *indexed*, allowing clients to search for specific events.
+    We will work with logs more in-depth when we tackle Solidity’s *events*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Calls
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: While transactions are the only way to perform a change in the Ethereum blockchain,
+    they are not the only way to interact with smart contracts. Any off-chain client
+    can perform a query on a smart contract by making a static *call* to it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Calls are different from transactions in that they do not need to be signed
+    and are not broadcasted to the Ethereum network, and thus cannot make any changes
+    to the blockchain state and do not cost any gas. Calls are always resolved by
+    the node that receives them and are only used for querying data from a smart contract.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A call executes smart contract code just like a transaction does, the only difference
+    is that any changes performed during a call are not persisted, and the return
+    value of a call is sent back to the sender (unlike transactions, where the sender
+    has no way to get a return value back). If transactions can be thought of as setters
+    that change the state of a smart contract, calls would be the getters.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Calls can even be issued on older blocks. Since all data in the blockchain is
+    persisted, the state of the chain on every block,^([7](#Fn7)) so a call to a smart
+    contract can be made in the context of an older block. This feature is not used
+    very often, but can be used to reconstruct the history of a contract, although
+    *logs* are the preferred method to do this.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Solidity
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Solidity  is an object-oriented statically typed language, with curly-braced
+    syntax inspired in Javascript, and support for multiple inheritance. It is the
+    most popular language for smart contract development. At the time of this writing,
+    the latest minor version available is 0.5, which we will be using throughout the
+    book.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The basic unit of Solidity code is a contract, which is similar to a class,
+    but compiles to code that spawns a new smart contract. Solidity contracts can
+    have state variables, which are persisted in the contract’s storage, and can define
+    functions that are executed upon a call or a transaction. The language also supports
+    modifiers, events, libraries, complex data types, and other concepts that we will
+    explore in this section.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We will only be making an overview of Solidity, covering the required features
+    to be able to understand and make small changes to a smart contract system. It
+    is strongly suggested that you go through the Solidity documentation^([8](#Fn8))
+    to learn more in-depth about the language, and it is also a good idea to review
+    security best practices before rolling out your contracts.^([9](#Fn9))
+  prefs: []
+  type: TYPE_NORMAL
+- en: Remix
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Before going into Solidity itself, we will introduce Remix,^([10](#Fn10)) a
+    tool for quickly prototyping Solidity code (Figure [3-2](#Fig2)). Remix is a full
+    in-browser IDE for Solidity development. It bundles a Solidity code editor, a
+    compiler, and an EVM runtime. The EVM runtime allows you to locally deploy and
+    test your smart contracts in a mock environment. Remix can also be connected to
+    any Ethereum node, allowing you to manage your smart contract on any network,
+    whether it is a local development network or the main Ethereum network (also referred
+    to as *mainnet*).![../images/476252_1_En_3_Chapter/476252_1_En_3_Fig2_HTML.jpg](../images/476252_1_En_3_Chapter/476252_1_En_3_Fig2_HTML.jpg)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 3-2
+  prefs: []
+  type: TYPE_NORMAL
+- en: Screenshot of remix IDE at remix.ethereum.org
+  prefs: []
+  type: TYPE_NORMAL
+- en: Remix has several features for developing, analyzing, deploying, interacting
+    with, and debugging smart contracts. We will focus on the most fundamental ones,
+    but feel free to play around with the tool.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To start, add a new file by clicking the plus sign on the top left of the IDE,
+    and create a new MyContract.sol file. On the right side of the screen, in the
+    *Compile tab*, make sure you are using the compiler version 0.5.0, and choose
+    to *auto-compile* your contracts. We will use this to test our first Solidity
+    contract.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The Solidity compiler, written in C++, is not only compiled to native code but
+    also to javascript using Emscripten. This allows you to compile a Solidity smart
+    contract directly in your browser.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Your First Solidity Contract
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: We will start with a very simple Solidity contract (Listing [3-1](#PC2)). This
+    contract will hold a single integer value myNumber and provide a constructor to
+    set its initial value, a public function to increase it by a certain amount, and
+    a public getter to retrieve it.pragma solidity ^0.5.0;contract MyContract {    uint256
+    private myNumber;    constructor(uint256 initialValue) public {        myNumber
+    = initialValue;    }    function increase(uint256 x) public {        require(x
+    > 0);        myNumber = myNumber + x;    }    function getValue() public view
+    returns (uint256) {        return myNumber;    }}Listing 3-1
+  prefs: []
+  type: TYPE_NORMAL
+- en: Simple Solidity contract, implementing a counter
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s go through this contract. First thing to notice is the pragma directive
+    to set a required Solidity compiler version that corresponds to the code. A compiler
+    that does not match the required version will refuse to compile the file. In particular,
+    ^0.5.0 indicates any version that starts with 0.5.^([11](#Fn11))
+  prefs: []
+  type: TYPE_NORMAL
+- en: Next is a contract block, which defines a smart contract to be deployed. The
+    contract can define several state variables, such as myNumber in the example,
+    which will be saved to storage in the EVM.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Storage is always initialized to zero in the EVM. This means that all state
+    variables in Solidity are zero by default. To prevent any billion-dollar mistakes,
+    Solidity does not have null values.^([12](#Fn12))
+  prefs: []
+  type: TYPE_NORMAL
+- en: A contract can define multiple functions that will be executed in its context
+    and will have access to its storage. Functions must always define the type of
+    their arguments and their return type, if any. Also, functions can have different
+    visibilities, depending on whether they can only be called internally within the
+    contract or from outside, and can be restricted to not modify the contract’s storage,
+    like getValue in the example. A constructor can be optionally defined and is run
+    when the contract is deployed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Solidity supports function overloading; this means having two functions in the
+    same contract with the same name but different arguments. While useful for certain
+    scenarios, several client-side libraries, especially those in javascript, do not
+    always have good support for them. Furthermore, it can be argued that overloaded
+    functions make code more difficult to follow, and other smart contract languages
+    have even made the explicit design decision to not support function overloading.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Another interesting keyword in this sample contract is require. It allows you
+    to check for a condition and throw an error (an EVM revert) if it doesn’t hold.
+    It is commonly used to check for preconditions in functions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Remember that your contract is exposed to everyone on the blockchain. This means
+    that any attacker can send a transaction to any public function with any parameters
+    they wish. This makes a very compelling case for adding as many require statements
+    as you need to always validate the inputs to your functions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Before delving deeper into Solidity code, let’s try out our first contract
+    in Remix. Copy the code for MyContract into the newly created MyContract.sol file
+    tab in Remix, and wait for it to auto-compile. Then open the *Run* tab on the
+    right side of the IDE (Figure [3-3](#Fig3)). This will allow you to configure
+    the environment where you want to deploy your contract: choose *JavaScript VM*
+    to run the code in a simulated blockchain in your browser, and pick any of the
+    provided *Accounts*.![../images/476252_1_En_3_Chapter/476252_1_En_3_Fig3_HTML.jpg](../images/476252_1_En_3_Chapter/476252_1_En_3_Fig3_HTML.jpg)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 3-3
+  prefs: []
+  type: TYPE_NORMAL
+- en: Deploying a contract via Remix
+  prefs: []
+  type: TYPE_NORMAL
+- en: To deploy your contract, choose MyContract from the contracts drop-down, enter
+    an initial value to be used for the constructor we had defined, and accept the
+    transaction. This will deploy the contract to your in-browser environment, which
+    will execute almost instantly. Remember that when working in a real blockchain,
+    the deployment will actually take several seconds.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You will notice that a new log entry showed up at in the middle-bottom panel
+    (Figure [3-4](#Fig4)). This has detailed information on the transaction executed.
+    Take some time to go through it and understand all the info listed, referring
+    back to the “Transactions” section in this chapter.![../images/476252_1_En_3_Chapter/476252_1_En_3_Fig4_HTML.jpg](../images/476252_1_En_3_Chapter/476252_1_En_3_Fig4_HTML.jpg)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 3-4
+  prefs: []
+  type: TYPE_NORMAL
+- en: Details of a transaction as shown in Remix’s console
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Also, on the bottom of the right sidebar of the IDE, you will now see that
+    an instance of MyContract is listed under the *Deployed Contracts* section, including
+    the address at which it was deployed. Expanding it will give you access to the
+    public functions of the contract: increase and getValue. Try calling both of them,
+    using different values for increase, to play around with the contract and check
+    out the transactions generated.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Remember the distinction we made earlier between transactions and calls to
+    contracts: the former broadcasts a transaction to the entire network that may
+    change the state of a contract or the balance of an address, while the latter
+    simply queries a single node to retrieve a value. Since getValue is flagged as
+    a method that does not modify the contract (via the view keyword), Remix automatically
+    issues a call to the contract when you execute it instead of a transaction. On
+    the other hand, since increase does alter the contract’s state, it spawns a new
+    transaction every time you call it.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We will now go more in depth into Solidity. Feel free to copy the code samples
+    into Remix, deploy them, and interact with them. Remember that if you change the
+    code of a contract, you will need to deploy a new instance of it in order to interact
+    with the new version, since already deployed contracts cannot be changed. Also,
+    refer to the Solidity documentation if you want to explore a particular topic
+    in detail.
+  prefs: []
+  type: TYPE_NORMAL
+- en: What’s in a Function?
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'A function definition in Solidity has the following structure:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A function name
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A set of typed parameters
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A visibility modifier
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A pay-ability modifier
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A set of custom modifiers
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A set of return values
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A function may then look like the following. Note that a function may return
+    more than a single value, expressed as a tuple.function myFunction(uint256 param1,
+    bool param2)  public payable onlyOwner  returns (uint256, bool);
+  prefs: []
+  type: TYPE_NORMAL
+- en: Visibility Modifiers
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: 'As in most object-oriented languages, functions in Solidity can specify different
+    visibility or access modifiers, that control whether a function can be called
+    from outside the contract or not. Solidity provides the following four access
+    levels:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: External
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Public
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Internal
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Private
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Private** functions can only be called from within the same contract. Under
+    the hood, they are implemented as a jump to another part of the contract’s code.
+    This means that a call to a private function does not create a new scope, with
+    associated call data, value, gas, and so on. Instead, it executes within the same
+    scope of the caller, what makes the call itself cheap in terms of gas usage. **Internal**
+    functions work exactly the same, only that they allow derived contracts to call
+    them (equivalent to protected in other languages).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: On the other hand, **external** functions can only be called from an external
+    account or from another contract. External functions are used to define the exposed
+    surface of a contract and are usually where most input argument checks are made.
+    When a contract calls into another, it does by making an EVM call, which creates
+    a new scope, with its own call data, transferred value, gas, and so on. This is
+    more expensive than a jump to an internal or private function, but it is required
+    by the EVM. Note that it is possible to call an external function from the same
+    contract where it is defined, but this requires an EVM call as well.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If you have an external function that you would also need to call from within
+    your contract, you would label it as a **public** function. Public functions are
+    a mix between external and internal: they support being called from both outside
+    the contract and from within. The compiler is smart enough to use an internal
+    cheap jump if the function is called from within the same contract, but creates
+    a new EVM call if calling a public function from another contract.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note that state variables also have their own set of visibility modifiers, which
+    are public, internal, and private, though they have slightly different semantics.
+    A private state variable can only be accessed from within the same contract and
+    an internal one from the same contract and from any derived contract as well (as
+    is the case with functions). However, the public modifier, when applied to a state
+    variable, acts as an internal modifier and defines an implicit getter function
+    with the same name as the state variable (Listing [3-2](#PC4)).contract ExplicitGetter
+    {  uint256 internal _value;  function value() public returns (uint256) {    return
+    _value;  }}contract ImplicitGetter {  uint256 public value;}Listing 3-2
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Example of using a getter function vs. the public state variable modifier.
+    Both contracts are equivalent in terms of the getter. There is one caveat though:
+    implicit getters cannot be overridden by derived contracts'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Payability Modifiers
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: A function may optionally be defined as payable (Listing [3-3](#PC5)). This
+    tells Solidity that the function can accept ETH when called. The compiler will
+    throw an error if you try to send ETH to a function not defined as payable. This
+    prevents from accidentally sending balance to a contract that is not prepared
+    to handle it, potentially locking ETH in it.contract Payable {  function canPay()
+    public payable {  }  function cannotPay() public { }}contract Payer {  function
+    pay(Payable p, uint256 eth) public {    // this syntax is used for sending eth    //
+    along with a function call    p.canPay.value(eth)();    // this fails to compile    p.cannotPay.value(eth)();  }}Listing
+    3-3
+  prefs: []
+  type: TYPE_NORMAL
+- en: Payable vs. non-payable functions in Solidity
+  prefs: []
+  type: TYPE_NORMAL
+- en: Solidity also adds runtime checks to ensure that no balance is sent to non-payable
+    functions. For instance, if you try to send ETH to a non-payable function of a
+    contract from an external account, you will get a revert error.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Custom Modifiers
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Solidity allows you to define your own function modifiers. These are code blocks
+    that can execute as a filter before and after a function and can even call into
+    other contract functions, manage storage, or react based on the current message.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Information on the current call is available via a context variable named msg
+    and includes the ETH value received, the sender address of the call, the gas provided,
+    the gas price, and more.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A typical use case for modifiers is access control (Listing [3-4](#PC6)). By
+    defining who can call into a function in a modifier, you can then easily reuse
+    that logic across multiple functions via the usage of modifiers.contract OwnerDepositable
+    {  address public owner;  constructor(address _owner) public {    owner = _owner;  }  modifier
+    onlyOwner {    require(msg.sender == owner);    _;  }  modifier minDeposit(uint256
+    value) {    require(msg.value > 0);    _;  }  function ownerDeposits()    onlyOwner
+    minDeposit(1 ether) payable public {    // here we know that the sender is the
+    owner,    // and has transferred at least 1 ETH   }}Listing 3-4
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using custom modifiers for access control
+  prefs: []
+  type: TYPE_NORMAL
+- en: Modifiers are defined with the modifier keyword and yield the call to the original
+    function via an underscore. They are then applied to a function by listing them
+    by name in the function’s definition. Modifiers can even accept arguments, which
+    must be provided when applied to a function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Fallback Function
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: A contract may define a function without a name. This function is referred to
+    as the *fallback function* and is invoked if the contract receives a call that
+    does not match any other function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Even though they can be used as catch-all functions in contracts, the main use
+    case of fallback functions is handling plain ETH transfers (Listing [3-5](#PC7)).
+    When you transfer funds to a contract address, you typically do not include anything
+    in the transaction’s data. Fallback functions allow contracts to do something
+    in response to that transfer, or perform checks on the transfer itself.contract
+    NotCheap {  function() external payable {    require(msg.value >= 1 ether);  }}Listing
+    3-5
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using a fallback function to prevent a contract from accepting transfers that
+    are below 1 ETH
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note that when transferring ETH from Solidity code using the transfer method,
+    only a very small gas stipend will be allocated. This is due to security reasons
+    in order to prevent reentrancy attacks when transferring funds. What this means
+    is that the fallback function should only perform very simple checks or operations,
+    or risk running out of gas when receiving ETH, thus reverting the transfer transaction.
+    Even a write to storage is more expensive than the gas stipend available in a
+    plain transfer.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Warning
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Fallback functions are also required to signal whether a contract can receive
+    ETH. If a contract does not define a payable fallback function, then no plain
+    ETH transfers can be sent to it. This prevents from accidentally sending funds
+    to a contract that cannot handle them, thus locking the funds.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Value Data Types
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Solidity supports the traditional basic data types, such as bool or uint, plus
+    some more complex data types such as array, mapping, or struct. We will start
+    with the most simple data types: value types (Listing [3-6](#PC8)).pragma solidity
+    ^0.5.0;contract MyContract {  bool private myFlag;  uint256 private myUnsignedNumber;  int256
+    private mySignedNumber;  address private myAddress;}Listing 3-6'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Overview of value data types in a contract
+  prefs: []
+  type: TYPE_NORMAL
+- en: Booleans and Equality
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: 'Boolean literals are denoted by the keywords true and false. The usual logical
+    operations are available, using the same symbols, and with the same short-circuit
+    semantics as in javascript:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Negation !x
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Conjunction x && y
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Disjunction x || y
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: On the other hand, equality comparison operators == and != actually behave as
+    javascript’s === and !==. Solidity will not coerce types when comparing and will
+    throw a compiler error when attempting to compare objects of two different types.
+    This holds for all data types, not just booleans.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Integers and Arithmetic
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: 'Integer types can be both signed and unsigned, and can be defined of different
+    sizes – from 8 to 256 bits in steps of 8\. The usual arithmetic, shifting, and
+    bitwise operations are available, as well as comparison operators:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: uint8, uint16, uint24, ..., uint256 are unsigned integer types.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: int8, int16, int24, ..., int256 are signed integer types.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Since integer types are often used to represent *value* in smart contracts,
+    unsigned integers are much more common than signed. Also, since fixed or floating-point
+    values are not (fully) supported, it is common to represent all values using integers
+    with a fixed amount of decimals. This is especially true of ETH balances, which
+    are always expressed in *wei*, the smallest divisible unit of ETH: 1e18 wei are
+    equal to 1 ETH. Solidity even provides suffixes for working with these units:
+    the literal 1 ether is actually the integer value 1e18. There are also suffixes
+    for working with time values, such as minutes, hours, days, and weeks. In these
+    cases, the base unit is the second, so 3 minutes is compiled to the integer value
+    180.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A word of warning: all integer arithmetic operations in Solidity are unchecked;
+    this means that it is possible to silently overflow. This is especially risky
+    when dealing with unsigned numbers associated to value. For instance, accidentally
+    decreasing a variable that represents someone’s balance below zero would actually
+    turn that value into nearly 2^(^255). For this reason it is strongly suggested
+    to always use SafeMath^([13](#Fn13)) (Listing [3-7](#PC9)), a library provided
+    by the OpenZeppelin framework that adds overflow checks to every arithmetic operation
+    (more on imports and libraries later).import "openzeppelin-solidity/contracts/math/SafeMath.sol";contract
+    MyContract {  using SafeMath for uint256;  uint256 private myNumber;  function
+    unsafeDecrease(uint256 x) {    // if x > myNumber, myNumber will silently wrap
+    around    myNumber = myNumber - x;  }  function safeDecrease(uint256 x) {    //
+    if x > myNumber, this will throw an error    myNumber = myNumber.sub(x);  }}Listing
+    3-7'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Example of SafeMath usage for arithmetic operations
+  prefs: []
+  type: TYPE_NORMAL
+- en: We will review how to use imports and libraries later in this chapter. For now,
+    keep in mind that directly using arithmetic operators in Solidity, without going
+    through SafeMath, is a potential security risk.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Fixed Size Bytes
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Solidity also provides fixed size byte strings of up to 32 bytes, in the form
+    of the bytes1, bytes2, ..., bytes32 data types. Since these all fit within an
+    EVM word, they are all handled as value types as well, and behave similarly to
+    integer types, only that they do not provide any arithmetic functions. They do
+    support comparison, bitwise, and shift operators, plus an index access operator
+    to retrieve a single byte from the array.bytes32 data;uint8 index;byte firstByte
+    = data[0];
+  prefs: []
+  type: TYPE_NORMAL
+- en: These types are often used to store hashes or identifiers, where the numeric
+    value itself is not relevant. For instance, precompiled hashing functions like
+    sha256 or ripemd160 return bytes32 and bytes20, respectively.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Addresses, Contracts, and Transfers
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: The address data type represents any Ethereum address. While any integer or
+    byte type of at least 160 bits could be used to store addresses, Solidity specifically
+    provides this type to handle them. Addresses also have specific properties for
+    checking ETH balances, as well as for transferring funds.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Solidity differentiates addresses into two separate types: address and address
+    payable. The underlying representation for both is the same, and the difference
+    is that only the latter provides the transfer method for sending ETH to it. This
+    allows you rely on the type system to decide which addresses should be allowed
+    to receive funds from your contracts. A non-payable address only provides a balance
+    property to query its ETH balance.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The following quite uninteresting contract (Listing [3-8](#PC11)) keeps track
+    of an owner who created the contract and provides a single function to forward
+    funds to them.contract MyContract {  address payable private owner;  address private
+    lastContributor;  constructor(address payable _owner) public {    owner = _owner;  }  function
+    forward() public payable {    uint256 ethReceived = msg.value;    require(ethReceived
+    > 0);    lastContributor = msg.sender;    owner.transfer(ethReceived);  }}Listing
+    3-8
+  prefs: []
+  type: TYPE_NORMAL
+- en: Sample contract using address data types
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note that the owner address needs to be stored as an address payable type; otherwise,
+    the compiler will throw an error when attempting to compile owner.transfer(ethReceived).
+    On the other hand, lastContributor can be a plain address, since it will never
+    receive ETH from the contract.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Solidity provides another function for sending ETH, which is send. The difference
+    between the two is that send returns a boolean value indicating whether the ETH
+    transfer was successful, and transfer throws a REVERT on failure. To avoid errors
+    caused by forgetting checking send return values, it is recommended to always
+    use transfer.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Any contract defined in Solidity can also be used as a type (Listing [3-9](#PC12)).
+    A contract instance has all the public functions defined in the contract.contract
+    Provider {  function answer() public pure returns (uint256) {    return 42;  }}contract
+    Caller {  function fetchAnswer(Provider provider) public {    uint256 answer =
+    provider.answer();    // do something with the answer  }}Listing 3-9
+  prefs: []
+  type: TYPE_NORMAL
+- en: Calling a contract public function from Solidity
+  prefs: []
+  type: TYPE_NORMAL
+- en: Internally, a contract instance is stored as its address, so contracts can be
+    casted to and from the address type. This is useful when attempting to check the
+    balance of a contract or transfer funds to it, since only the address type provides
+    the balance and transfer methods.function sendFunds(MyContract recipient) {  recipient.transfer(1
+    eth); // compile error  address(recipient).transfer(1 eth); // ok!}Contract types
+    can also be used to deploy a new instance of a contract (Listing [3-10](#PC14)).
+    You can leverage this to create factory-like contracts that are used to set up
+    and create other contracts.contract Box {  uint256 public value;  constructor
+    (uint256 _value) public {    value = _value;  }}contract Factory {  function create(uint256
+    _value) public returns (Box) {    return new Box(_value);  }}Listing 3-10
+  prefs: []
+  type: TYPE_NORMAL
+- en: Creating a contract from Solidity
+  prefs: []
+  type: TYPE_NORMAL
+- en: Also, like many other languages, Solidity also provides a this keyword that
+    represents the current contract. The type of this is the contract itself.function
+    forward(address payable beneficiary) public {  uint256 myBalance = address(this).balance;  beneficiary.transfer(myBalance);}
+  prefs: []
+  type: TYPE_NORMAL
+- en: Reference Types
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '*Reference types* in Solidity include arrays, strings, mappings, and structs.
+    Unlike value types, which are always handled by copy when assigning them or passing
+    them as a parameter, reference types usually pass a handle to an object that can
+    be aliased or modified from another function. We will review how this works with
+    the most common reference type: the array.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Arrays, Bytes, and Strings
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: 'Solidity supports both fixed size and dynamic arrays. Array types are parametric,
+    which means they are defined as an array of a base type. This allows you to define
+    dynamic integer arrays like uint256[], or fixed size address arrays like address[4].
+    You can even work with arrays of arrays, but keep in mind that in Solidity the
+    notation is reversed as compared to other languages: bool[][4] is an fixed size
+    array of four dynamic arrays. Furthermore, you cannot return arrays of arrays
+    in an external function call.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Arrays have a length method to query their size and provide an indexing operator
+    to access or modify a position in the array. Dynamic arrays also have push and
+    pop methods to add or remove elements. Arrays are typically iterated using a for-loop
+    in Solidity (Listing [3-11](#PC16)).contract ArrayTest {  uint256[] array;  function
+    sum() public view returns (uint256) {    uint256 total = 0;    for (uint256 i
+    = 0; i < array.length; i++) {      total += array[i];    }    return total;  }  function
+    add(uint256 value) public {    array.push(value);  }}Listing 3-11
+  prefs: []
+  type: TYPE_NORMAL
+- en: Sample code for appending elements to an array and iterating them. Note that
+    this example is subject to arithmetic overflow, since it is not using SafeMath
+    for computing the sum over the array
+  prefs: []
+  type: TYPE_NORMAL
+- en: Warning
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Using a for-loop over an unbounded array is risky, since it may consume an arbitrarily
+    high amount of gas, potentially more that fits in a single block, rendering the
+    function impossible to call. Always avoid looping over an array that can grow
+    out of control, or at least provide methods for iterating it by batches of controllable
+    size.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Remember that arrays are reference types instead of value types. Reference types
+    contain, as their name indicates, a reference to an object instead of the actual
+    value. This means that, depending on the context, assigning an array variable
+    to another will not create a copy but hand over a reference to the same array.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Whether the array is copied or a reference is passed depends on the *data location*.
+    Data location may be a confusing concept, since it does not have a direct equivalent
+    in other languages, and is an abstraction leakage from the EVM. Instead of trying
+    to hide it and lead to potentially surprising results, Solidity opts for surfacing
+    this distinction and forcing the programmer to be conscious about this important
+    implementation detail.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'As we mentioned before, every contract has access to an internal storage that
+    can be used to persist data. And since this space is very expensive to use, the
+    EVM provides access to a memory heap for transient operations. These are precisely
+    the two main data locations that Solidity defines: storage and memory. The third
+    location is calldata, which refers to the space where data is supplied in a transaction.
+    For all practical purposes, calldata works just like memory, only that it is immutable.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Data locations need to be specified for every local variable or function parameter
+    of a reference type. The only case where data location is unneeded is when declaring
+    contract state variables, since these are always kept in storage. Note that when
+    specifying locations for function arguments, you need to adhere to the following
+    rules:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: External functions can only accept calldata reference types.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Public functions can only accept memory reference types.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Internal or private functions can only accept memory or storage reference types.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Assignment semantics then depend on the location of a reference type (Listing
+    [3-12](#PC17)). An assignment from a memory reference to another will just pass
+    a reference to the same object, and the same happens when assigning from a storage
+    reference to another. However, when assigning from a memory reference to a storage
+    one, Solidity will **copy** the entire memory array into storage.contract DataLocations
+    {  uint256[] public storageArray;  function test(uint256[] memory memoryArray)
+    public {    // We alias memoryArray to localMemory    uint256[] memory localMemory
+    = memoryArray;    localMemory[0] = 42;    require(localMemory[0] == memoryArray[0]);    //
+    We copy memoryArray into storageArray    storageArray = memoryArray;    require(storageArray[0]
+    == 42);    // We alias storageArray to localStorage    uint256[] storage localStorage
+    = storageArray;    localStorage[0] = 21;    require(localStorage[0] == storageArray[0]);    //
+    And changes to storageArray don't affect    // the original memoryArray    require(storageArray[0]
+    != memoryArray[0]);  }}Listing 3-12
+  prefs: []
+  type: TYPE_NORMAL
+- en: Demo of how the memory and storage location modifiers work in Solidity
+  prefs: []
+  type: TYPE_NORMAL
+- en: A special case of an array is bytes , which behaves exactly as a byte[] (i.e.,
+    a dynamic array of byte). However, this type is optimized and tightly packed in
+    memory or storage, so it should always be preferred over byte[].
+  prefs: []
+  type: TYPE_NORMAL
+- en: Another special case are strings. A string is an immutable UTF-8-encoded byte
+    array, which doesn’t allow indexed access. String literals are defined using double
+    quotes. Keep in mind that Solidity ships with almost no string manipulation functions,
+    so strings are mostly stored as immutable identifiers or descriptions.string myString
+    = "foo";
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Unlike value types, when an array state variable is defined as public, the
+    implicit getter generated by Solidity accepts an index parameter, to identify
+    which item in the array is to be retrieved. This only holds for regular dynamic
+    arrays: bytes and strings are returned in a single call.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: As an example, given the following contract with a public dynamic array, string,
+    and bytes, the following getters (Figure [3-5](#Fig5)) are available:contract
+    PublicArrays {    uint256[] public numbers = [20,30,40];    string public text
+    = "foo";    bytes public data = hex"20";}![../images/476252_1_En_3_Chapter/476252_1_En_3_Fig5_HTML.jpg](../images/476252_1_En_3_Chapter/476252_1_En_3_Fig5_HTML.jpg)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 3-5
+  prefs: []
+  type: TYPE_NORMAL
+- en: Accessing a public dynamic array with a getter that requires an index vs. getting
+    a string or bytes variable
+  prefs: []
+  type: TYPE_NORMAL
+- en: Mappings
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Mappings, also referred to as hashes or dictionaries in other languages, are
+    an associative reference type in Solidity.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Like arrays, they are parametric, in that they contain elements from other types.
+    Mappings go from keys to values, and they accept any value type (plus bytes or
+    strings) as keys, and can handle any type whatsoever (including other mappings)
+    as values. Unlike arrays, however, the only valid location for mappings is storage,
+    not memory or calldata.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Under the hood, mappings are hash tables that rely on the fact that the storage
+    space of a contract is large enough to ensure there will be no collisions for
+    two different keys, so they guarantee that access to a value is always in constant
+    time.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Autogenerated public getters for mappings (Listing [3-13](#PC20)) are similar
+    to those of arrays, only that instead of accepting an index, they accept a key
+    (Figure [3-6](#Fig6)). In the case of nested mappings, a getter for a nested mapping
+    will require a parameter for each key in each nesting level and only return the
+    innermost value.contract PublicMappings {  mapping(uint256 => string)    public
+    num2str;  mapping(uint256 => mapping(uint256 => string))    public num2num2str;  constructor()
+    public {    num2str[10] = "foo";    num2num2str[10][20] = "bar";  }}Listing 3-13
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Sample contract with autogenerated getters for two mappings: a simple one and
+    a nested one'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![../images/476252_1_En_3_Chapter/476252_1_En_3_Fig6_HTML.jpg](../images/476252_1_En_3_Chapter/476252_1_En_3_Fig6_HTML.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 3-6
+  prefs: []
+  type: TYPE_NORMAL
+- en: Getting a value from a nested mapping requires providing a value for each key
+    in each nesting level
+  prefs: []
+  type: TYPE_NORMAL
+- en: An important caveat about mappings in Solidity is that, unlike other languages,
+    there is no way to iterate the keys or values present in the mapping. This is
+    related to how mappings are implemented. If you do need to keep track of the keys
+    inserted into a mapping, you will need to keep a separate array to store them.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Structs
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: The last reference type in Solidity are structs (Listing [3-14](#PC21)). As
+    in C, structs act as a named set of fields of other types.contract HasStruct {  struct
+    MyStruct {    uint256 number;    string text;  }  mapping(uint256 => MyStruct)
+    structs;  constructor() public {    structs[10] = MyStruct(20, "foo");  }  function
+    getStruct(    uint256 key  ) public view returns (uint256, string memory) {    MyStruct
+    storage s = structs[key];    return (s.number, s.text);  }}Listing 3-14
+  prefs: []
+  type: TYPE_NORMAL
+- en: Sample usage of structs in a Solidity contract
+  prefs: []
+  type: TYPE_NORMAL
+- en: Structs are mutable and can be stored in a mapping or array, and they can contain
+    other structs or reference types as their own fields. Remember that, as with any
+    other Solidity types, structs are initialized with zeroes, so an empty struct
+    is one where every field is zero.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Emitting Events
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Solidity provides an abstraction over transaction logs named *events*. A Solidity
+    event is identified by a name and can have several arguments to provide additional
+    data (Listing [3-15](#PC22)). Since they are implemented as logs, a Solidity event
+    can only be emitted, but not observed from a smart contract. We will later learn
+    how to monitor or query events from a client.contract EmitsEvents {  mapping(string
+    => uint256) private counters;  event CounterIncreased    (string indexed key,
+    uint256 newValue);  function increase(string memory key) public {    counters[key]
+    += 1;    emit CounterIncreased(key, counters[key]);  }}Listing 3-15
+  prefs: []
+  type: TYPE_NORMAL
+- en: A smart contract that emits an event every time an increase function is called
+  prefs: []
+  type: TYPE_NORMAL
+- en: The event is declared using the event keyword and fired using emit. Note that,
+    in the event declaration, some of its arguments can be flagged as indexed. These
+    allow watching or querying events that have a certain value for that parameter.
+    Whether to flag an argument as indexed or not will depend strictly on your use
+    case.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Due to EVM restrictions, indexed variable length arguments are not stored using
+    their actual value, but with the hash of the value. This means that, in the example,
+    you will be able to search for a particular key among all CounterIncreased events,
+    but you will not be able to retrieve the actual key from a given event.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Events are useful not just for monitoring a contract for changes but also as
+    a replacement for return values in a transaction. Since it is not possible for
+    a client to retrieve a return value from a method called in a transaction, it
+    is common to emit an event with the value that needs to be obtained. The client
+    then retrieves the events attached to the transaction receipt and extracts the
+    value from there.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Imports, Inheritance, and Libraries
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Solidity files can import other files (Listing [3-16](#PC23)). The import statement
+    is similar to javascript’s require, in that it pulls to the current file declarations
+    from another. In Solidity, since the only top-level objects are contracts (plus
+    libraries and interfaces, as we will see in a minute), an import allows you to
+    refer to contracts defined in another file.// Callee.solcontract Callee {  function
+    f() external;}// MyContract.solimport "./Callee.sol";contract MyContract {  function
+    call(Callee c) public {    c.f();  }}Listing 3-16
+  prefs: []
+  type: TYPE_NORMAL
+- en: Sample usage of the import statement to load a contract defined in another file
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the preceding example, MyContract pulls the definition of Callee by importing
+    the file in which it is defined. Note that Callee does not define the implementation
+    of the function f, so it is actually an abstract contract. Since this is enough
+    for MyContract to know how to call into an instance of Callee, these files compile
+    successfully. Moreover, since we are using Callee just as an interface definition,
+    we can redefine the contract using the interface keyword  :// Callee.solinterface
+    Callee {  function f() external;}
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: When importing code from a dependency, typically as an npm package, the import
+    statement refers to the package name. The exact syntax varies depending on the
+    build tool in use, but it commonly follows the pattern import "package-name/contracts/Contract.sol".
+  prefs: []
+  type: TYPE_NORMAL
+- en: A file can be imported not only to refer to another contract but also to extend
+    from it. Solidity has support for multiple inheritance. This makes inheritance
+    the default mechanism to extend functionality, or to pull in features from another
+    contract, using base contracts as if they were mixins (Listing [3-17](#PC25)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Derived contracts can access internal and public methods from the base contracts,
+    as well as all struct, modifier, and event definitions. They can also override
+    methods from base contracts.contract Timelocked {  uint256 internal locktime;  modifier
+    whenNotLocked() {    require(now > locktime);    _;  }}contract Ownable {  address
+    internal owner;  modifier onlyOwner() {    require(msg.sender == owner);    _;  }}contract
+    MyContract is Timelocked, Ownable {  constructor(uint256 _locktime) public {    locktime
+    = _locktime;    owner = msg.sender;  }  function f() whenNotLocked onlyOwner public
+    {    // only reachable when called by the owner    // and the contract is not
+    locked  }}Listing 3-17
+  prefs: []
+  type: TYPE_NORMAL
+- en: Typical pattern of base contracts that provide behaviors or aspects to be included
+    similar to mixins in a contract. These base contracts define their own state,
+    and provide modifiers or internal functions to be leveraged by the derived contract
+  prefs: []
+  type: TYPE_NORMAL
+- en: Last but not least, Solidity allows to define *libraries*, which are modules
+    of helper functions, that may optionally be applied over a specific data type
+    (Listing [3-18](#PC26)). Depending on whether their functions are defined as internal
+    or not, libraries are actually inlined in the contract that includes them or deployed
+    separately and linked. A good example of a library is the previously mentioned
+    SafeMath, which defines simple arithmetic operations with overflow checks.// Snip
+    of the code of openzeppelin-solidity SafeMath.sollibrary SafeMath {  function
+    add(uint256 a, uint256 b)    internal pure returns (uint256) {      uint256 c
+    = a + b;      require(c >= a);      return c;  }}// MyContract.solimport "openzeppelin-solidity/contracts/math/SafeMath.sol";contract
+    MyContract {    uint256 value;    function increase(uint256 x) public {        value
+    = SafeMath.add(value, x);    }}Listing 3-18
+  prefs: []
+  type: TYPE_NORMAL
+- en: Sample usage of SafeMath in a contract
+  prefs: []
+  type: TYPE_NORMAL
+- en: Since it is frequent for libraries to define functions on a certain data type,
+    such as uint256 in the case of SafeMath, Solidity provides a convenience using
+    statement (Listing [3-19](#PC27)) that adds all methods of the library to all
+    variables of a specified type. This is particularly powerful when combined with
+    structs, since it allows us to define custom datatypes with their own set of functions.contract
+    MyContract {    using SafeMath for uint256;    uint256 value;    function increase(uint256
+    x) public {        value = value.add(x);    }}Listing 3-19
+  prefs: []
+  type: TYPE_NORMAL
+- en: Previous example rewritten with the using statement, which adds all methods
+    in a library to a type in the scope of the contract
+  prefs: []
+  type: TYPE_NORMAL
+- en: Well-known Smart Contracts
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'To wrap up this chapter on smart contracts, we will review two of the most
+    well-known contract standards, which are ERC20 and ERC721\. These correspond to
+    fungible and non-fungible tokens, respectively. However, before diving into them,
+    we will first introduce a concept that goes beyond the Solidity language: the
+    ABI.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Application Binary Interface
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The Application Binary Interface (ABI) of a contract is the set of public methods
+    exposed by a contract. Think of it as its public API that can be called from an
+    external account or another contract.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The key concept behind the ABI is that it is language independent. It is a specification
+    on how function calls, arguments, and return values should be encoded. This allows
+    a contract written in Solidity to seamlessly interact with a contract written
+    in another high-level language, such as Vyper.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The ABI has a set of data types fairly close to those of Solidity, including
+    addresses, integers (signed and unsigned), booleans, strings, arrays, and so on.
+    The main exceptions are contract types, which are handled as plain addresses,
+    and structs, which are encoded as tuples with all their fields.
+  prefs: []
+  type: TYPE_NORMAL
+- en: EIPs and ERCs
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Being a decentralized protocol, all improvements to Ethereum often start as
+    a proposal  (or EIP, Ethereum Improvement Proposal) to be discussed by the community.
+    These proposals encompass from changes to the core protocol itself to application-level
+    standards defined for compatibility.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The latter are referred to as Ethereum Request for Comments  (or ERC, following
+    the RFC nomenclature used by the Internet Engineering Task Force). These are of
+    particular importance, since they define the common ABIs and semantics of contracts
+    to be used. They act as building blocks for larger applications and foster reusability
+    by setting a common interface agreed upon by the community.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Two of the most popular smart contract standards, fungible and non-fungible
+    tokens, are defined as ERCs – ERC20 and ERC721, respectively.
+  prefs: []
+  type: TYPE_NORMAL
+- en: ERC20 Tokens
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Tokens, defined in the ERC20 standard,^([14](#Fn14)) are probably the most common
+    building block of Ethereum applications. In its core, an ERC20 contract keeps
+    track of a balance for every token holder address and provides methods for querying
+    and managing such balances (Listing [3-20](#PC28)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: A token can act as a decentralized currency for any project. As such, any team
+    can easily roll out their own cryptocurrency on top of the Ethereum network, without
+    needing to set up their own blockchain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Nevertheless, tokens have more uses besides currency. The purpose of the token
+    is given to it by the protocol in which it is used: it can be used to signal vouching
+    for a particular item, or voting power in a decentralized organization. Many projects
+    nowadays rely on one (or sometimes more) ERC20 token.interface ERC20 {  function
+    totalSupply()    external view returns (uint256);  function balanceOf(address
+    who)    external view returns (uint256);  function allowance(address owner, address
+    spender)    external view returns (uint256);  function transfer(address to, uint256
+    value)    external returns (bool);  function approve(address spender, uint256
+    value)    external returns (bool);  function transferFrom(    address from, address
+    to, uint256 value  ) external returns (bool);  event Transfer(    address indexed
+    from,    address indexed to,    uint256 value  );  event Approval(    address
+    indexed owner,    address indexed spender,    uint256 value  );}Listing 3-20'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Complete interface of the ERC20 standard
+  prefs: []
+  type: TYPE_NORMAL
+- en: The first step to understand an ERC20 token is to glimpse its state. A fungible
+    token is backed by a mapping from a user to a balance, which is exposed by the
+    balanceOf getter.  function balanceOf(address who)    external view returns (uint256);Balances
+    are modified via invocations to transfer. A user can choose to transfer a certain
+    amount of their tokens to another address – either a contract or an external account.
+    Whenever this method is invoked, the Transfer event is emitted to log the action.  function
+    transfer(address to, uint256 value)    external returns (bool);An addition to
+    this basic behavior of balance transfer is the concept of *allowances*. A user
+    can approve any address to manage up to a certain number tokens on their behalf.
+    The state of the token allowances can be queried via the allowance getter.  function
+    allowance(address owner, address spender)    external view returns (uint256);To
+    set an allowance for an address, the contract provides the approve method, which
+    is required to emit an Approval event when called. Note that a user may set an
+    approval for an arbitrarily high number of tokens – regardless of whether they
+    own them or not.  function approve(address spender, uint256 value)    external
+    returns (bool);Allowances are consumed as the spender account transfers tokens
+    of the owner. If address A has allowed B to spend up to 20 tokens on their behalf,
+    after B transfers 5 of A’s tokens, the remaining allowance will be 15\. Transferring
+    on behalf of another user is done via the transferFrom method, which will affect
+    both balances and allowances.  function transferFrom(    address from, address
+    to, uint256 value  ) external returns (bool);
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Additionally, the standard includes three optional getters: name, symbol, and
+    decimals. These are often used by wallets or other client software to display
+    information about a token given its address.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The standard does not specify how tokens are initially distributed or how their
+    total supply evolves over time. Certain tokens have a fixed supply set when created
+    and assigned to a single address which manually distributes them. Others can be
+    minted over time and distributed based on certain rules.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Tip
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: A canonical and audited implementation of the ERC20 standard can be obtained
+    from the OpenZeppelin contracts package,^([15](#Fn15)) so you don’t need to implement
+    your own.
+  prefs: []
+  type: TYPE_NORMAL
+- en: ERC721 Non-fungible Tokens
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The ERC721 standard  (Listing [3-21](#PC34)) defines the specification for digital
+    collectibles, also called non-fungible tokens (often abbreviated NFTs). NFTs are
+    different from the traditional ERC20 token in that each token is identifiable
+    and different from the other. As such, a user no longer has a number of tokens,
+    but has a particular set of unique identifiable tokens, each with its own metadata
+    associated to it. As an analogy, if ERC20 tokens can be used to represent a currency,
+    ERC721 tokens can be used to represent collectible cards.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The interface for ERC721 is heavily inspired from ERC20, with the difference
+    that all operations act on identifiable tokens and not on a balance. ERC721 also
+    introduces a few additions over ERC20 which we will now review.contract ERC721
+    is IERC165 {  function balanceOf(address owner)    public view returns (uint256
+    balance);  function ownerOf(uint256 tokenId)    public view returns (address owner);  function
+    approve(address to, uint256 tokenId)    public;  function getApproved(uint256
+    tokenId)    public view returns (address operator);  function setApprovalForAll    (address
+    operator, bool _approved)    public;  function isApprovedForAll    (address owner,
+    address operator)    public view returns (bool);  function transferFrom    (address
+    from, address to, uint256 tokenId)    public;  function safeTransferFrom    (address
+    from, address to, uint256 tokenId)    public;  function safeTransferFrom    (address
+    from, address to, uint256 tokenId, bytes data)    public;  event Transfer(    address
+    indexed from,    address indexed to,    uint256 indexed tokenId  );  event Approval(    address
+    indexed owner,    address indexed approved,    uint256 indexed tokenId  );  event
+    ApprovalForAll(    address indexed owner,    address indexed operator,    bool
+    approved  );}Listing 3-21
+  prefs: []
+  type: TYPE_NORMAL
+- en: Interface of the ERC721 standard
+  prefs: []
+  type: TYPE_NORMAL
+- en: The first methods for querying the number of tokens held by an address, as well
+    as for querying whether a particular token belongs to an address, are quite straightforward.  function
+    balanceOf(address owner)    public view returns (uint256 balance);  function ownerOf(uint256
+    tokenId)    public view returns (address owner);
+  prefs: []
+  type: TYPE_NORMAL
+- en: Throughout the standard, tokens are identified by an opaque uint256 value. While
+    some implementations use incremental numbers for IDs, this is not required at
+    all.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note that the standard does not provide any way of actually listing the existing
+    tokens or the tokens that belong to a user. To solve this, there is an optional
+    extension (Listing [3-22](#PC36)) that provides methods for enumerating all the
+    tokens in existence, as well as the tokens of a particular user.  function totalSupply()    public
+    view returns (uint256);  function tokenOfOwnerByIndex    (address owner, uint256
+    index)    public view returns (uint256 tokenId);  function tokenByIndex(uint256
+    index)    public view returns (uint256);Listing 3-22
+  prefs: []
+  type: TYPE_NORMAL
+- en: ERC721Enumerable optional extension
+  prefs: []
+  type: TYPE_NORMAL
+- en: To avoid returning an arbitrarily large array with all the tokens created, or
+    all the tokens that belong to a user, this Enumerable extension provides means
+    to know the total number of tokens (or the number of tokens that belong to a user)
+    and to iterate through them via an index.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Like ERC20, ERC721 has the concept of allowances, though managed slightly different.
+    ERC721 allows an owner to designate one or more spenders for each of their tokens
+    individually and at the same time to designate one or more addresses to manage
+    all of their tokens on their behalf. The latter are sometimes called *operators*.
+    These two concepts – approval for a particular token or for all tokens – are queried
+    and set via the following methods, and reflected by the Approval and ApprovalForAll
+    events.  function approve(address to, uint256 tokenId)    public;  function getApproved(uint256
+    tokenId)    public view returns (address operator);  function setApprovalForAll    (address
+    operator, bool _approved)    public;  function isApprovedForAll    (address owner,
+    address operator)    public view returns (bool);ERC721 does not include a transfer
+    method  . Instead, all token transfers are to be handled via transferFrom, which
+    requires the spender to specify not only the token to transfer and the destination
+    but also the current owner. If the current owner does not match the from parameter,
+    the transfer is rejected.  function transferFrom    (address from, address to,
+    uint256 tokenId)    public;This standard includes two other methods for managing
+    transfers:  function safeTransferFrom    (address from, address to, uint256 tokenId)    public;  function
+    safeTransferFrom    (address from, address to, uint256 tokenId, bytes data)    public;The
+    safe transfer methods check that the recipient of the token can actually manage
+    them, by calling into a specified onERC721Received method in the recipient (Figure
+    [3-7](#Fig7)). If the recipient does not implement this method, the transfer is
+    aborted. This prevents tokens from being accidentally lost by sending to contracts
+    that cannot manage them, thus locking them forever, which is a common problem
+    in ERC20\. As such, it is recommended to always prefer this method over the plain
+    transferFrom.![../images/476252_1_En_3_Chapter/476252_1_En_3_Fig7_HTML.png](../images/476252_1_En_3_Chapter/476252_1_En_3_Fig7_HTML.png)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 3-7
+  prefs: []
+  type: TYPE_NORMAL
+- en: Execution flow of an ERC721 safe transfer
+  prefs: []
+  type: TYPE_NORMAL
+- en: An overload of this method includes an extra data parameter. This data is forwarded
+    on the onERC721Received call and can be used by the recipient to decide whether
+    to accept the token to be transferred.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Another part of ERC721 is the requirement to implement ERC165 (Listing [3-23](#PC40)).
+    ERC165 provides a standard way to query whether a contract implements an interface
+    or not. This allows users or other contracts to actually check if any given address
+    responds to a method before attempting to call into it. In the context of ERC721,
+    this means that you can actually *ask* an address whether it is an ERC721 contract
+    or not. However, keep in mind that whether the actual implementation is correct
+    or malicious is an entirely different subject.  function supportsInterface(bytes4
+    interfaceId)    external view returns (bool);Listing 3-23
+  prefs: []
+  type: TYPE_NORMAL
+- en: Interface of ERC165\. The interfaceId is a well-known identifier set for every
+    standard and is often composed of the hash of the public function signatures
+  prefs: []
+  type: TYPE_NORMAL
+- en: The last component of ERC721 is an optional extension for metadata (Listing
+    [3-24](#PC41)). This extension not only includes the name and symbol getters that
+    were also present in ERC20 (note that decimals do not make sense in this context,
+    since non-fungible tokens are not divisible) but also a way to fetch metadata
+    information for any given token.  function name() external view returns (string);  function
+    symbol() external view returns (string);  function tokenURI(uint256 tokenId)    public
+    view returns (string);Listing 3-24
+  prefs: []
+  type: TYPE_NORMAL
+- en: Metadata optional extension for ERC721
+  prefs: []
+  type: TYPE_NORMAL
+- en: While the format of tokenURI is not defined and is left for implementers to
+    choose,^([16](#Fn16)) it provides a standard way to obtain information on a particular
+    token instance, such as an image or a blurb of text that describes it. Token URI
+    often points to an off-chain^([17](#Fn17)) resource that contains a manifest for
+    the token.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Throughout this chapter, we have presented what a smart contract is and how
+    it is composed of code and state, differentiating it from an externally owned
+    account. We have reviewed what a transaction is, its lifecycle, and how it interacts
+    with a smart contract, potentially modifying its state – in opposition to static
+    calls, used to query contracts without changing them. We have also presented some
+    concepts such as gas usage and price, which are of particular importance to clients
+    issuing transactions to the network.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We have also studied Solidity as a high-level programming language for coding
+    smart contracts. Solidity’s basic unit is a contract, which is composed of state
+    variables and functions, which can be decorated with modifiers and potentially
+    emit events. Solidity contracts can extend from multiple other contracts, or include
+    libraries, as a means to modularizing code. This introduction was far from covering
+    all Solidity concepts and left out several security insights that are vital when
+    developing production-level smart contract code, but is enough for you to understand
+    smart contracts and be able to code small systems.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Last, we reviewed two of the most widely used building blocks in smart contracts –
+    tokens, defined in ERC20 and ERC721\. These cover fungible tokens and digital
+    collectibles, respectively, and most applications operate on either (or both)
+    of the two.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Overall, the main goal of this chapter is not for you to become an expert in
+    smart contract development, but to understand key concepts that will be useful
+    when developing web applications backed by these contracts.
+  prefs: []
+  type: TYPE_NORMAL

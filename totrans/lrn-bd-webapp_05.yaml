@@ -1,0 +1,1585 @@
+- en: © Santiago Palladino 2019S. PalladinoEthereum for Web Developers[https://doi.org/10.1007/978-1-4842-5278-9_5](https://doi.org/10.1007/978-1-4842-5278-9_5)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 5. Sending Transactions
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Santiago Palladino^([1](#Aff2) )(1)Ciudad Autónoma de Buenos Aires, Argentina
+  prefs: []
+  type: TYPE_NORMAL
+- en: After reviewing in the previous chapter how to read data and monitor changes
+    on the network, we will now go into how to write data by sending transactions.
+    We will start by setting up a development environment for easily playing with
+    smart contracts, then move into a web3-enabled context, and finally go into the
+    details of issuing transactions and monitoring their lifecycle. Once again, we
+    will wrap up with a sample application that puts all the learnings of the chapter
+    together.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Setting Up the Environment
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Before going into the details of transactions, we will first set up a development
+    environment for building and testing our applications.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Development Nodes
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Instead of using a remote public node for our application, this time we will
+    work with a local private node. Recall from the previous chapter that a node is
+    said to be *private* when it holds a set of accounts and their private keys, so
+    it can be used for signing transactions. This makes them friendlier for scripting
+    and testing, since we do not need to worry about account management on our code
+    and can delegate that responsibility to the node itself.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Running a local node has another benefit, which is that we can create our own
+    network instead of connecting to an existing one. This is useful for development
+    and especially for automated testing, since we do not need to wait for long networking
+    or mining times – we can set up our own network with near-instant mining  . Such
+    networks are usually called *development networks*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The usual workflow when building an application is to rely on a local development
+    node for coding and unit testing, then move to a testnet for a more realistic
+    environment, and eventually go onto mainnet as you deploy to production.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using Ganache
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: 'One of the most widely used client for development is *ganache* (formerly known
+    as *testrpc*). Ganache  is a tool exclusively built for development: it does not
+    connect to any Ethereum network – it just starts and runs a new development chain.
+    It also creates a set of random testing accounts, seeded with a bunch of ETH each,
+    and exposes their private key and mnemonic (Listing [5-1](#PC1)).$ npm install
+    -g ganache-cli@6.4$ ganache-cli -dGanache CLI v6.4.3 (ganache-core: 2.5.5)Available
+    Accounts==================(0) 0x90f8bf6a479f320ead074411a4b0e7944ea8c9c1 (~100
+    ETH)(1) 0xffcf8fdee72ac11b5c542428b35eef5769c409f0 (~100 ETH)...Private Keys==================(0)
+    0x4f3edf983ac636a65a...(1) 0x6cbed15c793ce57650......HD Wallet==================Mnemonic:      myth
+    like bonus scare over problem client lizard pioneer submit female collectBase
+    HD Path:  m/44''/60''/0''/0/{account_index}...Listening on 127.0.0.1:8545Listing
+    5-1'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Globally installing and running a local development network using Ganache.
+    Note the -d flag, which stands for deterministic: with this, ganache will always
+    generate the same set of accounts. Otherwise, the accounts and mnemonic change
+    from run to run'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'You may have noted an HD Wallet section on the ganache output, which includes
+    a mnemonic and an HD path. HD stands for hierarchical deterministic, and is a
+    concept borrowed from Bitcoin for creating any number of accounts given an *extended*
+    pair of private/public keys. Without going into technical details, a new pair
+    of private/public keys can be created from the extended pair by providing different
+    *derivation paths* (such as m/44’/60’/0’/0/0, m/44’/60’/0’/0/1, etc., as shown
+    in the ganache output). The extended pair itself can be derived from a *mnemonic*:
+    a set of randomly generated words which are much friendlier to remember or jot
+    down. All in all, this allows an unlimited number of accounts to be securely derived
+    from a single set of words. We will review this in-depth in Chapter [7](476252_1_En_7_Chapter.xhtml).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Ganache defaults to instant sealing, meaning that whenever a new transaction
+    is received, a new block is automatically mined on the spot and added to the chain.^([1](#Fn1))
+    To test this out, start a new ganache instance via ganache-cli (Listing [5-3](#PC3)).
+    On a different terminal, create a new project with web3@1.2.0 and start a new
+    console^([2](#Fn2)) (Listing [5-2](#PC2)), where we will execute a transaction  .$
+    npm init -y$ npm install web3@1.2.0$ node --experimental-repl-await> // Load web3
+    and open a connection to the node> let Web3 = require(''web3'')> let web3 = new
+    Web3(''http://localhost:8545'')> // Loads first two accounts as alice and bob>
+    let [alice, bob] = await web3.eth.getAccounts()> // Checks bob''s initial balance
+    (remember 1ETH = 1e18 Wei)> await web3.eth.getBalance(bob) / 1e18100> // Send
+    1ETH from Alice to Bob> // Note that the transaction is mined immediately> web3.eth.sendTransaction({from:
+    alice,to: bob,value: 1e18})> // Check bob''s balance again and see the additional
+    1ETH>  await web3.eth.getBalance(bob) / 1e18101Listing 5-2'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Testing sending 1ETH between two of the accounts generated by ganache. Keep
+    an eye on the ganache log as you send the transaction: you will note that it is
+    processed and mined immediately'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'ganache-cli -dListening on 127.0.0.1:8545eth_gasPriceeth_getBalanceeth_sendTransaction  Transaction:
+    0x6c79e178...  Gas usage: 21000  Block Number: 1eth_getTransactionReceipteth_getBalanceListing
+    5-3'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Output of the ganache log from the execution listed previously
+  prefs: []
+  type: TYPE_NORMAL
+- en: Instead of having ganache mine a new block on every transaction, you can specify
+    a blockTime (in seconds) which indicates the interval in which new blocks will
+    be generated. While slower than instant seal, this is a better representation
+    of how an actual chain works.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'You can also force ganache to mine a new block at any time by sending a special
+    evm_mine instruction via its JSON-RPC interface (Listing [5-4](#PC4)). This instruction
+    is specific to ganache and is not part of the standard JSON-RPC API.> // Check
+    the current block number> await web3.eth.getBlockNumber()1> // Force ganache to
+    mine a new block> let provider = web3.currentProvider> let send = util.promisify(provider.send).bind(provider)>
+    await send({ method: ''evm_mine'' })> // Verify that the block number has increased>
+    await web3.eth.getBlockNumber()2Listing 5-4'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Adding a new block to a ganache development blockchain by sending an evm_mine
+    call directly via the provider. Ganache also supports an evm_increaseTime call
+    to fake the passing of time, which is particularly useful for automated tests
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'By default, all chains generated by ganache are ephemeral: they are lost when
+    the ganache process is stopped. This can be changed by starting ganache with a
+    db option to store its state in a local folder, as shown in the following.$ mkdir
+    -p ganachedb$ ganache-cli -d --db ganachedb'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Make sure to run --help to check all the available options: ganache is a very
+    flexible tool for testing and allows you to set up whichever accounts you want
+    with arbitrary balances. It can even fork off an existing chain for running dry
+    runs of actions on actual networks.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Geth or Parity Development Mode
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: An alternative to using ganache for development is to work with a common Ethereum
+    client, such as Geth or Parity, set on development mode. This mode creates a new
+    private blockchain, managed entirely by the node, with optional instant seal.
+    While they offer less flexibility for testing than ganache, they are more representative,
+    since you connect your app to the same clients as you would do in production.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: While we will focus the rest of this section on Geth, make sure to check out
+    Parity’s documentation as well to review the options available for its dev mode.^([3](#Fn3))
+  prefs: []
+  type: TYPE_NORMAL
+- en: To start geth in development mode, install it on your workstation^([4](#Fn4))
+    and run the following command. Make sure to first stop the ganache instance we
+    started earlier if it is still running, since both will attempt to use the same
+    port.$ geth --datadir=geth-data --rpc --ws --dev --dev.period=1
+  prefs: []
+  type: TYPE_NORMAL
+- en: This will open the HTTP interface in the default 8545 port and the websocket
+    interface in 8546\. The dev.period option specifies the interval (in seconds)
+    in which new blocks should be mined – omitting this option toggles instant seal
+    as in ganache. Also, note the datadir option, which will store all blockchain
+    data in the local geth-data directory; if you do not set this flag, geth will
+    store all data in a default location in your home directory.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Upon startup, Geth will create a single account with large amounts of ETH for
+    development. Nevertheless, if you want to generate additional accounts, you may
+    use the account subcommand, setting the same datadir as in the original geth command.$
+    geth --datadir=geth-data account newYour new account is locked with a password.
+    Please give a password. Do not forget this password.Passphrase:Repeat passphrase:Address:
+    {3975c2...}Geth will ask you for a passphrase to encrypt the account, which you
+    may leave as empty for a development network (but definitely not for a real one!).
+    All Ethereum clients keep user accounts encrypted, until the owner requires to
+    use them. As such, to actually use the account, the owner must first unlock it
+    by providing the passphrase. Let’s test this: we will once again start a node
+    console and connect to the node.$ node --experimental-repl-await> // Load web3
+    and open a connection to the node> let Web3 = require(''web3'')> let web3 = new
+    Web3(''http://localhost:8545'')> // List accounts on the node> let accounts =
+    await web3.eth.getAccounts()[ ''0xC5A4bA36f7C0B4eD17455C1A578a6ab3Fb738245'',
+    ...]> // Send a transaction from the always-unlocked dev account> await web3.eth.sendTransaction({
+    from: accounts[0], to: accounts[1], value: 5e18 }){ transactionHash: ''0x18737033...'',
+    ... }> // Try sending a transaction from the newly created account> await web3.eth.sendTransaction({
+    from: accounts[1], to: accounts[0], value: 1e18 })Returned error: authentication
+    needed: password or unlockUnlocking an account requires access to the *personal*
+    API, which is disabled by default on the HTTP interface. To avoid going into detail
+    on how to configure API accesses for a node, we will simply restart the geth process
+    supplying an unlock option with the comma-separated list of addresses we want
+    to freely use. Geth will prompt for the account’s password upon startup.$ geth
+    --datadir=geth-data --rpc --ws --dev --dev.period=1--unlock=3975c2...'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'So far, we have only been interacting with the eth API of a node, which is
+    used for regular interaction with the Ethereum network. But nodes also provide
+    other APIs, which are used for managing accounts, administering the node, mining,
+    or even debugging. Startup options control which APIs are offered via which interfaces:
+    by default, sensitive APIs such as personal or management are only exposed locally
+    via the IPC interface.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Keep in mind that a geth node can be used either in development mode, in connection
+    to a testnet, or in direct connection to mainnet. When working on an actual network,
+    you only need to swap out the dev startup option by a networkid specifying which
+    Ethereum network you want to connect to.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Remember that, unlike in Bitcoin, Ethereum accounts are valid for any network,
+    so take special care not to mix up your development accounts and your mainnet
+    ones. It is a good practice to use different addresses for different networks.
+    You do not want to burn 10ETH from your default account in development only to
+    realize that you were actually running on mainnet.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Creating Contracts
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Now that we have a local node with a development network set up, we will go
+    through the process of compiling and deploying a smart contract to it. Keep in
+    mind that since we are working on a fresh development network, there are no contracts
+    already deployed for us to interact with, so we will need to create all of them.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Compiling
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: 'To begin with, in a new project folder, create a new contracts/Greeter.sol
+    file with a Greeter contract we will use for testing.// contracts/Greeter.solpragma
+    solidity ^0.5.0;contract Greeter {  string private greeting;  constructor(string
+    memory _greeting) public {    greeting = _greeting;  }  function greet() public
+    view returns (string memory) {    return greeting;  }}Install the Solidity compiler^([5](#Fn5))
+    version 0.5 or higher, and run the following command in your project root to compile
+    the contract and save the output to a local Artifacts.json file.solc --pretty-json
+    --JSON=abi,bin contracts/*.sol > Artifacts.jsonThis will generate a JSON file
+    with one entry for each Solidity file on your contracts folder, and include both
+    the ABI and the compiled code.{  "contracts":  {    "contracts/Greeter.sol:Greeter":
+    {      "abi" : "[{\"constant\":true,... "      "bin" : "6080..."    }  }}'
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, the command-line interface for the Solidity compiler is quite limited.
+    The recommended usage for more complex applications is the standard JSON interface,
+    which accepts a JSON file for configuring the compilation task and outputs one
+    file per contract. The caveat is that this interface is rather complex to use
+    manually.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Nevertheless, there are several wrappers that offer a friendlier interface
+    for the compiler. Here we will use the sol-compiler from the 0x team, which is
+    a thin wrapper over the standard JSON format. Install and run it with the following
+    commands, which will generate one JSON file per contract in an artifacts folder  .$
+    npm install -g @0x/sol-compiler@3.1$ sol-compilerThe output files generated by
+    sol-compiler have the following structure. Note that a compiler.json configuration
+    file can be set up^([6](#Fn6)) to control which fields are generated, as well
+    as some compiler options, such as the optimizer.{  "contractName": "Greeter",  "compilerOutput":
+    {    "abi": [ {"constant": true, ... } ],    "evm": {      "bytecode": {        "object":
+    "0x6080..."      }    }  }}'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Abridged sample output of sol-compiler.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: While the content is the same as the one generated previously via the JSON option
+    of solc, it is organized differently. From here on, we will use the output from
+    sol-compiler in all examples.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Deploying
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Now that we have compiled our Solidity files, we can deploy them to our development
+    network. While there are a number of tools that manage this process for us, we
+    will keep our toolchain as simple as possible and rely just on web3 to do this.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To deploy a contract using web3, we first need to create a web3 contract object,
+    making sure we provide the contract’s binary (which we can extract from the compiled
+    artifact). We will leave out the second parameter of the constructor which is
+    the contract’s address, since it does not exist yet.Greeter = new web3.eth.Contract(abi,
+    null, { data: binary })Once we have the contract object, we can invoke the deploy
+    method by providing an unlocked sender account and a gas stipend. The returned
+    object is a full web3 contract we can interact with.greeter = await Greeter.deploy().send({
+    from, gas: 1e6 })Let’s put all of this together in a new scripts/deploy.js file
+    (Listing [5-5](#PC17)). We will retrieve the ABI and bytecode from the artifacts
+    folder and connect to a local node to run the deployment.// scripts/deploy.jsconst
+    Web3 = require(''web3'')const GreeterJSON = require(''../artifacts/Greeter.json'')async
+    function deploy() {  const web3 = new Web3(''http://localhost:8545'')  const [from]
+    = await web3.eth.getAccounts()  const gas = 1e6  const arguments = ["Hello world!"]  const
+    data = GreeterJSON.compilerOutput.evm.bytecode.object  const abi = GreeterJSON.compilerOutput.abi  const
+    Greeter = new web3.eth.Contract(abi, null, { data })  const greeter = await Greeter.deploy({
+    arguments })                               .send({ from, gas })  console.log(greeter.options.address);}deploy();Listing
+    5-5'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Deployment script for the Greeter contract. Note that the data and abi are fetched
+    from the JSON file generated by sol-compile, and the sender account is set to
+    the first account in the node
+  prefs: []
+  type: TYPE_NORMAL
+- en: To test this, make sure to first start a ganache instance (or a geth in development
+    mode) as shown before, listening to the default port 8545\. Then run the preceding
+    script via node scripts/deploy.js, which should output the deployment address.
+    We can then start a javascript console to connect to the node and run the contract’s
+    greet function (Listing [5-6](#PC18)) as a means to verify that everything worked
+    as expected.$ node --experimental-repl-await> Web3 = require('web3')> GreeterJSON
+    = require('../artifacts/Greeter.json')> let web3 = new Web3('http://localhost:8545')>
+    let abi = GreeterJSON.compilerOutput.abi> let greeter = new web3.eth.Contract(abi,
+    '0xa42d93...')> await greeter.methods.greet().call()'Hello world!'Listing 5-6
+  prefs: []
+  type: TYPE_NORMAL
+- en: Script for initializing a greeter contract object at the deployed address and
+    testing the call to the greet function. Make sure to replace the sample address
+    with the actual deployment address
+  prefs: []
+  type: TYPE_NORMAL
+- en: The deployment script, while simple, can be generalized for any contract in
+    your application and modified to accept command-line options or environment variables
+    to configure the connection to the node, the sender account, or the constructor
+    parameters. It is also a good idea to save the deployment address to a local file,
+    rather than just output it in the console. We will revisit this near the end of
+    the chapter when we build a full application.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Managing Accounts
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Our next step will be account management, which includes both creating and seeding
+    accounts in a development environment, as well as accessing them from our web
+    applications.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Revisiting Metamask
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: As in previous chapters, we will rely on Metamask for connecting to the network
+    from our web application. However, we will now be working not on an actual Ethereum
+    network, but on a local development one. We shall switch to testnets and mainnet
+    at a later stage.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: As we have previously pointed out, addresses in Ethereum are valid in all networks.
+    This means that you can use the same private key and address pair throughout testnet,
+    mainnet, and even your local development network. Of course, the fact that you
+    *can* does not mean that you *should*. It is a good idea to use different accounts
+    altogether, since you will want to treat the keys to accounts in *real* networks
+    with special care. Unfortunately, Metamask will use the same set of accounts for
+    all networks, which are all derived from the same mnemonic. To avoid mistaking
+    development and real accounts, some developers opt for running a different browser
+    profile for development, which allows them to have an entirely separate set of
+    accounts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Your first step will be to connect Metamask to your development network (Figure
+    [5-1](#Fig1)). Hit the network drop-down in the extension and choose to connect
+    to *Localhost 8545*, where your development node is running  .
+  prefs: []
+  type: TYPE_NORMAL
+- en: Alternatively, if you have set up your development node on a different port,
+    you will need to register it as a new network. To do this, head over to *Settings*,
+    choose to connect to a *New Network*, and enter an HTTP connection to localhost
+    at the port where you started ganache, geth, or parity (8545 by default).![../images/476252_1_En_5_Chapter/476252_1_En_5_Fig1_HTML.jpg](../images/476252_1_En_5_Chapter/476252_1_En_5_Fig1_HTML.jpg)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 5-1
+  prefs: []
+  type: TYPE_NORMAL
+- en: Creating a new network connection in Metamask
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Now we need to seed our Metamask account with funds, in order to send transactions
+    with it. Remember that since this is a new account on a new network, it has no
+    balance. Copy your Metamask address(es), and bring up a console as we did before
+    to move funds from your initial accounts  to the Metamask ones.$ node --experimental-repl-await>
+    // Load web3 and open a connection to the node> let Web3 = require(''web3'')>
+    let web3 = new Web3(''http://localhost:8545'')> // Get first account on the node>
+    let [from] = await web3.eth.getAccounts()[ ''0xC5A4bA36f7C0B4eD17455C1A578a6ab3Fb738245'',
+    ...> // Copy here your Metamask address> let metamask = ''0x43a93b...'';> // Seed
+    your Metamask address from your developer one> await web3.eth.sendTransaction({
+    from, to: metamask, value: 5e18 })'
+  prefs: []
+  type: TYPE_NORMAL
+- en: An alternative to having to manually seed your addresses is to have the autogenerated
+    development accounts available on Metamask  , which can be easily done if you
+    are using ganache. Since both ganache and Metamask rely on a mnemonic for generating
+    new addresses, you can use the same mnemonic on both of them to ensure the same
+    accounts are used.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To do this, you will need to enter the 12 words displayed by ganache at startup
+    during the Metamask initialization wizard (Figure [5-2](#Fig2)), by choosing the
+    option *Import with seed phrase*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Tip
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'If you started ganache with the --deterministic flag, then that mnemonic should
+    be: myth like bonus scare over problem client lizard pioneer submit female collect.
+    Make sure not to use this mnemonic outside a development environment!'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![../images/476252_1_En_5_Chapter/476252_1_En_5_Fig2_HTML.jpg](../images/476252_1_En_5_Chapter/476252_1_En_5_Fig2_HTML.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 5-2
+  prefs: []
+  type: TYPE_NORMAL
+- en: Entering your ganache mnemonic into Metamask
+  prefs: []
+  type: TYPE_NORMAL
+- en: The converse is also viable. You can get your Metamask-generated mnemonic and
+    enter it in ganache. This way, all development accounts created by ganache and
+    seeded with funds in the new network will be the same as the ones created by Metamask.
+    If you do not remember your Metamask mnemonic, there is an option *Reveal seed
+    words* under *Settings*.$ ganache-cli --mnemonic="drink focus interest..."
+  prefs: []
+  type: TYPE_NORMAL
+- en: Regardless of which of the three options you used, you should now have one or
+    more accounts on Metamask with enough funds to interact with your application
+    in your development network.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Retrieving User Accounts in Our Apps
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Remember from the previous chapter the script we were using for connecting to
+    the network from our web application. We will reproduce here just the snippet
+    corresponding to modern web3 browsers.if (window.ethereum) {  web3 = new Web3(window.ethereum);  try
+    {    accounts = await window.ethereum.enable();  } catch (error) {    console.error("No
+    access to user accounts");  }}
+  prefs: []
+  type: TYPE_NORMAL
+- en: The global Ethereum object, injected by the web3 browser (or the Metamask extension
+    in our case), allows us to interact with both the Ethereum network and the user’s
+    accounts  . The most important method here is enable, which will trigger a prompt
+    to our users asking them if they want to allow our application to list their accounts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It is important to keep in mind that the list of accounts returned from either
+    ethereum.enable() or web3.eth.getAccounts() is ordered such that the account that
+    the user intends to use is always the first one. Because of this, before sending
+    any transaction, we should first re-retrieve the list of user accounts, and use
+    the first one at that moment, which could have changed since we initialized the
+    web3 instance.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Alternatively, if you want to keep on display the status of the user’s current
+    account, you can subscribe to an accountsChanged event on the ethereum object
+    (Listing [5-7](#PC22)), that will fire whenever the user switches to a new account,
+    allowing you to update your interface accordingly.ethereum.on('accountsChanged',
+    async function (accounts) {  currentAccount = accounts[0];  currentBalance = await
+    web3.eth.getBalance(currentAccount);  // Show currentBalance in the UI})Listing
+    5-7
+  prefs: []
+  type: TYPE_NORMAL
+- en: Example code for watching changes on user accounts in Metamask and update UI
+    accordingly
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now that we have our local development environment set up, we can finally go
+    into the details of sending transactions in this network.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Issuing Transactions
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Even though the gist of sending a transaction is simple, there are several details
+    that you should keep into consideration. We will go through them in this section
+    and then illustrate them in a sample dapp.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Transaction Parameters
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'We will start by reviewing the parameters available when sending a transaction:
+    data, value, gas, and gas price, as well as the sender and target addresses.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Sending Value or Data
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: 'One of the first things to take into consideration is whether your transaction
+    will be sending value, data, or both. By value here we refer to ETH, the currency
+    of the network, and by data we typically refer to executing a function in a contract.
+    In some cases, it may include both: running a function in a contract that requires
+    ETH to be transferred along with it.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Plainly sending ETH to an address is straightforward, as we have seen already
+    in this chapter, by using the web3.eth.sendTransaction method. Keep in mind that
+    sending a plain transaction to a contract may still execute code, since a contract
+    can react to an incoming transaction via its fallback function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'On the other hand, invoking a state-changing function in a contract is similar
+    to making a static call: it can be performed at a low level by sending a transaction
+    with a manually crafted data parameter, which indicates which function must be
+    invoked on a target contract and with which arguments, or by interacting with
+    a web3 contract object.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: To illustrate this, let’s extend our Greeter contract from the “*Creating contracts”*
+    section with an additional setGreeting method (Listing [5-8](#PC23)). This method
+    will allow any user to change the current greeting, as long as they pay at least
+    1 kWei.// contracts/Greeter.solpragma solidity ^0.5.0;contract Greeter {  string
+    private greeting;  event GreetingSet(string greeting, uint256 balance);  constructor(string
+    memory _greeting) public {    greeting = _greeting;    emit GreetingSet(_greeting,
+    0);  }  function greet() public view returns (string memory) {    return greeting;  }  function
+    setGreeting(string memory _greeting)    public payable    returns (string memory,
+    uint256)  {    require(msg.value >= 1000);    greeting = _greeting;    emit GreetingSet(_greeting,
+    address(this).balance);    return (_greeting, address(this).balance);  }}Listing
+    5-8
+  prefs: []
+  type: TYPE_NORMAL
+- en: Sample Greeter contract with a setGreeting function. Note that we are emitting
+    an event with the same data as we return from the function. We will see why later
+    in this chapter.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Compile and deploy this contract to your local network using sol-compile, along
+    with the deployment script we wrote before. We can now interact with the contract
+    from a node console as shown in the following.$ node --experimental-repl-await>
+    Web3 = require('web3')> GreeterJSON = require('./artifacts/Greeter.json')> let
+    web3 = new Web3('http://localhost:8545')> let abi = GreeterJSON.compilerOutput.abi>
+    let greeter = new web3.eth.Contract(abi, ADDRESS)We can test the setGreeting function
+    by invoking the method in the greeter instance (Listing [5-9](#PC25)). Note that,
+    unlike in the previous chapter, we are using send instead of call – this will
+    trigger a new transaction instead of a static call. We also need to specify a
+    sender account that will have the gas fees deducted from its balance. And since
+    the setGreeting method requires us to send some ETH along with the transaction,
+    we include a value option as well.> let [from] = await web3.eth.getAccounts()>
+    let value = 1000> greeter.methods.setGreeting('Hi there!').send({from, value})>
+    await greeter.methods.greet().call()*'Hi there!'*Listing 5-9
+  prefs: []
+  type: TYPE_NORMAL
+- en: Sending a transaction to alter the greeting of our contract
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: In web3.js, the arguments that are part of the contract function are set on
+    the corresponding contract method, while the transaction options are passed in
+    the send or call methods.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As mentioned, we can also manually craft the data to be sent in the transaction
+    to invoke a function in our contract and then use a low-level sendTransaction
+    (Listing [5-10](#PC26)). It is unlikely that you will actually use this pattern,
+    but it is useful to know what happens behind the scenes when you send a transaction
+    from a web3 contract object.> let to = ADDRESS> let data = greeter.methods.setGreeting('Hi!').encodeABI()>
+    web3.eth.sendTransaction({ from, value, data, to })Listing 5-10
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using a low-level sendTransaction to call setGreeting. Note that we need to
+    specify the target address as another option
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'If you are curious about the contents of data, you can check out that it contains
+    the following hexadecimal sequence:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '0xa4136862000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000034869210000000000000000000000000000000000000000000000000000000000'
+  prefs: []
+  type: TYPE_NORMAL
+- en: While intimidating, this sequence corresponds to the ABI call with the RLP-encoded
+    data we provided. RLP, or Recursive Length Prefix, is a method to encode arbitrarily
+    nested data of arbitrary length.^([7](#Fn7)) In this scenario, the first 8 bytes
+    (a4136862) are the function selector, which tell the contract that setGreeting
+    must be called. The rest of the payload corresponds to the RLP encoding of “Hi!”.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Estimating Gas
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: 'Let’s try the setGreeting method again, but this time using a longer string
+    as an argument to the function.> const longGreeting = ''Hi there! This is a very
+    long and costly greeting to set which will require more gas.''> await greeter.methods.setGreeting(longGreeting)    .send({
+    from, value})*Error: Returned error: VM Exception while processing transaction:
+    out of gas*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Remember from Chapter [3](476252_1_En_3_Chapter.xhtml) that executing a transaction
+    in Ethereum costs gas. The total gas cost of a transaction is proportional to
+    the accumulated cost of all operations executed, where different operations have
+    different gas costs. Writing to storage is a particularly expensive operation,
+    since it implies persisting new state in the blockchain. And the larger the data,
+    the more store operations involved.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the preceding example, by attempting to save a very large string to this
+    contract’s state, we exceeded the gas allowance for our transaction (which in
+    web3@1.2.0 defaults to 90,000), and thus the transaction failed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We can make this transaction work by allocating a larger supply of gas for
+    its execution (Listing [5-11](#PC28)). For instance, let’s try with 1 million
+    gas units. Keep in mind that this does not mean that the transaction will actually
+    use 1 million gas – only that we are willing to spend up to that much in its execution.>
+    let gas = 1e6> await greeter.methods.setGreeting(longGreeting)    .send({ from,
+    value, gas })*{ transactionHash: ''0x6eb0fa...'',*  *transactionIndex: 0,*  ***gasUsed:
+    98097,***  *... }*> await greeter.methods.greet().call()*''Hi there! This is a
+    very long and costly greeting to set which will require more gas.''*Listing 5-11'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Running the previous transaction with a higher gas allocation. Note that the
+    returned transaction receipt includes the actual gas used by the transaction,
+    which is well under 1 million
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This begs the question of how we can know how much to allocate to a transaction.
+    An option could be to simply specify a very high gas allowance: the block gas
+    limit in most networks is between 4 and 8 million gas, so we could simply use
+    a value in that order.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, if we do so, our users will be asked to accept a transaction that may
+    potentially drain more funds than they are willing to part with (Figure [5-3](#Fig3)).
+    Any user who takes a look at the gas fee numbers will most likely refuse to run
+    a transaction under these conditions.![../images/476252_1_En_5_Chapter/476252_1_En_5_Fig3_HTML.jpg](../images/476252_1_En_5_Chapter/476252_1_En_5_Fig3_HTML.jpg)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 5-3
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Metamask confirmation dialog for the same transaction using different gas allowances:
+    on the left, using the default amount of gas; on the right, using 5 million. Note
+    the differences in the fee costs in USD: the user is asked to invest up to 9 cents
+    vs. 10 dollars'
+  prefs: []
+  type: TYPE_NORMAL
+- en: To solve this situation, we can *estimate* the gas a transaction will cost before
+    actually needing to send it (Listing [5-12](#PC29)). Ethereum nodes implement
+    an estimateGas method that accepts a transaction and runs it locally to determine
+    how much gas it is needed to run it.> gas = await greeter.methods.setGreeting(longGreeting)    .estimateGas({
+    from, value })> await greeter.methods.setGreeting(longGreeting)    .send({ from,
+    value, gas })Listing 5-12
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using estimateGas to calculate how much gas is required for a transaction. In
+    this case, the returned value for estimateGas was around 98K
+  prefs: []
+  type: TYPE_NORMAL
+- en: In some cases, the returned value from estimateGas may not be exactly equal
+    to the gas actually used. This is because the estimation relies on the state of
+    the network at the time it is called, whereas the actual amount of gas is only
+    determined when the transaction is actually mined. Between these two events, the
+    state of the contract may have changed, which could alter the amount of gas required.^([8](#Fn8))
+  prefs: []
+  type: TYPE_NORMAL
+- en: Because of this, it is a good practice to allocate a slightly higher amount
+    of gas than the one returned from the estimate gas call (Listing [5-13](#PC30)).
+    A 20% more is usually good enough, though your mileage may vary depending on the
+    contracts you are working with. Also, make sure not to set a gas allowance above
+    the block gas limit, or the transaction will be simply rejected.> let lastBlock
+    = await web3.eth.getBlock('latest')> let limit = lastBlock.gasLimit> gas = Math.min(limit
+    - 1, Math.ceil(gas * 1.2))Listing 5-13
+  prefs: []
+  type: TYPE_NORMAL
+- en: Calculating the actual amount of gas to use in a transaction
+  prefs: []
+  type: TYPE_NORMAL
+- en: It is worth noting that if the transaction fails during its gas estimation,
+    the estimate call will fail with an “always failing transaction” error. This prevents
+    you from sending a transaction to the network that would ultimately fail.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Choosing a Gas Price
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Transactions require not just a gas limit but also a gas price. Remember from
+    Chapter [3](476252_1_En_3_Chapter.xhtml) that the gas price indicates how much
+    (in Wei) is paid per unit of gas used during the execution of a transaction. While
+    this value is unimportant in development or testing networks, they are critical
+    to get right on the main network – or any network where its native currency holds
+    actual monetary value.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Needless to say, using higher gas prices will result in more costly operations.
+    On the other hand, a higher-than-average gas price means that the transaction
+    will be picked up by miners earlier; this reduces the amount of time a user must
+    wait until their transaction is included in the blockchain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Gas prices fluctuate depending on the total network load. At times of intensive
+    usage of the Ethereum network, there is much more competition to get a transaction
+    included in the next block, which drives gas prices higher.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Estimating gas prices is much more difficult than estimating gas allowance,
+    since an estimation cannot be obtained by just making a dry run of the transaction
+    and checking the total usage. Instead, estimating prices requires an analysis
+    of past and pending transactions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The most direct way to obtain a gas price estimate is by relying on the gasPrice
+    API method of an Ethereum node (Listing [5-14](#PC31)). Nodes keep a gas price
+    value, which is updated with a preconfigured frequency and is calculated based
+    on a percentile of the gas price of the transactions from recent blocks.> await
+    web3.eth.getGasPrice()*'20000000000'*Listing 5-14
+  prefs: []
+  type: TYPE_NORMAL
+- en: Querying the Ethereum node for gas price. Note that ganache returns a constant
+    value for gas price, which can be configured at startup
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: When running getGasPrice via Metamask, a subprovider intercepts the call and
+    manually calculates the gas price as the median of the last N blocks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, this method only considers data from transactions already mined, disregarding
+    any information from pending transactions on the mempool awaiting to be included
+    in the blockchain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'As an alternative, there are centralized services that provide real-time gas
+    estimates for the Ethereum main network (Listing [5-15](#PC32)), based on more
+    complex calculations. These services often return better results, but at the cost
+    of introducing a centralized dependency on your application. Such services are
+    offered by Etherchain or EthGasStation, among others, and provide gas prices for
+    low, standard, fast, or fastest transaction processing.$ npm install axios@0.18.0$
+    node --experimental-repl-await// Setup web3 provider and contract> Web3 = require(''web3'')>
+    GreeterJSON = require(''./artifacts/Greeter.json'')> let web3 = new Web3(''http://localhost:8545'')>
+    let abi = GreeterJSON.compilerOutput.abi> let greeter = new web3.eth.Contract(abi,
+    ADDRESS)// Retrieve gas price and send transaction> axios = require(''axios'')>
+    let URL = ''https://www.etherchain.org/api/gasPriceOracle''> let { data: gasData
+    } = await axios.get(URL)> let gasPrice = gasData.fast * 1e9> await greeter.methods.setGreeting(''Hello!'')    .send({
+    from, value, gas, gasPrice })Listing 5-15'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Retrieving gas price from the Etherchain API and using it in a transaction.
+    This snippet uses the axios package for performing a standard HTTP GET request
+    to the API
+  prefs: []
+  type: TYPE_NORMAL
+- en: Lifecycle of a Transaction
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Now that we know how to configure the main components of a transaction, it is
+    time to review what happens once a transaction is sent and how do we interact
+    with it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A Transaction is Sent
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: When a transaction is sent to a node, the node performs some basic checks to
+    make sure the transaction is valid and can be broadcasted. For instance, the node
+    checks that the sender account has enough funds, and that the gas allowance and
+    price values are reasonable.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If the transaction is accepted by the node, it returns a hash of the transaction.
+    This transaction hash acts as a globally unique identifier of the transaction
+    on the blockchain, and can be used to retrieve information on the transaction
+    later.> let txHash = null> greeter.methods.setGreeting('Hello!')    .send({ from,
+    value })    .on('transactionHash', (hash) => txHash = hash)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: If needed, the transaction hash can be calculated offline by a client, as long
+    as the client has the sender’s private key, since it depends exclusively on its
+    parameters and signature.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'By the time the transaction hash is returned, the transaction info can be retrieved
+    from any node that has *seen* this transaction (Listing [5-16](#PC34)), regardless
+    of the transaction having been mined or not. This info includes the sender, recipient,
+    gas allowance, price, nonce, input data, and everything that you may have specified
+    when sending the transaction.> await web3.eth.getTransaction(txHash){ blockHash:
+    ''0x0000...0'',  blockNumber: null,  from: ''0x...'',  gas: 90000,  gasPrice:
+    ''1000000000'',  hash: ''...'',  input: ''0xa41368620...'',  nonce: 470,  to:
+    ''0x...'',  transactionIndex: 0,  value: ''1000''}Listing 5-16'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Transaction information returned right after the transaction is sent. Note that
+    all block-related information is empty, since the transaction has not been mined
+    yet
+  prefs: []
+  type: TYPE_NORMAL
+- en: At this point, the transaction has not yet been mined and is said to be in *pending*
+    state. Any attempts to retrieve the transaction receipt will simply return null  .
+  prefs: []
+  type: TYPE_NORMAL
+- en: A Transaction is Mined
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: 'After a while, depending on the gas price used and the network load, the transaction
+    should be mined. Note that a transaction gets mined regardless of it being successful
+    or not: reverted transactions are also included in the blockchain and consume
+    a gas fee from their sender.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Once the transaction is mined, its getTransaction information will include
+    the block number and hash in which it was included, plus its index in the block.
+    Also, at this point, the transaction receipt becomes available.> await web3.eth.getTransactionReceipt(txHash){
+    transactionHash: ''0x...'',  transactionIndex: 0,  blockHash: ''0x...'',  blockNumber:
+    29,  gasUsed: 23235,  cumulativeGasUsed: 23235,  logs: [ ... ],  status: true}'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The receipt includes information generated when the transaction was executed
+    during mining, such as the gas actually used, whether it succeeded (the status
+    flag is true if the transaction did not revert), and the logs it emitted.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: If you inspect the logs in a transaction receipt obtained via a getTransactionReceipt
+    call, you will only be able to fetch the raw data of an event. This is because
+    the client library does not have enough context to understand how to *decode*
+    the logs. It requires an ABI to indicate what are the event names and argument
+    types.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We can await for a transaction to be mined by checking for new blocks (either
+    via polling or subscribing to newBlockHeaders) and attempting to retrieve the
+    transaction receipt whenever a new mined block is seen (Listing [5-17](#PC36)).
+    If the transaction was successfully mined in the new block, then its receipt will
+    be available.// Sends a transaction to the network and returns its hashfunction
+    sendTransactionReturnHash(opts) {  return new Promise((resolve, reject) => {    web3.eth.sendTransaction(opts)      .on('transactionHash',
+    hash => resolve(hash))      .on('error', err => reject(err));  })}// Sends a transaction
+    and awaits for it to be minedfunction sendTransactionAwaitReceipt(opts) {  const
+    BLOCKS = 'newBlockHeaders';  return new Promise((resolve, reject) => {    sendTransactionReturnHash(opts).then(hash
+    => {      const sub = web3.eth.subscribe(BLOCKS, (err) => {        if (err) reject(err);        //
+    Check for the receipt on every new block        // If available, it means the
+    tx was mined        web3.eth.getTransactionReceipt(hash).then(receipt => {          if
+    (receipt) {            sub.unsubscribe();            **resolve(receipt);**          }        });      });    }).catch(reject);  });}Listing
+    5-17
+  prefs: []
+  type: TYPE_NORMAL
+- en: Subscribing to new block headers to check when a transaction is successfully
+    mined. Note that if you have multiple transactions in-flight, it may be worthwhile
+    to share a single newBlockHeaders subscription among all of them
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If using web3, the transaction receipt can also be obtained by simply awaiting
+    on the sendTransaction method (both for sending plain transactions and for triggering
+    transactions on a contract function). This also provides easy access to the events,
+    which are decoded based on the ABI of the contract object in which the transaction
+    was issued.> let receipt = await greeter.methods.setGreeting(''Hey!'')    .send({
+    from, value: 10000 })> let { events } = receipt> let { greeting, balance } = events.GreetingSet.returnValues>
+    greeting*''Hey!''*> balance*''30000''*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Being able to process transaction events is particularly important because *there
+    is no way to retrieve the return value of a function called in a transaction*.
+    If you go back to the code of our contract, you will see that our function actually
+    returned the greeting string and the contract balance. However, by design, those
+    values are not part of the transaction receipt and cannot be obtained from the
+    client.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'The only way to get the return values from a function in a transaction is to
+    call them from another contract: a contract that invokes setGreeting will have
+    access to them, but an off-chain client that sends a transaction to the Greeter
+    will not.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Because of this reason, it is a common pattern in smart contract design that
+    public state-changing functions emit an event with their return values (Listing
+    [5-18](#PC38)). This allows an externally owned account to call into such functions
+    and retrieve the return values from the event arguments.function setGreeting(string
+    memory _greeting)  public payable returns (string memory, uint256){  greeting
+    = _greeting;  // This can only be accessed by a client off-chain  emit GreetingSet(_greeting,
+    address(this).balance);  // This can only be accessed by another contract calling  return
+    (_greeting, address(this).balance);}Listing 5-18
+  prefs: []
+  type: TYPE_NORMAL
+- en: Emitting an event with data that mimics the return values, to make them accessible
+    from a client
+  prefs: []
+  type: TYPE_NORMAL
+- en: A Transaction is Confirmed
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: While it may be tempting to act upon a mined transaction immediately, transactions
+    may be moved out of the blockchain due to reorganizations. This means that a mined
+    transaction can go back to pending state and then either mined again or dropped –
+    and can even produce different state changes when it is mined in a different context.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Because of this, it may be prudent to wait for a certain number of confirmations
+    before actually acting upon a transaction. What *acting upon* means depends on
+    your use case, as well as the number of confirmations to wait. Remember that a
+    confirmation is the number of blocks mined after the one that included a transaction:
+    every new mined block is a new confirmation for your transaction. A reorganization
+    becomes less and less probable as more blocks are added to the chain.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Transaction confirmations can be measured by subscribing to new blocks on the
+    network (see Chapter [4](476252_1_En_4_Chapter.xhtml)), and counting the blocks
+    since the transaction receipt. We can modify the code from the previous section
+    to return only once a certain number of confirmations have occurred (Listing [5-19](#PC39))
+    instead of when the receipt is immediately available.function sendTransactionAwaitConfirmations(opts,
+    confs) {  const BLOCKS = 'newBlockHeaders';  return new Promise((resolve, reject)
+    => {    sendTransactionReturnHash(opts).then(hash => {      const sub = web3.eth.subscribe(BLOCKS,
+    (err, block) => {        if (err) reject(err);        // Instead of just checking
+    that the receipt exists,        // now we also check its age in blocks        web3.eth.getTransactionReceipt(hash).then(receipt
+    => {          if (receipt &&              **block.number > receipt.blockNumber
+    + confs**) {            sub.unsubscribe();            **resolve(receipt);**          }        });      });    }).catch(reject);  });}Listing
+    5-19
+  prefs: []
+  type: TYPE_NORMAL
+- en: Modifying the sendTransactionAwaitReceipt function to wait for a specific number
+    of confirmations before returning the receipt. Note that it is important to fetch
+    the transaction receipt again on every block, since it may have changed due to
+    a chain reorganization
+  prefs: []
+  type: TYPE_NORMAL
+- en: Alternatively, web3 also provides an event to track confirmations once the transaction
+    was sent (Listing [5-20](#PC40)), which performs a similar logic under the hood.>
+    greeter.methods.setGreeting('Hello!')    .send({ from, value })    .on('confirmation',
+    (number, receipt) => {      if (number === 12) {        console.log(receipt.events.GreetingSet.returnValues)      }    })Listing
+    5-20
+  prefs: []
+  type: TYPE_NORMAL
+- en: Awaiting 12 confirmations before acting upon a transaction using the confirmation
+    event handler from web3
+  prefs: []
+  type: TYPE_NORMAL
+- en: Replacing a Transaction
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Transactions pending to be mined can be *replaced* by their sender, by hacking
+    the nonce and gas price parameters. Remember that for a transaction to be valid,
+    its nonce cannot have been previously used by its sender. Therefore, if the sender
+    broadcasts a second transaction with the same nonce while the first one is still
+    pending, both transactions will be eligible to be mined, though only one will.
+    To enforce the second one to be picked, the sender only needs to issue it with
+    a higher gas price than the first one.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'An easy way to test this is to issue a first transaction with a very low gas
+    price to ensure it takes several blocks to be mined, so we have enough time to
+    send the second one to replace it. Make sure to test this in a network without
+    instant seal; otherwise, the first transaction will be mined immediately.// Send
+    first transaction for a value of 0.02 ETH> let to = accounts[1]> let value = 2e16>
+    let gasPrice = 100> let txOpts = { from, to, value, gasPrice };> let txHash =
+    await sendTransactionReturnHash(txOpts)// Retrieve nonce> let { nonce } = await
+    web3.eth.getTransaction(txHash)// Send replacement with different value and higher
+    gas price> value = 1e16> gasPrice = 20e9> txOpts = { from, to, value, gasPrice,
+    **nonce**}> let txHashReplace = await sendTransactionReturnHash(txOpts)// Verify
+    that only the replacement tx got mined> await web3.eth.getTransactionReceipt(txHash)*null*>
+    await web3.eth.getTransactionReceipt(txHashReplace)*{ status: true, ... }*Replacement
+    transactions have multiple uses, since the second transaction does not need to
+    have anything in common with the original one, except for the nonce and the sender
+    account:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The most common usage for replacement transactions is to speed up the original
+    one. If you detect that a transaction is taking too long to be mined, you may
+    simply resubmit it with the exact same parameters but a higher gas price to make
+    it more attractive to miners. This is also a simple pattern to implement in terms
+    of UX: if you are showing a loading indicator to your user while the tx is processing,
+    you could display an option to resubmit it, after a long period of time without
+    news. Metamask already includes this feature in its UI out of the box.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Another usage is to simply cancel a transaction. If the user wants to undo a
+    transaction already sent, a viable option is to send a no-op replacement transaction
+    that removes the previous one. A no-op transaction can be as simple as a transaction
+    of 0 ETH with no data where the recipient address is the same as the sender.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Alternatively, a replacement transaction can be sent to change a parameter of
+    a previous transaction, as a means to amend the previous one. This will depend
+    heavily on your use case, and needs to be executable by the user quickly, since
+    the window for getting a transaction replaced may be short if the original gas
+    price was already high.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Error Handling
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'When sending a transaction to the network, there are many things that can potentially
+    go wrong. Your application should be prepared to handle them, and inform your
+    user accordingly:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: At any point in time, you may lose the connection to the node. Needless to say,
+    this will impact not just sending transactions but also any kind of operation,
+    read or write, with the network. You will typically get an *Invalid JSON-RPC response*
+    error in these scenarios, since your library will get an empty response from the
+    unreachable node.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The transaction being sent may not be valid. This could be due to one of its
+    parameters not being well-formed, such as a non-hexadecimal string for an address,
+    or an outright invalid value. As an example of the latter, if you try to send
+    a transaction with a gas allowance of 1, you will get an *intrinsic gas too low*
+    error. These errors are usually caught by your library, while trying to build
+    the transaction to send.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The sender account may not have enough funds for the specified value, gas allowance,
+    and gas price of the transaction. These errors are generally reported by the node
+    before the transaction is even broadcasted.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: When replacing transactions, attempting to replace a mined transaction will
+    yield a *nonce too low* error even before the transaction is sent to the network.
+    Similarly, most clients will prevent you from trying to replace a transaction
+    without increasing the gas price.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Transactions that execute contract code may fail due to a REVERT or an ABORT
+    raised by the contract. Contracts written in Solidity 0.4.22 and up can include
+    a revert reason, which can be used to determine the cause of the error. This is
+    only detected once the transaction has been actually mined, and the sender funds
+    have been spent to pay for the gas of the execution.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: When estimating the required gas for a transaction, an *always failing transaction*
+    error means that the estimation fails since the transaction raises an error. This
+    can be used to detect a failing transaction before actually sending it to the
+    network and spending gas.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Even if you estimate the gas required for a transaction, the conditions under
+    which the transaction is mined may differ to the ones when the gas was estimated.
+    An out-of-gas error will be raised in these scenarios, and only once the transaction
+    was already mined.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: After the transaction is sent, if the gas price was too low or the network too
+    busy, it may fail to be mined. Most libraries will eventually time out, and inform
+    you that the transaction was not found after a certain number of blocks. Be aware
+    that if the node your user is connecting to is out of sync, then the transaction
+    may actually get mined, but the node will never see it, raising this error.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Keep in mind that the actual error messages may depend on the library you are
+    using, and in some cases, the client you are connecting to (Geth, Parity, or Ganache).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Most of the preceding errors can be caught in web3 using an error event handler,
+    similar to the transaction sent, receipt, or confirmation events. Input formatting
+    errors, on the other hand, will raise an exception immediately.> let [from, to]
+    = await web3.eth.getAccounts()> web3.eth.sendTransaction({ from, to, gas: 1 })  .on(''error'',
+    err => console.error(err.message))*Returned error: intrinsic gas too low*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Example Application
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: As in the previous chapter, we will now set up a sample application that covers
+    many of the concepts we have reviewed in this chapter. In this case, we will set
+    up a simple interface for allowing a user to create (*mint*) new digital collectibles
+    using a modified ERC721 contract.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Setup
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Our setup will be similar to that of previous chapters, relying on create-react-app
+    for the client boilerplate,^([9](#Fn9)) as we will be building a client-side-only
+    application.npm init react-app erc721-app
+  prefs: []
+  type: TYPE_NORMAL
+- en: Dependencies
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Along with the same set of dependencies as in our ERC20 app, we will also install
+    the solidity compiler, and the axios library for performing HTTP requests.$ npm
+    install web3@1.2.0 openzeppelin-solidity@2.1 bignumber.js@8.0 axios@0.18.0$ npm
+    install --save-dev @0x/sol-compiler@2.0.2
+  prefs: []
+  type: TYPE_NORMAL
+- en: Make sure you have also installed either ganache-cli, Geth, or Parity, as described
+    earlier in this chapter, in order to spin up a local development network.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Contract Deployment
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: For this application, we will code, compile, and deploy our own contract contracts/ERC721PayPerMint.sol
+    (Listing [5-21](#PC45)). This will be a contract based on the default ERC721 implementation,
+    which we will pull from the OpenZeppelin contracts library, with an additional
+    method to create new instances in exchange for a fee in ETH. The ETH will remain
+    in the contract until its owner decides to withdraw it.// contracts/ERC721PayPerMint.solpragma
+    solidity ^0.5.2;import"openzeppelin-solidity/contracts/math/SafeMath.sol";import"openzeppelin-solidity/contracts/ownership/Ownable.sol";import"openzeppelin-solidity/contracts/token/ERC721/ERC721.sol";import"openzeppelin-solidity/contracts/token/ERC721/ERC721Enumerable.sol";contract
+    ERC721PayPerMint  is ERC721, ERC721Enumerable, Ownable {  using SafeMath for uint256;  function
+    exists(uint256 tokenId)    public view returns (bool) {    return _exists(tokenId);  }  function
+    mint(address to, uint256 tokenId)    public payable returns (bool) {    require(msg.value
+    >= tokenId.mul(1e12), "Insufficient payment");    _mint(to, tokenId);    return
+    true;  }  function withdraw()    public onlyOwner {    msg.sender.transfer(address(this).balance);  }}Listing
+    5-21
+  prefs: []
+  type: TYPE_NORMAL
+- en: Modified ERC721 token that will back our application. It provides a public minting
+    function so users can create new tokens for a fee, as well as a view function
+    to check for the existence of a token
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We can now try compiling our contract using the sol-compiler.$ npx sol-compiler*Artifact
+    for ERC721PayPerMint does not exist**Compiling 1 contracts (ERC721PayPerMint.sol)
+    with Solidity v0.5.2...**ERC721PayPerMint artifact saved!*There should now be
+    an ERC721PayPerMint.json file in the artifacts folder. Let’s add a short script
+    scripts/deploy.js for retrieving the compiled bytecode and deploying the contract
+    to the local network, using a modified version of the deployment code we wrote
+    earlier in this chapter (Listing [5-22](#PC47)). We will also store the deployment
+    address in a Deploys.json file, which we will then retrieve from the application.//
+    scripts/deploy.jsconst Web3 = require(''web3'');const fs = require(''fs'');const
+    path = require(''path'');// Deploys any artifact from the default accountasync
+    function deploy(artifact, arguments, opts) {  const providerUrl = process.env.PROVIDER_URL                      ||
+    ''http://localhost:8545'';  const web3 = new Web3(providerUrl);  const from =
+    (await web3.eth.getAccounts())[0];  const data = artifact.compilerOutput.evm.bytecode.object;  const
+    abi = artifact.compilerOutput.abi;  const Contract = new web3.eth.Contract(abi,
+    null, { data });  const gasPrice = 1e9;  const instance = await Contract.deploy({
+    arguments })                         .send({ from, gasPrice, ...opts });  const
+    address = instance.options.address;  const network = await web3.eth.net.getId();  save(network,
+    address);  console.log(address);}// Saves deployment address to a Deploys.json
+    filefunction save(network, address) {  const file = path.join(    __dirname, ''..'',
+    ''artifacts'', ''Deploys.json''  );  const deployments = fs.existsSync(file)    ?
+    JSON.parse(fs.readFileSync(file)) : {};  deployments[network] = address;  const
+    content = JSON.stringify(deployments, null, 2);  fs.writeFileSync(file, content);}//
+    Deploys our ERC721PayPerMint contractfunction main() {  const artifactPath = ''../artifacts/ERC721PayPerMint.json'';  const
+    artifact = require(artifactPath);  return deploy(artifact, [], { gas: 5e6, gasPrice:
+    1e9 });}main();Listing 5-22'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Script for deploying the ERC721PayPerMint contract to a network specified by
+    the PROVIDER_URL environment variable, and storing the deployment address indexed
+    by network ID. Note that the main function can be modified to easily deploy other
+    contracts
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Now, with the ganache-cli process (or the Geth or Parity development node)
+    listening on port 8545, try running the deployment script.node scripts/deploy.jsYou
+    should then see a Deploys.json file in the artifacts folder with the network ID
+    and the deployment address. Note that the ID and deployment address you get may
+    differ.$  cat artifacts/Deploys.json{  "155164184873": "0x0E696947A06550DEf604e82C26fd9E493e576337"}'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now that we have our contract set up on our local network, we can start working
+    on the web application itself.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Application
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Our application will follow a similar structure than the previous one. We will
+    have separate folders for interacting with the Ethereum network, for managing
+    contract artifacts, and for the React components.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Initializing the Web3 Instance
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: We will set up a src/eth/network.js file (Listing [5-23](#PC50)) with the code
+    necessary to instantiate a new web3 object from the injected provider, along with
+    a few methods that we will be using later throughout the app.// src/eth/network.jsimport
+    Web3 from 'web3';let web3;export function getWeb3() {  if (!web3) {    web3 =
+    new Web3(Web3.givenProvider);  }  return web3;}export function hasProvider() {  return
+    !!Web3.givenProvider;}export async function getAccount() {  const accounts = await
+    window.ethereum.enable();  return accounts[0];}export async function getBlockNumber()
+    {  return web3.eth.getBlockNumber();}export async function getNetwork() {  return
+    web3.eth.net.getId();}Listing 5-23
+  prefs: []
+  type: TYPE_NORMAL
+- en: Network file to initialize a new web3 object given the injected provider
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note that the getAccount method is especially important, since it includes the
+    call to *enable* the provider. This is what allows us to access the list of accounts
+    of the user.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Creating the Contract Object
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: We will now create a src/contracts/ERC721.js file that will initialize the web3
+    contract object, and load the deployment address from the Deploys.json file  .
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, that file is in the artifacts folder in our project root, outside the
+    src folder. Unfortunately, the create-react-app template prevents us from importing
+    anything outside the src folder. If we tried to import it from our react application,
+    we would get the following error.You attempted to import ../../artifacts/Deploys.json
+    which falls outside of the project src/ directory. Relative imports outside of
+    src/ are not supported.The easiest way around this is to create a symlink to the
+    artifacts folder from within the src folder. We can do this with the following
+    commands.$ cd src$ ln -ns ../artifactsWe can now load both the compiler output
+    and the deployment files in our app. Note that the limitation of loading files
+    from outside the source folder is exclusive to react-app. If you used any other
+    app template, you will probably not face this issue.^([10](#Fn10))// src/contracts/ERC721.jsimport
+    Artifact from '../artifacts/ERC721PayPerMint.json';import Deploys from '../artifacts/Deploys.json';By
+    retrieving the ABI from the first, we can write a function to create a web3 contract
+    instance for our ERC721PayPerMint.// src/contracts/ERC721.jsexport default function
+    ERC721(web3,address=null,options={}) {  const abi = Artifact.compilerOutput.abi;  return
+    new web3.eth.Contract(abi, address, { ...options });}We can then retrieve the
+    deployment address from the second and use it to instantiate an ERC721 contract
+    at that address (Listing [5-24](#PC55)). Note that since the deployments file
+    is indexed by network, we need to retrieve the network ID via the web3 object.//
+    src/contracts/ERC721.jsimport {  getWeb3, getAccount, getNetwork} from '../eth/network.js';export
+    async function getDeployed() {  const web3 = getWeb3();  const from = await getAccount();  const
+    network = await getNetwork();  const address = Deploys[network];  if (!address)
+    throw new Error(`Could not find address for contract in network ${network}`);  return
+    ERC721(web3, address, { from });}Listing 5-24
+  prefs: []
+  type: TYPE_NORMAL
+- en: Returning a web3 contract that represents the deployed instance of the ERC721PayPerMint
+    in the current network
+  prefs: []
+  type: TYPE_NORMAL
+- en: Root App Component
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: 'Our root App component (Listing [5-25](#PC56)) will be similar to the one from
+    our previous chapter. This component will have the responsibility of loading both
+    the default account and the contract instance, and injecting it into a main ERC721
+    component to be defined in src/components/ERC721.js.// src/App.jsimport React,
+    { Component } from ''react'';import { getDeployed } from ''./contracts/ERC721'';import
+    { hasProvider, getAccount } from ''./eth/network'';import ERC721 from ''./components/ERC721'';class
+    App extends Component {  async componentDidMount() {    if (hasProvider()) {      const
+    contract = await getDeployed();      const sender = await getAccount();      this.setState({
+    contract, sender });    }  }  render() {    const { contract, sender } = this.state;    return
+    (      <div className="App">        { (hasProvider() && contract && sender)          ?
+    <ERC721 contract={contract} owner={sender} />          : <div>Please enable Metamask
+    and reload</div>        }      </div>    );  }}Listing 5-25'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Main methods of the root App component
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Keep in mind though that if the user changes the current account in Metamask,
+    we need to refresh the info displayed, since we will be listing the user’s tokens.
+    We can detect account changes by installing a listener on the ethereum object
+    and force a reload of the ERC721 component by attaching the sender as a React
+    key^([11](#Fn11)) (Listing [5-26](#PC57)).// src/App.jsclass App extends Component
+    {  async componentDidMount() {    // ...    window.ethereum.on(''accountsChanged'',
+    async (accounts)=>{      this.setState({ sender: accounts[0] });    });  }  render()
+    {    // ...    <ERC721 contract={contract} owner={sender} **key={sender}** />    //
+    ...  }}Listing 5-26'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Updated methods from Listing [5-25](#PC56) to monitor for account changes. When
+    the account is changed, the entire ERC721 component is automatically reloaded
+  prefs: []
+  type: TYPE_NORMAL
+- en: Main ERC721 Component
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'This component will contain most of the logic in our application: it will list
+    the user’s tokens and allow the user to mint new ones via a simple *Create* button.
+    Let’s start by listing existing tokens when the page loads.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Listing Existing Tokens
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: 'Enumerating the non-fungible tokens of a user can be tricky. The ERC721 standard
+    exposes two functions to do this: balanceOf and tokenOfOwnerByIndex. The former
+    returns the number of tokens of a user, and the latter returns the token ID given
+    an index between zero and the user’s balance. In order to avoid the two methods
+    falling out of sync, it’s important to run all queries specifying a single block
+    number.// src/components/ERC721.jsclass ERC721 extends Component {  async getTokensAtBlock(blockNumber)
+    {    const { contract, owner } = this.props;    // Load number of tokens of the
+    user    const strBalance = await contract.methods.balanceOf(owner)                         .call({},
+    blockNumber);    const balance = parseInt(strBalance);    // Retrieve the id of
+    every token    const queries = Array.from({length: balance}, (_,index)=>(      contract.methods.tokenOfOwnerByIndex(owner,index)        .call({},
+    blockNumber)    ));    return await Promise.all(queries);  }}Given the preceding
+    function, we can now load the tokens into the component’s state on its *didMount*
+    lifecycle event (Listing [5-27](#PC59)).async componentDidMount() {  const currentBlock
+    = await getBlockNumber();  const tokenIds = await this.getTokensAtBlock(currentBlock);  const
+    tokens = tokenIds.map(id => ({id, confirmed: true}));  this.setState({ tokens,
+    loading: false });}Listing 5-27'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Loading the user tokens into state. Note that we are adding a confirmed flag
+    to these tokens to distinguish them from the newly minted ones that we will be
+    adding later
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We will also initialize the component’s state in its constructor to the following
+    default, so the component starts in a loading state until the user’s tokens are
+    loaded.constructor(props) {  super(props);  this.state = {    tokens: [],    loading:
+    true  };}Let’s test this with a simple render method that will just render the
+    list of tokens by presenting their IDs, reusing them as React keys as well.render()
+    {  const { tokens, loading } = this.state;  if (loading) return "Loading";  return
+    (    <div>      <h1>Collectible Numbers</h1>      <div>        { tokens.map(token
+    => (          <div key={token.id.toString()}>            { token.id.toString()
+    }          </div>        ))}      </div>    </div>  );}'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If you check your react application in your browser, you should now see the
+    list of tokens that belong to the current user, assuming there are any. We can
+    now move onto the main feature of this app: sending a transaction to mint a new
+    token.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Minting New Tokens
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: 'We will first create two methods in our ERC721 component: one for checking
+    whether the user can mint a specific token and another for actually minting it.
+    Whether a user can mint a token depends on whether a token with that ID already
+    exists or not.// src/components/ERC721.jsclass ERC721 extends Component {  //
+    ...  async canMint(id) {    const { contract } = this.props;    const exists =
+    await contract.methods.exists(id).call();    return !exists;  }}Minting will require
+    actually sending a transaction to the contract, including the ID to be minted.
+    As we have seen throughout this chapter, this requires estimating the gas and
+    choosing a gas price to use. For the latter, we will define a getGasPrice helper
+    function that will retrieve the current price from the Etherchain oracle.// src/eth/gasPrice.jsimport
+    axios from ''axios'';import BN from ''bignumber.js'';const URL = ''https://www.etherchain.org/api/gasPriceOracle'';async
+    function getGasPrice() {  const { data: gasData } = await axios.get(URL);  const
+    bn = new BN(gasData.fast);  return bn.shiftedBy(9).toString(10);}Using this helper,
+    we can now define our mint function in the ERC721 component. Remember that the
+    value we need to send is directly proportional to the ID we are attempting to
+    create, so higher numbers will actually cost more ETH to mint.// src/components/ERC721.jsimport
+    { getGasPrice } from ''../eth/gasPrice'';import BN from ''bignumber.js'';class
+    ERC721 extends Component {  // ...  async mint(id) {    const { contract, owner
+    } = this.props;    const from = owner;    const value = new BN(id).shiftedBy(12).toString(10);    const
+    gasPrice = await getGasPrice();    const gas = await contract.methods.mint(owner,
+    id)                  .estimateGas({ value, from });    contract.methods.mint(owner,
+    id)      .send({ value, gas, gasPrice, from });  }}We will now define a new small
+    Mint component with a form with a controlled component, use canMint to check whether
+    the create action is enabled, and trigger mint when the user chooses to create
+    a token. We will pass the mint and canMint methods as props.// src/components/Mint.jsimport
+    React, { Component } from ''react'';export default class Mint extends Component
+    {  constructor(props) {    super(props);    this.state = { value: "" };    this.handleChange
+    = this.handleChange.bind(this);    this.handleMint = this.handleMint.bind(this);  }  async
+    handleChange(event) {    const value = event.target.value;    this.setState({
+    value, mintable: false });    if (value && value.length > 0) {      const mintable
+    = await this.props.canMint(value);      if (value === this.state.value) {        this.setState({
+    mintable });      }    }  }  async handleMint(event) {    event.preventDefault();    this.props.mint(this.state.value);    this.setState({
+    value: "", mintable: false });  }  render() {    const { value, mintable } = this.state;    return
+    (      <form onSubmit={this.handleMint}>        <input type="numeric" value={value}               onChange={this.handleChange}
+    />        <button disabled={!mintable}>Create</button>      </form>    );  }}We
+    can wire this component into our main ERC721 by adding the following markup in
+    its render function. Note that this requires binding both functions to this in
+    the ERC721 constructor.// src/components/ERC721.jsclass ERC721 extends Component
+    {  constructor(props) {    // ...    this.mint = this.mint.bind(this);    this.canMint
+    = this.canMint.bind(this);  }  render() {    // ...    <Mint canMint={this.canMint}
+    mint={this.mint} />    // ...  }}'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Give this new version a try, and you should see the Metamask dialog when you
+    hit the Create button in the Mint component. If you accept, a new token will be
+    minted, but it will not be added to your list until you reload the page. Let’s
+    fix that now.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Reacting to Transaction Events
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: 'The last piece of the puzzle is for our application to react to the lifecycle
+    of the transactions issued. Whenever a new transaction is sent to mint a new token,
+    we will add a new tentative token to our list and increase its confirmations as
+    new blocks are mined. To do this, we will attach handlers to the transaction events
+    for each of these scenarios in the mint method of the ERC721 component.// src/components/ERC721.jsclass
+    ERC721 extends Component {  async mint(id) {  // ...    contract.methods.mint(owner,
+    id)      .send({ value, gas, gasPrice, from })      .on(''transactionHash'', ()
+    => this.addToken(id))      .on(''receipt'', () => this.confirmToken(id, 0))      .on(''confirmation'',
+    (n) => this.confirmToken(id, n))      .on(''error'', (error) => this.failToken(id,
+    error));  }}Each of the handlers will respectively add a token to the list, mark
+    it as confirmed, or flag it as errored. We are assuming that six confirmations
+    is good enough for our current use case.// src/components/ERC721.jsclass ERC721
+    extends Component {  addToken(id) {    this.setState(state => ({      ...state,      tokens:
+    [ ...state.tokens, { id }]    }));  }  confirmToken(id, confirmations) {    const
+    confirmed = confirmations >= 6;    this.setState(state => ({      ...state,      tokens:
+    state.tokens.map(token => (        token.id === id ? { id, confirmed } : token      ))    }));  }  failToken(id,
+    error) {    this.setState(state => ({      ...state,      tokens: state.tokens.filter(token
+    => (        token.id !== id      ))    }));  }}We now have a list of Token objects,
+    where each token is defined by its ID and whether it is pending, mined, or confirmed.
+    Let’s use this information to display each token via a simple Token visual component
+    in src/components/Token.js, which we can use instead of just displaying the token
+    ID.// src/components/Token.jsexport default function({ token }) {  const { id,
+    confirmed } = token;  const pending = typeof(confirmed) === "undefined";  let
+    status;  if (pending) {    status = "Pending";  } else if (!confirmed) {    status
+    = "Awaiting confirmation";  } else {    status = "Confirmed";  }  return (    <div>      <h3>{id.toString()}</h3>      <div>{status}</div>    </div>  );}'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In your own app, you may want to use other visual hints to report the status
+    of each token, such as a color code – assisted by tooltips for explaining the
+    concept of confirmation to the user.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Confirmations for Existing Tokens
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: When loading the initial list of tokens in this component, we assumed that all
+    of those tokens were already *confirmed*, that is, they were already mined several
+    blocks ago. However, this may not be the case. You can easily test this yourself
+    by simply reloading the page right after sending a transaction and seeing how
+    a token awaiting confirmation incorrectly goes into confirmed state.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are many techniques for dealing with these situation, some of which we
+    will see in the next chapter. We will go with a simple approach in this case,
+    and favor simplicity over efficiency.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'First of all, instead of loading all tokens from the current block on page
+    load, we will load two sets of tokens: one from the current block and one from
+    six blocks ago. We will consider all tokens from six blocks ago as confirmed,
+    while all new tokens from the current block will be flagged as unconfirmed. Let’s
+    update the didMount handler on the ERC721 main component (Listing [5-28](#PC70))
+    to implement this change.// src/components/ERC721.jsconst CONFIRMATIONS = 6;class
+    ERC721 extends Component {  async componentDidMount() {    const currentBlock
+    = await getBlockNumber();    const confirmedBlock = currentBlock – CONFIRMATIONS;    const
+    confirmedTokenIds = await this      .getTokensAtBlock(confirmedBlock)      .catch(()
+    => []);    const latestTokenIds = await this      .getTokensAtBlock(currentBlock);    const
+    unconfirmedTokenIds = latestTokenIds      .filter(id => !confirmedTokenIds.includes(id));    const
+    tokens = confirmedTokenIds      .map(id => ({ id, confirmed: true }))      .concat(unconfirmedTokenIds        .map(id
+    => ({ id, confirmed: false })      ));    this.setState({ tokens, loading: false
+    });  }}Listing 5-28'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Get confirmed and unconfirmed token lists, and set the confirmed flag accordingly
+    on the token collection. Note the catch block when querying the confirmedTokenIds,
+    as the call will throw if the contract had not been created at confirmedBlock,
+    in which case all tokens should be unconfirmed
+  prefs: []
+  type: TYPE_NORMAL
+- en: This will allow us to properly display the status of each token when the page
+    loads. However, any tokens listed as unconfirmed will remain on that state until
+    a full page reload. We need to update their status once they reach the required
+    number of confirmations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We will do that by subscribing to new blocks and re-checking the ownership of
+    each of the unconfirmed tokens *six blocks ago*. Once enough new blocks are mined,
+    we will be able to move these new tokens to a confirmed state. Let’s add a new
+    method (Listing [5-29](#PC71)) to be called from the didMount handler.// src/components/ERC721.jsclass
+    ERC721 extends Component {  subscribeUnconfirmedTokens(unconfirmedIds) {    if
+    (unconfirmedIds.length === 0) return;    const { contract, owner } = this.props;    this.newBlocksSub
+    = getWeb3().eth      .subscribe('newBlockHeaders', (err, { number }) => {      unconfirmedIds.forEach(async
+    (id) => {        const confirmedOwner = await contract.methods          .ownerOf(id).call({},
+    (number – CONFIRMATIONS))          .catch(() => null);        if (areAddressesEqual(confirmedOwner,
+    owner)) {          this.confirmToken(id, CONFIRMATIONS);          unconfirmedIds
+    = unconfirmedIds.filter(i => id!==i);          if (unconfirmedIds.length === 0)
+    {            this.newBlocksSub.unsubscribe();          }        }      });    });  }}Listing
+    5-29
+  prefs: []
+  type: TYPE_NORMAL
+- en: Subscribe to new blocks, and re-check the ownership of each token six blocks
+    before the current one. If a token belongs to the current user six blocks ago,
+    we consider it to be confirmed. Once all pending tokens have been processed, we
+    close the subscription
+  prefs: []
+  type: TYPE_NORMAL
+- en: Keep in mind that in this example, we are only tracking new tokens created by
+    minting, and any new tokens *transferred* to the user will not be shown until
+    the page is reloaded. We are also assuming that the user does not transfer out
+    their own tokens. If your application needs to handle these scenarios, then monitoring
+    Transfer events is a much safer approach than only watching transactions sent
+    by the user from the application. We will build around that concept in the next
+    chapter.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Next Steps
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The next steps for your app would be to move to a more interesting network,
+    starting with a testnet such as Rinkeby, and eventually move onto Mainnet. You
+    can spin up a local Geth or Parity node connected to such network (using the light
+    syncmode to speed up the sync process) and rely on the deploy.js script or use
+    an online tool like MyCrypto^([12](#Fn12)) or Remix for deploying the contract.
+    Once deployed, all interactions will be managed by Metamask – just remember to
+    switch to the correct network.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In this chapter, we reviewed how to set up a local development environment by
+    relying on either ganache or a full Ethereum client. We then went through the
+    process of compiling and deploying contracts to the network, either via using
+    the vanilla solc compiler or the sol-compiler wrapper. We also reviewed how Metamask
+    works when using it for sending transactions and unlocking the user accounts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Once we had ironed out the details of setting up the environment, we went in-depth
+    on the process of sending a transaction, focusing especially in gas estimation
+    and defining a gas price. We then reviewed the lifecycle of a transaction and
+    how we can access specific events such as when it is mined or confirmed. We also
+    went through a few of the most common errors when sending a transaction and how
+    the process of replacement works.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To illustrate all these concepts, we built a small application, similar to the
+    one from the previous chapter but this time around non-fungible tokens. Starting
+    from a list of the user’s existing tokens, we allowed the user to mint new ones
+    and monitored the lifecycle of such transactions. In the next chapter, where we
+    will cover concepts such as indexing and storage, we will also learn some additional
+    techniques regarding handling reorganizations and testing, which can also be applied
+    to this kind of applications.
+  prefs: []
+  type: TYPE_NORMAL

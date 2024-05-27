@@ -1,0 +1,1149 @@
+- en: © Santiago Palladino 2019S. PalladinoEthereum for Web Developers[https://doi.org/10.1007/978-1-4842-5278-9_6](https://doi.org/10.1007/978-1-4842-5278-9_6)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 6. Indexing and Storage
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Santiago Palladino^([1](#Aff2) )(1)Ciudad Autónoma de Buenos Aires, Argentina
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the last two chapters, we learned how to read from and write to the Ethereum
+    network. Reads can be made as regular calls to contracts, or by querying logged
+    events, while writes are always performed in the context of a transaction. However,
+    these operations only accommodate for basic use cases. If we want to display aggregate
+    data from the blockchain, querying events client-side quickly falls short. Similarly,
+    if we want to store large amounts of information in a contract, gas costs make
+    it economically infeasible. In this chapter, we will work with off-chain components
+    to solve both problems. We will first go through the process of indexing blockchain
+    data in a server to query it from a client application and then go into off-chain
+    storage solutions. We will also review techniques for handling reorganizations
+    and testing along the way, as well as discussing the value of centralized vs.
+    decentralized solutions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Indexing Data
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: We will begin with the problem of indexing blockchain data. In this context,
+    by *indexing* we refer to the action of collecting certain pieces of information
+    from the network (such as token balances, sent transactions, or contracts created)
+    and storing them in a queryable data store, such as a relational database or an
+    analytics engine like ElasticSearch, in order to perform complex queries. Throughout
+    this chapter, instead of attempting to index the entire chain, we will choose
+    a specific dataset and build a solution tailored for it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Indexing is necessary whenever you need to perform any kind of *aggregation*
+    over logged data, such as a sum or an average, since the Ethereum events API is
+    not fit for doing so. For instance, it is not possible to easily obtain the number
+    of unique addresses that hold more than a certain balance of an ERC20 asset –
+    a query that is trivial to run on a relational database.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Indexing can also be used to improve performance when querying large numbers
+    of events, by acting just as a query cache. A dedicated database can answer event
+    queries much faster than a regular Ethereum node.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Certain public node providers, such as Infura, actually include an events query
+    layer,^([1](#Fn1)) separate from their nodes, in order to greatly reduce their
+    infrastructure footprint for serving logs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We will now focus on a specific indexing use case and design a solution for
+    collecting the information to index.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Tracking ERC20 Token Holders
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: We will track the token holders of a specific ERC20 coin. Remember that ERC20
+    non-fungible tokens can act as a coin, where each address has a certain balance.
+    However, the contract offers no methods to actually list them. Even if it did,
+    some tokens have a user base that would vastly exceed the capabilities of a client-side-only
+    application querying an Ethereum node. For example, at the time of this writing,
+    the OmiseGO (OMG) token has over 650,000 unique holders.^([2](#Fn2))
+  prefs: []
+  type: TYPE_NORMAL
+- en: Revisiting the ERC20 Interface
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: We will review the ERC20 contract interface to identify the building blocks
+    we will be using. Leaving aside functionality related to allowances, the ERC20
+    standard includes these methods and events.function **transfer**(address to, uint256
+    value) returns (bool);function **totalSupply**() view returns (uint256);function
+    **balanceOf**(address who) view returns (uint256);event **Transfer**(  address
+    indexed from, address indexed to, uint256 value);
+  prefs: []
+  type: TYPE_NORMAL
+- en: As mentioned, unlike the extended ERC721 standard, ERC20 does not provide a
+    method to list all token holders. The only way to build such a list is by going
+    through every *Transfer* event and collect all recipient addresses.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Caution
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Certain ERC20 contracts do not emit a Transfer event when minting new tokens,
+    but rather emit a non-standard Mint event. In such cases, we would need to track
+    both events in order to build the complete set of holders.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Querying Transfer Events
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: 'We will begin by querying all transfer events from a given contract. We will
+    build an ERC20Indexer class, relying on a web3 connection provider, an ERC20 token
+    address, and a block number to start querying from (Listing [6-1](#PC2)). This
+    last parameter is added only for performance reasons: it does not make sense to
+    query any blocks before the token contract was deployed.// 01-indexing/simple-indexer.jsconst
+    ERC20 = require(''openzeppelin-solidity/build/contracts/ERC20.json'');const BigNumber
+    = require(''bignumber.js'');const Web3 = require(''web3'');class ERC20Indexer
+    {  constructor({ address, startBlock, provider } = {}) {    this.**holders** =
+    new Set();    this.**startBlock** = startBlock;    this.**lastBlock** = this.startBlock;    this.**web3**
+    = new Web3(provider);    this.**contract** = new this.web3.eth.Contract(      ERC20.abi,
+    address    );  }}Listing 6-1'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Constructor for the ERC20Indexer class we will be working on. We are once again
+    depending on openzeppelin-solidity@2.2.0 to get the ERC20 contract ABI. We will
+    store the list of all token holder addresses on the holders set, and the lastBlock
+    field will keep track of the last block we have processed
+  prefs: []
+  type: TYPE_NORMAL
+- en: We can now add a first method to this class to get the list of transfer events
+    from a given contract (Listing [6-2](#PC3)). Since that list is potentially larger
+    than what we can fit in a single request (OMG has over 2 million transfers up
+    to date), we will need to break it into multiple requests, so we will start with
+    a method that processes all events in a range of blocks.async processBlocks(startBlock,
+    endBlock) {  for (let fromBlock = startBlock;       fromBlock <= endBlock;       fromBlock
+    += BATCH_SIZE) {    const toBlock = Math.min(      fromBlock + BATCH_SIZE - 1,
+    endBlock    );    const events = await this.contract      .getPastEvents('Transfer',
+    { fromBlock, toBlock });    events.forEach((e) => this.reduceEvent(e));  }}Listing
+    6-2
+  prefs: []
+  type: TYPE_NORMAL
+- en: Querying all transfer events from a range of blocks in batches. Here BATCH_SIZE
+    should depend on the volume of transactions per block of the contract
+  prefs: []
+  type: TYPE_NORMAL
+- en: This method will get all transfer events in a block range from a contract and
+    send them to a reduceEvent function (Listing [6-3](#PC4)). This reducing function
+    should receive an event and use it to update the current list of token holders.const
+    ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';async reduceEvent(event)
+    {  const { to } = event.returnValues;  if (to !== ZERO_ADDRESS) {    this.holders.add(to);  }}Listing
+    6-3
+  prefs: []
+  type: TYPE_NORMAL
+- en: Retrieving the recipient of a token transfer to add it to the list of token
+    holders. Transfers to the zero address are usually tokens being burnt, so we will
+    keep it out of our list
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: In a production implementation, you will not want to store the list of holders
+    in a javascript data structure in memory that is wiped out whenever the process
+    is stopped. You should rather use a database for storing all data and serving
+    your clients’ queries. The choice of the database engine is out of the scope of
+    this book, and depends heavily on your use case.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'However, this method may yield some false positives. If an address ever held
+    some balance but then transferred it all, it will be added to our list of holders
+    but never removed. This means that we need to check that an address balance is
+    non-zero for listing it. Since we are at it, we will go an extra mile and track
+    the current balance for each holder. We have two options to do this, each with
+    their own pros and cons:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We can rely on the ERC20 balanceOf method to check the balance of each address
+    we add to our list. We can do this as soon as we find a new address to add to
+    our set, and have a holder with its balance ready. However, this means that we
+    are making an additional request for each token holder and that we also need to
+    re-run this query whenever we see a new block with new transfers.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: We can use the fact that the balance of any address in an ERC20 contract can
+    be determined by just looking at the transfer events. Since we are already querying
+    them, we can track all movements to and from each address and update them accordingly.
+    This will require a bit more logic on our end, but does not need any extra requests
+    to the Ethereum network. Its downside is that we cannot rely on the balance of
+    an address until we have finished scanning until the latest block in the chain.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'To prioritize reducing the number of requests, we will go with the second strategy
+    (Listing [6-4](#PC5)). This means that our function to reduce an event will also
+    need to account for the *value* of each transfer.async reduceEvent(event) {  const
+    { from, to, value } = event.returnValues;  if (from !== ZERO_ADDRESS) {    this.balances[from]
+    = this.balances[from]      ? this.balances[from].minus(value)      : BigNumber(value).negated();  }  if
+    (to !== ZERO_ADDRESS) {    this.balances[to] = this.balances[to]      ? this.balances[to].plus(value)      :
+    BigNumber(value);  }}Listing 6-4'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Reducing an event to update the balances of each holder. Here balances is an
+    object that replaces the former set of holders. Note that we are excluding the
+    zero address both as sender and recipient, since transfers from it represent minting
+    events and transfers to it represent burns
+  prefs: []
+  type: TYPE_NORMAL
+- en: Armed with a class that can generate the list of holders and their balances
+    for a given range of blocks, we now need to keep this list up to date as new blocks
+    are mined (Listing [6-5](#PC6)). We will use polling for getting new blocks, though
+    subscription is also a viable alternative.const CONFIRMATIONS = 12;const INTERVAL
+    = 1000;async processNewBlocks() {  const lastBlock = this.lastBlock;  const currentBlock
+    = await this.web3.eth.getBlockNumber();  const confirmedBlock = currentBlock -
+    CONFIRMATIONS;  if (!lastBlock || confirmedBlock >= lastBlock) {    await this.processBlocks(lastBlock,
+    confirmedBlock);    this.lastBlock= confirmedBlock + 1;  }}start() {  this.timeout
+    = setTimeout(async () => {    await this.processNewBlocks()    this.start();  },
+    INTERVAL);}Listing 6-5
+  prefs: []
+  type: TYPE_NORMAL
+- en: Polling for new blocks and retrieving any new transfer events. The processNewBlocks
+    function will query the latest block and call into processBlocks with the new
+    blocks range, while the start function kicks off an infinite loop that constantly
+    polls and then sleeps for 1 second
+  prefs: []
+  type: TYPE_NORMAL
+- en: An important detail of our implementation is that we will not process up to
+    the latest block, but only until a certain number of blocks ago. This ensures
+    that any transfer events we have processed are confirmed and will not be rolled
+    back as part of a reorganization. We will later look into strategies for querying
+    up to the most recent block and handling reorgs as we detect them.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Sharing Our Data
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: 'The last step is to actually provide access to the data we have gathered (Listing
+    [6-6](#PC7)). We will set up a simple express server that exposes the set of balances
+    in JSON format upon an HTTP GET request.const express = require(''express'')const
+    mapValues = require(''lodash.mapvalues'');// Sample values for testing a mainnet
+    tokenconst API_TOKEN = ''YOUR_INFURA_API_TOKEN'';const PROVIDER = ''https://mainnet.infura.io/v3/''
+    + API_TOKEN;const ADDRESS = ''0x00fdae9174357424a78afaad98da36fd66dd9e03'';const
+    START_BLOCK = 6563800;// Initialize express application and indexerconst app =
+    express()const indexer = new Indexer({  address: ADDRESS,  startBlock: START_BLOCK,  provider:
+    PROVIDER});// Register route for querying balancesapp.get(''/balances.json'',
+    (_req, res) => {  res.send(    mapValues(indexer.balances, b => b.toString(10))  );});//
+    Start!app.listen(3000);indexer.start();Listing 6-6'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Simple express server that exposes the balances from the indexer in an HTTP
+    endpoint. The mapValues lodash helper is used to format the BigNumber values before
+    serializing them in JSON. Make sure to get an Infura token to set the API_TOKEN
+    variable
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We can test this script by running it using node and in a different console
+    use curl to query the balances (Listing [6-7](#PC8)). Make sure to wait a few
+    seconds so the script can process some blocks to gather transfer data.$ curl -s
+    "localhost:3000/balances.json" | jq .{  "0xB048...": "26000000000000000000000",  "0x58b2...":
+    "77997707535390983471493397",  "0x352B...": "4666667000000000000000000",  "0xBC96...":
+    "3000000000000000000000000",  ...}Listing 6-7'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Querying the express endpoint to retrieve the token balances. We are using the
+    jq^([3](#Fn3)) utility just to pretty-print the JSON output
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This naive implementation makes use of the fact that all indexed data is stored
+    in the indexer instance. Keep in mind that for actual deployments you will want
+    to store all data in a separate datastore, such as a relational database. This
+    will allow you to run queries directly to the database and decouple the web server
+    and indexer processes so they run separately. It will also allow you to add aggregations,
+    filters, sorting, and paging from the client as needed: returning a list of half
+    a million token holders in a single request may not fare well in some scenarios.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Handling Chain Reorganizations
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Up to this point, we have avoided the issue of chain reorganizations by only
+    processing transfers that can be considered to be finalized, in other words, transfers
+    that occurred enough blocks ago that the chance of those blocks being removed
+    from the chain is negligible. We will now remove this restriction and see how
+    we can safely process the latest events by reacting properly to a reorg.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using Subscriptions
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: The easiest way to detect and react to a reorg is through subscriptions. A subscription
+    on an event, such as on the ERC20 Transfer, will not only push new events to our
+    process in real time but will also notify on any events *removed* due to a reorganization.
+    This means that we can write the counterpart of our reduceEvent function to also
+    undo an event and run it whenever the Ethereum node pushes an event removal (Listing
+    [6-8](#PC9)).// 01-indexing/subs-indexer.jsundoTransfer(event) {  const { from,
+    to, value } = event.returnValues;  if (from !== ZERO_ADDRESS) {    this.balances[from]
+    = this.balances[from].plus(value);  }  if (to !== ZERO_ADDRESS) {    this.balances[to]
+    = this.balances[to].minus(value);  }}Listing 6-8
+  prefs: []
+  type: TYPE_NORMAL
+- en: Reverting a transfer event in our list of balances. The logic here is the reverse
+    of that in the reduceEvent method
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This way, instead of polling for new blocks relying on the getPastEvents method,
+    we can simply open a subscription and listen for events additions and removals
+    (Listing [6-9](#PC10)).async function start() {  // Process all past blocks  const
+    currentBlock = await this.web3.eth.getBlockNumber();  await this.processBlocks(this.startBlock,
+    currentBlock);  // Subscribe to new ones  this.subscription = this.contract.events    .Transfer({
+    fromBlock: currentBlock + 1 })      .on(''data'', e => this.reduceEvent(e))      .on(''changed'',
+    e => this.undoTransfer(e.returnValues))      .on(''error'', err => console.error("Error",
+    err));}Listing 6-9'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using subscriptions for monitoring new events and tracking removed ones due
+    to reorganizations. The data handler fires whenever there is a new event and the
+    changed one when the event is removed from the chain due to a reorganization
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, this approach has a major downside. If the websocket connection to
+    the node is lost when a reorg occurs, our script will never be notified of the
+    removed events. This means that we will not roll back the reverted transfers and
+    end up with an invalid state. Another issue is that subscriptions only return
+    new events, so if any blocks are minted between the processBlocks call and the
+    time the subscription is installed, we may miss some events. Let’s try a different,
+    simpler approach then. We will first need to manually detect when a reorg has
+    happened.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Detecting a Reorganization
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: A reorganization occurs when a chain fork gathers more accumulated hash power
+    than the current head, and that fork becomes the official chain. This can happen
+    if different sets of miners work on different forks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This means that in a reorganization, one or more blocks (starting backward from
+    the current head) will be replaced by others. These new blocks may or may not
+    contain the same transactions as the previous ones and may also be ordered differently,^([4](#Fn4))
+    yielding different results.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We can detect a reorganization by checking the block identifiers. Recall from
+    Chapter [3](476252_1_En_3_Chapter.xhtml) that each block is identified by its
+    hash. This hash is calculated from the block’s data and the hash of the previous
+    block. This is what constitutes a blockchain in its essence: the fact that each
+    block is tied to the previous one. And this means that an old block cannot be
+    changed without forcing a change in the identifiers of all subsequent blocks.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is exactly what allows us to easily detect a reorganization. When the hash
+    of a block at a given height changes, it means that that block and potentially
+    other blocks before it have changed as well. We can then just monitor the latest
+    block we have processed, and if its hash changes at any point, we then scan backward
+    for other changed hashes, until we detect a common ancestor (Listing [6-10](#PC11)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s modify our script to add a check for reorgs using this strategy, which
+    will require us to keep track of the block hashes we have processed.// 01-indexing/reorgs-indexer.jsasync
+    processNewBlocks() {  // Track current block number and its hash  const currentBlockNumber
+    =    await this.web3.eth.getBlockNumber() - CONFIRMATIONS;  const currentBlockHash
+    =    await this.getBlockHash(currentBlockNumber);  // Check for possible reorgs  if
+    (this.lastBlockNumber && this.lastBlockHash) {    const newLastBlockHash      =
+    await this.getBlockHash(this.lastBlockNumber);    if (this.lastBlockHash !== newLastBlockHash)
+    {      // There was a reorg! Undo all blocks affected,      // and reprocess blocks
+    starting by the most recent      // one that was not removed from the main chain      const
+    lastBlock = await this.undoBlocks();      this.lastBlockHash = lastBlock.hash;      this.lastBlockNumber
+    = lastBlock.number;    }  }  // Process blocks from lastBlockNumber until currentBlock  //
+    Update this.lastBlockNumber and this.lastBlockHash  // ...}async getBlockHash(number)
+    {  const { hash } = await this.web3.eth.getBlock(number);  return hash;}Listing
+    6-10
+  prefs: []
+  type: TYPE_NORMAL
+- en: Updated processNewBlocks function that checks for reorgs on every iteration.
+    The function undoBlocks (Listing [6-12](#PC13)) should undo all transfers related
+    to removed blocks, returning the most recent block not affected by the reorganization
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note that we are now keeping track of not just the latest block number but also
+    its hash. Whenever we start a new iteration, we check if the hash for the block
+    at that same height changed. If it did, then we have stumbled upon a reorganization
+    and must revert all changes from the removed blocks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Reverting Changes
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: When the reorganization is detected, we need to revert any transfers we have
+    processed from the blocks removed. To do that, we first need to keep track of
+    which transfers we processed on each block (Listing [6-11](#PC12)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We will add a new field to our Indexer class: a stack containing one item per
+    each block we have seen when processing a transfer event. Each item will hold
+    the block number, hash, and the list of transfers it included. We will add new
+    items to it whenever we reduce a new eventconst last = require(''lodash.last'');async
+    saveEvent(event) {  // Add a new block if this event happened on a new one  if
+    (!last(this.eventsBlocks)      || last(this.eventsBlocks).hash !== event.blockHash)
+    {    this.eventsBlocks.push({      number: event.blockNumber,      hash: event.blockHash,      transfers:
+    []    });  }  // Include the transfer event on the latest block  last(this.eventsBlocks)    .transfers.push(event.returnValues);}Listing
+    6-11'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Keeping track of transfer events per block. This function is called from reduceEvent.
+    Note that this function must be invoked in order as new events are being processed
+    to ensure the list of blocks remains sorted with the most recent block at its
+    end
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Now that we have a list of the blocks we have processed, we can iterate it
+    starting from the end and undo all the transfer events we have aggregated on our
+    list of balances (Listing [6-12](#PC13)).async undoBlocks() {  while (this.eventsBlocks.length
+    > 0) {    // Check if the hash of the last block changed    const lastBlock =
+    last(this.eventsBlocks);    const hash = await this.getBlockHash(lastBlock.number);    //
+    If it did not, then we know that all previous ones    // have not changed either    if
+    (lastBlock.hash === hash)      return lastBlock;    // If it did, we undo all
+    transfers for that block,    // and iterate    this.eventsBlocks.pop();    lastBlock.transfers.forEach((t)
+    =>      this.undoTransfer(t)    );  }  // We return an empty block if there are
+    no more  return { hash: null, number: null };}Listing 6-12'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Walk backward the list of processed events and undo all transfers. This function
+    must return the most recent block that was not removed in the reorganization,
+    so the script can reprocess the chain from it. The function undoTransfer is analogous
+    to the one presented in the subscriptions subsection earlier in this chapter
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To recap, the changes we have implemented to make our script robust against
+    reorganizations are the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '1.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: When processing a transfer event, save its block number and hash on a list,
+    appending the most recent ones at the end.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '2.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: When checking for new blocks, verify if the hash of the latest block we have
+    processed has changed.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '3.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: If it did change, undo each transfer event that happened on each changed block,
+    starting from the most recent one. When we reach an unchanged block, stop.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '4.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Reset the latest block to the unchanged block, and resume processing from there.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'While these changes have introduced much complexity to our solution, they ensure
+    that its state does not fall out of sync because of reorganizations. It will depend
+    on your use case how you choose to handle them: ignoring the most recent blocks
+    until they become confirmed, using subscriptions to let the node track removed
+    events assuming a stable connection, or implementing a client-based design similar
+    to this one.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Unit Testing
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Up until now, we have overlooked a critical aspect of software development:
+    tests. While testing is not substantially different in Ethereum than in other
+    applications, we will use our indexer example to introduce some useful techniques
+    specific to blockchain testing.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Choosing a Node
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: The first decision lies in choosing which node to use for our tests. Recall
+    from earlier chapters that we can work with ganache, a blockchain simulator, or
+    on an actual node, such as Geth or Parity, running on development mode. The former
+    is lighter and provides additional methods for manipulating the blockchain state
+    which are useful in unit tests. On the other hand, using an actual node will be
+    more representative of the actual production setup for your application.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A good compromise is to use ganache with instant seal for unit tests, while
+    a Geth or Parity development node can be used for end-to-end integration tests,
+    running with a fixed block time. This allows more fine-grained control in the
+    unit tests and a more representative environment on integration.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Whether unit tests should be allowed to call external services is typically
+    a contentious issue in software development. In traditional applications, some
+    developers prefer to set up a testing database to back their unit tests, while
+    others stub all calls to it in order to test their code in isolation, arguing
+    that a unit test must only exercise a single piece of code. Here, we will side
+    with the former group and will connect to a ganache instance in our unit tests.
+    Either way, this is only a matter of semantics on what we understand for a unit
+    test.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Testing Our Indexer
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: We will now write some unit tests for our indexer. We will use ganache as a
+    back end, mocha^([5](#Fn5)) as a test runner, and chai^([6](#Fn6)) with the bignumber
+    plugin^([7](#Fn7)) for writing assertions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The first step is to deploy an ERC20 token for our indexer to monitor (Listing
+    [6-13](#PC14)). We will extend the default ERC20 implementation from OpenZeppelin
+    with a public minting method, so we can easily mint tokens for any addresses we
+    want to test.// 01-indexing/contracts/MockERC20.solpragma solidity ^0.5.0;import
+    "openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";contract MockERC20 is
+    ERC20 {  constructor () public { }  function mint(address account, uint256 amount)
+    public {    _mint(account, amount);  }}Listing 6-13
+  prefs: []
+  type: TYPE_NORMAL
+- en: ERC20 token contract with a public minting method, which allows anyone to create
+    new tokens. Do not use in production!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let’s create the boilerplate for our test file (Listing [6-14](#PC15)). We
+    will need to import all the relevant components, create a new instance of web3
+    for interacting with our ganache instance, and deploy the new contract.// 01-indexing/test/indexer.test.jsconst
+    expect =  require(''chai'').use(require(''chai-bignumber'')()).expect;const ERC20Artifact
+    =  require(''../artifacts/MockERC20.json'').compilerOutput;const Web3 = require(''web3'');const
+    web3 = new Web3(''http://localhost:9545'');const ERC20 = new web3.eth.Contract(  ERC20Artifact.abi,
+    null,  { data: ERC20Artifact.evm.bytecode.object });describe(''indexer'', function
+    () {  before(''setup'', async function () {    this.accounts = await web3.eth.getAccounts();    this.erc20
+    = await ERC20.deploy().send({      from: this.accounts[0], gas: 1e6    });  });});Listing
+    6-14'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Boilerplate code for a test suite for the Indexer. It initializes a new web3
+    instance and deploys an instance of the ERC20 token contract. Note that some require
+    statements were removed for brevity
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Using this template, we can now write our first test within our *describe*
+    block, to check that any balances minted in our contract are correctly picked
+    up by the indexer (Listing [6-15](#PC16)).it(''records balances from minting'',
+    async function () {  const indexer = new Indexer({    address: this.erc20.options.address    provider:
+    ''http://localhost:9545''  });  const [from, holder] = this.accounts;  await this.erc20.methods.mint(holder,
+    1000).send({ from });  await indexer.processNewBlocks();  expect(indexer.getBalances()[holder])    .to.be.bignumber.eq("1000");});Listing
+    6-15'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Test for checking that transfers from minting are correctly processed. We initialize
+    a new Indexer instance for the newly deployed token contract, mint some tokens
+    for an address, and execute the indexer to check the result
+  prefs: []
+  type: TYPE_NORMAL
+- en: We can run this test with mocha. Make sure to have a ganache instance running
+    in another terminal and listening on port 9545 (Listing [6-16](#PC17)).$ ganache-cli
+    -p 9545$ npx mochaListing 6-16
+  prefs: []
+  type: TYPE_NORMAL
+- en: Starting a ganache instance and running the test suite respectively. Each command
+    should be run on a different terminal
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, if we run our test, it will fail – the indexer will not pick up any
+    balance for the holder address. This is because we built our indexer to ignore
+    any information from the latest blocks and only consider transfers after a certain
+    number of confirmations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We will fix this using the *mine* method from ganache (Listing [6-17](#PC18)).
+    This method, not available in Geth or Parity, tells ganache to simulate a new
+    block being mined. It is sent as any other message via the low-level JSON-RPC
+    interface.function rpcSend(web3, method, ... params) {  return require(''util'')    .promisify(web3.currentProvider.send)    .call(web3.currentProvider,
+    {      jsonrpc: "2.0", method, params    });}function mineBlocks(web3, number)
+    {  return Promise.all(    Array.from({ length: number }, () => (      rpcSend(web3,
+    "evm_mine")    ))  );}Listing 6-17'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Helper method to instruct ganache to mine a certain number of blocks. The code
+    in mineBlocks fires a chosen number requests in parallel and returns when all
+    of them have succeeded
+  prefs: []
+  type: TYPE_NORMAL
+- en: We can now add a call to mineBlocks  right before instructing our indexer to
+    process new blocks in our test, run it again, and see it pass.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using Snapshots
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: We can now write more tests that exercise other scenarios of our indexer. However,
+    in any good test suite, all tests should be independent from each other, which
+    is not the case here since we are deploying a single instance of our ERC20 contract.
+    This means that any minting or transfers that occur in a test will be carried
+    on to the following ones.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'While the obvious solution is to just replace our before step with a beforeEach
+    step,^([8](#Fn8)) so a new ERC20 is deployed for each test, we will use this opportunity
+    to introduce a new concept specific to ganache: snapshots (Listing [6-18](#PC19)).
+    Snapshots allow us to save the current state of the simulated blockchain, run
+    a set of operations, and then roll back to the saved state.function takeSnapshot(web3)
+    {  return rpcSend(web3, "evm_snapshot").then(r => r.result);}function revertToSnapshot(web3,
+    id) {  return rpcSend(web3, "evm_revert", id);}Listing 6-18'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Helper functions for taking a new snapshot, which returns the snapshot id, and
+    for reverting to a specific snapshot given its id
+  prefs: []
+  type: TYPE_NORMAL
+- en: A good use case for snapshots is to save time by removing the need to re-create
+    a new state for each test (Listing [6-19](#PC20)). Instead of deploying a new
+    ERC20 contract on each test, we just deploy it once, save a snapshot, execute
+    a test, and restore the snapshot to clear out any changes before running the next
+    test. While this will not offer any performance improvements in our tests, suites
+    with a more complex setup that require creating multiple contracts will benefit
+    from it.beforeEach('take snapshot', async function () {  this.snapshotId = await
+    takeSnapshot(web3);});afterEach('revert to snapshot', async function () {  await
+    revertToSnapshot(web3, this.snapshotId);});Listing 6-19
+  prefs: []
+  type: TYPE_NORMAL
+- en: Taking a new snapshot before each test, and reverting back to it once the test
+    has ended. Note that we cannot revert to the same snapshot more than once, so
+    we need to create a new one for each test
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Another interesting use case of snapshots is for testing *reorganizations*.
+    Triggering a reorganization on a regular Geth or Parity node is complex, as it
+    involves setting up our own private node network, and disconnecting and reconnecting
+    nodes to simulate the chain split. On the other hand, testing a reorganization
+    on ganache is much simpler: we can take a snapshot, mine a few blocks, and then
+    roll back and mine another set of blocks with a different set of transactions.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Caution
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: This will not be equivalent to an actual chain reorganization, since subscriptions
+    will not report any *removed* events. Nevertheless, since our indexer relies on
+    plain polling for detecting any changes, using snapshots will do in this case.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let’s write a test for checking that our indexer properly handles chain reorganizations
+    by undoing any balance changes from removed blocks and processing new ones.it(''handles
+    reorganizations'', async function () {  // Set up a new indexer  const indexer
+    = new Indexer({    address: this.erc20.options.address    provider: ''http://localhost:9545''  });  //
+    Mint balance for sender account and take a snapshot  const [from, sender, r1,
+    r2] = this.accounts;  await this.erc20.methods.mint(sender, 1000).send({ from
+    });  const snapshotId = await takeSnapshot(web3);  // Transfer 200 tokens to r1
+    and r2, and mine confirmations  const transfer = this.erc20.methods.transfer;  await
+    transfer(r1, 200).send({ from: sender });  await transfer(r2, 200).send({ from:
+    sender });  await mineBlocks(web3, 12);  // Run the indexer and assert that they
+    were picked up  await this.indexer.processNewBlocks();  const balances = this.indexer.getBalances();  expect(balances[sender]).to.be.bignumber.eq("600");  expect(balances[r1]).to.be.bignumber.eq("200");  expect(balances[r2]).to.be.bignumber.eq("200");  //
+    Rollback to simulate the reorg and send new transfers  await revertToSnapshot(web3,
+    snapshotId);  await methods.transfer(r1, 300).send({ from: sender });  await mineBlocks(web3,
+    15);  // Check that the old state was discarded  await this.indexer.processNewBlocks();  const
+    newBalances = this.indexer.getBalances();  expect(newBalances[sender]).to.be.bignumber.eq("700");  expect(newBalances[r1]).to.be.bignumber.eq("300");  expect(newBalances[r2]).to.be.bignumber.eq("0");});'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: These testing techniques can be used to test not only components that interact
+    with smart contracts but the smart contracts themselves. It is a good practice
+    to have a good test coverage in any code you deploy to the network, especially
+    considering you will not be able to modify it later (in most cases^([9](#Fn9)))
+    to fix any bugs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A Note on Centralization
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: For the first time in this book, we have introduced a server-side component
+    to our applications. Instead of just building a client-side-only app that connects
+    directly to the blockchain, we now have a new centralized dependency that is required
+    for our application to run. It can be argued that our application thus no longer
+    qualifies as a decentralized app, as it blindly trusts data returned by a server
+    run by a single team.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Depending on the kind of data being queried, this can be alleviated by having
+    the client *verify* part of the data supplied by the server. Following with the
+    ERC20 balance example, a client could request the top 10 holders of a token from
+    the indexing server and then verify against the blockchain that their balances
+    are correct. They may still not be the top 10 – but at least the client has a
+    guarantee that the balances have not been tampered with.
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, this is not a solution to the problem, as not all data can be verified
+    against the blockchain without having to re-query all events. Furthermore, our
+    application now depends on a component that could go down at any time, rendering
+    it unusable.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s discuss two different approaches to this problem. The upcoming discussion
+    applies not just to indexing but also to any other off-chain service, such as
+    storage or intensive computation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Decentralized Services
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: One approach to this problem is to look for *decentralized* off-chain solutions.
+    For instance, at the time of this writing, a GraphQL interface to blockchain data
+    named *EthQL*^([10](#Fn10)) is under review. This could be added as part of the
+    standard interface for all Ethereum nodes, allowing easier querying of events
+    from any client. As another example, thegraph^([11](#Fn11)) is a project that
+    offers customized GraphQL schemas for different protocols. They rely on a token-incentivized
+    decentralized network of nodes that keep such schemas up to date and answer any
+    queries from users.
+  prefs: []
+  type: TYPE_NORMAL
+- en: While elegant, these decentralized solutions may not yet be ready for all use
+    cases. Decentralized indexing or computing solutions are still being designed.
+    And even when ready, a generic decentralized solution may not always cater for
+    the specific needs of your application. With this in mind, we will discuss a second
+    approach.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Centralized Applications
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: An apparent non-solution to the problem is to just accept that applications
+    *can be centralized*. This may come as a controversial statement, having focused
+    strongly on decentralized applications throughout the book, but it does not need
+    to be.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It can be argued that the strength of a blockchain-based system lies not in
+    the application but in the protocol layer. By relying on the chain as the ultimate
+    source of truth and building open protocols that run on it, any developer can
+    freely build an application to interact with such protocols. This gives a user
+    the flexibility to move between different apps that act as *gateways* to their
+    data in a common decentralized protocol layer. Decentralization is then understood
+    as the freedom of being able to pack up and leave at any time while preserving
+    all data and network effects that arise from the shared decentralized layers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This rationale gives us as developers the freedom to build solutions as powerful
+    as we want in the application level by leveraging any number of centralized components
+    for querying, storage, computing, or any other service we could need. These solutions
+    have the potential to deliver a much richer user experience than fully decentralized
+    ones.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As you can imagine, centralization is a contentious issue in the Ethereum development
+    community. There is no right or wrong answer to this topic, and the discussion
+    will probably keep evolving over time. Regardless of the approach you take, be
+    sure to understand the pros and cons of it and weigh them against the requirements
+    of the solution you are looking to build.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Storage
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'We will now focus on another problem in Ethereum: storage. Storing data on
+    the Ethereum blockchain is very expensive, costing 625 gas per byte (rounded up
+    to 32-byte slots), plus a base 68 per non-zero byte just for sending that data
+    to the blockchain. At 1GWei gas price, this means that storing a 100kb PNG will
+    cost about 0.07 ETH. On the other hand, saving data in logs for off-chain access
+    is much cheaper, costing 8 gas units per byte, plus the base 68 for sending the
+    data (this amounts to 1/10th of the cost for our sample image), but is still expensive
+    as we start scaling up. This means we need to look into alternative solutions
+    for storing large application data.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Off-chain Storage
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Following a similar approach to the one we used for indexing, we can set up
+    a separate centralized server that provides storage capabilities. Instead of storing
+    the actual data on the blockchain, we can store the URL from which we can retrieve
+    that data off-chain. Of course, this approach is only useful for data that is
+    not needed for contract execution logic, but rather for off chain purposes - such
+    as displaying an image associated to an asset.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Along with the URL, we should also store the hash of the data stored. This allows
+    any client that retrieves that information to verify that the storage server has
+    not tampered with it. Even though data may be rendered inaccessible due to the
+    storage server going down, the hash guarantees that any client can check that
+    provided the data is correct. In other words, **we may be sacrificing the availability
+    of our data by moving it off-chain, but not its integrity**.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We will pick up our ERC721 minting application from the previous chapter as
+    a sample use case to illustrate how this may be implemented and store metadata
+    associated to each token (such as a name and description) in an off-chain site.
+  prefs: []
+  type: TYPE_NORMAL
+- en: ERC721 Metadata Extension
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: 'Before we go into the implementation, we will briefly review one of the extensions
+    of the ERC721 standard: the metadata extension (Listing [6-20](#PC22)). This extension
+    specifies that every token has an associated *token URI* that holds its metadata.
+    This URI, which could be an HTTP URL, holds a JSON document with information on
+    each token. This metadata can range from a canonical name, some description text,
+    tags, authoring information, images, or any other fields specific to the domain
+    of the collectible.function tokenURI(uint256 tokenId)  external view returns (string
+    memory);Listing 6-20'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Specification of the tokenURI method required by the ERC721 metadata extension
+  prefs: []
+  type: TYPE_NORMAL
+- en: We will extend our ERC721 contract (Listing [6-21](#PC23)) to include the ERC721Metadata
+    base contract provided by the openzeppelin-solidity@2.2.0 package, which tracks
+    a URI per token.// 02-storage/contracts/ERC721PayPerMint.solpragma solidity ^0.5.0;//
+    import SafeMath, ERC721, ERC721Enumerable, ERC721Metadatacontract ERC721PayPerMint  is
+    ERC721, ERC721Enumerable, **ERC721Metadata** {  using SafeMath for uint256;  constructor()
+    public ERC721Metadata("PayPerMint", "PPM") { }  function exists(uint256 id) public
+    view returns (bool) {    return _exists(id);  }  function mint(    address to,
+    uint256 tokenId, **string memory tokenURI**  ) public payable returns (bool) {    require(msg.value
+    >= tokenId.mul(1e12));    _mint(to, tokenId);    **_setTokenURI**(tokenId, tokenURI);    return
+    true;  }}Listing 6-21
+  prefs: []
+  type: TYPE_NORMAL
+- en: Updated ERC721 contract that accepts an associated tokenURI when minting a token.
+    Recall that this contract required an amount of ETH proportional to the ID of
+    the token for fun and profit
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s modify our application to save metadata in a storage server and add the
+    URL with the data to the token contract, along with the content hash.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Saving Token Metadata
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: 'We will modify our main mint method in the ERC721 component so that it accepts
+    not just an ID but also a title and description string fields (Listing [6-22](#PC24)).
+    We will save this data off-chain, obtain an URL, and pass it along to the following
+    contract *mint* call.// 02-storage/src/components/ERC721.jsasync mint({ id, **title,
+    description** }) {  const { contract, owner } = this.props;  const data = JSON.stringify({
+    id, **title, description** });  **const url = await save(data);**  const value
+    = new BigNumber(id).shiftedBy(12).toString(10);  const gasPrice = await getGasPrice();  const
+    gas = await contract.methods    .mint(owner, id, **url**).estimateGas({ value,
+    from: owner });  contract.methods.mint(owner, id, **url**)    .send({ value, gas,
+    gasPrice, from: owner })    .on(''transactionHash'', () => {      this.addToken(id,
+    **{ title, description }**);    })}Listing 6-22'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Updated mint method to handle token metadata. Note that this also requires modifying
+    the Mint component by adding the title and description inputs, so the user can
+    provide these values
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The save function will calculate the hash of the data, use it as an identifier,
+    and store it in a storage server (Listing [6-23](#PC25)). Note that by using the
+    hash as an identifier,^([12](#Fn12)) any client can validate that the data retrieved
+    has not been tampered with.// 02-storage/src/storage/local.jsimport { createHash
+    } from ''crypto'';const server = ''http://localhost:3010'';export async function
+    save(data) {  let hash = createHash(''sha256'').update(data).digest(''hex'');  let
+    url = `${server}/${hash}`;  await fetch(url, {    method: ''POST'', mode: ''cors'',
+    body: data,    headers: { "Content-Type": "application/json" }  });  return url;}Listing
+    6-23'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Saving data to a local storage server, using the data hash as an identifier
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this example, the server that receives the POST request is a NodeJS process
+    that will accept arbitrary JSON data at an URL path, save it locally in a file,
+    and then serve it upon a GET request. In an actual application, you may want to
+    rely on real storage services.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We can now load the tokens’ metadata on the initial load (Listing [6-24](#PC26)).
+    We will add a call to a new loadTokensData function when the main component loads
+    and after the list of existing tokens has been retrieved.// 02-storage/src/components/ERC721.jsloadTokensData(tokens)
+    {  const { contract } = this.props;  tokens.forEach(async ({ id }) => {    //
+    Retrieve metadata url from the contract    const url = await contract.methods.tokenURI(id).call();    //
+    Retrieve data from the url    const data = await fetch(url)      .then(res =>
+    res.json()).catch(() => "");    // Validate data integrity and update state    const
+    hash = createHash('sha256')      .update(JSON.stringify(data)).digest('hex');    const
+    path = new URL(url).pathname.slice(1);    if (path === hash) this.setTokenData(id,
+    data);  });}Listing 6-24
+  prefs: []
+  type: TYPE_NORMAL
+- en: Loop through all current tokens and load their metadata by querying the contract
+    to retrieve the URL where it is stored and then the URL to retrieve the actual
+    metadata.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note that the metadata integrity is verified by calculating its hash before
+    accepting it. You can test it by modifying the saved metadata in your local filesystem
+    (look in the server/data folder of the project) and checking that no metadata
+    is displayed for the modified token.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This allows us to associate additional data to each non-fungible token when
+    we mint it, which can be actually leveraged by any application that displays token
+    information. In that regard, you can think of token metadata as the equivalent
+    of opengraph metadata^([13](#Fn13)) for a regular HTML page.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Interplanetary Storage
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: As an alternative to centralized storage solutions, we can store our data in
+    the *InterPlanetary File System* (IPFS). IPFS is “a distributed system for storing
+    and accessing files, web sites, applications, and data.”^([14](#Fn14)) In other
+    words, it acts as a decentralized storage system.
+  prefs: []
+  type: TYPE_NORMAL
+- en: What is IPFS?
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: IPFS  acts as a peer-to-peer content distribution system. Any node can join
+    the network, from a dedicated IPFS server to a regular user in their home computer.
+    Whenever a user requests a file from the network, that file is downloaded from
+    the nearest node that has the file and is made available for other users to download
+    from this new location. Availability of a piece of content depends on having enough
+    users willing to store the relevant files.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Any data unit in IPFS is not identified by its location, as it is in most traditional
+    file systems, but by its content. When requesting a file from the IPFS network,
+    you address it by its identifier, which is nothing else than a hash of the content.
+    This guarantees integrity of all content, since a client will validate all content
+    received against its identifier. It also allows a client to request a file without
+    needing to know *where* it is stored in the network.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This implies that content in IPFS is immutable. Any changes to it require storing
+    a new copy entirely under a new identifier. The previous file will be retained
+    by the network as long as someone keeps a copy of it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: All these properties make IPFS a good match for blockchain applications. The
+    content hash verification we manually built in the previous section is already
+    provided by the protocol itself. And by indexing the content identifier in the
+    smart contract instead of its location, we can decouple the blockchain data from
+    any centralized content provider.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: IPFS relies on users willing to save and share content for availability, which
+    may make it look like a poor choice for building critical applications. Nevertheless,
+    data availability for your application can be provided by relying on an IPFS pinning
+    service. These are services that act as traditional storage servers, but they
+    take part on the IPFS network by making *your* content available to all users –
+    for a fee, that is.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using IPFS in Our Application
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: To enable IPFS support in our application, we first need to connect to an IPFS
+    node. This is similar to connecting to an Ethereum node in order to access the
+    Ethereum network, with the difference that we do not need a private key or a currency
+    to write any data to IPFS.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We can either host our own IPFS public node as part of our application or rely
+    on a third-party provider. As an example, Infura provides not only Ethereum public
+    nodes but also IPFS nodes, meaning we can use their IPFS gateway directly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, it is also possible that a user is running their own IPFS node in their
+    computer. IPFS provides a browser extension, the IPFS companion,^([15](#Fn15))
+    that connects to a local node and makes the browser IPFS-enabled. This includes
+    adding support for ipfs links and injecting an ipfs object to the global window
+    object in all sites – much like Metamask adds an ethereum provider object to all
+    sites.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: There is also the option of running an IPFS node *within your own web site*.
+    The js-ipfs library provides a browser-compatible implementation of the entire
+    IPFS protocol, so you can start an IPFS daemon as a user accesses your app. However,
+    this can make your application much heavier, and the in-app IPFS process is not
+    as stable as a dedicated one. Because of this, the suggested method for interacting
+    with the network is to use the IPFS HTTP API to connect to a separate node.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Opening an IPFS connection in our app is very similar to opening an Ethereum
+    connection: we first check if there is a global connection object available and,
+    if not, fall back to a well-known public node (Listing [6-25](#PC27)). We will
+    use the ipfs-http-client@30.1 javascript library for accessing the network, which
+    is an IPFS equivalent of web3.js.// 02-storage/src/storage/ipfs.jsimport ipfsClient
+    from ''ipfs-http-client'';async function getClient() {  if (window.ipfs && window.ipfs.enable)
+    {    return await window.ipfs.enable({      commands: [''id'', ''version'', ''add'',
+    ''get'']    });  } else {    return ipfsClient({      host: ''ipfs.infura.io'',
+    port: ''5001'',      protocol: ''https'', ''api-path'': ''/api/v0/''    });  }}Listing
+    6-25'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Creating a new ipfs client instance. We first check whether the global object,
+    injected by the companion extension, is available. If not, we fall back to a connection
+    to the Infura IPFS gateway
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using this new IPFS client, we can now easily save our token metadata to the
+    IPFS network instead to a centralized server.export async function save(data)
+    {  const ipfs = await getClient();  const [result] = await ipfs.add(Buffer.from(data));  return
+    `/ipfs/${result.path}`;}Fetching the result back from the IPFS network given the
+    URL is straightforward as well. Note that we no longer need to verify its integrity,
+    since the protocol takes care of that automatically.export async function load(url)
+    {  const ipfs = await getClient();  const [result] = await ipfs.get(url);  return
+    JSON.parse(result.content.toString());}
+  prefs: []
+  type: TYPE_NORMAL
+- en: Hosting Our Application on IPFS
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: IPFS can be used not only to store our application data but also the application
+    itself, for maximum decentralization. All our application’s client-side code can
+    be uploaded to IPFS and served from there. But how can our users access it from
+    a regular browser? Or address it without having to specify a hash?
+  prefs: []
+  type: TYPE_NORMAL
+- en: The first problem can be solved via IPFS gateways (see Listing [6-26](#PC30)
+    for examples). An IPFS gateway is a regular web site that serves content from
+    the IPFS network. It allows you to access any IPFS item at the path /ipfs/CID,
+    where CID is the content hash that identifies each object on the network.https://**gateway.ipfs.io**/ipfs/QmeYYwD4y4DgVVdAzhT7wW5vrvmbKPQj8wcV2pAzjbj886/https://**ipfs.infura.io**/ipfs/QmeYYwD4y4DgVVdAzhT7wW5vrvmbKPQj8wcV2pAzjbj886/https://**cloudflare-ipfs.com**/ipfs/QmeYYwD4y4DgVVdAzhT7wW5vrvmbKPQj8wcV2pAzjbj886/Listing
+    6-26
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can access an older version of the ipfs.io web site at the following addresses
+    directly on your browser via any of the public gateways listed. Since the ID of
+    the content is its hash, you can be certain that all gateways will serve exactly
+    the same object
+  prefs: []
+  type: TYPE_NORMAL
+- en: The second problem, having user-friendly names for IPFS sites, can be solved
+    using *DNSLink*. DNSLink is a process for mapping DNS names to IPFS content using
+    DNS TXT records.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s say we want to map our site in IPFS to the domain example.com. By adding
+    a TXT record to _dnslink.example.com with the value dnslink=/ipfs/CID, any IPFS
+    gateway will automatically map any requests to /ipfs/example.com to the specified
+    content.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Not only that, but we can also specify a CNAME DNS record for our domain, pointing
+    to a gateway. This allows us to automatically serve our page at example.com directly
+    from the IPFS-specified gateway.^([16](#Fn16)) To sum up, the full process for
+    accessing our site would be
+  prefs: []
+  type: TYPE_NORMAL
+- en: A user makes a request to example.com.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The DNS query answers with a CNAME to gateway.ipfs.io.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The user sends a request to the IP of gateway.ipfs.io using example.com as a
+    Host header.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The gateway makes a DNS TXT query for both example.com and _dnslink.example.com
+    and obtains an IPFS CID as response.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The gateway transparently serves the content from IPFS to the end user.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Another level of indirection can be introduced by relying on *IPNS*, the InterPlanetary
+    Name System. This system allows you to have mutable links that refer to IPFS content,
+    though IPNS links are also hashes. You can then have your DNSLink point to your
+    IPNS name, instead of the IPFS ID, and update your site by just updating the IPNS
+    link to a new version of your content. This saves you from having to modify your
+    DNS TXT records whenever you deploy a new version of your site.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'We have gone through two problems that arise when building non-trivial Ethereum
+    applications: how to perform complex queries on chain data and how to store large
+    amounts of data. Both of these problems require looking outside Ethereum itself
+    and relying on other services – either centralized or decentralized. We also looked
+    into how to write unit tests that interact with the Ethereum network, and some
+    strategies for handling chain reorganizations.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Besides the specific problems or strategies detailed in this chapter, perhaps
+    the most important takeaway is that of defining the *decentralization* demands
+    of your application. While we are used to traditional non-functional requirements
+    such as performance, security, or usability, blockchain apps need to take decentralization
+    into account as well. Decentralization is the core reason of why a blockchain
+    is used in the first place, so it makes sense to pay special attention to it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Like other non-functional requirements, decentralization is not binary. Our
+    application can have different degrees of decentralization, depending on which
+    components of the stack are centralized, how much trust we place on commercial
+    third parties as opposed to peer-to-peer networks, or how much control our users
+    have over their own data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For instance, a financial application can be purely centralized except for the
+    underlying protocol that manages the users’ assets, allowing high performance
+    and good user experience, and at the same time ensuring its users’ that they can
+    part with their assets at any point in time. On the other hand, an application
+    focused on bypassing censorship may need to be purely decentralized to not risk
+    being shut down by its hosting provider.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Different applications will have different requirements. It is important that
+    you define yours, so you know which solutions you have access to, and build the
+    architecture of your application accordingly.
+  prefs: []
+  type: TYPE_NORMAL

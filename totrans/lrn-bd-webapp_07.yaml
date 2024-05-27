@@ -1,0 +1,2117 @@
+- en: © Santiago Palladino 2019S. PalladinoEthereum for Web Developers[https://doi.org/10.1007/978-1-4842-5278-9_7](https://doi.org/10.1007/978-1-4842-5278-9_7)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 7. User Onboarding
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Santiago Palladino^([1](#Aff2) )(1)Ciudad Autónoma de Buenos Aires, Argentina
+  prefs: []
+  type: TYPE_NORMAL
+- en: The complex user onboarding experience is one of the main issues for achieving
+    mass adoption in Ethereum. Users new to the space need to install a dedicated
+    browser or extension, create and back up an account, and then acquire ETH just
+    to begin interacting with a DApp. While in previous chapters we have worked with
+    web3-enabled users, in this chapter we will look into ways for simplifying the
+    onboarding experience for new ones.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We will begin by exploring scenarios for interacting with the blockchain without
+    having to create an account or creating one for our users behind the scenes. We
+    will take this one step further by moving account management itself to the blockchain
+    with smart accounts while exploring contract upgradeability along the way. Then,
+    we will shift our focus to the problem of requiring ETH to interact with Ethereum,
+    and introduce gasless transactions: a technique that removes the need for your
+    users to pay for gas fees. We will wrap up with a review of the Ethereum Name
+    System, which hides raw addresses behind user-friendly names, making them more
+    accessible to your users.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Problem
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Try to remember what your first steps were when using an Ethereum-powered app.
+    The first one was probably acquiring ETH to fuel your transactions. If you were
+    not lucky enough to have someone gift you some crypto, this requires signing up
+    in an exchange and potentially verifying your account. Depending on the exchange,
+    this sometimes even requires uploading a selfie holding your passport or a utility
+    bill to prove your address. Once whitelisted, you need to send funds to the exchange
+    old style, such as via a wire, to get your ETH.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Next step was getting your funds out of the exchange into an account you control.
+    After careful research on hardware, mobile, desktop, and online wallets, you can
+    settle for one and actually create your account. Regardless of the wallet you
+    have chosen, this involves writing down a set of 12 random words and keeping them
+    somewhere safe – but not too safe, because losing them means losing your only
+    backup and thus all your crypto. After choosing a passphrase for your wallet (but
+    hadn’t you just written down 12 words for security?), you are finally presented
+    with your public address and can move your funds out of the exchange and under
+    your control.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Armed with your funded account, you now open your browser at a DApp to try it
+    out. But alas, the site cannot find a web3 provider and is asking you to install
+    a dedicated browser extension (such as Metamask) or use a web3-enabled browser
+    (like Opera) to interact. After doing so, you decide whether to trust this new
+    component with your 12 words – that were supposed to be kept super safe, is it
+    a good idea to enter them on a browser extension you just downloaded? – or set
+    up another new account. Should you pick the latter, you need to go once again
+    through the same process of backing it up via the 12 words, choosing a passphrase,
+    writing down the new account, and transferring your ETH to it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: After these steps, you can now finally send your first transaction and buy a
+    digital-collectible crypto hat from your favorite decentralized store. Hooray.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now, if you are reading this book, you are most likely a programmer and have
+    a knack for technical challenges. Setting up your own accounts can be cumbersome,
+    though it comes with the thrill of becoming part of the vanguard in a decentralized
+    revolution.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But put yourself in the shoes of your average user, who will outright close
+    a page if it takes more than a few seconds to load. Most users demand immediate
+    satisfaction, and requesting them to go through such a complex process just to
+    start using your application is a recipe for disaster.
+  prefs: []
+  type: TYPE_NORMAL
+- en: While it is not always possible to remove all of the preceding required steps,
+    it is certainly possible to hide some of them to the user or delay them until
+    they are involved enough in your application that they are willing to invest a
+    few minutes to go to *the next level*. We will review some techniques for achieving
+    this throughout this chapter. Be warned though – there is no silver bullet for
+    this problem.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Interacting Without Accounts
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: We will start by tackling the task of setting up of an account – which involves
+    choosing a wallet, writing down the mnemonic, setting up a passphrase, and so
+    on. The easiest way around these steps is for your app to *not require an account
+    at all* for interacting with it. While this does not fit all use cases, it can
+    be tweaked to cover many more than you would expect.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Sending Funds from an Exchange
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The simplest scenario to get started with this method is just receiving plain
+    ETH at an address. For example, a donations application only needs to list a payment
+    address where users can send plain transactions directly from an exchange or from
+    any wallet they control without forcing them to use a web3-enabled browser. Certain
+    services even provide embeddable widgets that you can integrate in your application,
+    so users can buy the ETH they need using fiat without even leaving your site.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Plain Transactions and Fallback Functions
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Just sending ETH is the simplest operation for a user (Figure [7-1](#Fig1)).
+    The recipient address listed can be either an externally owned account or a smart
+    contract that performs some simple processing upon every transfer.![../images/476252_1_En_7_Chapter/476252_1_En_7_Fig1_HTML.jpg](../images/476252_1_En_7_Chapter/476252_1_En_7_Fig1_HTML.jpg)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 7-1
+  prefs: []
+  type: TYPE_NORMAL
+- en: Donations account for ethereum.org. This address may have changed since this
+    screenshot was taken, so do not send any funds to it before checking it against
+    the original source at [www.ethereum.org/donate](http://www.ethereum.org/donate)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Caution
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Keep in mind that exchanges do not generate unique ETH addresses for each user
+    or transaction. This means that you cannot rely on msg.sender in your contracts
+    to try to identify the user to trigger the transaction, if you expect your users
+    to send funds directly from an exchange.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Remember that every time a contract receives a vanilla transfer of funds, the
+    fallback function is executed, meaning that you can actually react to a transfer
+    via a certain action. In particular, you can rely on the precise amount of ETH
+    sent. However, some exchanges will only send the transfer with a minimal amount
+    of gas, so it may not be possible to perform complex actions as a response to
+    an ETH transfer.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'An exchange that fails to set a reasonable gas limit to its transfers can actually
+    be exploited. As described in the vulnerability “Failure to set gasLimit appropriately
+    enables abuse”^([1](#Fn1)) by Chris Whinfrey and others: “Many exchanges allow
+    the withdrawal of Ethereum to arbitrary addresses with no gas usage limit. Since
+    sending Ethereum to a contract address executes its fallback function, attackers
+    can make these exchanges pay for arbitrary computation. This allows attackers
+    to force exchanges to burn their own Ethereum on high transaction costs.” All
+    exchanges should set a strict gas limit to their outbound transactions.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Forwarding Contracts
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: A neat trick to allow the user to send additional information along with their
+    contribution is to set up several contracts that act as forwarding proxies and
+    execute certain functions in a main contract as their fallback function. Though
+    this does not allow for arbitrary data to be sent, it allows for a predefined
+    set of functions to be run.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As an example, let’s suppose we have a contract that accepts funds for two competing
+    parties (A and B). A simple implementation for such contract may look like Listing
+    [7-1](#PC1).// 01-forwarding-contracts/contracts/Donations.solpragma solidity
+    ^0.5.0;contract Donations {  uint256 fundsA;  uint256 fundsB;  uint256 timeEnd;  address
+    payable walletA;  address payable walletB;  constructor(...) public { ... }  **function
+    donateA() external payable {**    **require(now <= timeEnd && msg.value > 0);**    **fundsA
+    += msg.value;**  **}**  **function donateB() external payable {**    **require(now
+    <= timeEnd && msg.value > 0);**    **fundsB += msg.value;**  **}**  function withdraw()
+    external { ... }}Listing 7-1
+  prefs: []
+  type: TYPE_NORMAL
+- en: Sample implementation for a contract that accepts donations for one of two parties.
+    The user must call either donateA or donateB when sending funds
+  prefs: []
+  type: TYPE_NORMAL
+- en: As is, this contract requires your users to specify whether they are donating
+    for A or B on every transfer – at a low level, this implies requesting them to
+    add the data for the call to donateA or donateB. Remember that this data can be
+    easily generated given the contract’s ABI using web3js (Listing [7-2](#PC2)).>
+    let donations = new web3.eth.Contract(DonationsABI)> donations.methods.donateA().encodeABI()0x63420a5cListing
+    7-2
+  prefs: []
+  type: TYPE_NORMAL
+- en: Obtaining the data component for a transaction to the donateA method of the
+    Donations contract, given its ABI
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, asking the user to include an arbitrary hexadecimal string along with
+    their transfer can be an issue, since most exchanges do not support including
+    data along with their withdrawals. And, for regular wallets, including data is
+    often presented as an advanced feature (Figure [7-2](#Fig2)).![../images/476252_1_En_7_Chapter/476252_1_En_7_Fig2_HTML.jpg](../images/476252_1_En_7_Chapter/476252_1_En_7_Fig2_HTML.jpg)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 7-2
+  prefs: []
+  type: TYPE_NORMAL
+- en: Dialog for sending ETH from myetherwallet.com, an online wallet. Note that the
+    option to include data in the transaction is placed under an Advanced section,
+    hidden by default
+  prefs: []
+  type: TYPE_NORMAL
+- en: A much better alternative is to deploy two small contracts along with the main
+    one, whose only purpose is to forward every call to either the donateA or donateB
+    functions (Listing [7-3](#PC3)). This way, the user only needs to send their funds
+    to one of two addresses – those of DonateA or DonateB – to send their contribution
+    to their party of choice, actually *executing one of two functions* by just moving
+    ETH to a certain address.// 01-forwarding-contracts/contracts/DonateA.solcontract
+    DonateA {  Donations donations;  constructor(Donations _donations) public {    donations
+    = _donations;  }  **function() external payable {**    **donations.donateA.value(msg.value)();**  **}**}Listing
+    7-3
+  prefs: []
+  type: TYPE_NORMAL
+- en: Sample DonateA contract that forwards all transfers to the main Donations contract
+    by calling donateA. The code for DonateB is equivalent
+  prefs: []
+  type: TYPE_NORMAL
+- en: Single-use Addresses
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'As we have just seen, having a user move ETH directly from an exchange to a
+    smart contract has several limitations:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The msg.sender cannot be relied upon, since the exchange may use the same address
+    for several withdrawals, or different ones for the same user.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The gas included with the transaction may not be enough to perform a computationally
+    intensive operation or even writing to storage.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: No data can be included in the transfer.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Users with their own wallets do not face these issues, since they hold an account
+    of their own with its own funds, and from there they can send any arbitrary transaction.
+    Though we could create an account for the user on the spot (as we will see later
+    in this chapter), there is a simpler solution that works for short-lived interactions:
+    *single-use addresses.*^([2](#Fn2)) These  are externally owned addresses that
+    can only issue a single predefined transaction on their lifetime. After that transaction
+    is executed, the address cannot be used again.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to Use a Single-use Address
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: 'Single-use addresses can be used as an intermediary account that receives the
+    funds from an exchange and uses them to execute a predefined action. Such an action
+    may set a gas allowance as high as needed and include arbitrary data as well.
+    The user flow then looks like the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '1.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The user chooses which action they want to execute in the application, including
+    any arbitrary data, funds to be transferred, or gas to be used.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '2.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: A single-use address that can only execute that transaction is generated.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '3.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The user sends funds from an exchange to that single-use address.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '4.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Once the funds are received, the transaction is executed.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: Note that if the transaction from the single-use address fails for any reason
+    (whether it is a failed require in a contract or lack of gas), there is no way
+    to issue a second transaction with the necessary fixes. This means that any funds
+    that the user sent in step 3 will be effectively locked forever. As such, make
+    sure to avoid using single-use addresses when a transaction could fail due to
+    state changes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As an example, the Donations contract from as in the previous section would
+    be a poor choice, since the time while the donations are accepted is limited.
+    A user may set up their single-use address while donations are open, but if they
+    seed it after they close, then their funds will end up locked.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Another pitfall of single-use addresses is that they must be funded with the
+    exact amount of ETH required for their execution. Any extra funds sent to the
+    address are irretrievably lost. Make sure to clearly communicate this to your
+    users!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Creating a Single-use Address
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: How are single-use addresses created? It is worth noting that they are not a
+    special Ethereum construct, but the result of a clever hack. Also, creating them
+    requires no initial gas at all.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Recall from previous chapters that all Ethereum transactions need to be signed
+    with the sender’s private key in order to be valid. The sender’s address can then
+    be derived from the transaction’s signature, so the from is actually never included
+    in the transaction’s data – it’s calculated from the signature when needed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To recap, sending a transaction involves the following steps:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '1.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Pack the transaction parameters (recipient, gas, gas price, nonce, data, value,
+    etc.) into a binary object.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '2.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Hash the transaction binary and sign it with the sender’s private key.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '3.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Broadcast the transaction’s binary and the signature.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'On the other hand, processing a transaction involves the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '4.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Calculate the hash of the transaction binary.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '5.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Derive the sender’s address (i.e., from) from the hash and the signature.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '6.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Unpack the transaction binary into its parameters (recipient, gas, gas price,
+    nonce, data, value, etc.).
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: The trick for generating single-use addresses relies in sending a random signature
+    with the transaction. Instead of actually signing the transaction in step 2, we
+    just include a random set of bytes as a signature in step 3\. This way, there
+    is no private key associated with the process.
+  prefs: []
+  type: TYPE_NORMAL
+- en: When processing the transaction, this results in a random sender address derived
+    from the signature. And given that the private key associated with this address
+    is unknown, it is not possible to generate any other transaction for the same
+    address. This effectively yields a single-use address that can only broadcast
+    one specific transaction. Then, as soon as the address is funded with ETH, the
+    gas fees can be covered, and the transaction can be broadcasted to the network.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Sample Code
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: We will use a variant of the Donations example from the previous section, with
+    a single beneficiary and a single donate method, which accepts a string to be
+    emitted in an event along with each donation (Listing [7-4](#PC4)). We will then
+    rely on a single-use address to interact with it.// 02-single-use-addresses/contracts/Donations.solcontract
+    Donations {  address payable wallet;  event Donation(uint256 value, string text);  constructor(address
+    payable _wallet) public {    wallet = _wallet;  }  **function donate(string calldata
+    text) external payable {**    **require(msg.value > 0);**    **emit Donation(msg.value,
+    text);**  **}**  function withdraw() external { ... }}Listing 7-4
+  prefs: []
+  type: TYPE_NORMAL
+- en: Simplified Donations contract that accepts a custom string that is emitted in
+    an event in every donation
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let’s assume that our user wants to send a 1 ETH donation with the traditional
+    “Hello world”. We need to first generate the encoded data that executes that function
+    and estimate the gas cost for executing the call.// 02-single-use-addresses/index.jslet
+    donations = new web3.eth.Contract(abi, address);let call = donations.methods.donate("Hello
+    world");let data = call.encodeABI();let gas = await call.estimateGas({ value:
+    1e18 });'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Caution
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Keep in mind that actual gas usage may change depending on the state in which
+    the transaction is executed. Due to the very nature of single-use addresses, if
+    the transaction fails due to lack of gas, there is no way to execute it again
+    with a higher allowance. This results in the user funds being locked in the address
+    forever. If your function may end up consuming more gas in the future, make sure
+    to account for it when building the transaction object in the upcoming steps.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We now have all the necessary parameters to craft our transaction with a random
+    signature. To build this transaction object, we will use the ethereumjs-tx@1.3.7
+    library  .const Tx = require(''ethereumjs-tx'');let tx = new Tx({  value: 1e18,  data,  gas,  gasPrice:
+    1e9,  to: address,  nonce: "0x0",  v: networkId * 2 + 35,  s: ''0x'' + ''2''.repeat(61),  r:
+    ''0x'' + ''3''.repeat(61)});let sender = tx.getSenderAddress().toString(''hex'');'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Most parameters in the preceding snippet should be familiar by now: the recipient
+    address, the amount of ETH being sent, the gas allowance and price, and the transaction
+    data. Since this transaction will be sent from a new address that has sent no
+    other transactions, the nonce must be zero.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The new parameters we see here are v, r, and s, which correspond to the transaction’s
+    signature. The first of them must be derived from the chain id,^([3](#Fn3)) while
+    the two others are normally calculated from the user’s private key – we will replace
+    them by an arbitrary bytes sequence here.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: It is important to use a recognizable fabricated sequence as r and s, such as
+    a clear repetition of the same set of bytes, or a large amount of leading zeroes.
+    Otherwise, a third party cannot know whether the resulting transaction object
+    belongs indeed to a single-use address, or the signature was obtained from an
+    actual private key. If a private key was indeed used to generate the transaction,
+    then its holder can generate a different transaction when the user sends their
+    funds to the allegedly single-use address.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now, if you try to run the preceding code to obtain the sender address, you
+    will get an “Invalid Signature” error thrown by the getSenderAddress call. This
+    is because not all signatures are valid in Ethereum – roughly half of them are.
+    The easiest way around this is to just test with a few different values until
+    we hit a valid arbitrary signature. For instance, we could increment r by one
+    each time we get an invalid signature exception until we get to a valid value.const
+    BN = require('bignumber.js');let sender = null;while (!sender) {  try {    sender
+    = '0x' + tx.getSenderAddress().toString('hex');  } catch(ex) {    const r = new
+    BN('0x' + tx.r.toString('hex'));    tx.r = '0x' + r.plus(1).toString(16);  }}Armed
+    with a valid pre-signed transaction, we can now try broadcasting it to the network.const
+    rawTx = '0x' + tx.serialize().toString('hex');await web3.eth.sendSignedTransaction(rawTx);
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, since we have not yet funded the sender address, we will get a “sender
+    doesn't have enough funds to send tx” error. Remember that the derived sender
+    is a new account, so it will never have any previous funds.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'At this point, we should ask our users to fund the derived single-use address
+    and monitor for balance changes on the address to broadcast the transaction when
+    it has enough funds. To do this, we first need to calculate the exact amount of
+    ETH needed: this is the gas allowance multiplied by the gas price, plus any value
+    sent in the transaction.let required = (new BN(gas)).times(gasPrice).plus(value);'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Caution
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Remember that any extra ETH sent to a single-use address will be lost.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let’s now simulate that the user sends those funds to the single-use address.const
+    [funder] = await web3.eth.getAccounts();await web3.eth.sendTransaction({  from:
+    funder, value: required, to: sender});We can now finally send our transaction
+    to the network and verify that the event was correctly emitted.let rawTx = ''0x''
+    + tx.serialize().toString(''hex'');await web3.eth.sendSignedTransaction(rawTx);let
+    events = await donations.getPastEvents(''Donation'');console.log(events[0].returnValues.text);//
+    prints "Hello world  "'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Application Local Accounts
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'While in the previous sections we saw a few tricks for interacting with a smart
+    contract application without needing an Ethereum account, we will now look into
+    another alternative: creating an account for the user *within* the application.
+    Instead of asking the user to download a web3-enabled browser or install an extension,
+    we can manage the entire flow of creating a wallet directly in our app. This allows
+    any user who navigates to our application being instantly supplied with an Ethereum
+    address to start interacting. On the other hand, we also need to provide means
+    for our users to safely back up their new wallets – without becoming custodians
+    of their funds.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Creating and Using a Local Wallet
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Creating an Ethereum account requires a set of random bytes to derive a private
+    key, from which the address is calculated. We can use the accounts set of methods
+    from the web3@1.2.0 library to do so^([4](#Fn4)) (Listing [7-5](#PC12)), which
+    will automatically pull the needed entropy from the browser’s crypto API.let account
+    = web3.eth.accounts.create();Listing 7-5
+  prefs: []
+  type: TYPE_NORMAL
+- en: Creating an account using web3\. Note that no connection to the network is needed
+    to create a private key
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We can now use the private key from this account object to sign a transaction  and
+    broadcast it to the network (Listing [7-6](#PC13)).let tx = await web3.eth.accounts.signTransaction({    to:
+    account.address,    value: 1e17,    gas: 21000,    gasPrice: 1e9 },  account.privateKey);await
+    web3.eth.sendSignedTransaction(tx.rawTransaction);Listing 7-6'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Signing a transaction for sending ETH with the account’s private key and manually
+    sending it to the network. Note that issuing this transaction requires seeding
+    the sender address with some ETH
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To avoid having to generate, sign, and broadcast every transaction manually,
+    the web3 library allows to register an account as a wallet (Listing [7-7](#PC14)),
+    which will automatically use it for sending any transaction.web3.eth.accounts.wallet.add(account);await
+    web3.eth.sendTransaction({  from: account.address,  to: account.address,  value:
+    1e17,  gas: 21000});Listing 7-7'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Registering an account as a wallet in web3\. Any transaction sent from the wallet
+    address will be automatically signed locally by the library and then sent to the
+    network
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Recall from previous chapters that Metamask achieves a similar behavior using
+    a web3 subprovider. Instead of relying on the node to sign a transaction, the
+    transaction is intercepted, signed client-side, and then broacbasted.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Encrypted Keystores
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The following question is *how* to store the user’s wallet after generating
+    it. The most direct approach is to just keep the private key in the browser’s
+    local storage, so when the user visits our site again, we can easily reconstruct
+    the account object.// Store private key in local storagelocalStorage.setItem("ethereum_pk",
+    account.privateKey);// Load private key from local storage and re-create accountlet
+    pk = localStorage.getItem("ethereum_pk");let account = web3.eth.accounts.privateKeyToAccount(pk);
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, this option is extremely insecure, as the browser’s local storage should
+    never be used to keep sensitive information, since it is vulnerable to XSS attacks^([5](#Fn5)) –
+    not to mention the fact that the keys are lost if the user clears the site data
+    or loses the device. Storing plain private keys like this is only recommended
+    when managing very low amounts of ETH and loss of funds is acceptable, in other
+    words, when usability is prioritized over security.^([6](#Fn6))
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A safer approach is to encrypt the private key (Listing [7-8](#PC16)) before
+    storing it – whether it is on the browser’s local storage, on a remote server,
+    downloaded to the user’s computer, or synced across cloud storage. Ethereum’s
+    *wallet v3 format* is a standardized JSON that holds a private key encrypted with
+    a password and is not easy to crack.^([7](#Fn7)) It is used under the hood by
+    the nodes to store your keys and can also be used in the browser to encrypt your
+    users’ accounts before storing them.$ web3.eth.accounts.encrypt(account.privateKey,
+    ''PASSWORD'');> { version: 3,  id: ''b8c62b04-041c-49d6-966a-205bb5f70528'',  address:
+    ''af0a9c8d7f74dff1ce64f9c322108c336502bbd4'',  crypto:   { ciphertext: ''ba09a90b5...7b0e5e24da79d7f9efda613fd298'',     cipherparams:
+    { iv: ''2e72184026373b69d21ce157b1d93bba'' },     cipher: ''aes-128-ctr'',     kdf:
+    ''scrypt'',     kdfparams:      { dklen: 32,        salt: ''eab3860a...d1d378abbc55a65cae3c83e0a39e'',        n:
+    8192,        r: 8,        p: 1 },     mac: ''60177f2af3...bd900315e46e2d'' } }Listing
+    7-8'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Encrypting a user’s private key with a password to generate a v3 keystore object.
+    The converse method, decrypt, takes the keystore and password and returns the
+    decrypted account object
+  prefs: []
+  type: TYPE_NORMAL
+- en: While this is a much more secure option, it introduces additional complexity
+    by requesting a password from the user. Even though passwords are a common annoyance
+    to web users, they are also used to being able to *reset* them whenever they forget
+    them – an option that is not available in this case. If a user forgets the password
+    to their keystore, its contents are lost for good.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In addition to this problem, the keystore itself must not be misplaced. If you
+    are storing the encrypted private key just in the browser and the user happens
+    to clear local data or simply loses the device, then all funds are gone with it.
+    You must ensure that users perform proper backups (asking them to download the
+    keystore from your page and saving it elsewhere) or save them on a safe location
+    in one of your application’s servers (assuming you have one!).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: There is a big difference between acting as a custodian of your users’ funds
+    and acting as a backup location for storing their encrypted private keys. While
+    on the former any hack to your servers implies a loss of funds to your users,
+    the latter is just a convenience for your users to keep their encrypted keys secure.
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, this difference may not be so big from a legal standpoint. Make sure
+    to inform yourself on legal requirements in your jurisdiction if you do store
+    users’ encrypted keystores server-side.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Mnemonics
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: A decentralized alternative for backing up your user keys is to generate a *mnemonic*.
+    Mnemonics  are sequences of words (usually between 12 and 24) that can be easily
+    written down by a human for safekeeping, and you have probably already stumbled
+    upon them when creating an account in a wallet. Keep in mind that they are meant
+    just as a means of backup if the keystore is lost, as it is not reasonable to
+    ask your users for a 24-word sequence every time they want to use your application.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The main benefit of mnemonics is that they provide a way to store digital information
+    (a private key) in a traditional physical medium (a piece of paper). This way,
+    even if a user gets all their electronic devices stolen or hacked, they can still
+    rely on an old-fashioned method for restoring their accounts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Unfortunately, it is not possible to generate a mnemonic from a private key.
+    As we have seen in Chapter [5](476252_1_En_5_Chapter.xhtml), the derivation process
+    is one way: the mnemonic is used to calculate an extended key, from which one
+    or more private keys are derived in turn. This means that if you want to allow
+    your users to back up their accounts via this method, you need to build it from
+    scratch.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: To create a mnemonic and derive a seed from it, we will use the bip39 library  .
+    To create a hierarchical deterministic wallet from it and derive a private key,
+    we will use the ethereumjs-wallet library (Listing [7-9](#PC17)).// 03-mnemonics/index.jsconst
+    hdkey = require("ethereumjs-wallet/hdkey");const bip39 = require("bip39");let
+    mnemonic = bip39.generateMnemonic();> sadness brief beauty strike donor capable
+    recipe brand pretty hill orange inflictlet hd = hdkey.fromMasterSeed(bip39.mnemonicToSeed(mnemonic));let
+    path = "m/44'/60'/0'/0/0";let wallet = hdwallet.derivePath(path).getWallet();let
+    pk = wallet.getPrivateKeyString();> 0xdc68f9ce62dd1f16eed...5f7feba7b3284d9Listing
+    7-9
+  prefs: []
+  type: TYPE_NORMAL
+- en: Creating a mnemonic and deriving the corresponding private key. Note that more
+    private keys can be generated from the same mnemonic by using different derivation
+    paths
+  prefs: []
+  type: TYPE_NORMAL
+- en: This snippet allows you to generate a mnemonic for your users’ accounts. Just
+    note that your users need to save the mnemonic somewhere safe before refreshing
+    the page, since you should never store the plain sequence of words anywhere, as
+    it is as insecure as storing the unencrypted private key.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Up to this point, we have added several mechanisms for ensuring the security
+    of your users’ funds, such as encrypting their private keys with a password, and
+    providing an easy-to-write set of words for backing them up.
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, we have also reproduced the same complexity that we were trying to
+    avoid in the first place – the complexity that prevents most users from actually
+    getting onboard on Ethereum. Though we will see other approaches, the key takeaway
+    from this section is for you to know the tools available, so you can settle for
+    the proper balance between security, usability, and decentralization that best
+    fits your application.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Smart Accounts
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Local wallets have several shortcomings: not only they require additional steps
+    for safekeeping, but they also offer very limited options for users accessing
+    your application from multiple different devices. Even though you could rely on
+    cloud services for synchronizing the encrypted private key across your user’s
+    devices, revoking access from a device is out of the question. To make matters
+    worse, additional security measures such as two-factor authentication for critical
+    transactions cannot be implemented without trusting funds to a custodian.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Fortunately, we already have a decentralized and secure computing platform we
+    can rely upon for building any additional security or recovery features for our
+    users’ accounts. It is a matter of moving their very accounts to the blockchain
+    as contracts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Identities as Smart Contracts
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The key concept behind *smart accounts*, also referred to as *identity contracts*
+    , is that the user identity (along with its funds) is represented by a single
+    smart contract instead of one or several externally owned accounts. The user controls
+    a contract that forwards his or her calls to other applications and centrally
+    holds the user’s assets. Managing this identity from a new device is simply a
+    matter of registering a new externally owned account as a manager of the contract.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Research on these contracts has gone under the name of identity contracts, smart
+    accounts, bouncer proxies, multisig wallets, or wallet contracts. These contracts
+    have usually gone hand in hand with meta transactions or gas relays, which we
+    will review later in this chapter. While it is difficult to identify the first
+    person who came up with this idea, it is worth mentioning Alex Van de Sande, Philippe
+    Castonguay, Panashe Mahachi, Austin Griffith, Christian Lundkvist, and Fabian
+    Vogelsteller for their work on this topic. Work on this area has also been inspired
+    by the Account Abstraction Proposal^([8](#Fn8)) by Vitalik Buterin, which aims
+    at merging externally owned and contract accounts into a single type and moving
+    the burden of signature verification onto the EVM.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Moving the user’s identity to a smart contract allows us to implement any kind
+    of account management features that our users are accustomed to, but in a trustless
+    manner, directly on-chain:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The user can register multiple devices, where each device has its own externally
+    owned account, to manage the same identity contract.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Different keys can have different access levels: from managing the identity
+    contract itself to just being able to transfer a limited amount of funds.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Major transactions can require more than one key to confirm the operation, effectively
+    imposing a two-factor authentication (2FA) for critical operations.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Social recovery of the account can be implemented by designating a group of
+    trusted parties. This means you could pick a circle of close friends who could,
+    all together, grant you access back to your identity contract in the event that
+    you lose your keys. This could even be extended to testaments.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Keep in mind that using smart accounts does not remove the need for generating
+    local externally owned accounts. Our application will still need to create a local
+    key per device to manage the identity contract if the user does not already have
+    a web3-enabled browser. The improvement on using smart contracts over regular
+    accounts lies on the additional security and recovery features that can be implemented
+    in a decentralized manner – for instance, social recovery can be used as a replacement
+    for writing down a 24-word mnemonic.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Sample Implementation
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'The simplest version of an identity account (Listing [7-10](#PC18)) should
+    handle two main concerns: managing the list of the user accounts authorized to
+    operate on the contract and forwarding calls and transfers.// 04-identity-contracts/contracts/Identity.solpragma
+    solidity ^0.5.0;contract Identity {  mapping(address => bool) public accounts;  event
+    AccountAdded(address indexed account);  event AccountRemoved(address indexed account);  constructor(address
+    owner) public payable {    accounts[owner] = true;    emit AccountAdded(owner);  }  modifier
+    onlyUser {    require(accounts[msg.sender], "Sender is not recognized");    _;  }  function
+    addAccount(address newAccount) onlyUser public {    accounts[newAccount] = true;    emit
+    AccountAdded(newAccount);  }  function removeAccount(address toRemove) onlyUser
+    public {    accounts[toRemove] = false;    emit AccountRemoved(toRemove);  }  //
+    Forward arbitrary calls and funds to a third party  function forward(    address
+    to, uint256 value, bytes memory data  ) onlyUser public returns (bytes memory)
+    {    (bool success, bytes memory returnData) =      **to.call.value(value)(data)**;    require(success,
+    "Forwarded call failed");    return returnData;  }  // Empty fallback function
+    to accept deposits  function() external payable { }}Listing 7-10'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A very basic identity contract with support for managing user accounts and forwarding
+    calls
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'When this contract is first deployed, the user’s first account is registered.
+    Any new account from a new device can then be registered from a previous one (Listing
+    [7-11](#PC19)).// 04-identity-contracts/index.jsconst identity = await new web3.eth.Contract(identityAbi)  .deploy({
+    arguments: [mainDevice], data: identityBytecode })  .send({ from: mainDevice,
+    gasPrice: 1e9, value: 10e18 });await identity.methods.addAccount(anotherDevice)  .send({
+    from: mainDevice });Listing 7-11'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Creating an identity contract funded with 10 ETH and adding a second device.
+    In this example, mainDevice and anotherDevice are accounts created on the user’s
+    devices
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Any of the two registered accounts can then use the forward method to send
+    funds from the identity to a third party (Listing [7-12](#PC20)).const emptyData
+    = [];await identity.methods  .forward(thirdParty, 1e18.toString(), emptyData)  .send({
+    from: anotherDevice });await web3.eth.getBalance(identity.options.address);//
+    => 9 ETHawait web3.eth.getBalance(thirdParty);// => +1 ETHListing 7-12'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Sending funds from the identity contract using anotherDevice
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Calling into another contract is similar; it just requires encoding the call
+    to the contract and providing it as data to the forwarding function (Listing [7-13](#PC21)).
+    For example, we can call the setGreeter method  from the Greeter contract we coded
+    in previous chapters.const data = greeter.methods.setGreeting("Hey").encodeABI();await
+    identity.methods  .forward(greeter.options.address, "5000", data)  .send({ from:
+    anotherDevice });await greeter.methods.greet().call();// => "Hey"Listing 7-13'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Calling the setGreeting method of a greeter contract instance from the identity,
+    including 5000 Wei in the transaction
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Most of the features discussed previously can be implemented on top of this
+    base contract: accounts can be assigned different clearance levels, while restrictions
+    based on the value transferred can be imposed on the forwarding function.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A good example of this is a multi-signature wallet  .^([9](#Fn9)) These contracts
+    are designed to have a number N of accounts registered, and every transaction
+    requires at least M (with M < N) confirmations. While they are often used for
+    safekeeping of large amounts of funds by distributing the keys among different
+    members of a team, they can also be used for managing personal funds by assigning
+    different keys to different devices.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Deploying a Smart Account (Take One)
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Given that the focus of this chapter is to make user onboarding easier, requiring
+    the user to not only generate a local externally owned account but also to deploy
+    a contract, fund it, and register their devices on it seems like a step (or many)
+    on the opposite direction.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Nevertheless, many of these steps can be carried on by the application on behalf
+    of the user – including deployments. After the user has performed a certain number
+    of actions within our system, we can opt to deploy the identity contract on their
+    behalf and transfer ownership of it to their account. Even though this implies
+    costs in gas fees, in many cases this subsidy can be considered to be a necessary
+    cost involved in user acquisition.
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, a more decentralized (and cheaper for us) option is to rely on single-use
+    addresses for setting up the contract. Our application can generate a local wallet
+    behind the scenes to act as the initial owner of the identity contract (if the
+    user does not have a web3 browser already), as well as a single-use address that
+    can trigger the deployment and configuration of the smart account once funded.
+    When the single-use address is funded from an exchange, the identity is deployed
+    and seeded with a predefined amount of ETH. From that point on, the user operates
+    directly via their new identity contract.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Remember from the single-use addresses section that any extra funds sent to
+    the address are irretrievably lost. The user must choose how much ETH they want
+    to initially send to their identity and then create the transaction and fund it
+    with exactly the resulting amount.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Generating a single-use address for deploying a contract is similar to calling
+    into a contract, with the difference that the transaction must be sent to the
+    null address (Listing [7-14](#PC22)).// 05-single-use-address-deploy-identity-contract/index.jslet
+    call = new web3.eth.Contract(identityABI)  .deploy({ arguments:[owner], data:
+    identityBytecode });let data = call.encodeABI(); // Encode data for deploymentlet
+    gas = await call.estimateGas();let gasPrice = 1e9;let value = 1e18; // Seed identity
+    with 1ETH on deploymentlet nonce = "0x00";**let to = null; // Set tx recipient
+    to null**Listing 7-14'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Transaction parameters for deploying a contract. Note that the recipient is
+    set as null, as we are creating a new contract instead of interacting with an
+    existing one. Signature parameters are set as shown in the single-use addresses
+    section of this chapter
+  prefs: []
+  type: TYPE_NORMAL
+- en: Another interesting property of this approach is that, since contract creation
+    addresses are deterministic, it is possible to show the user their identity contract
+    address *even before it is deployed* (Listing [7-15](#PC23)). The address where
+    a contract is deployed is a function of the sender’s address and nonce.const Util
+    = require('ethereumjs-util');let deploymentAddress = '0x' + Util.generateAddress(  Buffer.from(sender.substring(2),
+    'hex'),  Buffer.from(nonce, 'hex')).toString('hex')Listing 7-15
+  prefs: []
+  type: TYPE_NORMAL
+- en: Precalculating the deployment address using the ethereumjs-util library
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'However, an issue with this approach is that we are showing the user two different
+    addresses: one address that he needs to fund one time for the deployment and another
+    that will actually be their identity contract. This, compounded with the fact
+    that any extra ETH sent to the address is lost, damages the user experience when
+    setting up their smart account. We will analyze a more robust approach later in
+    this chapter after we become familiarized with the concept of meta transactions.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: A much simpler option is to just have the user transfer their funds to their
+    device account, whether it is local to our application or is managed by the web3
+    browser, and execute the deployment from it. However, this still has the issue
+    of presenting two addresses to the user – one for initial funding and one for
+    the identity.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Upgrading User Accounts
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: As we have seen, identity contracts can pack multiple features for your users,
+    such as two-factor authentication, social recovery, daily transfer limits, and
+    more. This begs the question of *what* to build into these contracts. As contracts
+    are immutable, any change to add a new feature would require your users to ditch
+    their current identity and deploy a new one. However, forcing a user to move all
+    their assets to a new contract is the equivalent of forcing them to move to a
+    new email account whenever they want access to a new feature – including changing
+    their email in all online services they may be using.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Nevertheless, it is possible in Ethereum to actually upgrade a contract after
+    it has been deployed, thus allowing iterative deployment and bugfixing as in traditional
+    software development. To implement this, we first need to become familiarized
+    with the concept of *delegate calls* in the Ethereum Virtual Machine, or EVM.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The DELEGATECALL Instruction
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: 'A regular CALL from one contract to another in the EVM works as a call from
+    an actor or process to another: a new context is created, where the state (storage
+    and balance) of the callee is loaded, the caller is set to msg.sender, and the
+    code of the callee is executed. On the other hand, a DELEGATECALL works by executing
+    the code of the callee but *maintaining the original context of the caller*. In
+    other words, storage, balance, and even msg.sender are not changed by a DELEGATECALL –
+    only the code being executed is.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This low-level instruction allows us to jump into an arbitrary contract and
+    execute its code, where that code actually modifies the state of the current contract.
+    The called contract then acts as a library,^([10](#Fn10)) being used only as a
+    repository of shared code, but not using its state.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Delegating Proxies
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: The DELEGATECALL instruction allows us to build a contract that simply delegates
+    all calls to another contract which holds the actual logic to be executed. These
+    contracts are usually called *delegating proxies* , since they delegate all calls
+    to another contract, or *transparent proxies*, as any client interacting with
+    them is oblivious to their existence. The contract being called by the proxy that
+    holds the code being actually executed is usually called *logic contract*, *implementation
+    contract*, or *master copy*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A delegating proxy (Listing [7-16](#PC24)) can be implemented in Solidity as
+    a contract that keeps the address of its implementation contract as its only state
+    variable and only has a fallback function in which it delegates all calls to it.
+    The proxy will receive the implementation address in its constructor and optionally
+    calldata to initialize it.// 06-upgrading-identity-contracts/contracts/DelegateProxy.solcontract
+    DelegateProxy {  // Stores address in the first slot  // Target contract must
+    define address as the first variable  address private implementation;  constructor(    address
+    _implementation,    bytes memory _data  ) public payable {    implementation =
+    _implementation;    if (_data.length > 0) {      (bool success,) = _implementation.delegatecall(_data);      require(success);    }  }  //
+    Fallback function delegates all calls to implementation  function () payable external
+    {    address impl = implementation;    assembly {      calldatacopy(0, 0, calldatasize)      let
+    result := delegatecall(        gas, impl, 0, calldatasize, 0, 0      )      returndatacopy(0,
+    0, returndatasize)      switch result      case 0 { revert(0, returndatasize)
+    }      default { return(0, returndatasize) }    }  }}Listing 7-16
+  prefs: []
+  type: TYPE_NORMAL
+- en: Implementation of a delegating proxy contract based on the code from github.com/zeppelinos/zos.
+    Note the usage of assembly in the fallback function, since Solidity does not allow
+    a fallback function to return arbitrary data. And if we did not return any data,
+    then any calls to our contract would yield an empty response
+  prefs: []
+  type: TYPE_NORMAL
+- en: Caution
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Upgradeability in the EVM can be very tricky to implement correctly, and it
+    imposes some restrictions. For instance, a proxy contract cannot execute a constructor
+    of a logic contract when it is created, so any contract to be upgradeable needs
+    to rely on regular functions that act as *initializers*. Another issue is that
+    updating a proxy to a logic contract with a different set of state variables may
+    also inadvertently corrupt the contract’s state. If you are planning on relying
+    on upgradeable contracts in your application, whether they are smart accounts
+    or any other contract, it is strongly recommended that you use an existing upgradeability
+    solution instead of rolling out your own.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The key concept here is that the address of the logic contract does not need
+    to be hard-coded into the proxy – it can actually be kept in storage. When this
+    address is changed, this effectively updates the code being executed by the proxy
+    while keeping its state and address. We can now add this feature to our identity
+    contracts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Upgradeable Identities
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Armed with this new building block, we can deploy a single identity contract
+    to act as a logic contract and deploy one proxy for each of our users. Remember
+    that since all state is kept in the proxy, there is no need for more than one
+    copy of the logic contract, and a single one can be shared (like a library) among
+    multiple proxies.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This not only saves gas in deployments, since proxy contracts are much smaller
+    (and thus cheaper) than identity contracts, but also allows our users to upgrade
+    to a different identity contract whenever they want. Let’s build the *upgrade*
+    feature into our new upgradeable identities (Listing [7-17](#PC25)).// 06-upgrading-identity-contracts/.../UpgradeableIdentity.solcontract
+    UpgradeableIdentity {  // First variable is used for the implementation contract  //
+    Remember that the proxy uses the same variable position!  address private implementation;  //
+    Keep track whether this instance has been initialized  bool private initialized;  //
+    Initializer function instead of a constructor  function initialize(address owner)
+    public payable {    require(!initialized);    initialized = true;    accounts[owner]
+    = true;    emit AccountAdded(owner);  }  // Upgrades to a new implementation  function
+    upgradeTo(    address newImplementation  ) onlyUserAccount public {    implementation
+    = newImplementation;  }  // The rest of the Identity contract code goes here...}Listing
+    7-17
+  prefs: []
+  type: TYPE_NORMAL
+- en: Variant of the identity contract with support for upgradeability. Note that
+    the first contract variable is the implementation contract address, and the constructor
+    has been replaced by a regular function that relies on a flag to keep track of
+    whether the instance has been initialized or not. Upgrading to a different identity
+    implementation just requires changing the implementation address in the first
+    position of storage
+  prefs: []
+  type: TYPE_NORMAL
+- en: Keep in mind that any state variables defined on this contract will not be actually
+    stored on this contract’s storage, but in the proxy’s – thanks to the magic of
+    delegate calls. For instance, the initialized flag is not actually set on the
+    single UpgradeableIdentity contract  deployed as a shared implementation, but
+    is set on each of the proxies that are backed by it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Because of this, the first variable declared on this contract must be the implementation
+    address, as in the proxy. Also, the contract cannot extend from any base contract
+    that defines additional contract variables. This ensures that the implementation
+    address is stored in the same position in storage as where the proxy will look
+    for it.^([11](#Fn11))
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Contract upgradeability is a contentious issue for many in Ethereum. Having
+    immutable contracts allows users to trust an application by knowing that the rules
+    defined by it will not be subject to change. Adding upgradeability breaks this
+    guarantee. However, this is not an issue with upgradeability itself, but with
+    *who* can decide when a contract is upgraded. Having a decentralized token being
+    controlled by a single developer who can unilaterally modify the contract by,
+    let’s say, adding a transaction tax, is definitely not good. On the other hand,
+    a contract that has a clear owner (or set of owners) is a good candidate to be
+    upgradeable – and in this an identity contract is a perfect example.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Creating an identity contract for a user now implies deploying not a contract
+    instance but a proxy – assuming we have already deployed the single shared implementation
+    contract (Listing [7-18](#PC26)).// 06-upgrading-identity-contracts/index.js//
+    Logic contract is a pre-deployed instance of Identitylet logic = new web3.eth.Contract(identityABI,
+    identityAddr);// Build initialization data to call initialize(user)// when the
+    proxy is createdlet initData = logic.methods.initialize(user).encodeABI();// Deploy
+    the proxy using the identity contract as// its implementation, and setting user
+    as its initial ownerlet proxy = await new web3.eth.Contract(proxyABI, null, {
+    data: proxyBin })  .deploy({ arguments: [logic.options.address, initData] })  .send({
+    from: application, gasPrice: 1e9, value: 1e18 });Listing 7-18'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Creating a proxy to an identity contract. Note that we need to use the logic
+    contract ABI to build the initialization data and then use it when deploying the
+    proxy
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'After the proxy is deployed, we can interact with it as if it were a regular
+    identity contract. We need to create a new web3 contract object using the identity
+    contract ABI, with the proxy’s address (Listing [7-19](#PC27)).let proxyAddr =
+    proxy.options.address;let identity = new web3.eth.Contract(identityABI, proxyAddr);await
+    identity.methods  .addAccount(anotherDevice)  .send({ from: user });Listing 7-19'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Interacting with the newly deployed proxy as if it were a regular identity contract.
+    The proxy will delegate all calls to the logic contract and behave exactly like
+    one
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'As with any other method from the identity contract, the user can call into
+    the upgrade function and switch to a different implementation (Listing [7-20](#PC28)).
+    It is important to note though that the new implementation must have the same
+    contract state variables as the original one; otherwise, the proxy’s state may
+    be corrupted.await identity.methods  .upgradeTo(identityV2addr)  .send({ from:
+    user });Listing 7-20'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Upgrading to a V2 of the identity contract. The user’s identity address is unmodified,
+    as is its balance and state, but it has access to new code with potentially new
+    features and bugfixes
+  prefs: []
+  type: TYPE_NORMAL
+- en: Implementing this pattern in smart accounts allows us to iteratively develop
+    our application by gradually adding support for new features or fixing bugs and
+    allows our users to adopt them when they want.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A good example of a feature we may want to add to our identity contracts is
+    meta transaction support, which we will see in the next section.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Gasless Transactions
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'One of the root problems on user onboarding is that interacting with the Ethereum
+    network requires ETH to begin with in order to be able to pay for gas fees. This
+    involves an annoying set of steps just to make an initial ETH purchase with other
+    currency. Gas fees are also problematic in multi-device solutions: all of a user’s
+    devices must hold a bit of ETH just to run any transactions, even when relying
+    on a smart account to centralize the user identity.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: All of the above means that removing the requirement of gas for issuing Ethereum
+    transactions yields major benefits in terms of usability. *Gasless transactions*,
+    also referred to as *meta transactions* , tackle this problem by offering a mechanism
+    to decouple the author of the transaction from the payer of the gas. In other
+    words, an account can issue a transaction, while other pays for its execution.
+    This allows users in your application to execute any transactions without needing
+    to worry about having ETH to pay for their gas fees.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Gasless transactions is one of the most actively developed techniques in the
+    Ethereum ecosystem at the time of this writing, and already has many different
+    flavors. This makes this section one of the most complex ones in the book. Feel
+    free to gloss over the technical details, and consider looking into already established
+    libraries, such as Universal Login, Marmo, or the Gas Station Network.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Signatures in Ethereum
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: To understand gasless transactions, we first need to review how signatures work
+    in Ethereum. As we have seen before, an Ethereum transaction needs to be cryptographically
+    *signed* with the sender’s private key in order to be valid. However, the user’s
+    key can be used to sign not just a transaction, but any arbitrary message (Listing
+    [7-21](#PC29)).// 07-signing-messages/index.js// Import web3 and create an instance
+    without a provider// since we will not be connecting to a node for now> const
+    Web3 = require('web3');> const web3 = new Web3();// Sample address and corresponding
+    private key> let address = '0xaca94ef8bd5ffee41947b4585a84bda5a3d3da6e';> let
+    pk = '0x829e924fdf021ba3dbbc4225ed' +           'fece9aca04b929d6e75613329ca6f1d31c0bb4';//
+    Sign the hash of an arbitrary message> let message = 'Hello world'> let hash =
+    web3.utils.keccak256(message);> let signed = web3.eth.accounts.sign(hash, pk)>
+    signed.signature*0x7fcfb176706502a00e58f74c15cd8151309d8b8a777eefd387eabc760a1aa7f6705699d1431155dfc7b1b1d7d88b3b24d07180107572b127a558b7a8b118cb4d1b*Listing
+    7-21
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using web3 to sign a message from a user with their private key^([12](#Fn12))
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Behind the scenes, web3 sign method prefixes the message with the string "\x19Ethereum
+    Signed Message:\n" and its length and then hashes it before signing. This is done
+    to avoid tricking users into signing an actual transaction. Most APIs, even those
+    part of the nodes or in hardware wallets, will handle this automatically.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Given the original message and its signature, it is possible to recover the
+    address that corresponds to the private key used to sign it in the first place.>
+    hash = web3.utils.keccak256(message);> web3.eth.accounts.recover(hash, signed.signature)*0xACa94ef8bD5ffEE41947b4585a84BdA5a3d3DA6E*The
+    recovery can be done not just from an off-chain script but also from within a
+    smart contract (Listing [7-22](#PC31)), as Solidity provides an ecrecover function
+    that performs this task.^([13](#Fn13)) We will use it via the ECDSA contract from
+    the openzeppelin-solidity@2.2.0 library  , which offers a friendlier interface
+    and performs additional checks.// 07-signing-messages/contracts/Signatures.solpragma
+    solidity ^0.5.0;import "openzeppelin-solidity/contracts/cryptography/ECDSA.sol";contract
+    Signatures {  using ECDSA for bytes32;  function recover(    string memory message,
+    bytes memory signature  ) public pure returns (address) {    **bytes32 hash =
+    keccak256(bytes(message));**    **return hash.toEthSignedMessageHash().recover(signature);**  }}Listing
+    7-22
+  prefs: []
+  type: TYPE_NORMAL
+- en: Simple contract that relies on OpenZeppelin’s ECDSA to recover the signer from
+    a message and its signature
+  prefs: []
+  type: TYPE_NORMAL
+- en: We can check that calling the recover function from the preceding contract using
+    the same parameters as before yields the same signer (Listing [7-23](#PC32)).>
+    await signatures.methods    .recover(message, signed.signature).call();*0xACa94ef8bD5ffEE41947b4585a84BdA5a3d3DA6E*Listing
+    7-23
+  prefs: []
+  type: TYPE_NORMAL
+- en: Recovering the signer from the original message using the smart contract listed
+    before. Here, signatures is a web3 contract instance that represents a deployed
+    instance of the smart contract
+  prefs: []
+  type: TYPE_NORMAL
+- en: Ethereum signatures are typically used off-chain to verify that a user controls
+    a certain account, or that the owner of an account signals an intention (for instance,
+    in off-chain voting) by signing a specific message. But signatures can also be
+    used on-chain to verify that the owner of an account intends to *execute* a certain
+    action. This is where meta transactions come in.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Introducing Meta Transactions
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: A *meta transaction* or *gasless transaction* is similar to a regular transaction
+    in that it is a signed tuple of a recipient, an amount of ETH transferred, a set
+    of data included in the call, a gas allowance and price, and a nonce. However,
+    instead of being broadcasted to the network, the meta transaction is wrapped within
+    another transaction and sent to a particular contract. This contract knows how
+    to unwrap the nested transaction, verify its signature, and execute the requested
+    action.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Note that the contract that first receives and processes the transaction is
+    actually reproducing the same behavior as the Ethereum protocol: it verifies the
+    nested transaction signature and nonce and performs a call to a recipient with
+    the specified value and data.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'What is the value of meta transactions then? The key is that the meta transaction
+    can be *relayed* to the network by a different account than the one who signed
+    the original intent. This decouples the user who intends to execute an action
+    and the user who pays for its gas, effectively *allowing any user to execute a
+    transaction without requiring any gas*, that is, as long as another user is willing
+    to pay for it. Meta transactions involve two main actors then:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The user, who signs a meta transaction that they want to be executed, but does
+    not send it to the network
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The relayer, who picks up that transaction, wraps it in another transaction
+    of their own, and sends it to a contract, paying for its execution
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: We will go into relayers later in this chapter. Let’s dive into the implementation
+    of meta transactions first, at the smart contract level.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Building on Our Smart Accounts
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: 'Meta transactions require a contract that can process them, validate them,
+    check that the signer is authorized to perform the action requested, and carry
+    it out on their behalf. Fortunately, we already have a contract that can hold
+    funds and carry actions on behalf of different accounts held by a user: the identity
+    contract.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We will modify the identity contract we have been building to handle meta transactions.
+    Our forwarding function will now receive a meta transaction pre-signed by one
+    of the user accounts instead of a direct call from one of them.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This way, instead of having to actually send a transaction to the identity contract,
+    the user can just sign an action and have a relayer send it. This allows the user
+    to **hold all of their funds in a single smart account, without requiring any
+    ETH on their devices to pay for gas fees**. Let’s see how this looks like in a
+    modified identity contract (Listing [7-24](#PC33)).// 08-meta-txs/contracts/IdentityWithMetaTxs.sol//
+    Prevent replay attacksuint256 public nonce;// Use ECDSA library for retrieving
+    the signerusing ECDSA for bytes32;// Forward an action to a recipient validating
+    the signer// Note that the onlyUser modifier is no longer neededfunction forward(  address
+    to, uint256 value, bytes memory data,  bytes memory signature) public returns
+    (bytes memory) {  // Get hash of the transaction that was signed  bytes32 hash
+    = getHash(to, value, data)    .toEthSignedMessageHash();  // Retrieve signer address
+    and validate  address signer = hash.recover(signature);  require(accounts[signer],
+    "Signer is not registered");  // Increase nonce and execute the call  nonce++;  (bool
+    success, bytes memory returnData) =    to.call.value(value)(data);  require(success,
+    "Forwarded call failed");  return returnData;}// Returns the hash for a pre-signed
+    transactionfunction getHash(  address to, uint256 value, bytes memory data) public
+    view returns (bytes32) {  return keccak256(abi.encodePacked(    to, value, data,
+    nonce, address(this)  ));}Listing 7-24
+  prefs: []
+  type: TYPE_NORMAL
+- en: Modified forward function from the Identity contract (presented earlier in this
+    chapter) to handle meta transactions
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The first thing to notice is that the forward method requires a signature as
+    well as its original parameters. This signature is computed over a hash that includes
+    all transaction parameters (recipient, value, and data), plus two additional items:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The address of the validator, which is the contract checking the signature
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A nonce, increased on every transaction executed
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The address of the validator is included to prevent a meta transaction sent
+    to another validator to be reused in this one, while the nonce prevents replay
+    attacks (i.e., relaying the same transaction multiple times). The resulting hash
+    gets the magic prefix "\x19Ethereum Signed Message:\n" prepended, so it is distinguishable
+    from a regular Ethereum transaction, and is then hashed again.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Certain implementations track a nonce per signer instead of one global to the
+    contract. This depends strictly on your use case: if it is possible that multiple
+    whitelisted accounts will be sending meta transactions at the same time, then
+    you should have signer-specific nonces.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Next is the validation of the sender. Note that the contract no longer checks
+    that msg.sender is a registered account – it now checks that the *signer* of the
+    transaction is. The msg.sender becomes irrelevant, since who relayed the transaction
+    does not matter at this stage.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Finally, and before executing the transaction, the nonce is increased. This
+    prevents the same transaction to be sent to the contract multiple times by a malicious
+    relayer.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: It is worth mentioning that almost all smart account, identity contract, or
+    bouncer proxy implementations include some variant of meta transactions. Once
+    the user identity is moved on-chain, it does not make sense to keep them bound
+    to the restrictions of the protocol, such as having the sender account pay for
+    the gas of its transactions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Sending Meta Transactions
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: We will pick up the example from the smart accounts section, this time by sending
+    a meta transaction to a Greeter contract  from our Identity contract. The first
+    step (Listing [7-25](#PC34)) is for the user to sign the transaction to be executed.//
+    08-meta-txs/01-identity-with-meta-txs.jslet recipient = greeter.options.address;let
+    value = 5000;let data = greeter.methods.setGreeting("Hey").encodeABI();let hash
+    = await identity.methods  .getHash(recipient, value, data).call();let signature
+    = web3.eth.accounts.sign(hash, pk).signature;Listing 7-25
+  prefs: []
+  type: TYPE_NORMAL
+- en: User crafts and signs transaction to be relayed. Here pk is the private key
+    of the user, and greeter is an instance of a contract which has a setGreeting
+    method
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The resulting transaction, along with its signature, is then sent to a relayer
+    via HTTP or another off-chain transport. The relayer should validate the transaction,
+    wrap it, and then send it to the user’s identity contract (Listing [7-26](#PC35)).await
+    identity.methods  .forward(recipient, value, data, signature)  .send({ from: relayer
+    });await greeter.methods.greet().call();// => HeyListing 7-26'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Relayer calls into the forwarding function of the identity contract with the
+    parameters and the signature provided by the user. The identity contract will
+    in turn call into the greeter, which changes its state
+  prefs: []
+  type: TYPE_NORMAL
+- en: We are deliberately omitting from this example how the user communicates with
+    the relayer or how the relayer decides whether to pay for the user’s transaction.
+    This will vary from application to application. For instance, an application could
+    provide a centralized relayer at a well-known URL, which pays for every transaction
+    to a contract in their system. It may also force users to go through a CAPTCHA
+    to prevent spamming.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are also efforts toward building fully decentralized relayer networks,
+    in which the logic on whether paying for a user transaction is actually part of
+    the application’s smart contracts. These efforts also include approaches where
+    the relayers are paid back for their execution, as we will see in the next section.^([14](#Fn14))
+  prefs: []
+  type: TYPE_NORMAL
+- en: Relayers and Rewards
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The relayer is ultimately a process with a public interface (usually HTTP) that
+    accepts signed messages from users, validates them, wraps them in a transaction,
+    and pushes them to the network. For this last step, the relayer uses an account
+    of its own – the gas fees are deducted from that account’s balance.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In all of our examples so far, we have assumed that the gas cost for executing
+    the meta transactions was covered by the owner of the application. This owner
+    would spin up a relayer and freely forward all transactions for users of their
+    own application.
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, it is possible for the users to actually *pay back* to the relayer
+    serving them. An addition to the forwarding function is to send some ETH back
+    to the relayer (i.e., the msg.sender) to cover the costs of the execution. This
+    way, the user does pay the gas fees associated with their transactions – only
+    that they are paid from their smart account, entirely removing the need to keep
+    ETH for gas in each of their devices.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This opens the door for new incentive systems: the relayer does not need to
+    be centralized by the application owner and subsidize the execution costs, but
+    it can be decentralized and just profit from relaying transactions. This leads
+    to a new concept of *desktop mining* , where users can earn fees not from computational-intensive
+    proof-of-work, but from relaying meta transactions for other users.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Relayer Reward
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: The easiest way to implement a payback to the relayer is to include a *reward*
+    along with each request for execution. The relayer can then decide whether to
+    relay the transaction or not, depending on the estimated execution cost for it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The user can even request a specific gas price and gas allowance for its transaction
+    and verify that these are satisfied within the identity contract. This prevents
+    relayers from sending transactions with very low gas prices, paying lower fees
+    at the expense of a user’s time.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s modify the forwarding function once again to account for all of the above
+    (Listing [7-27](#PC36)). We will need to add parameters for specifying both the
+    reward and the gas requirements and have these signed by the user as well.// 08-meta-txs/contracts/IdentityWithRewards.sol**event
+    Forwarded(uint256 nonce, bool success, address relayer);**function forward(  **uint256
+    reward, uint256 gasPrice, uint256 gasLimit,**  address to, uint256 value, bytes
+    memory data,  bytes memory signature) public returns (bytes memory) {  // Validate
+    gas price of the transaction  **require(tx.gasPrice >= gasPrice, "Gas price too
+    low");**  // Get hash of the transaction that was signed  bytes32 hash = getHash(    **reward,
+    gasPrice, gasLimit**, to, value, data  ).toEthSignedMessageHash();  // Retrieve
+    signer address and validate  address signer = hash.recover(signature);  require(accounts[signer],
+    "Signer not registered");  // Increase nonce, execute call, and inform success  nonce++;  **require(gasleft()
+    >= gasLimit);**  (bool success, bytes memory returnData) =    to.call.value(value)**.gas(gasLimit)**(data);  **emit
+    Forwarded(nonce, success, msg.sender);**  // Pay back to the relayer  **msg.sender.transfer(reward);**  return
+    returnData;}function getHash(  **uint256 reward, uint256 gasPrice, uint256 gasLimit,**  address
+    to, uint256 value, bytes memory data) public view returns (bytes32) {  return
+    keccak256(abi.encodePacked(    **reward, gasPrice, gasLimit,**    to, value, data,
+    nonce, address(this)  ));}Listing 7-27
+  prefs: []
+  type: TYPE_NORMAL
+- en: Forwarding function of the identity contract with support for relayer rewards.
+    The modified sections are highlighted in bold
+  prefs: []
+  type: TYPE_NORMAL
+- en: An important change in the preceding snippet is that the function no longer
+    requires the forwarded call to be successful (require(success)). The rationale
+    for this is that if the forwarded call failed and reverted the entire transaction,
+    then the relayer would not receive any reward, but would still lose the gas fees
+    from the execution of the reverted transaction. To avoid punishing a relayer for
+    a failed transaction that was correctly relayed, we drop that requirement. And
+    to allow for determining whether forwarded call reverted, we add an event that
+    reports the success in each transaction.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Also, note that the gas price validation is performed at the beginning of the
+    method, since gas price is relative to the entire transaction, and cannot be changed
+    in-between contract calls. Gas limit, on the other hand, can be enforced on each
+    call within the transaction, so we can revert if there is not enough gas left.
+    In this case, it is the relayer’s responsibility to include additional gas on
+    the request to account for the meta transaction processing (which is about 60K
+    in this implementation).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Estimating Profits
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: The code for generating the signed transaction in this scenario is analogous
+    to the previous one, with the only difference that the user now needs to include
+    values for the gas price, the gas limit, and the reward. The first two can be
+    estimated as seen in Chapter [5](476252_1_En_5_Chapter.xhtml) by using a price
+    oracle like the ethgasstation API or the gasPrice JSON-RPC method for the gas
+    price and running an estimateGas on the transaction to be sent for the gas limit.
+    The value for the reward may depend on other factors, but must be greater than
+    the total execution cost for the relayer, to have an incentive to relay the transaction.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this scenario, the relayer needs not only to relay the requested transaction
+    but also to evaluate whether it should – by calculating the profit. Transactions
+    with an estimated profit below a certain threshold should be dropped, and if multiple
+    transactions (from different identities) are enqueued, the profit can be used
+    to prioritize which to execute first.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The profit can be easily calculated by actually estimating the entire call,
+    multiplying the estimate by the gas price, and subtracting that from the reward.//
+    08-meta-txs/02-identity-with-rewards.jslet estimatedGas = await identity.methods  .forward(reward,
+    gasPrice, gasLimit,           recipient, value, data, signature)  .estimateGas({
+    from: relayer, gasPrice });let estimatedProfit =  BN(reward).minus(BN(estimatedGas).times(gasPrice));Keep
+    in mind that the transaction may actually require a higher gas value than the
+    estimated if the user requested a higher gasLimit. To actually execute the transaction,
+    the relayer should send a gas allowance equal to gasLimit plus the additional
+    gas required to process the meta transaction. This additional gas can be roughly
+    calculated as the difference between sending a transaction directly to the recipient
+    contract and sending it via the identity as a meta transaction. In our implementation,
+    that difference amounts to 60K gas approximately, though this value is not constant:
+    it fluctuates slightly depending on the size of the transaction’s data.await identity.methods  .forward(reward,
+    gasPrice, gasLimit,           recipient, value, data, signature)  .send({ from:
+    relayer, gasPrice, gas: gasLimit + 60000 });'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note that this difference may actually cause the transaction to cost more than
+    the relayer expected in case the estimation and the actual usage differ, as the
+    relayer could be setting a higher gas allowance.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Payment in Kind
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: 'Gas fees from transaction execution are paid in ETH, since it is the native
+    currency of the Ethereum network. However, nothing forces us to pay the rewards
+    to relayers in the same currency, as there are plenty of other media of exchange
+    on Ethereum: every fungible token (ERC20) is a potential currency.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This opens the door to allowing our users to transact exclusively using a token,
+    since ETH is no longer needed to pay for gas fees. This is especially interesting
+    if our application is built on top of a token-based protocol: it allows us to
+    send tokens to our users as they engage in our network, which are in turn used
+    to pay for relayer rewards. Our users never need to hold or purchase any ETH;
+    they only work with our application’s token.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The code for supporting payment in tokens is a direct modification from the
+    previous one. We add a new rewardToken parameter  to the forwarding function and
+    send tokens on that address or ETH if this parameter is set to the zero address.//
+    08-meta-txs/contracts/IdentityWithTokenRewards.sol**import "openzeppelin-solidity/contracts/token/ERC20/IERC20.sol";**function
+    forward(  uint256 reward, **address rewardToken**,  uint256 gasPrice, uint256
+    gasLimit,  address to, uint256 value, bytes memory data,  bytes memory signature)
+    public returns (bytes memory) {  // Validate gas price of the transaction  require(tx.gasPrice
+    >= gasPrice, "Gas price too low");  // Get hash of the transaction that was signed  bytes32
+    hash = getHash(    reward, **rewardToken**, gasPrice, gasLimit, to, value, data  ).toEthSignedMessageHash();  //
+    Retrieve signer address and validate  address signer = hash.recover(signature);  require(accounts[signer],
+    "Signer not registered");  // Increase nonce, execute call, and inform success  nonce++;  require(gasleft()
+    >= gasLimit);  (bool success, bytes memory returnData) =    to.call.value(value).gas(gasLimit)(data);  emit
+    Forwarded(nonce, success, msg.sender);  // Pay back to the relayer  **if (rewardToken
+    == address(0)) {**    **msg.sender.transfer(reward);**  **} else {**    **require(IERC20(rewardToken).transfer(msg.sender,
+    reward));**  **}**  return returnData;}
+  prefs: []
+  type: TYPE_NORMAL
+- en: Keep in mind that while this mechanism is particularly useful when your application
+    spins up relayers that trade tokens for executions, it imposes additional difficulties
+    for decentralized relayers. A random relayer performing desktop mining now needs
+    to check for the market value of the reward token against the execution cost to
+    determine the profit. Not only that, but it also needs to ensure there is enough
+    liquidity in the market to trade such token for ETH when they want to cash out
+    their profits – and that is without considering the fees for that exchange.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In other words, paying relayer rewards in a protocol-specific ERC20 is useful
+    if the relayer infrastructure you are using is specific to your application, but
+    ETH or a widespread ERC20^([15](#Fn15)) may be a better option for working with
+    decentralized relayers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Native Meta Transactions
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Meta transactions, as we have just seen, require the use of an identity contract
+    to act as a bouncer proxy to the actual contracts the user is interacting with.
+    The identity contract holds the logic to process the signed transactions and then
+    calls into a third-party contract, which does not require to be aware of meta
+    transactions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, it is possible to remove the need for identity contracts if the application
+    contracts already have support for processing meta transactions. This approach
+    is named *native meta transactions,*^([16](#Fn16)) since it is built-in natively
+    on the application contracts, instead of requiring a proxy identity contract.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As an example, let’s add native meta transactions to an ERC721 contract,^([17](#Fn17))
+    allowing any user who holds a non-fungible token to sign a transaction to have
+    it transferred without expending gas (Listing [7-28](#PC40)). The code is similar
+    to the forwarding function we have been working with, except that it is specialized
+    to just perform token transfers.// 08-meta-txs/contracts/ERC721WithNativeMetaTxs.solpragma
+    solidity ^0.5.0;import "openzeppelin-solidity/contracts/token/ERC721/ERC721.sol";import
+    "openzeppelin-solidity/contracts/cryptography/ECDSA.sol";contract ERC721WithNativeMetaTxs
+    is ERC721 {  using ECDSA for bytes32;  // Track nonces per signer  mapping (address
+    => uint256) nonces;  function signedTransferFrom(    address from, address to,
+    uint256 tokenId,    uint256 nonce, bytes memory signature  ) public {    // Retrieve
+    signer    bytes32 hash = getTransferHash(      from, to, tokenId, nonce, signature    ).toEthSignedMessageHash();    address
+    signer = hash.recover(signature);    // Ensure signer can handle this token    require(_isApprovedOrOwner(signer,
+    tokenId));    // Validate nonce and increase it    require(nonce == nonces[signer]);    nonces[signer]++;    //
+    Execute the transfer    _transferFrom(from, to, tokenId);  }  // Calculates the
+    hash to be signed for a transfer  function getTransferHash(    address from, address
+    to, uint256 tokenId, uint256 nonce  ) public view returns (bytes32) {    return
+    keccak256(abi.encodePacked(      from, to, tokenId, nonce, address(this)    ));  }}Listing
+    7-28
+  prefs: []
+  type: TYPE_NORMAL
+- en: Adding native meta transactions to an ERC721 contract. Note that the nonces
+    now need to be tracked per signer
+  prefs: []
+  type: TYPE_NORMAL
+- en: By bundling this logic in the reward token contract itself directly, our users
+    can directly sign token transfers that are then sent by a relayer and executed
+    by the ERC721 contract. This allows a user with an existing account to benefit
+    from meta transactions (which could be subsidized by our application) without
+    having to deploy an identity contract.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Rewards in Native Meta Transactions
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: 'While moving the meta transaction logic to the application contract directly
+    reduces complexity for the user, it introduces an additional difficulty: how to
+    handle rewards to relayers. Identity contracts did not face this problem since
+    they already held all of the user’s assets, so they could directly transfer them
+    to relayers as payment.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In the case of ERC20 tokens, the solution is simple: the token contract can
+    manage the signer’s tokens and directly transfer the reward to the relayer of
+    the transaction using those very tokens (Listing [7-29](#PC41)).// 08-meta-txs/contracts/ERC20WithNativeMetaTxs.solfunction
+    signedTransfer(  address to, uint256 value,  uint256 nonce, **uint256 reward**,
+    bytes memory signature) public {  bytes32 hash = getTransferHash(    to, value,
+    nonce, reward  ).toEthSignedMessageHash();  address signer = hash.recover(signature);  require(nonce
+    == nonces[signer]);  nonces[signer]++;  **_transfer(signer, msg.sender, reward);**  _transfer(signer,
+    to, value);}Listing 7-29'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Sample signedTransfer function in an ERC20 contract that supports meta transactions
+    and relayer rewards using the same ERC20 token
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, this solution does not allow any rewards in any currency that is not
+    that same token – for instance, ETH rewards are not possible under this scheme.
+    It also does not translate well to other assets. What would be the reward for
+    transferring an ERC721 non-fungible token? A digital collectible cannot have a
+    piece removed and given to a relayer as a reward.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A way around this problem is to rely on ERC20 *approvals*. Recall from Chapter
+    [3](476252_1_En_3_Chapter.xhtml) that ERC20 tokens allow holders to appoint other
+    addresses to manage their funds. This way, a user could grant an approval on their
+    tokens to the application contract processing the relayer rewards, which then
+    sends the tokens to the relayer as payment. This approach, however, still requires
+    the user to have ETH to pay gas fees in the initial approve transaction – unless
+    the reward token contract itself has native meta transaction support for approvals.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Another option is to simply subsidize the user’s transactions and have the
+    application itself pay out to the relayers. This requires careful logic in the
+    application contract to determine *when* to accept a meta transaction – otherwise,
+    a malicious relayer could spam the application with fake transactions and drain
+    the entire reward pool. Such logic will depend entirely on your use case, but
+    keep in mind that you have much flexibility: your contracts may require the meta
+    transaction to have an additional signature by an application key, so you can
+    perform validations off-chain to approve a transaction for execution.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Revisiting Smart Accounts Deployment
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'We will go once more through the process of deploying a smart account contract.
+    In the “Smart accounts” section, we discussed how to do this using single-use
+    addresses, though it had certain limitations. We will now explore another approach,
+    with support for relayer rewards, based on a different EVM operation: CREATE2.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The CREATE2 Instruction
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Ethereum has, since its first versions, provided a CREATE instruction for creating
+    a new contract from another. The address of the newly created contract, as we
+    saw earlier, is a function of the sender address and its nonce. While this allows
+    for deterministic deployments, it also means that reserving an address is tricky,
+    since the sender must not send any other transactions besides the deployment one
+    to prevent changing its nonce.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To solve this, a new CREATE2 instruction  was introduced. This low-level operation
+    works similar to CREATE, but also accepts a *salt* parameter: the deployment address
+    is now calculated as a function of the sender, the salt, and the contract creation
+    code. This allows for much more interesting flows by setting up a factory contract
+    that spins up contracts using this instruction.Factory IdentityFactoryWithRewards
+    {  function deploy(    bytes code, uint256 salt  ) public returns (address) {    address
+    deployed;    assembly {      deployed:= create2(0, add(code,0x20), mload(code),
+    salt)      if iszero(extcodesize(deployed)) { revert(0, 0) }    }    return deployed;  }}'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A user can now choose a contract, along with its constructor arguments, generate
+    a random salt, and know the address where the resulting contract will be deployed.
+    Not only that, but *anyone* who knows these parameters can now perform the deployment.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This means that the user can simply share the creation parameters and salt,
+    plus the address of the factory contract to be used, and have any relayer execute
+    the transaction, without even needing to sign the transaction – and certainly
+    not paying any gas. Should a relayer attempt to modify the code or creation parameters,
+    the contract  would end up deployed at a different address. Let’s use this approach
+    to deploy our identity contracts, providing rewards to the relayers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Deployment Rewards
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Before going into the code, we need to define how the payments to the relayer
+    will be managed and which addresses will be initially funded by the user.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Recall from the previous approach that one of the downsides of single-use addresses
+    is that the user needs to fund from an exchange one address, but then his or her
+    identity is spawned at a different one. Even worse, any additional funds sent
+    to the single-use address are lost. Then, it is desirable if we can have the user
+    fund the address of the identity contract directly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The easiest way to solve this is by having the Identity contract pay the relayer
+    reward upon deployment, that is, in its constructor (Listing [7-30](#PC43)). In
+    this scenario, the relayer is by definition the account who initiated the transaction –
+    or tx.origin in Solidity.// 08-meta-txs/contracts/IdentityFactoryWithRewards.solcontract
+    IdentityWithReward is Identity {  constructor(    address owner, uint256 reward  )
+    Identity(owner) public {    **tx.origin.transfer(reward);**  }}Listing 7-30
+  prefs: []
+  type: TYPE_NORMAL
+- en: Modified Identity contract that pays out a reward to the relayer of the transaction
+  prefs: []
+  type: TYPE_NORMAL
+- en: This approach allows the user to simply specify the owner account and the reward
+    to be paid and broadcast those parameters along with the salt chosen, since these
+    values alone are enough to determine the deployment address. Any relayer can then
+    pick up this transaction, validate that there are enough funds on the deployment
+    address to pay for the reward, and send the transaction to the factory contract.
+    As a bonus, any surplus funds sent to the deployment address will still be there
+    after the contract is created, ready to be used by their owner.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Identity Contract Factory
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: The factory contract then must provide a deployment function, callable by anyone,
+    that accepts the Identity contract deployment parameters and salt (Listing [7-31](#PC44)).
+    This function assembles the creation code and performs the actual creation using
+    the CREATE2 instruction.// 08-meta-txs/contracts/IdentityFactoryWithRewards.solcontract
+    IdentityFactoryWithRewards {  function deploy(    address owner, uint256 reward,
+    uint256 salt  ) public returns (address) {    bytes memory code = getCode(owner,
+    reward);    address identity;    assembly {      identity:= create2(0, add(code,0x20),
+    mload(code), salt)      if iszero(extcodesize(identity)) { revert(0, 0) }    }    return
+    identity;  }  function getCode(    address owner, uint256 reward  ) internal pure
+    returns (bytes memory) {    return abi.encodePacked(      type(IdentityWithReward).creationCode,      abi.encode(owner,
+    reward)    );  }}Listing 7-31
+  prefs: []
+  type: TYPE_NORMAL
+- en: Deploy function of an IdentityFactory contract. The creationCode property of
+    the contract type returns the bytecode used in the creation, and any constructor
+    arguments just need to be appended at the end
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note that there is no need to validate the owner’s signature, since any change
+    on the creation parameters would yield a different deployment address – one with
+    no funds to pay back the reward to the relayer. Relayers should validate that
+    the deployment address indeed has enough funds to pay back.
+  prefs: []
+  type: TYPE_NORMAL
+- en: An addition to this contract is a view function to obtain the deployment address
+    given the constructor parameters and salt. This function can be used to tell the
+    user on which address their identity contract will be deployed, that is, which
+    address they need to fund.function getDeploymentAddress(  address owner, uint256
+    reward, uint256 salt) public view returns (address) {  bytes memory code = getCode(owner,
+    reward);  bytes32 codeHash = keccak256(code);  bytes32 rawAddress = keccak256(    abi.encodePacked(      bytes1(0xff),      address(this),      salt,      codeHash    )  );  return
+    address(bytes20(rawAddress << 96));}
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using this strategy, you can precalculate the address where a user’s identity
+    will be created given a salt and share the address with him or her. The user acknowledges
+    that address as their own and seeds it with funds from an exchange. This in turn
+    triggers a relayer to create an identity contract at that address once it is funded.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: This strategy can actually be carried out with single-use addresses instead
+    of CREATE2 using a slightly more complex flow. The application can select a relayer
+    and create a single-use address that will spawn a new identity contract and send
+    a reward to the pre-selected relayer. After the user funds the address where the
+    identity is to be deployed, the relayer in turn funds the single-use addresses,
+    executes the deployment, and receives the reward.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Ethereum Names
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The last onboarding challenge we will tackle in this chapter is that of Ethereum
+    addresses themselves. While addresses are central to any Ethereum application,
+    as they identify the actors of a decentralized system, they are far from user-friendly.
+    Asking a user to understand their 40-character string of apparent gibberish as
+    their global identifier is not good design. To solve this issue, we will look
+    into ENS (Ethereum Name Service).
+  prefs: []
+  type: TYPE_NORMAL
+- en: A DNS for Ethereum
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Most web developers are familiar with the concept of DNS (Domain Name Service)  ,
+    a protocol for mapping easily recognizable domain names (like “google.com”) to
+    machine-friendly addresses (like 172.217.28.206) that identify a server in the
+    Internet Protocol.^([18](#Fn18))
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Ethereum Name Service^([19](#Fn19)) (or ENS) is an analogous protocol that
+    resolves user-friendly names (like “ethereumfoundation.eth”) to Ethereum addresses
+    (0xfB6916095ca1df60bB79Ce92cE3Ea74c37c5d359 in this example, which is the Ethereum
+    Foundation tip jar). Also like DNS, it supports registering non-address records
+    (like content hashes or plain text), as well as reverse lookups.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The components involved in ENS loosely mimic those of DNS, with the difference
+    that they are implemented as smart contracts within the Ethereum network. The
+    ENS **registry** itself is a singleton contract that keeps track of all domain
+    names and their owners and maps each domain to a **resolver**. A resolver contract
+    provides methods for resolving a name to an address and optionally additional
+    information such as text, content hashes, or public key records. Finally, the
+    ENS registry is updated via **registrars** , contracts that manage the registration
+    of subdomains at different levels of the tree, each with its own policy.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The most widely used top-level domain for ENS is .eth,^([20](#Fn20)) operated
+    by the so-called *.eth permanent registrar*  . This registrar uses a commit-reveal
+    scheme for purchasing second-level domains and allows anyone to chip in for extending
+    a name registration. While it is possible to interact with this contract directly,
+    it is suggested to use a tool (such as mycrypto^([21](#Fn21)) or myetherwallet^([22](#Fn22)))
+    to purchase and manage your second-level domains.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Names Resolution
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: A key part of making your application ENS-aware is to allow your users to enter
+    ENS names wherever an address is required. Allowing users to input ENS names in
+    your application instead of addresses helps abstracting the complexity of Ethereum
+    addresses, which means one less concept your users need to grasp to start using
+    your app. This is the equivalent of allowing your users to navigate to “google.com”
+    by entering the domain name in their browser instead of forcing them to type in
+    its IP address.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'As in DNS, translating from ENS names to addresses is a process called *resolution*
+    (Listing [7-32](#PC46)). Given the architecture of ENS, resolving a name is a
+    two-step process: we first need to query the central ENS registry to obtain the
+    address of the *resolver contract* for the name and then query the resolver to
+    obtain the actual *address* for that name. Domain names also need to be normalized
+    and hashed via a process called *namehash.*^([23](#Fn23))// 09-ens/01-resolve.jsconst
+    ensAddr = ''0x314159265dd8dbb310642f98f50c066173c1259b'';async function resolve
+    (domain) {  let domainHash = namehash(domain);  let ens = new web3.eth.Contract(ensABI,
+    ensAddr);  let resAddr = await ens.methods.resolver(domainHash).call();  let resolver
+    = new web3.eth.Contract(resolverABI, resAddr);  return await resolver.methods.addr(domainHash).call();}Listing
+    7-32'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Resolving a domain name to an address using the central ENS registry on mainnet
+  prefs: []
+  type: TYPE_NORMAL
+- en: Since name resolution is a common operation, several libraries implement this
+    operation out of the box. In particular, the official ethereum-ens@0.7.6 javascript
+    package provides bindings for most operations, making name resolution much simpler.$
+    let ens = new ENS(web3.eth.currentProvider);$ let domain = "ethereumfoundation.eth";$
+    await **ens.resolver(domain).addr()**;> 0xfB6916095ca1df60bB79Ce92cE3Ea74c37c5d359
+  prefs: []
+  type: TYPE_NORMAL
+- en: Abstracting your users of Ethereum addresses also means that your application
+    must use Ethereum names instead of raw addresses when displaying information.
+    It is no good if your users enter a user-friendly Ethereum name, and your application
+    answers with a plethora of 40-character hexadecimal strings.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Reverse resolution is supported in ENS by querying a special “addr.reverse”
+    domain, which maps from addresses to full Ethereum names. This domain is managed
+    separately from “eth,” and users may choose not to register their addresses on
+    it – so not every address with an Ethereum name will have a record for reverse
+    resolution.$ address = '0xfB6916095ca1df60bB79Ce92cE3Ea74c37c5d359';$ await **ens.reverse(address).name()**;>
+    "ethereumfoundation.eth"
+  prefs: []
+  type: TYPE_NORMAL
+- en: Caution
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: ENS does not enforce the correctness of reverse records; this means that anyone
+    could register that their address maps to “ethereumfoundation.eth”. To protect
+    against this, you should always run a forward name resolution on the result of
+    a reverse resolution and verify that it matches the original address.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Giving Names to Our Users
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: ENS is a perfect match for smart accounts. Instead of requiring our users to
+    remember the address of the smart contract that is their on-chain identity, we
+    can allow them to assign it an Ethereum name.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As in DNS, instead of having them purchase a second-level domain directly from
+    a network information center (NIC)  , we can allocate names within our own domain.
+    Email is a good analogy of this and something users are accustomed to – most people
+    have an email account with a provider, like john@gmail.com, instead of one managed
+    by them, like hello@john.com. Similarly, in ENS, we can allocate a subdomain for
+    each user of our application, like *john.myapp.eth*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To implement this, we need to set up our own registrar contract to manage our
+    Ethereum domain and manage all subdomain registrations. We will use a simple FIFS  (first-in
+    first-served) registrar contract that will freely accept all subdomain registrations.
+    Canonical implementations for this and other contracts we will be using can be
+    found in the @ensdomains/ens@0.3.5 and @ensdomains/resolver@0.1.3 packages.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The first step is to actually acquire a domain. While this is a non-trivial
+    process on mainnet, ENS offers FIFS registrars for .test domains in the test networks,
+    with the restriction that these registrations expire after 4 weeks. Let’s start
+    by registering a test domain on the Rinkeby testnet  (Listing [7-33](#PC49)).//
+    09-ens/02-register.jslet [owner, user] = await web3.eth.getAccounts();let ensAddress
+    = ''0xe7410170f87102df0055eb195163a03b7f2bff4a'';let ens = new web3.eth.Contract(ensABI,
+    ensAddress);// Get top-level registrar for test domainslet testRegistrarAddress
+    = await ens.methods  .owner(namehash(''test'')).call();let testRegistrar = new
+    web3.eth.Contract(  fifsRegistrarABI, testRegistrarAddress);// Register our domain
+    name under our accountlet name = ''myapp''; // try other names if already registeredlet
+    domain = `${name}.test`;await testRegistrar.methods  .register(hash(name), owner).send({
+    from: owner });Listing 7-33'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Registering the Ethereum domain “myapp.test” on Rinkeby. The hash function in
+    this code snippet is keccak256
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We can now deploy our FIFS registrar contract, which will freely allocate subdomains
+    of “myapp.test,” and transfer ownership of the domain to it.// Deploy new registrar
+    contractlet arguments = [ensAddress, namehash(domain)];let myRegistrar = await  new
+    web3.eth.Contract(fifsRegistrarABI)    .deploy({ data: fifsRegistrarBytecode,
+    arguments })    .send({ from: owner });// Transfer ownership of our domain to
+    our registrarawait ens.methodslet myRegistrarAddress = myRegistrar.options.address;  .setOwner(namehash(domain),
+    myRegistrarAddress)  .send({ from: owner });We can now augment our identity contracts
+    with a method to register themselves on ENS using this registrar (Listing [7-34](#PC51)).
+    This method takes three steps:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '1.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Registering a custom name (i.e., “john”) in our registrar and appointing the
+    Identity contract as the owner
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '2.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Setting a resolver in the ENS registry for the new identity name (“john.myapp.test”)
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '3.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Setting the identity contract address in the resolver from the previous step
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: We will be using a *public resolver* for step 2 of the process. A public resolver  is
+    a public contract that accepts requests for managing the records of any address,
+    but only from the owner of that address. This saves us the trouble of having to
+    deploy a custom resolver for our app.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: An alternative is to add resolver methods to our identity contract and just
+    let the identity return its own address upon a resolution request. However, this
+    adds more complexity to our contract.
+  prefs: []
+  type: TYPE_NORMAL
+- en: // 09-ens/contracts/IdentityWithENS.solcontract IdentityWithENS is Identity
+    {  function registerENS(    bytes32 _hashLabel, bytes32 _node,    ENS ens, FIFSRegistrar
+    registrar, PublicResolver resolver  ) onlyUserAccount public {    registrar.register(_hashLabel,
+    address(this));    ens.setResolver(_node, address(resolver));    resolver.setAddr(_node,
+    address(this));  }}Listing 7-34
+  prefs: []
+  type: TYPE_NORMAL
+- en: Identity contract function for registering a name and mapping it to the identity
+    itself using our custom registrar and a public resolver. Code adapted from the
+    UniversalLoginSDK repository^([24](#Fn24))
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Registering an identity contract on ENS is then just a matter of having our
+    user call into this function from one of their external accounts (Listing [7-35](#PC52)).
+    Note that the owner of the registered name is set to be the identity itself, so
+    the user ultimately retains control of what to do with their subdomain.const publicResolverAddress
+    =  ''0xb14fdee4391732ea9d2267054ead2084684c0ad8'';let userName = `john`;let userDomain
+    = `${userName}.${domain}`;await identity.methods.registerENS(  hash(userName),  namehash(userDomain),  ensAddress,  myRegistrar.options.address,  publicResolverAddress).send({
+    from: user });Listing 7-35'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Registering an identity contract as john.myapp.test using our custom registrar
+    and a Rinkeby public resolver
+  prefs: []
+  type: TYPE_NORMAL
+- en: Running this process for every new user allows them to refer to their identity
+    using a friendly name provided by our application – a name that can be carried
+    on to other applications and be used as a global Ethereum identity, handled by
+    ENS.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'We have gone through several tools and techniques for handling user onboarding
+    and account management in general, making this one of the most content-heavy chapters
+    in this book: fallback functions, forwarding contracts, single-use addresses,
+    local accounts, mnemonics, smart accounts, upgradeability, meta transactions,
+    native meta transactions, reserved deployment addresses, and Ethereum names, among
+    others. All of these techniques help in different aspects of user onboarding,
+    and their trade-offs make it difficult to settle for one solution that fits all
+    use cases.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Work on user onboarding is still a very active field of research in Ethereum,
+    and new mechanics to add to your toolbelt are bound to be developed in the near
+    future. At the time of this writing, it is worth highlighting the work being done
+    under Universal Logins.^([25](#Fn25)) Universal Logins is a framework that creates
+    smart accounts for users, managed by local accounts automatically generated on
+    each device, with support for meta transactions, as well as ENS for allowing users
+    to easily connect to their accounts. It also promotes subsidizing early user actions
+    to ease onboarding and reward users in-app who go the extra mile to strengthen
+    the security of their accounts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Whatever solution you implement, remember that the more steps a user must go
+    through to start using your application, the most likely it is for them to drop.
+    On the other hand, sacrificing security for usability is a huge risk, given that
+    “the worst user experience is when people lose their crypto.”^([26](#Fn26)) Striking
+    the perfect compromise between the two for the use case you are building is no
+    easy feat.
+  prefs: []
+  type: TYPE_NORMAL

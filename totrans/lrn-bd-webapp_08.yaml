@@ -1,0 +1,1570 @@
+- en: © Santiago Palladino 2019S. PalladinoEthereum for Web Developers[https://doi.org/10.1007/978-1-4842-5278-9_8](https://doi.org/10.1007/978-1-4842-5278-9_8)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 8. Scalability
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Santiago Palladino^([1](#Aff2) )(1)Ciudad Autónoma de Buenos Aires, Argentina
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the previous chapter, we addressed user onboarding challenges, one of the
+    two main issues for Ethereum mass adoption. The second of them, which we will
+    tackle in this chapter, is scalability. The Ethereum network, as it is today,
+    can handle about 15 transactions per second – and this throughput must be shared
+    among all Ethereum applications globally. This has led to single applications
+    cluttering the entire network due to a spike in their usage to the point of rendering
+    all dapps unusable for brief periods. In this chapter, we will introduce state
+    channels and sidechains, two of the most widely used scalability solutions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: What is Layer 2?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The Ethereum blockchain can be seen as a single global database, replicated
+    across every node in the network, that needs to process every single transaction
+    sent. This alone, without even considering block propagation times or proofs-of-work,
+    already imposes a cap on the volume of transactions that can be processed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*The core limitation is that public blockchains like ethereum require every
+    transaction to be processed by every single node in the network. (...) This is
+    by design — it’s part of what makes public blockchains authoritative. Nodes don’t
+    have to rely on someone else to tell them what the current state of the blockchain
+    is. (...) This puts a fundamental limit on ethereum’s transaction throughput:
+    it cannot be higher than what we are willing to require from an individual node.*'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '—Josh Stark, “Making Sense of Ethereum’s Layer 2 Scaling Solutions: State Channels,
+    Plasma, and Truebit”^([1](#Fn1))'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: But what if we do *not* require every transaction to be run through the whole
+    network? For instance, a set of transactions, run between a small group of participants,
+    could be processed on a separate network. And only after a certain period the
+    resulting balances could be uploaded to the main Ethereum network.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'These parallel (or *side*) networks require certain security guarantees – otherwise,
+    we could just use a regular database. The key here is that these networks can
+    rely on the main network to act as a secure decentralized base layer, on top of
+    which new consensus mechanisms are built. Hence, these scalability solutions are
+    said to belong to a *layer 2*, since they are not built as part of the Ethereum
+    protocol itself, but rather on top of it. Today, there are three main types of
+    layer 2 solutions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Channels* are short-lived closed networks, typically between two participants,
+    where they exchange multiple transactions between each other. Each party must
+    acknowledge every transaction by signing it. To open the channel, they first must
+    make a deposit on a smart contract on the Ethereum network. This contract can
+    then validate their signatures to execute the payouts when needed.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Sidechains* are parallel networks that use a different consensus algorithm
+    than the main network, such as proof of authority or stake. These are usually
+    bridged to the main network, allowing users to move assets between the sidechain
+    and the main chain. A variant of sidechains are *plasma chains*, in which the
+    good behavior of the sidechain can be fully enforced by a smart contract on the
+    main network.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*External computation* solutions do not provide a higher transaction throughput,
+    but they do allow for more interesting tasks to be performed in each transaction.
+    They run computing-intensive tasks outside the main network, tasks that would
+    be prohibitively expensive to run on the EVM, and then inject the result back.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In this chapter, we will explore the first two solutions. Today there are several
+    teams working on implementations or new variations of each of them. We will mention
+    some of them along the way, but not without making our own attempts at each solution
+    first.^([2](#Fn2))
+  prefs: []
+  type: TYPE_NORMAL
+- en: Channels
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Channels are a family of layer 2 scalability solutions that span many different
+    variants from unidirectional payment channels to counterfactual generalized state
+    channels. They can also be extrapolated to full channel networks instead of isolated
+    peer-to-peer solutions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We will begin with *payment channels*.^([3](#Fn3)) In payment channels, two
+    or more participants open a channel by making an initial deposit on the main network
+    and then perform multiple payments off-chain over the channel. These payments
+    are then settled trustlessly on a smart contract on the main network.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Unidirectional Payment Channels
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'The easiest variant of payment channels are *unidirectional payment channels*.
+    Here, there are two distinct parties involved: a recipient and a sender. These
+    are usually a provider that collects multiple payments in exchange for a service
+    provided over time and a user performing these payments. A good example of this
+    is a player performing microtransactions in a game.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: How do Channels Work?
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Let’s suppose a scenario where a user needs to make several small purchases
+    to a service provider. It does not matter what the service provider is offering,
+    only that the user will need to perform *multiple payments to the same recipient
+    over a period of time* and that the provider needs a proof of each small payment
+    to continue providing the service.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If each and every one of these small payments is done as a transaction on the
+    blockchain, the accumulated transaction gas fees would probably become considerable
+    against the actual payments. Paying a 20-cent fee to the network for each 20-cent
+    payment is not a good deal. Furthermore, since the service provider requires a
+    proof after each payment, the confirmation times would constantly add significant
+    delays to the service.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A solution could be to have a trusted third party collect a large initial deposit
+    from the user and monitor the service being provided. The user then signs each
+    of these *microtransactions* with their private key, acknowledging each of the
+    payments to be made. After all micropayments have been made, the third party issues
+    a single on-chain transaction that includes the total payout to the service provider
+    and returns the remainder of the initial deposit to the user. Assuming both the
+    user and the service provider trust this party, this can reduce all micropayments
+    to just two transactions on the network: one for the deposit and the other for
+    the payout.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A *unidirectional payment channel* is an implementation of this solution using
+    a smart contract as the trusted third party. The user is said to *open* a payment
+    channel to the service provider as they deploy the payment channel contract with
+    the initial deposit. The user sends each micropayment as a *signed message* directly
+    to the service provider. These messages are not sent on the Ethereum network,
+    but entirely off-chain via a separate protocol, such as HTTPS. When the service
+    provider wants to cash out, they can submit the signed messages to the payment
+    channel contract and collect their payments (Figure [8-1](#Fig1)).![../images/476252_1_En_8_Chapter/476252_1_En_8_Fig1_HTML.png](../images/476252_1_En_8_Chapter/476252_1_En_8_Fig1_HTML.png)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 8-1
+  prefs: []
+  type: TYPE_NORMAL
+- en: Flow diagram of a payment channel. The user first opens the channel with an
+    initial 1 ETH deposit. Every time the user needs to make a micropayment to the
+    service provider, they instead sign a message with the accumulated amount to be
+    paid and send it off-chain. When the provider wants to cash out, they submit the
+    latest signed message to the contract and receive their payout
+  prefs: []
+  type: TYPE_NORMAL
+- en: Within a payment channel, most transactions happen completely off-chain, being
+    sent directly from the user to the recipient. This is why channels are considered
+    a *layer 2* solution, built on top of the main Ethereum network, the *layer 1*,
+    while inheriting many of its security properties.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Channels have some very interesting advantages over layer 1\. After a channel
+    has been opened, any transaction sent through it has no gas fees, and once sent,
+    they can also be considered to be instantly finalized, since there is no need
+    to wait for any blocks to be mined to confirm it. Additionally, since transactions
+    are exchanged within the two participants, they are entirely private until they
+    are submitted to the blockchain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Implementing a Unidirectional Channel
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: To illustrate how a unidirectional payment channel works, we will implement
+    one from scratch (Listing [8-1](#PC1)). Our payment channel will have a sender
+    and a recipient, will hold the initial deposit by the sender, and will have a
+    predetermined end time. After this specified end time, if the recipient has not
+    collected their payment, the sender is allowed to withdraw the deposit. This mechanism
+    is required to prevent the user deposit to be locked into the contract forever,
+    if the service provider never submits the payment messages.// contracts/PaymentChannel.solpragma
+    solidity ^0.5.0;import "openzeppelin-solidity/contracts/cryptography/ECDSA.sol";contract
+    PaymentChannel {  using ECDSA for bytes32;  address payable sender;  address payable
+    recipient;  uint256 endTime;  bool closed;  constructor(    address payable _recipient,
+    uint256 _endTime  ) public payable {    sender = msg.sender;    recipient = _recipient;    endTime
+    = _endTime;  }}Listing 8-1
+  prefs: []
+  type: TYPE_NORMAL
+- en: Definition, state variables, and constructor for the unidirectional payment
+    channel contract. We will be using the ECDSA library from openzeppelin-solidity@2.1
+    to verify the signatures on the contract. Note that the constructor is payable,
+    so the sender can make the initial deposit upon deployment
+  prefs: []
+  type: TYPE_NORMAL
+- en: Since most transactions in a payment channel occur off-chain, we will need to
+    implement only two methods. The first method, close, will be called by the service
+    provider to submit the sender’s signature with the payout, collect their funds,
+    and close the channel (Listing [8-2](#PC2)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: We will require that the sender always signs messages for the total to be paid
+    out to the recipient. This allows us to just submit a single signed message to
+    the contract, instead of having to process multiple ones.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This method will only be callable by the recipient to prevent the sender from
+    trying to prematurely close the channel with a message signed by them with zero
+    value. Also, since the sender could sign a message for a total value greater than
+    the deposit present in the channel, we need to limit the value transferred to
+    the contract’s balance. It is up to the recipient to decide whether they will
+    accept a payment note for more value than can be actually paid by the channel.^([4](#Fn4))
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'After the payout to the recipient is done, all the remainder of the deposit
+    is returned to the sender. Since the channel contract is of no further use at
+    this point, we also destroy the contract to get a small gas refund.// contracts/PaymentChannel.solfunction
+    close(  uint256 value, bytes memory signature) public {  require(msg.sender ==
+    recipient);  bytes32 hash = keccak256(    abi.encodePacked(value, address(this))  ).toEthSignedMessage();  address
+    signer = hash.recover(signature);  require(signer == sender);  uint256 funds =
+    address(this).balance;  recipient.transfer(funds < value ? funds : value);  selfdestruct(sender);
+    // destroys contract, sending funds to sender}Listing 8-2'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Closing the payment channel by the recipient. This requires submitting a signed
+    message by the sender with the value to be transferred. Note that the signed message
+    also includes the address of the contract to prevent replay attacks on other channels
+    with the same sender
+  prefs: []
+  type: TYPE_NORMAL
+- en: The second function to implement will correspond to the unhappy path, in which
+    the recipient never calls the close function, and the sender terminates the contract
+    after the predetermined end period (Listing [8-3](#PC3)).// contracts/PaymentChannel.solfunction
+    forceClose() public {  require(now > endTime);  require(msg.sender == sender);  selfdestruct(sender);}Listing
+    8-3
+  prefs: []
+  type: TYPE_NORMAL
+- en: Forcefully closing the channel by the sender to recover the deposit if the recipient
+    never cashes out
+  prefs: []
+  type: TYPE_NORMAL
+- en: This implementation can be modified to exchange ERC20 tokens instead of ETH,
+    thus opening the door to *token payment channels*. Instead of making an initial
+    deposit of ETH, the sender must transfer ERC20 tokens to the channel contract
+    as a deposit. These tokens are then transferred again once the channel is closed.
+    Refer to TokenPaymentChannel.sol in the code samples for an implementation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Building a Payments App
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: We will now use our contract to build a simple application, where a sender can
+    set up a payment channel contract with a recipient, send multiple micropayments
+    via a direct off-chain connection, and eventually settle. As in previous chapters,
+    we will use create-react-app for boilerplate.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To keep the application simple, we will establish a connection between two browser
+    windows opened on the same app in the same computer, one of them acting as a sender
+    and the other as receiver. We will use *broadcast channels*^([5](#Fn5)) to pass
+    messages between the two browser windows. In a real app, you will want to use
+    a different method, such as *WebRTC data channels,*^([6](#Fn6)) along with a server
+    to manage discovery among your users.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We will make another simplification: instead of using Metamask, we will manage
+    the accounts directly from the web application. This is to avoid difficulties
+    with simulating two different accounts interacting with the same app on the same
+    computer. We will call directly into ganache for sending transactions from both
+    the sender and recipient accounts and for signing messages when needed.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Our application will be built out of two main views: one for the sender and
+    one for the recipient, both set up by a root App component. It will be the App’s
+    responsibility to set up the web3 object and inject the sender and recipient addresses
+    into the components. Refer to src/App.js in the code samples for its implementation.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let’s start with the Sender view. It will be the sender’s responsibility to
+    open the channel by deploying the smart contract and making the initial deposit
+    (Listing [8-4](#PC4)). When this is done, we will notify the recipient via the
+    broadcast channel. We will communicate using a custom protocol where we identify
+    different message types by an action parameter, with a value of CHANNEL_DEPLOYED
+    in this case.// src/components/Sender.jsasync deployChannel(deposit) {  const
+    { web3, sender, recipient } = this.props;  // Deploy the contract and transfer
+    initial deposit  const from = sender;  const endTime = +(new Date()) +(300 * 1000);
+    // 5 min from now  const channel = await PaymentChannel(web3)    .deploy({ arguments:
+    [recipient, endTime] })    .send({ value: deposit.toString(), from, gas: 1e6 });  //
+    Notify the recipient via the broadcast channel  const address = channel.options.address;  this.broadcastChannel.postMessage({    action:
+    "CHANNEL_DEPLOYED", address  });  // Update sender state with deposit and channel
+    object  this.setState({ channel, deposit, sent: BN(0) });}Listing 8-4'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Sender component function to deploy the payment channel contract, fund it, and
+    notify the recipient of its deployment. The App component passes the web3 instance
+    and the sender and recipient addresses as props. Here, PaymentChannel is a function
+    that returns a new web3 contract instance, and BN is a BigNumber constructor
+  prefs: []
+  type: TYPE_NORMAL
+- en: We will wire this function to a simple form (Figure [8-2](#Fig2)), where we
+    ask the user to choose the amount of ETH they want to deposit on the channel.![../images/476252_1_En_8_Chapter/476252_1_En_8_Fig2_HTML.jpg](../images/476252_1_En_8_Chapter/476252_1_En_8_Fig2_HTML.jpg)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 8-2
+  prefs: []
+  type: TYPE_NORMAL
+- en: Simple payment channel deployment form. The code for this form can be found
+    in src/components/CreateChannel.js
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Once the channel is deployed, our user should be able to send micropayments
+    to the recipient^([7](#Fn7)) (Listing [8-5](#PC5)). This means signing messages
+    (not sending transactions) that include the total amount of ETH to be paid out
+    to the recipient once the channel is closed. These messages are sent to the recipient
+    via the same broadcast channel using a different action identifier.// src/components/Sender.jsasync
+    sendEth(value) {  const { web3, sender } = this.props;  const { sent, channel
+    } = this.state;  // Calculate new accumulated ETH sent  const newSent = sent.plus(value);  //
+    Sign it with the sender''s key  const signature = await signPayment(    web3,
+    newSent, channel.options.address, sender  );  // Send the message to the recipient  this.broadcastChannel.postMessage({    action:
+    "PAYMENT", sent: newSent.toString(), signature  });  // Update state with new
+    total accumulated ETH sent  this.setState({ sent: newSent });}Listing 8-5'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Sender function to send a micropayment to the recipient. Each message carries
+    the total amount of ETH to be paid out. The component needs to keep track of the
+    total sent so far, so the micropayment amount chosen by the user is added to that
+    value before being signed and sent
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The signature is calculated on the hash of the total value to pay and the channel’s
+    address (Listing [8-6](#PC7)). Including the channel’s address in the signature
+    prevents *replay attacks*, that is, reusing the same message in another channel
+    opened by the same user.// src/contracts/PaymentChannel.jsasync function signPayment(web3,
+    value, address, sender) {  const hash = web3.utils.soliditySha3(    { type: ''uint256'',
+    value: value.toString() },    { type: ''address'', value: address }  );  const
+    signature = await web3.eth.sign(hash, sender);  return signature;}Listing 8-6'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Signing each micropayment message using web3^([8](#Fn8))
+  prefs: []
+  type: TYPE_NORMAL
+- en: Similar to the channel deployment, this action is presented to the user in a
+    simple form where they choose the amount to transfer (Figure [8-3](#Fig3)). We
+    can also show some basic stats on the channel, such as its address, the total
+    deposit, and how much ETH has been committed so far.![../images/476252_1_En_8_Chapter/476252_1_En_8_Fig3_HTML.jpg](../images/476252_1_En_8_Chapter/476252_1_En_8_Fig3_HTML.jpg)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 8-3
+  prefs: []
+  type: TYPE_NORMAL
+- en: Presenting the user the channel information and requesting the value to send
+    via the channel. The code for these components can be found in src/components/ChannelStats.js
+    and src/components/SendEther.js
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: For the sake of brevity, we will skip the implementation of the forceClose call
+    by the sender in this example.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We can now turn our focus to the recipient view. Within our app, the recipient
+    needs to do nothing but monitor the sender’s actions until they decide to cash
+    out. We will first install a listener for the sender’s messages to react upon
+    them (Listing [8-7](#PC8)), calling different functions depending on the message
+    action (Listing [8-8](#PC9)).// src/components/Recipient.jsconst bc = new BroadcastChannel('payments');bc.onmessage
+    = (evt) => this.handleMessage(evt.data);this.broadcastChannel = bc;Listing 8-7
+  prefs: []
+  type: TYPE_NORMAL
+- en: Initializing a new broadcast channel for receiving messages from the sender
+    and adding an event handler. This code is part of the Recipient component constructor
+  prefs: []
+  type: TYPE_NORMAL
+- en: // src/components/Recipient.jshandleMessage(data) {  const action = data.action;  switch
+    (action) {    case "CHANNEL_DEPLOYED":      this.onChannelDeployed(data);      break;    case
+    "PAYMENT":      this.onPaymentReceived(data);      break;    default:      console.error("Unexpected
+    message", data);  }}Listing 8-8
+  prefs: []
+  type: TYPE_NORMAL
+- en: Delegating to different handler functions, discriminating on the message action
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let’s see first how the recipient should react to a new channel deployed (Listing
+    [8-9](#PC10)). Besides updating its own state by adding a reference to the channel,
+    the recipient should inspect the channel’s deposit to know up to how much the
+    sender is able to pay. The recipient should also check that the contract deployed
+    is indeed a payment channel. We can do that by checking that the bytecode deployed
+    matches the code of the channel (Listing [8-10](#PC11)).// src/components/Recipient.jsasync
+    onChannelDeployed(data) {  const { web3 } = this.props;  if (!await checkBytecode(web3,
+    data.address)) {    console.error("Contract bytecode does not match");    return;  }  const
+    deposit = await web3.eth.getBalance(data.address);  this.setState({    channel:
+    PaymentChannel(web3, data.address),    deposit: BN(deposit),    received: BN(0)  });}Listing
+    8-9'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Recipient reacts to a new channel deployed by validating it, retrieving its
+    deposit, and updating its own state. Here, PaymentChannel is a function that returns
+    a web3 contract instance at the specified address
+  prefs: []
+  type: TYPE_NORMAL
+- en: // src/components/Recipient.jsasync function checkBytecode(web3, address) {  const
+    actual = await web3.eth.getCode(address);  const { compilerOutput } = Artifact;  const
+    expected = compilerOutput.evm.deployedBytecode.object;  return actual === expected;}Listing
+    8-10
+  prefs: []
+  type: TYPE_NORMAL
+- en: Checking the bytecode deployed at an address against the one in the contract
+    compiled Artifact. Note that we check against the deployedBytecode of the contract,
+    not the bytecode, since the latter includes the constructor code that is not saved
+    in the blockchain
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The other message the recipient has to process is a payment message. Here,
+    we need to validate the sender’s signature and update the recipient state with
+    the latest value transferred (Listing [8-11](#PC12)). We also need to save the
+    associated signature, as we will need it to close the channel.// src/components/Recipient.jsonPaymentReceived(data)
+    {  const sent = BN(data.sent);  const received = this.state.received;  if (this.verifyMessage(data)
+    && sent.gt(received)) {    this.setState({      received: sent,      signature:
+    data.signature    });  }}verifyMessage(data) {  const { web3, sender } = this.props;  const
+    { channel } = this.state;  const signer = recoverPayment(    web3, data.sent,
+    channel.options.address, data.signature  );  return areAddressesEqual(signer,
+    sender);}Listing 8-11'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Recipient reacts to a payment message, updating the total ETH received and the
+    corresponding signature. Validating each message implies recovering the signing
+    address and checking it against the sender, since an invalid signature would yield
+    a different signer address. We also discard any messages with a total payment
+    less than the latest total
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Recovering the sender’s signature can then be implemented using the recover
+    method from the web3 library (Listing [8-12](#PC13)).// src/contracts/PaymentChannel.jsfunction
+    recoverPayment(web3, value, address, signature) {  const hash = web3.utils.soliditySha3(    {
+    type: ''uint256'', value: value.toString() },    { type: ''address'', value: address
+    }  );  return web3.eth.accounts.recover(hash, signature);}Listing 8-12'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Helper function to recover the signer of a payment message. Note that the hash
+    over which the signature is recovered is calculated exactly like in the signPayment
+    method
+  prefs: []
+  type: TYPE_NORMAL
+- en: The recipient is shown the current state of the channel, the total ETH received,
+    as well as the option to close the channel at any time (Figure [8-4](#Fig4)).![../images/476252_1_En_8_Chapter/476252_1_En_8_Fig4_HTML.jpg](../images/476252_1_En_8_Chapter/476252_1_En_8_Fig4_HTML.jpg)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 8-4
+  prefs: []
+  type: TYPE_NORMAL
+- en: Recipient interface with information on current balance and channel stats, including
+    how much ETH has been sent via the channel
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The last step to implement on the recipient is closing the channel by sending
+    a transaction to the channel contract with the latest value and signature (Listing
+    [8-13](#PC14)). This settles all micropayments by sending the accumulated value
+    to the recipient and the remainder of the deposit back to the sender.// src/components/Recipient.jsasync
+    closeChannel() {  const { web3, recipient } = this.props;  const { channel, signature,
+    received } = this.state;  // Send closing transaction  await channel.methods.close(    received.toString(),
+    signature  ).send({ from: recipient });  // Update the recipient''s balance  const
+    balance = BN(await web3.eth.getBalance(recipient));  this.setState({ channel:
+    null, balance });}Listing 8-13'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Closing the channel by the recipient using the latest value and signature sent
+    by the sender
+  prefs: []
+  type: TYPE_NORMAL
+- en: After this method is called, the channel contract should be destroyed, and the
+    recipient should have received the sum of all micropayments made by the sender.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now that we have a working application built on top of unidirectional payment
+    channels, it’s time to move into more interesting flavors of channels.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Bidirectional Payment Channels
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Another scenario for payment channels is that of two equal parties exchanging
+    funds between each other. Instead of having a distinguished sender and a recipient,
+    both participants in the channel can send and receive funds.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This symmetry in the participants’ roles makes the channel implementation more
+    difficult. Which of the two participants should be allowed to close the channel
+    in this model? Since they are equals, they both should be allowed to do so, but
+    this introduces a problem.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s say Alice and Bob are exchanging microtransactions. At some point, Bob
+    sends a very large payment through the channel to Alice, but before she can cash
+    out, he submits an old message to the channel and closes it. The problem then
+    is that a malicious participant can attempt to close the channel *at an older
+    state* when it is convenient for them (Figure [8-5](#Fig5)).![../images/476252_1_En_8_Chapter/476252_1_En_8_Fig5_HTML.jpg](../images/476252_1_En_8_Chapter/476252_1_En_8_Fig5_HTML.jpg)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 8-5
+  prefs: []
+  type: TYPE_NORMAL
+- en: Bidirectional payment channel scenario in which Bob attempts to close the channel
+    with an older state, in detriment of Alice
+  prefs: []
+  type: TYPE_NORMAL
+- en: Challenge Periods
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: This situation is solved by adding a *challenge period* to the closure of the
+    channel. When Bob requests the channel to be closed, it goes into a “closing”
+    state for a fixed period of time. During this period, Alice can either confirm
+    the closure of the channel, or she can submit a more recent state and start a
+    new closing period (Figure [8-6](#Fig6)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: If she fails to send any transaction to the channel during the challenge period,
+    then the channel is closed and the payouts executed according to the state submitted
+    by Bob. This last case is the equivalent of the recipient not submitting a message
+    and having the sender run a forced close. So, adding a challenge period removes
+    the need for having a predefined end time for the channel.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Challenge periods are a very common mechanism in layer 2 solutions, not just
+    channels, as we will see later in this chapter. These allow an action to be carried
+    away unilaterally without having to collect confirmations from every other party,
+    but still let them watch for unlawful behavior and act upon it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This mechanism requires the smart contract to recognize when a message is *more
+    recent* than another. In other words, it requires adding a notion of *ordering*
+    to the messages interchanged by Alice and Bob. In the previous example, this allows
+    the channel to be able to verify that Alice’s message is more recent than Bob’s
+    and hence discard Bob’s in favor of Alice’s.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This ordering is handled within the protocol by adding a counter or *nonce*
+    to each message, which is increased with each message sent. Both parties should
+    validate that the nonce is properly increased on each message: if one receives
+    a signed message with a repeated nonce, they should immediately discard it.![../images/476252_1_En_8_Chapter/476252_1_En_8_Fig6_HTML.png](../images/476252_1_En_8_Chapter/476252_1_En_8_Fig6_HTML.png)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 8-6
+  prefs: []
+  type: TYPE_NORMAL
+- en: Continuation of the previous scenario. Alice sees that Bob attempted to submit
+    an older state and submits S2 in response. After the challenge period ends, the
+    contract executes the payouts according to the most recent state submitted, S2
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'These challenge mechanics have an important drawback: parties in the channel
+    cannot be offline for any longer than the length of the challenge period. In our
+    Alice and Bob example, if the channel has a challenge period of a few hours, Bob
+    could just submit the state that is convenient for him while Alice is offline,
+    so when she comes back online, the channel would already be closed. On the other
+    hand, extremely long challenge periods can lead to locked deposits for long periods
+    of time, if Bob attempts to rightfully close the channel and Alice never accepts
+    the closure. Choosing the correct challenge period will depend heavily on the
+    use case where the channel is deployed.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: As a complement to channels, there are *watchtower* services that can monitor
+    a channel on behalf of the user in case they go offline and their counterpart
+    attempts to unlawfully close the channel. These providers may demand a fee in
+    exchange for their services proportional to the value locked in the channel.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A Sample Exchange
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: 'To ensure incentives are aligned, Alice signs messages where the balance changes
+    in favor of Bob and the other way around. A sample scenario, where both start
+    with a deposit of 1 ETH, could be the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Alice signs 0.4 ETH by signing balances (0.6, 1.4)^([9](#Fn9)) with nonce 1.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Bob signs 0.3 ETH by signing balances (0.9, 1.1) with nonce 2.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Alice signs 0.1 ETH by signing balances (0.8, 1.2) with nonce 3.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Alice signs 0.1 ETH by signing balances (0.7, 1.3) with nonce 4.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Let’s go through some possible scenarios based on this set of messages:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: When the exchange ends, Bob rightfully picks the latest message signed by Alice
+    and uses it to close the channel. Note that it never makes sense for him to pick
+    nonce 3 over 4, since 4 has a balance more beneficial to him, as it corresponds
+    to a payment made by Alice.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Bob never signs another message and never closes the channel. In response,
+    Alice uploads the last message that was beneficial to her: the last one signed
+    by Bob (nonce 2). She has no reason to submit any of the more recent ones where
+    she performs additional payments. Alternatively, she could also attempt to close
+    the channel as if no messages were exchanged.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Alice maliciously uploads the message with nonce 2 to try to close the channel.
+    Bob should immediately submit a more recent message, preferably the one with nonce
+    4.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Bob maliciously attempts to close the channel with the message with nonce 1,
+    where the balance was most in his favor. Then, Alice should submit the message
+    with nonce 2 in response, as it is a more beneficial situation to her. This takes
+    us to the previous scenario, where Bob should submit nonce 4.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: As we can see, by signing a message with increasing nonce with each micropayment,
+    participants are then incentivized to always submit the latest message signed
+    by their counterparty. This leads to the most recent message being used to close
+    the channel.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Implementing a Bidirectional Channel
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: We will now implement a sample bidirectional state channel (Listing [8-14](#PC15)).
+    In our implementation, any user can request the channel’s closure by providing
+    a signed message by the other user. The payouts can then be executed either when
+    the other party confirms it or when the challenge period ends.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Our channel will keep track of the balance of each user, initialized to the
+    deposit that each of them made. The channel is created by one of the users and
+    then joined by the second as they make their own deposit.^([10](#Fn10))contract
+    BidirectionalPaymentChannel {  using ECDSA for bytes32;  uint256 constant closePeriod
+    = 1 days;  address payable user1;  address payable user2;  uint256 balance1;  uint256
+    balance2;  uint256 lastNonce;  uint256 closeTime;  address closeRequestedBy;  constructor(address
+    payable _user2) public payable {    balance1 = msg.value;    user1 = msg.sender;    user2
+    = _user2;  }  function join() public payable {    require(msg.sender == user2
+    && balance2 == 0);    balance2 = msg.value;  }}Listing 8-14
+  prefs: []
+  type: TYPE_NORMAL
+- en: Contract variables and initialization functions of our bidirectional state channel
+    implementation. We are using the same ECDSA library as in the unidirectional implementation
+  prefs: []
+  type: TYPE_NORMAL
+- en: Having the setup ready, we can now look into the close function of our contract
+    (Listing [8-15](#PC16)). This function is similar to the one from the unidirectional
+    channel, in that it validates the user’s signature over the state. However, instead
+    of executing the payout on the spot, it starts the challenge (or closing) period.function
+    closeWithState(  uint256 newBalance1, uint256 newBalance2,  uint256 nonce, bytes
+    memory signature) public {  // Check that sender is a user, state is sound, and  //
+    the nonce is increased in case of a challenge  require(msg.sender == user1 ||
+    msg.sender == user2);  require(nonce > lastNonce);  require(newBalance1 + newBalance2
+    == address(this).balance);  // Validate that the signature belongs to the other
+    user  bytes32 hash = keccak256(abi.encodePacked(    newBalance1, newBalance2,
+    nonce, address(this)  )).toEthSignedMessageHash();  address signer = hash.recover(signature);  require(signer
+    == user1 || signer == user2);  require(signer != msg.sender);  // Update balances,
+    nonce, and start a challenge period  balance1 = newBalance1;  balance2 = newBalance2;  lastNonce
+    = nonce;  closeRequestedBy = msg.sender;  closeTime = now;}Listing 8-15
+  prefs: []
+  type: TYPE_NORMAL
+- en: Closing function for the bidirectional state channel. It can be called by any
+    of the participants, as long as they submit a message signed by the other user,
+    with a more recent nonce than the last one submitted (if there was one)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now we need to add a function to actually close the channel, callable either
+    by the user who did not start the closure in the first place or after the challenge
+    period ended (Listing [8-16](#PC17)).function confirmClose() public {  require(msg.sender
+    == user1 || msg.sender == user2);  bool challengeEnded = closeTime != 0    &&
+    closeTime + closePeriod > now;  require(closeRequestedBy != msg.sender || challengeEnded);  user2.send(balance2);  selfdestruct(user1);}Listing
+    8-16
+  prefs: []
+  type: TYPE_NORMAL
+- en: Effectively closing a bidirectional payment channel and executing the payouts
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: We are using send instead of transfer in confirmClose to protect against an
+    attack. If user2 is a contract account instead of an EOA, it can be coded to revert
+    on every incoming transaction. This would make it impossible for user1 to ever
+    close the channel and recover the initial deposit, since the transfer call to
+    user2 would fail, and revert the entire transaction. By using send, the sending
+    of ETH may fail, but the close is allowed to succeed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Our implementation needs one last function to be complete. In case one of the
+    users never signed any messages, the other needs to be able to request a closure,
+    transferring the initial deposits back to each user (Listing [8-17](#PC18)). Otherwise,
+    the funds of the user who created the channel in the first place could end up
+    locked for good.function close() public {  require(msg.sender == user1 || msg.sender
+    == user2);  require(closeTime == 0);  closeRequestedBy = msg.sender;  closeTime
+    = now;}Listing 8-17
+  prefs: []
+  type: TYPE_NORMAL
+- en: Starting a channel closure from the initial state
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note that any user could still call closeWithState after close, in case a party
+    maliciously attempted to close the channel on the initial state.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Optimizations and Extensions
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: 'The implementations we have reviewed so far of payment channels are relatively
+    simple, but there is much room for improvement:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: One possible optimization is having a *single contract* for managing all channels.
+    Instead of deploying one contract per channel, each channel is actually a struct
+    stored in a single payment channel contract. This greatly reduces the cost of
+    creating a new channel, but at the expense of added complexity. Furthermore, it
+    centralizes the funds of all participants in a single contract, opening the door
+    for bugs that could let an attacker drain the funds from all channels simultaneously.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Channels could also be modified to be reused. In our implementations, we required
+    the channel to be closed to execute the payouts, but we could leave the channel
+    open after a payout is executed. This allows for part of the funds to be withdrawn
+    to be used in other applications, without having to destroy the channel contract.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In the case of bidirectional channels, channel closure can be optimized by adding
+    a special message, signed by both users, that signals the agreed finalization
+    at a certain state. This message can be uploaded by any participant and does not
+    require either a second transaction to confirm the closure or going through the
+    challenge period.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: An interesting extension to channels is to increase the number of participants.
+    While in all of our examples we explore peer-to-peer channels with two members,
+    a larger number of users can be involved. Coordination may become more complex
+    as the number of users increase, since messages may be required to be signed by
+    several participants in the channel to be considered valid.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: State Channels
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Payment channels can be seen as a specific case of a more general class of channels
+    called *state channels* . Instead of having two parties exchanging signed messages
+    regarding the state of balance to be paid out, state channels allow users to exchange
+    messages regarding *any state*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As an example, a simple game could be carried over a state channel. The players
+    can sign messages on the state of the game, such as the placement of the pieces
+    in a board. Moving a piece is done by sending signed messages with the move or
+    the new configuration of the board.
+  prefs: []
+  type: TYPE_NORMAL
+- en: State channels typically involve an initial deposit and a payout, much like
+    payment channels. The conditions that rule the payout are defined by a game and
+    can be enforced on-chain by a smart contract.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Coding a Game into a State Channel
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Turn-based games are an excellent use case for a state channel, since they have
+    some useful properties. For one, all of the game state can be safely exchanged
+    between messages and processed on-chain if needed. Also, at any point in time,
+    it is well-defined which player should play next, and there can be no disputes
+    regarding who made a move first. Furthermore, the game’s state is all that is
+    needed to resolve a challenge, as they do not depend on any external state.^([11](#Fn11))
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let’s use the tic-tac-toe game as an example. The state can be defined as a
+    3x3 matrix with three possible values per cell: circle, cross, or empty. The rules
+    of the game are easy to encode, as well as the winning (or draw) conditions.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here, players will exchange messages with their moves, which can only be placing
+    down one of their tokens. However, unlike in payment channels, each move (i.e.,
+    each message) is *beneficial to the player who plays (signs) it* and not to the
+    recipient. This poses a major shift in mechanics: a player is no longer incentivized
+    to post the latest state submitted by their opponent, but the last move made *by
+    themselves*. Let’s see an example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Alice plays X in the center, so she signs a message with only an X in the center
+    and nonce 1, and sends it to Bob.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Bob plays O in mid-right, signs with nonce 2, and sends it to Alice.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Alice plays X in top-right, signs with nonce 3, and sends it to Bob.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Bob plays O in mid-left, signs with nonce 4, and sends it to Alice.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Alice wins playing X in bottom-left, signs it with nonce 5, and sends it to
+    Bob.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'The board would then look like the following, with subscripts noting the turn
+    when each move was done:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '|   |   | X[3] |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| O[4] | X[1] | O[2] |'
+  prefs: []
+  type: TYPE_TB
+- en: '| X[5] |   |   |'
+  prefs: []
+  type: TYPE_TB
+- en: After the last step, Bob should sign the message received by Alice and send
+    it back to her, so she can upload it on-chain and claim her prize. However, if
+    Bob was a sore loser, he could refuse to do so. In that case, Alice must be able
+    to just upload the last state signed by Bob (4) on-chain, along with her winning
+    move, and have the state channel verify that she has won. Note that this requires
+    that **the state channel must be able to verify that her move is indeed a valid
+    and winning move**.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Bob could also simply stall the game. For instance, when he receives message
+    3 from Alice, as he notices that he is going to lose the game, he could choose
+    to stop playing. In this scenario, Alice must be able to go on-chain with the
+    last state signed by Bob (2), along with her following move (3), and *challenge*
+    Bob to move. If he does not respond on-chain within an allotted time, then the
+    state channel should declare Alice winner. Here, we are using challenge periods
+    not just for closures but also for enforcing moves.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'As we said, the state channel must be able to *verify* that a move is valid
+    on-chain. Let’s see a scenario where this need becomes clear: instead of stalling
+    as he receives winning message 5 from Alice, Bob decides to ignore that message.
+    He then challenges her to move on-chain with a spurious state. He takes Alice’s
+    previous signed state (3) and submits a new state to the contract with the following
+    invalid board:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| X[3] |   |   |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '|   | X[1] | O[2] |'
+  prefs: []
+  type: TYPE_TB
+- en: '|   |   | O[4] |'
+  prefs: []
+  type: TYPE_TB
+- en: If the state channel contract were not able to verify that his move is invalid
+    (he changed the location of X[3]), then Alice would be forced to respond on-chain
+    with a move on top of this invalid board.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'An alternative to having the state channel contract validate every transition
+    is to have it accept all transitions by default, but accept proofs that a certain
+    move was invalid. In some cases, verifying a proof that a transition is invalid
+    can be much easier than verifying the transition itself. Chess is a good example:
+    verifying checkmate can be prohibitively expensive in terms of gas usage. A way
+    around this is allowing any player to claim checkmate and have the opponent prove
+    that it is not the case by submitting any valid move.^([12](#Fn12)) This pattern
+    is simply another form of challenge-response and follows the motto “*verify, don’t
+    compute”* of smart contracts.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: State channels are then inherently more complex than regular payment channels,
+    since they require the logic of the game being played to verify state transitions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Most of the optimizations described for payment channels also apply to state
+    channels. For instance, it could be possible to run multiple instances of a game
+    between two participants over a state channel, without requiring to close and
+    open a new channel every time a rematch is desired. Also, a state channel could
+    be set up so its deposits are ERC20 or even non-fungible ERC721 tokens - imagine
+    a representing a trophy as a digital collectible!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Generalized State Channels
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: 'As we have seen, a state channel for a given game has two main responsibilities:
+    managing the channel itself and validating the game’s transitions. This makes
+    implementations more convoluted, as the logic for both responsibilities is intertwined.
+    It also makes state channel contracts more expensive, as they need to include
+    the logic on both the channel and the game.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This has led to the development of *generalized state channels* frameworks.
+    Generalized state channels are channels that manage the users’ deposits and allow
+    new games or applications to be progressively *installed* on the channel. This
+    effectively decouples the state channel logic from the application logic.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Generalized state channels move all of the on-chain stateful components for
+    blockchain applications off-chain. Rather than require each application developer
+    to build an entire state channel architecture from scratch, a generalized state
+    channel generalized framework is one where state is deposited once and then be
+    used by any application or set of applications afterwards.*'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '—Jeff Coleman, Liam Horne, and Li Xuanji, “Counterfactual: Generalized State
+    Channels”^([13](#Fn13))'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: This opens the door to a new level of channel reuse. Users can now play multiple
+    instances of a game and even play multiple different games over the same channel,
+    thus creating several subchannels within a single channel. Furthermore, we can
+    build dependencies between these subchannels, such as triggering a payment channel
+    only upon the resolution of a set of game subchannels.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Generalized state channel solutions are heavily under development by different
+    teams, though there is work toward a common standard to provide some degree of
+    interoperability among them. Several of these implementations, such as the one
+    from the Counterfactual team, rely on the concept of *counterfactual* actions.
+    Here, the term *counterfactual* is used to refer to an action that any participant
+    in the channel could take on-chain but it is actually not and causes participants
+    to act as if it had actually happened.^([14](#Fn14)) Let’s see what this means.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In our tic-tac-toe state channel, we could say that Alice has *counterfactually*
+    won if there is a state signed by both Alice and Bob with her winning the game.
+    Both players know that any of them can submit the winning state to the smart contract
+    on-chain to trigger the payouts at any time. However, they can also decide to
+    keep playing a second match, knowing that Alice has already won the first and
+    that it can be taken on-chain whenever needed. In other words, players are dealing
+    with counterfactual state.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Applications in a generalized state channel can be *counterfactually installed*:
+    if all participants play nicely and a dispute never arises, then the application
+    contract never needs to be actually created, and the entire game can be resolved
+    off-chain. This is also known as *counterfactual instantiation* of a contract:
+    a contract that could be deployed, but it is not.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The fact that any player can go on-chain and enforce a certain action is enough
+    to promote good off-chain behavior – as long as it is complemented with a set
+    of penalizations for malicious players who force their opponents to waste gas
+    going on-chain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'All in all, counterfactual generalized state channels provide an interesting
+    framework that minimizes the number of on-chain actions and thus reduces the latency
+    and gas fees that are incurred every time an action must be carried out on the
+    Ethereum network. As an additional benefit, they also provide a layer of privacy
+    over the participants’ actions: if no transactions except for the deposit and
+    payouts are taken on-chain, then only the participants know what messages were
+    exchanged via the state channel.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Channel Networks
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Channels are useful solutions when it comes to settling payments or state within
+    a fixed small set of participants (typically two). However, the solution falls
+    short when we want to connect a dynamic set of members: for each user we want
+    to transact with, we would need to go on-chain and open a new channel.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: To solve this problem, there are protocols for establishing *virtual channels*
+    between two peers, which leverage a path of channels that goes through multiple
+    intermediaries. This effectively creates a network built from point-to-point connections,
+    where any participant can connect to another as long as there is a valid path
+    between the two, much like the Internet itself.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Caution
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: This section covers topics currently under heavy research and in ongoing development.
+    Use it as a starting point to run your own up-to-date research if you are considering
+    building on top of a state channel network.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The easiest construction in networks comes once again from Bitcoin, which is
+    *multi-hop payment channels*. This method allows to securely route payments through
+    one or more intermediaries. For instance, Alice could send payments to an intermediary
+    Ingrid with whom she has a payment channel set up and have Ingrid relay them to
+    Bob (assuming that Ingrid had a channel with Bob as well). Due to how these channels
+    are set up,^([15](#Fn15)) Ingrid has no way to take these funds for herself.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This type of channels leads directly to a simple and effective network layout,
+    a *hub-and-spoke channel network*, where multiple clients connect to a single
+    hub that acts as an intermediary for all of them. This way, setting up a single
+    channel with the hub allows a user to transact with anyone else on the network.
+    On the other hand, it has the downside of being centralized and requiring the
+    hub to be available.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are also several projects working on more interesting network layouts,
+    such as the Raiden Network,^([16](#Fn16)) inspired by Bitcoin’s Lightning Network.
+    The ultimate goal for these networks is to allow for any two participants to establish
+    a shared channel, usually called a *virtual channel* or *metachannel*  , in a
+    trustless manner. These need not to be just payment channels, but can be full
+    generalized state channels, and can potentially run without active participation
+    of the intermediaries on every exchange.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Sidechains
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: At their most basic version, a *sidechain*  is a parallel Ethereum network that
+    potentially runs a different consensus algorithm, such as *proof-of-authority,*
+    and is connected to the main network by a *bridge*. Working on smaller sizes allows
+    sidechains to achieve much higher throughputs than the main Ethereum network.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: While it is technically possible for a sidechain to use proof-of-work, this
+    is highly insecure. Remember that proof-of-work relies on an attacker being unable
+    to produce more computing power than the rest of the network. Since sidechains
+    tend to be small compared to the main network, their difficulty is also comparatively
+    low, which makes it easier for an attacker to mount an attack on them. This is
+    why most sidechains work with a closed set of miners or validators.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Proof of Authority
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: In proof-of-authority, or PoA for short, there is a predefined set of nodes
+    that act as *validators* for the blocks being added to the network. Validators
+    are the PoA equivalent of miners in PoW, in that they add new blocks. Every certain
+    number of seconds, each of these validators, taking turns, proposes a new block.
+    These blocks are broadcasted to the other validators and need to be approved by
+    a majority of them to be added to the blockchain. The set of validators can be
+    changed over time, with some validators being voted out and new ones allowed into
+    the set.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How the blocks are broadcasted, approved, and agreed upon depends on the specific
+    *consensus* algorithm being used. Though there are many different consensus algorithms,
+    such as Clique,^([17](#Fn17)) Aura,^([18](#Fn18)) Raft,^([19](#Fn19)) or Istanbul
+    BFT,^([20](#Fn20)) they all share the same basic scheme outlined previously. Different
+    algorithms may offer different guarantees against malicious actors or nodes dropping
+    from the network, as well as different performance.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Another component of a sidechain is the connection to a main network, often
+    called *bridge*  . A bridge is a mechanism for users to move their assets between
+    the main chain and the sidechain. As an example, a simple bridge could allow users
+    to move their assets in a specific ERC20 from the main network to a sidechain
+    by having the users lock their funds in a specific mainnet contract. Sidechain
+    validators watch this contract and create the corresponding funds in the sidechain
+    whenever they register a user locking funds on the main chain. We will implement
+    this mechanism later in this chapter.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Security and Trust
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: The security of a vanilla PoA sidechain depends entirely on its validators.
+    If a majority of them collude, they can effectively steal all user funds locked
+    in the sidechain. Because of this, it is critical that the set of validators is
+    composed of multiple different parties and are not all controlled by a single
+    organization. A user should trust a PoA network only if he or she trusts a majority
+    of the validator nodes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To disincentivize malicious behavior like this, some networks rely on proof-of-stake
+    instead of proof-of-authority. In this scheme, the validator nodes are required
+    to deposit (stake) a large amount of funds. If it is proven that they acted maliciously,
+    then their stake is slashed as a penalty - though how this slashing is executed
+    is another matter.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It is important that the value a validator could gain by attacking the network
+    is less than what he would lose in stake in order to keep the incentives in line.
+    There are currently different approaches to proof-of-stake. However, from a user’s
+    perspective, the experience is very similar to operating in a proof-of-authority
+    network.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Given that malicious validators may steal funds from users, the security guarantees
+    from the sidechain are poorer than those of the main chain. This fact makes sidechains
+    **not** to be considered layer 2 solutions under certain definitions. Nevertheless,
+    there are constructs (such as Plasma, which we will see later) that allow the
+    user to safeguard their assets by calling unlawful validator behavior on a main
+    network contract.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Deploying Our Own Chain
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: To illustrate how a PoA network works,^([21](#Fn21)) we will manually set one
+    up using the Geth Ethereum node client.^([22](#Fn22)) While Geth can run in the
+    proof-of-work main Ethereum network, it can also be configured to run in PoA networks
+    that use the Clique consensus algorithm (such as the Rinkeby testnet) and act
+    as a validator node.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let’s start by setting up three miner nodes, which will all run on the same
+    computer. We will first create new accounts for each miner. For convenience, we
+    will use the same password for all accounts, so create a file password.txt containing
+    a random string to be used as password. Then, create the addresses by running
+    the following for each of the three miners, replacing miner1 with miner2 and miner3.
+    Make sure the password.txt file is in the path where the command is run.$ geth
+    --datadir miner1 --password password.txt account new> Address: {8305ccac...58269a7d}'
+  prefs: []
+  type: TYPE_NORMAL
+- en: You should get three different addresses, which we will set up as the validators
+    of this network (make sure to note them down). We will now create a *genesis*
+    for our network. The genesis is the configuration for the network and will include
+    which is the set of authorized validators, the consensus engine, the initial balances,
+    the block gas limit, and so on. In geth, this information is compiled into a JSON
+    configuration file which is used to bootstrap each node.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Geth includes a tool named puppeth that simplifies the creation of such a file.
+    Simply run puppeth in the console, and answer the questions prompted (Listing
+    [8-18](#PC20)). Give your network a name, create a new genesis, use clique proof-of-authority
+    with 5-second blocks, and choose your miners as “accounts allowed to seal.” You
+    should also pick a fourth account to be pre-funded or choose one of the existing
+    validators to hold the initial ETH for your network.$ puppethPlease specify a
+    network name to administer (no spaces, hyphens or capital letters please)> mysidechainWhat
+    would you like to do? (default = stats) 1\. Show network stats 2\. Configure new
+    genesis 3\. Track new remote server 4\. Deploy network components> 2What would
+    you like to do? (default = create) 1\. Create new genesis from scratch 2\. Import
+    already existing genesis> 1Specify your chain/network ID if you want an explicit
+    one (default = random)> 1212Listing 8-18
+  prefs: []
+  type: TYPE_NORMAL
+- en: Fragment of the Geth puppeth configuration wizard to set up a PoA network with
+    id 1212\. You should have a new mysidechain.json genesis file after going through
+    it
+  prefs: []
+  type: TYPE_NORMAL
+- en: Before starting our Geth nodes, we will set up a *bootnode*. A bootnode is a
+    node in the network whose sole purpose is to aid in the discovery of other nodes.
+    We will use it to simplify the communication between our miner nodes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To set up a bootnode, we first need to create a boot key and use it to derive
+    the bootnode *enode address* (Listing [8-19](#PC21)). The enode address is a unique
+    identifier of a node in the decentralized network, followed by the IP address
+    and port where the node can be found. We will then start the bootnode using the
+    generated boot key and have it listen on local port 30100.^([23](#Fn23))$ bootnode
+    -genkey boot.key$ bootnode -nodekey boot.key -writeaddress> c190f2af...ee34b40a$
+    bootnode -nodekey boot.key -addr :30100Listing 8-19
+  prefs: []
+  type: TYPE_NORMAL
+- en: Generating a boot key and running a bootnode
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: We did not need to use the genesis configuration file for the bootnode, since
+    the bootnode does need any information on whether the network is running a proof
+    of work or authority or who the validators are. It only needs to know where the
+    nodes are to share this information with the network.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now that we have a bootnode running and a genesis configuration file, it is
+    time to actually start the network. In three different terminals, start the three
+    different Geth validator nodes (Listing [8-20](#PC22)), configured to mine (i.e.,
+    seal) new blocks, and expose the JSON-RPC API locally over HTTP.geth \--datadir
+    miner1 \--port 30201 \--rpc --rpcaddr localhost --rpcport 12001 \--rpcapi 'eth,personal'
+    \--networkid 1212 \--gasprice 10000 \--unlock 8305ccac...58269a7d \--password
+    password.txt \--mine \--bootnodes 'enode://c190f2af...ee34b40a@127.0.0.1:30100'Listing
+    8-20
+  prefs: []
+  type: TYPE_NORMAL
+- en: Starting the Geth validator nodes using the genesis configuration and bootnode
+    ID generated earlier. Run this command three times in different terminals, one
+    for each validator, changing the unlocked address, datadir, port, and rpcport
+  prefs: []
+  type: TYPE_NORMAL
+- en: Our network should be now running, sealing a new block every 5 seconds. Take
+    a look at the logs from the three validators to see how they progress.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We can now spin up a new client node and connect to the existing network (Listing
+    [8-21](#PC23)). Remember that even though the set of validators is limited, the
+    network is still public and any node can connect to it. We can use its console
+    to check how the latest block number increases every 5 seconds, running web3.eth.blockNumber.$
+    geth \--datadir node1 --port 30204 \--rpc --rpcaddr localhost --rpcport 12004
+    \--rpcapi 'eth,personal' \--networkid 1212 \--bootnodes 'enode://c190f2af...ee34b40a@127.0.0.1:30100'
+    \consoleListing 8-21
+  prefs: []
+  type: TYPE_NORMAL
+- en: Spinning a new node to join the network, with a console enabled. Note that we
+    are not authenticating this new node in any way, since the network is public for
+    anyone to join
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s now connect this network with an existing one, such as Rinkeby.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Building a Bridge
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: 'We will build a simple bridge, exclusively dependent on the validator accounts,
+    using a contract deployed on both the main network and the sidechain, in addition
+    to a script being run by each validator. In this model, the steps for a user moving
+    into a sidechain and later exiting would be the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '1.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The user transfers funds to the bridge contract on mainnet.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '2.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The bridge contract retains the funds and emits an event.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '3.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The validators note the event, and each of them calls into the bridge contract
+    on the sidechain side requesting to unlock the same amount of funds.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '4.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The user gets their funds in the sidechain and uses them to operate there.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '5.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Once the user wants to exit the sidechain, the same process is repeated by transferring
+    the sidechain funds to the sidechain bridge contract and having the validators
+    unlock them on the mainnet bridge contract.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'We will begin by building the bridge contract. This contract will have two
+    main responsibilities: (1) accepting and locking user funds and (2) unlocking
+    them at the request of the validators. Note that we will deploy two instances
+    of the contract, one in each chain. The locking function on one chain will have
+    its counterpart on the unlocking function of the other chain and vice versa.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: In this example, we are building a bridge that accepts ETH and dispenses the
+    native currency of the sidechain on the other end. However, we could also build
+    bridges that accept a certain ERC20 token on the main chain or even non-fungible
+    ERC721 assets.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To begin with, the bridge will need to know the validators’ addresses (Listing
+    [8-22](#PC24)). We will also specify how many validators need to agree to release
+    a user’s funds. In our scenario with three validators, we will release the funds
+    with just two of them agreeing in case one of them drops.pragma solidity ^0.5.0;contract
+    Bridge {  uint256 threshold;  mapping(address => bool) validators;  constructor(    uint256
+    _threshold,    address[] memory _validators  ) public payable {    threshold =
+    _threshold;    for (uint256 i = 0; i < _validators.length; i++) {      validators[_validators[i]]
+    = true;    }  }}Listing 8-22
+  prefs: []
+  type: TYPE_NORMAL
+- en: Definition of the bridge contract, which is initialized with the validators’
+    addresses
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note that we are making the constructor payable. When deploying the contract
+    in the sidechain, we need to seed this contract with the maximum amount of ETH
+    we want to allow our users to transfer from the main network (Rinkeby in this
+    case) to our sidechain, so the contract can unlock those funds when prompted by
+    the validators.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We will now go into the locking function (Listing [8-23](#PC25)), which is quite
+    simple. We need to accept the sender’s funds, allowing them to specify a recipient
+    address on the other end of the bridge, and emit an event. We will assign an autoincremental
+    ID to each locking operation, so the validators can refer to it when unlocking
+    on the other end.event Locked(uint256 id, uint256 amount, address recipient);uint256
+    lastId;function lock(address recipient) public payable {  require(msg.value >
+    0);  emit Locked(++lastId, msg.value, recipient);}Listing 8-23
+  prefs: []
+  type: TYPE_NORMAL
+- en: Lock function of the bridge contract
+  prefs: []
+  type: TYPE_NORMAL
+- en: Last but not least, we will work on the unlock function (Listing [8-24](#PC26)).
+    This function will be called by the validators on the other end of the bridge.
+    Each validator should authorize unlocking the funds that correspond to a locking
+    operation that happened on the other end. Keep in mind that since there is no
+    on-chain communication between both ends of the bridge, it is the validators responsibility
+    to unlock the correct amount of funds to the address requested by the user.mapping(uint256
+    => Request) requests;struct Request {  uint256 amount;  address payable recipient;  bool
+    paid;  uint256 approveCount;  mapping(address => bool) approvedBy;}event Unlocked(uint256
+    id, uint256 amount, address recipient);function unlock(  uint256 id, uint256 amount,
+    address payable recipient) public {  Request storage request = requests[id];  require(validators[msg.sender]);  require(!request.approvedBy[msg.sender]);  require(request.recipient
+    == address(0)    || request.recipient == recipient);  require(request.amount ==
+    0 || request.amount == amount);  request.approveCount++;  request.approvedBy[msg.sender]
+    = true;  request.recipient = recipient;  request.amount = amount;  if (request.approveCount
+    >= threshold && !request.paid) {    request.paid = true;    recipient.transfer(amount);    emit
+    Unlocked(id, amount, recipient);  }}Listing 8-24
+  prefs: []
+  type: TYPE_NORMAL
+- en: Unlocking function of the token bridge. The first time a validator requests
+    an unlock, we will create a new unlock request and then log an approval every
+    time it is called again. When the required number of approvals is reached, the
+    funds are unlocked
+  prefs: []
+  type: TYPE_NORMAL
+- en: Caution
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: This implementation allows a malicious validator to prevent a user’s funds from
+    being unlocked. The validator could spam the bridge contract with spurious unlock
+    requests for upcoming request IDs. This way, when the honest validators actually
+    try to honor the unlock request, the parameters (such as amount or recipient)
+    will not match and the operation will fail. We will ignore this attack, since
+    the purpose of this bridge is to just illustrate basic usage. Nevertheless, this
+    serves as a reminder that even the most simple implementations may be hiding security
+    issues, and you should always work with reviewed and audited contracts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We can now deploy this contract on both networks (Listing [8-25](#PC27)), using
+    the set of validators we defined earlier and choosing a required threshold of
+    two approvals for unlocking. Remember to also transfer a large amount of funds
+    to the contract when deploying it on the sidechain, so it has funds to unlock
+    when requested.const Web3 = require(''web3'');const Artifact = require(''../artifacts/Bridge.json'');const
+    web3 = new Web3(PROVIDER_URL);const abi = Artifact.compilerOutput.abi;const data
+    = Artifact.compilerOutput.evm.bytecode.object;const Bridge = new web3.eth.Contract(abi,
+    null, { data });const bridge = await Bridge.deploy({  arguments: [THRESHOLD, VALIDATORS]}).send({  from:
+    FROM, gas: 1e6, gasPrice: GAS_PRICE, value: VALUE});console.log("Bridge deployed
+    at", bridge.options.address);Listing 8-25'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Deployment script for the bridge contract. Run this twice with different PROVIDER_URLs:
+    one for the Rinkeby Ethereum network and the other for the sidechain'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Finally, we need to set up the watcher scripts that will be run by each validator
+    (Listing [8-26](#PC28)). These scripts will watch the bridge contract in one network
+    for Locked events and execute the corresponding unlock on the other side.const
+    Web3 = require(''web3'');const Artifact = require(''../artifacts/Bridge.json'');const
+    abi = Artifact.compilerOutput.abi;const remoteWeb3 = new Web3(REMOTE_PROVIDER_URL);const
+    localWeb3 = new Web3(LOCAL_PROVIDER_URL);const remoteBridge = new remoteWeb3.eth.Contract(abi,
+    REMOTE);const localBridge = new localWeb3.eth.Contract(abi, LOCAL);remoteBridge.events.Locked().on(''data'',
+    function(e) {  const { id, amount, recipient } = e.returnValues;  localBridge.methods    .unlock(id,
+    amount, recipient)    .send({ from: VALIDATOR, gas: 1e6, gasPrice: GAS_PRICE });});localBridge.events.Locked().on(''data'',
+    function(e) {  const { id, amount, recipient } = e.returnValues;  remoteBridge.methods    .unlock(id,
+    amount, recipient)    .send({ from: VALIDATOR, gas: 1e6, gasPrice: GAS_PRICE });});Listing
+    8-26'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Watcher script to be run on each validator. Note that we create two web3 instances:
+    one connecting to the main network, where we listen for events on the remote end
+    of the bridge, and the other to the local network, where we execute the unlock
+    operations. We then do the converse, allowing funds to go from the sidechain back
+    to the main network'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We can now run this script on each of the validator nodes (or at least on two
+    of them). Once it is running, try calling the lock function in the Rinkeby end
+    of the bridge. A few seconds later, you should have your funds ready to use on
+    the chosen address in your sidechain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In an actual application, you need to decide how much of this complexity you
+    want to expose to your users. As we have seen in Chapter [7](476252_1_En_7_Chapter.xhtml),
+    onboarding is already troublesome enough, and adding another step requiring to
+    send funds from one network to another is not a good idea.
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, you can actually leverage an application-specific sidechain for improving
+    onboarding. You can directly fund your users’ initial accounts on your sidechain
+    or build a viral inviting scheme where existing users can invite new ones directly
+    on the cheaper and faster sidechain. The bridge is then only used for advanced
+    users who want to transfer value from or to the main network, but to an Ethereum
+    neophyte the application simply runs smoothly and fast, without knowing how it
+    is backed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A good example of this, already mentioned in the previous chapter, is the Burner
+    Wallet.^([24](#Fn24)) This wallet operates on a proof-of-authority sidechain^([25](#Fn25))
+    with four different teams acting as validators. Users are quickly onboarded by
+    receiving a link with a pre-funded account on the sidechain and can easily transact
+    with others thanks to low gas costs and 5-second blocks. For the most advanced
+    users, there is an option to move the funds onto the main Ethereum network or
+    even seed their burner wallets from their mainnet accounts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Plasma Chains
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The state of the art in terms of layer 2 solutions at the time of this writing
+    are plasma chains,^([26](#Fn26)) originally designed by Vitalik Buterin and Joseph
+    Poon in 2017.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Plasma chains  are different from sidechains in that their security can be enforced
+    by the main chain (or *parent chain*, in plasma terminology) and thus does not
+    depend exclusively on the consensus mechanism of the sidechain. This means that
+    if the set of validators on the child chain (called *plasma operators*) misbehaves,
+    any user can build a cryptographic proof and take it to a smart contract on the
+    main chain (called *root contract*). If there is no foul play, transactions on
+    the child chain occur with the reduced gas cost and latency typical of a sidechain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, this additional security comes at a cost. Whenever a user wants to
+    exit the child chain (i.e., transfer their assets back to the main chain), they
+    must go through a *challenge period*, similar to the one we saw in state channels.
+    If a malicious validator creates a fake block where he stole a user’s assets and
+    uses it to take over those assets in the main chain, the user can submit a fraud
+    proof during this challenge period and regain their assets. As such, exiting a
+    plasma chain is not instant and requires a user to wait a certain period of time.^([27](#Fn27))
+  prefs: []
+  type: TYPE_NORMAL
+- en: Also, since a smart contract needs to be able to process whether a set of transactions
+    on the child chain was legitimate, the operations allowed on the child chain cannot
+    be overly complex. In particular, no plasma implementations at the time of this
+    writing support arbitrary smart contracts and only provide the means for exchanging
+    assets between users. Research on this topic is done under *generalized plasma*
+    implementations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: On the flip side, plasma chains are designed for having a tree-like structure.
+    The parent chain of a plasma chain can be *another* plasma chain, allowing for
+    massive scalability by simply composing plasma chains within others. This means
+    that if an application-specific plasma chain becomes overcrowded, it can simply
+    spawn new children and move clusters of users to them.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It is worth mentioning that plasma itself is not a specification but a framework
+    for building scalable layer 2 infrastructure. This has led to the development
+    of many different flavors of plasma by different teams, such as minimal viable
+    plasma, plasma cash, plasma debit, or plasma prime.^([28](#Fn28)) It is most likely
+    that by the time this book reaches your hands, there will be new major developments
+    on this front.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Public blockchains like Bitcoin or Ethereum have traditionally sacrificed performance
+    for trustlessness and security. While there are multiple efforts toward building
+    Ethereum 2.0, which includes sharding mechanics that help the network scale, it
+    is interesting to see many solutions sprouting that build on top of the existing
+    infrastructure to solve the scalability problem.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Some of the solutions presented in this chapter, such as early versions of plasma
+    or state channels, are ready to use and in production today, helping real-life
+    applications scale beyond the limits of the main Ethereum network.
+  prefs: []
+  type: TYPE_NORMAL
+- en: These solutions not only allow your application to achieve a higher transaction
+    throughput, but they can also be used to provide a better user experience overall.
+    Channels provide instant finality to peer-to-peer transactions if both parties
+    behave appropriately instead of having to wait for a dozen confirmations. And
+    sidechains can provide reliable block times much lower than the main network,
+    with considerably lower gas fees.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'These techniques can even be combined: you can set up state channels between
+    parties in a sidechain or even use channels as the actual asset being traded in
+    a plasma chain.^([29](#Fn29)) The sky is the limit here.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: How you leverage these solutions and present them to (or hide them from) your
+    users will depend on what you are building. Remember what your users need from
+    your application, and use the building blocks available to you to create the best
+    possible experience.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Happy coding!
+  prefs: []
+  type: TYPE_NORMAL

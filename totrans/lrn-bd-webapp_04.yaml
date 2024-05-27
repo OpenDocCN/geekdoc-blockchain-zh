@@ -1,0 +1,1228 @@
+- en: © Santiago Palladino 2019S. PalladinoEthereum for Web Developers[https://doi.org/10.1007/978-1-4842-5278-9_4](https://doi.org/10.1007/978-1-4842-5278-9_4)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 4. Querying the Network
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Santiago Palladino^([1](#Aff2) )(1)Ciudad Autónoma de Buenos Aires, Argentina
+  prefs: []
+  type: TYPE_NORMAL
+- en: After a not-so-brief interlude on writing smart contracts, we will review the
+    different ways to connect to the Ethereum network to retrieve data. We will cover
+    different connection methods, as well as patterns for listening to changes, and
+    put it all together in a sample application for monitoring transfers of an ERC20
+    token.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Connecting to the Network
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The first step in retrieving data from the network is to actually connect to
+    an Ethereum node. Since web applications do not connect directly to the network,
+    they depend on a node to answer any queries on the blockchain state. We will start
+    by reviewing node types, connection methods, and the provider object.
+  prefs: []
+  type: TYPE_NORMAL
+- en: About Full and Light Nodes
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: A typical Ethereum node is a Geth or Parity instance^([1](#Fn1)) that has its
+    own copy (partial or full) of the blockchain, can answer queries from clients
+    (such as a DApp), and relays transactions (more on this in the next chapter).
+    A node with a full copy of the blockchain is called a *full node* . These nodes
+    either have or can recompute any data from the blockchain history. Most clients
+    run in this mode by default.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Full nodes may also store all historical data. These nodes are called *archive
+    nodes* , and they are much more infrequent, due to the large amount of disk size
+    needed to support them – nearly 2TB at the time of this writing. They are required
+    in case you want to query particular information from older blocks, such as the
+    state of a contract or a balance of an account from a year ago.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As an alternative to full nodes, some nodes may run in *light client* mode.
+    These nodes keep only the block headers, and request information from the network
+    as needed. They are much lighter to run than full nodes, which make them suitable
+    for mobile devices, but make a poor choice for the back end of a DApp, since queries
+    take longer to resolve.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Infura and Public Nodes
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: The next question about nodes is which ones are available for our applications.
+    In an ideal decentralized scenario, every user should be running their own full
+    Ethereum node, in order to validate all transactions themselves, and avoid trusting
+    a third party. Users on mobile or IOT devices may choose to run light nodes instead,
+    which would trust other nodes to relay the information but nevertheless verify
+    it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the current landscape, a small fraction of our users will actually be running
+    an Ethereum node  . Most of them will be just learning what Ethereum is about,
+    and wondering how to buy their first ETH to pay for the gas to fuel their initial
+    transactions. Having them running their own nodes is still out of the question.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As such, and in order to help the Ethereum adoption process easier, there are
+    a number of *public nodes* available. An Ethereum node is said to be a public
+    node when it holds no private keys, is available to the public, and is used to
+    answer blockchain queries and relay pre-signed transactions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In particular, **Infura** (Japanese for “infrastructure”) is a service that
+    provides HTTP  and websocket endpoints to public full nodes for the Ethereum Mainnet,
+    as well as for the Kovan, Ropsten, and Rinkeby testnets. Due to its reliability,
+    and to the fact that it is free to use, it is widely used by many decentralized
+    apps and wallets.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The JSON-RPC Interface
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: All Ethereum nodes, regardless of the particular implementation, expose a set
+    of well-known methods, which compose the *JSON-RPC interface*. As the name implies,
+    this is a JSON-based API for executing remote procedure calls, and constitutes
+    the low-level interface for a client to interact with a node. Common methods include
+    call, sendTransaction, getBlockByNumber, accounts, or getBalance. There are even
+    methods for querying the state of the node itself, such as whether its syncing
+    or how many peers it is connected to.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Given it is a low-level interface, it is odd that you will find yourself building
+    JSON-RPC calls manually. Most libraries (such as web3.js or ethers.js) will take
+    care of generating the calls on your behalf and provide you with the responses.
+    Nevertheless, it is always useful to understand what is going on under the hood
+    in case you stumble upon a dreadful abstraction leakage.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It is worth mentioning that certain nodes may not implement all methods. For
+    instance, the Infura HTTP endpoint does not offer costly operations such as newFilter
+    (more on filters later in this chapter). This will be important to keep in mind
+    when we discuss how to connect our app to the Ethereum network.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Connection Protocols
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: There are three different protocols that can be used as a transport for interchanging
+    JSON-RPC messages. Nodes can be configured to handle any of them.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The **HTTP** protocol  is the simplest one. It provides a simple HTTP-based
+    interface for POSTing JSON messages. Certain nodes may be set up behind HTTPS-encrypted
+    connections, and may require basic authentication to access them. A simple HTTPS
+    connection string looks like the following:"https://user:password@example.com:8545/"A
+    more interesting alternative is the **websocket** protocol  . A websocket connection
+    is a persistent two-way connection between a client and a server. This allows
+    a client to not only perform all the available JSON-RPC calls but also to subscribe
+    to changes that are pushed from the node to the client (more on this later). Like
+    HTTP connections, websockets may also be established over SSL, and potentially
+    include basic authentication:"wss://user:password@example.com:8545/ws"Finally,
+    the **IPC** (inter-process communication) protocol  is based on a local UNIX domain
+    socket created by the node. Clients with access to the socket may connect to it
+    via its filename. These connections are meant to be used by processes with access
+    to the same filesystem as the node, and as such are not used on web apps."ipc://home/ubuntu/.ethereum/geth.ipc"
+  prefs: []
+  type: TYPE_NORMAL
+- en: Alternative APIs
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: As an alternative to establishing a connection to the JSON-RPC interface of
+    a node, you may opt to query blockchain data from a different source.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Etherscan** (etherscan.io) is a centralized service that provides not only
+    a web-based blockchain explorer where you can visually check all transactions
+    sent to and from an account but also a plain HTTP API (Listing [4-1](#PC4)) that
+    implements many of the methods present in the JSON-RPC interface.# Etherscan APIcurl
+    "https://api.etherscan.io/api?module=proxy&action=eth_getTransactionCount&address=$ADDRESS&tag=latest&apikey=YourApiKeyToken"#
+    Regular JSON-RPC call{"jsonrpc":"2.0","method":"eth_getTransactionCount","params":["$ADDRESS","latest"],"id":1}Listing
+    4-1'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Example of executing a getTransactionCount call to the etherscan API (preceding)
+    vs. the standard JSON-RPC call (following). Both return the same JSON object as
+    a response
+  prefs: []
+  type: TYPE_NORMAL
+- en: Certain javascript libraries, such as ethers.js, even include *provider* objects
+    that abstract a connection to the Etherscan API, so it can be used seamlessly
+    as any other standard JSON-RPC connection. Let’s now go into the role of the provider.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: We are not dwelling into domain-specific APIs at this point. A project may decide
+    to offer an API to query relevant data from its domain. You may also choose to
+    set up a centralized server that aggregates blockchain data from your protocol,
+    and relays it to client-side apps.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Provider Object
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: As we briefly saw in Chapter [2](476252_1_En_2_Chapter.xhtml) while building
+    our first sample DApp, the connection to a node is managed by a *provider* javascript
+    object. It is the provider’s responsibility to abstract the connection protocol
+    being used and offer a minimal interface for sending JSON-RPC messages and subscribing
+    to notifications.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: At the moment of this writing, providers from different libraries have slightly
+    different APIs. There is an effort to standardize the minimal provider as EIP
+    1193, but is still a draft.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, the web3 javascript library^([2](#Fn2)) offers the following providers
+    for connecting to HTTP, websocket, or IPC interfaces (Listing [4-2](#PC5)). The
+    provider is then used to initialize an instance of the full web3 object.const
+    Web3 = require('web3');const httpProvider = newWeb3.providers.HttpProvider("https://example.com");const
+    wsProvider = newWeb3.providers.WebsocketProvider("wss://example.com");const ipcProvider
+    = newWeb3.providers.IpcProvider("/home/ubuntu/.ethereum/geth.ipc");const web3
+    = new Web3(provider);Listing 4-2
+  prefs: []
+  type: TYPE_NORMAL
+- en: Example web3@1.2.0 code for creating a provider and initializing a web3 instance
+  prefs: []
+  type: TYPE_NORMAL
+- en: You will only need to create a provider instance if you have to manually set
+    up a connection to a node. In most scenarios, you will actually delegate this
+    responsibility to the user’s web3-enabled browser.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Metamask and Web3-enabled Browsers
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: After Chapter [2](476252_1_En_2_Chapter.xhtml), you should now be familiar with
+    Metamask  , the browser extension that acts as a bridge for a web application
+    and the Ethereum network. There are other options as well, such as the Cipher
+    or the Opera browsers for Android, though we will focus on Metamask throughout
+    the book, as it is the most widespread tool at the moment.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Web3-enabled browsers work by injecting a *provider* instance in the global
+    scope. How this provider works or how it is backed should not be of importance
+    for your DApp. The DApp should be able to query whichever information it needs
+    and let the provider resolve it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note that this provider may need to be *enabled* in order to gain access to
+    the user’s accounts or request to sign transactions (Listing [4-3](#PC6)), which
+    will prompt the user to accept a request from the DApp to access his accounts
+    information.// Metamask injects the web3 provider as window.ethereumconst Web3
+    = require('web3');const provider = window.ethereum;if (provider) {  try {    //
+    Request access to querying the accounts of the user    await provider.enable();  }
+    catch (error) {    // User denied account access, but we can still    // run queries
+    to the network  }  const web3 = new Web3(provider);}Listing 4-3
+  prefs: []
+  type: TYPE_NORMAL
+- en: Snippet for instantiating a web3 object using a provider injected by Metamask
+  prefs: []
+  type: TYPE_NORMAL
+- en: Metamask connects by default to the Infura public servers via HTTPS. This allows
+    any user who has downloaded the extension to have a connection to the Ethereum
+    network up and running right away, without needing to maintain and sync their
+    own nodes. Nevertheless, Metamask also allows advanced users to set up their own
+    custom connections to other nodes, such as their own (Figures [4-1](#Fig1) and
+    [4-2](#Fig2)).![../images/476252_1_En_4_Chapter/476252_1_En_4_Fig1_HTML.jpg](../images/476252_1_En_4_Chapter/476252_1_En_4_Fig1_HTML.jpg)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 4-1
+  prefs: []
+  type: TYPE_NORMAL
+- en: Metamask settings tab allows a user to configure their own connection to a node
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![../images/476252_1_En_4_Chapter/476252_1_En_4_Fig2_HTML.jpg](../images/476252_1_En_4_Chapter/476252_1_En_4_Fig2_HTML.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 4-2
+  prefs: []
+  type: TYPE_NORMAL
+- en: Metamask control for choosing the node to connect to, displayed when clicking
+    the network drop-down at the top of the extension dialog. The first four are connections
+    to public nodes hosted by Infura
+  prefs: []
+  type: TYPE_NORMAL
+- en: Subproviders
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Certain web3 providers may also be composed of *subproviders* . A subprovider
+    is a non-standard object that intercepts calls made via the provider. Among other
+    uses, subproviders help provide a common interface by filling in any gaps in the
+    feature set of the Ethereum node being used. In this sense, subproviders act as
+    polyfills hidden within the provider.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'As an example, a provider that connects to a node that does not offer the *filters*
+    API (used for polling for specific changes) may include a *filter subprovider*
+    that emulates that feature client-side. Such is the case with the web3 provider
+    injected by Metamask: since Infura does not offer the filters API, Metamask adds
+    that feature at the provider level via a custom subprovider. This way, you as
+    a developer do not need to worry about which APIs are supported, and are given
+    a consistent interface regardless of the node answering your queries.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We will revisit subproviders in the next chapter, where we discuss about providers
+    and signers, since Metamask implements its signer as another subprovider.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Choosing the Right Connection
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Up to this point, we have reviewed different kinds of nodes (full and light,
+    public and private), as well as different connection protocols (ipc, http, and
+    websockets). We have also learned how to set up a provider object and how to enable
+    the one injected by a web3-enabled browser. Given all these options, it begs the
+    question of which connection we should choose for *querying information from a
+    DApp*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Respecting the Choice of the User
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: First and foremost, if our user is using a web3-enabled browser, our DApp should
+    rely on the provider injected by it. A web3-enabled browser means the user is
+    already part of the Ethereum ecosystem, and could be potentially running a node
+    of their own. As such, we need to provide them with the means to choose which
+    node they want to use when browsing our DApp.
+  prefs: []
+  type: TYPE_NORMAL
+- en: While we could reimplement Metamask’s interface for choosing a network connection,
+    it makes little sense to do so. A user who wishes to connect to an alternative
+    node will already be running Metamask or another web3-enabled browser, and have
+    already preconfigured their own nodes. Therefore, an injected web3 provider should
+    always be our first choice for connecting to the network.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Keep in mind that providers need to be enabled in order to access the list of
+    accounts of the user. Nevertheless, if the application does not need this information,
+    this step can be skipped.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using a Public Node
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: 'The next option is simple: connect to a public node. You can either set up
+    your own for your DApp or use one from Infura. Going with your own node has all
+    the benefits and drawbacks of rolling out your own infrastructure: you do not
+    depend on a third party, but you need to watch out for the health of your nodes.
+    Remember that nothing prevents an arbitrary number of users from connecting to
+    your node, so you should be prepared for surges in traffic. Because of this, it
+    may be easier to just rely on an external infrastructure provider.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: As an alternative to Infura, you can also rely on a public API such as that
+    of Etherscan. Ethers.js, an alternative to web3.js, connects by default to Infura,
+    and falls back to Etherscan if the connection fails.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note that in all cases where your DApp relies on a third party, it is relying
+    on a foreign centralized service for fetching data from the blockchain. Since
+    one of the strong points of DApps is precisely decentralization, adding a component
+    that needs to be trusted may be a step backward in this direction. It is up to
+    you to decide on the trade-off between convenience and decentralization for the
+    users of your DApp. As such, a good rule of thumb is to use an injected provider
+    if found, and fall back to a centralized service otherwise.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Putting it all Together
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: The code in Listing [4-4](#PC7) attempts to load the injected provider from
+    a web3 browser, both modern and legacy ones. If it fails, it falls back to using
+    an Infura secure websocket endpoint. The provider is used to create a web3.js
+    instance, but the same code can be repurposed for other libraries.async function
+    getWeb3() {  // Modern web3 browsers  if (window.ethereum) {    const web3 = new
+    Web3(window.ethereum);    // Only if we need access to user accounts    try {      await
+    window.ethereum.enable();    } catch (error) {      console.error("No access to
+    user accounts");    }    return web3;  }  // Legacy web3 browsers  else if (window.web3)
+    {    return new Web3(window.web3.currentProvider);  }  // Standard browser  else
+    {    return new Web3("wss://mainnet.infura.io/ws/v3/TOKEN");  }}Listing 4-4
+  prefs: []
+  type: TYPE_NORMAL
+- en: Code snippet for initializing a web3 connection for a DApp, based on the code
+    provided by metamask.io
+  prefs: []
+  type: TYPE_NORMAL
+- en: Retrieving Data
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Now that we know how to connect to the network, we can start actually retrieving
+    data. We will review how to access network information, account balances, perform
+    static calls, and subscribe to events. As before, we will be using web3@1.2.0
+    as a library to interact with the Ethereum network, but other libraries should
+    provide similar features.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Network Information
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: We can start out by querying general network information. To begin with, it
+    is a good practice to always check that you are connected to the expected network.
+    If your application is meant to be used on the Rinkeby test network, you do not
+    want a user to be accidentally using a connection to Mainnet. To do this, you
+    can get the identifier of the network you are connected to and compare it to the
+    identifier of the expected network.> await web3.eth.net.getId()1
+  prefs: []
+  type: TYPE_NORMAL
+- en: Networks are identified by a numeric identifier. Mainnet is 1, Ropsten is 3,
+    Rinkeby is 4, and Kovan is 42\. Ephemeral development networks are typically set
+    up with higher IDs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Like most requests to an external data source in javascript, calls to the Ethereum
+    network are asynchronous operations. Different libraries may have different ways
+    to handle this, either by using callbacks or returning promises. In particular,
+    web3.js supports traditional error-first callbacks as well as promi-events. Promi-events
+    are promise objects which double as an event emitter, allowing you to listen to
+    different stages of the asynchronous operation. They will become more relevant
+    in the next chapter. For now, we will simply use the async-await syntax for working
+    with promises.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Another piece of information we can get from the network is the current block
+    number. Polling this value can let us know when a new block was added to the chain,
+    potentially including transactions that have modified the state of the contracts
+    we are working with, thus triggering a re-read in our app.> await web3.eth.getBlockNumber()7059809^([3](#Fn3))We
+    can also get detailed information from a block, such as its hash, the total gas
+    used, its miner, and a list of all the transactions included in it. Note that
+    we can refer to a block either by number, hash, or the string latest to signal
+    that we want the latest block on the chain.> await web3.eth.getBlock(''latest''){
+    author: ''0xea674fdde...'',  gasLimit: 8000029,  gasUsed: 1808896,  hash: ''0xcdb2699b240ece675611aa...'',  number:
+    7059810,  transactions:   [ ''0xca7d315abc76988ddcfa49...'',     ''0x9b72090bbabe017d4bcf5b...'',     ''0xa50150e448a0cc40a29986...'',     ...
+    ],  ... }We can also get information not on the network but on the node itself.
+    For instance, we can query the software version that a node is running, and even
+    warn our users if there is a known issue on that release.> await web3.eth.getNodeInfo()''Parity-Ethereum//v2.1.11-stable-e9194b0-20190107/x86_64-linux-gnu/rustc1.31.1''Another
+    potentially useful check is whether the node is up to date with the rest of the
+    chain. Nodes that have been just set up may not have synced yet, so they will
+    not be able to return recent information from the network. If a node is no longer
+    syncing, you can safely rely on it.> await web3.eth.isSyncing()false'
+  prefs: []
+  type: TYPE_NORMAL
+- en: There is more information you can query from a node. Make sure to check out
+    the web3.js reference^([4](#Fn4)) for additional methods.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Account Balances and Code
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Given an address, you can query the ETH stored by that account, regardless of
+    it being an externally owned account or a contract. Furthermore, since blockchain
+    history is indelible, you can even query the balance of the account in an earlier
+    point in time (Listing [4-5](#PC13)). The number of blocks you can go back will
+    depend on whether you are working with an archive or a regular node.> const addr
+    = '0xcafE1A77e84698c83CA8931F54A755176eF75f2C';> const block = await web3.eth.getBlockNumber()
+    - 10;> await web3.eth.getBalance(addr, block);'180300794957635301822239'Listing
+    4-5
+  prefs: []
+  type: TYPE_NORMAL
+- en: Querying the balance of an address from ten blocks ago
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note that ETH balances are **always** expressed in Wei, which is the smallest
+    unit in which an ETH can be subdivided. One ETH is equivalent to 1e18 Wei (i.e.,
+    1 followed by 18 zeros). You can use the web3 utils module (Listing [4-6](#PC14))
+    to convert between them.> const balance = await web3.eth.getBalance(addr, block)>
+    web3.utils.fromWei(balance)'180300.794957635301822239'Listing 4-6
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using web3.utils.fromWei for converting from Wei to ETH. The reverse method
+    is toWei
+  prefs: []
+  type: TYPE_NORMAL
+- en: You may have noted from the preceding snippets that ETH balance is returned
+    not as a number but as a **string**. This is meant to avoid losing precision when
+    dealing with very large numbers, since javascript numbers cannot deal with very
+    large magnitudes. As an example, 1822239 wei are lost in the conversion to integer
+    in the following code.> parseInt(balance).toLocaleString();'180,300,794,957,635,300,000,000'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This decision is specific to the web3.js library. Other libraries rely on javascript
+    bignumber implementations, such as bignumber.js^([5](#Fn5)) or bn.js^([6](#Fn6)).
+    It is most likely that once support for native bignumbers^([7](#Fn7)) is stabilized
+    in the language, libraries will switch to it. Either way, what is important is
+    that you keep in mind that most numbers in Ethereum cannot be handled using regular
+    javascript numbers, or you risk losing precision.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Besides balances, you can also get the code at an address, and use it to check
+    whether an address is a contract or an externally owned account. You can also
+    check the code itself to see if it matches the binary from a known contract.>
+    await web3.eth.getCode(addr);'0x6060604052361561011...'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Keep in mind that this method for checking whether an account is a contract
+    or not is far from robust. If you get no code from an address, it does not necessarily
+    mean it is externally owned: a contract may be deployed to that address later,
+    or a contract may have been deployed there but was eventually self-destructed.
+    All in all, you should avoid relying on whether an arbitrary address is externally
+    owned or not for particularly sensitive operations.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Calling into a Contract
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: As we saw in Chapter [2](476252_1_En_2_Chapter.xhtml), you can call into a contract
+    to query information from it by issuing a JSON-RPC call to its address. Most contracts
+    expose getter functions that return information on their current state or perform
+    pure calculations; these functions can be identified as they are tagged with the
+    view or pure modifiers in Solidity. Like all the functions listed in this chapter,
+    calling into them does not cost any gas, since the call can be answered by any
+    node in the network, and does not need to introduce a change on the blockchain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'These calls can be executed at a low level using the call function  from web3.js,
+    which requires manually providing the target address and the raw data to send
+    to the target contract. As an example, 0x18160ddd is the function selector^([8](#Fn8))
+    for accessing the totalSupply of an ERC20 token contract, so we can test it against
+    an existing contract on mainnet, such as the BAT token on mainnet, which returns
+    the hexadecimal representation of 1.5e27.> const addr = ''0x0d8775f648430679a709e98d2b0cb6250d2887ef'';>
+    await web3.eth.call({ to: addr, data: ''0x18160ddd'' });''0x00000000...0004d8c55aefb8c05b5c000000''However,
+    we will typically rely on the web3 Contract abstraction for interacting with a
+    contract (Listing [4-7](#PC18)). Creating one of these, as we saw before, requires
+    the contract’s ABI and its address. We will replicate the preceding example using
+    the ABI for the ERC20.^([9](#Fn9))> const abi = [  {    "constant": true,    "inputs":
+    [],    "name": "totalSupply",    "outputs": [{"name": "", "type": "uint256"}],    "payable":
+    false,    "stateMutability": "view",    "type": "function"  }, ...];> const erc20
+    = new web3.eth.Contract(abi, addr);> await erc20.methods.totalSupply().call()''1500000000000000000000000000''Listing
+    4-7'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Accessing the same token’s total supply via the web3 Contract object. Note how
+    the output is formatted based on its type instead of returned as a raw hexadecimal
+    value
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Like getBalance, all calls to a contract can also include an optional block
+    parameter, in case you want to query a contract’s state at a previous point in
+    time. Remember that requesting changes for a block too long ago in the chain requires
+    a connection to an archive node, which is not always available. Also keep in mind
+    that, depending on your use case, it may be prudent to only display information
+    from a dozen blocks ago, to shield yourself against possible chain reorgs. Data
+    this recent is usually always available, regardless of the node keeping an archive
+    or not.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The Contract object can also be used to obtain the function selectors that
+    can be plugged into low-level calls or raw transactions. In the following line,
+    the encodeABI method returns the data selector that we used at the beginning of
+    this section.> await erc20.methods.totalSupply().encodeABI()''0x18160ddd''Contracts
+    also expose a handy interface to all events declared on the ABI (Listing [4-8](#PC20)),
+    making it easy to query all events in a block range.> const block = await web3.eth.getBlockNumber();>
+    const opts = { fromBlock: block - 100, toBlock: block };> await erc20.getPastEvents(''Transfer'',
+    opts);[{address: ''0x0D8775F648430679A709E98d2b0Cb6250d2887EF'',  blockNumber:
+    7060651,  logIndex: 91,  removed: false,  transactionHash: ''0x3bd37...'',  transactionIndex:
+    96,  transactionLogIndex: ''0x0'',  type: ''mined'',  returnValues:    Result
+    {      ''0'': ''0xAAAAA6...'',      ''1'': ''0x664753...'',      ''2'': ''1905510325611397921584'',      from:
+    ''0xAAAAA6...'',      to: ''0x664753...'',      value: ''1905510325611397921584''
+    },  event: ''Transfer''}, ... ]Listing 4-8'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Obtaining the transfer events on the BAT token on mainnet that occurred in the
+    past 100 blocks. In this example, the address starting with 0xAAAAA6 transferred
+    1.9e21 tokens to address 0x664753
+  prefs: []
+  type: TYPE_NORMAL
+- en: Each log object informs of the block and the transaction where it occurred,
+    as well as the name of the event (in this case, Transfer), and includes the parameters
+    with which it was emitted.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Detecting Changes
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: We will now go deeper into events. Even though we now know how to query past
+    events, listening to new events is a useful method to detect changes to a contract
+    in our application in real time. We will see three different ways for monitoring
+    changes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Polling for New Blocks
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Polling is a simple yet effective method for reacting to changes (Listing [4-9](#PC21)).
+    Given that any change in the Ethereum network needs to be introduced via a new
+    block in the chain, a perfectly valid approach is to just poll for new blocks,
+    and re-read the contract state that you are interested in whenever a new block
+    is mined. Since Ethereum blocks are generated every few seconds, a 1-second interval
+    can be good enough.let block = null,    totalSupply = null;const interval = setInterval(async
+    function() {  const newBlock = await web3.eth.getBlockNumber();  if (newBlock
+    !== block) {    // update block number    block = newBlock;    // re-read relevant
+    data from contract    totalSupply = await erc20.methods.totalSupply().call();  }},
+    1000);Listing 4-9
+  prefs: []
+  type: TYPE_NORMAL
+- en: Polling for new blocks to update the totalSupply of an ERC20 contract. Though
+    we could directly poll for the total supply, this approach is more efficient if
+    there is more data that we need to update on every block
+  prefs: []
+  type: TYPE_NORMAL
+- en: Whenever a new block is spotted, you can query the contract your app is interacting
+    with to retrieve its latest state and update your app accordingly if there were
+    any changes. An alternative would be to run getPastEvents on the new block and
+    only react if there were any events that affect your contract.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Installing Event Filters
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '*Event filters* are a mechanism provided by Ethereum nodes for retrieving new
+    events that match a specified set of conditions. It works by allowing you to install
+    an event filter **on a node** and then polling for any new events that match that
+    filter. At a JSON-RPC level, this pattern is supported mainly by the following
+    methods:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: newFilter to install a new event filter on a node, which returns a filter ID
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: getFilterChanges that returns all new logs for a given filter ID since the last
+    time this method was called
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: uninstallFilter to remove a filter given its ID
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Event filters still rely on polling a node for new changes, but they are more
+    convenient to use, since it is now the node that keeps track of exactly what new
+    events need to be sent to the client. This saves the client from needing to issue
+    regular getPastLogs calls to check for new events and allows the node to precalculate
+    the data to send if needed. It is also possible to install filters for new blocks
+    and pending transactions that are sent to the node.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Warning
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Some public nodes, such as the ones offered by Infura, may not support installing
+    event filters. To work around this, Metamask ships with a web3 subprovider to
+    fake the behavior of filters completely on the client side. This allows you to
+    code your application using event filters without needing to worry about whether
+    the node you are connecting to actually supports them. However, keep in mind that
+    the performance gain you could get by using filters is completely lost in this
+    scenario.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'At this point, it is worth going into what options can be specified for retrieving
+    and polling events. These options can be used both when creating new filters and
+    when getting past logs:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Block ranges** can be used to specify which blocks to monitor for events.
+    By default, filters are created to monitor the latest block mined.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: One or more **addresses** where the logs originate from. Retrieving events from
+    a web3 Contract object will automatically restrict the logs to the address of
+    the contract instance.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The **topics** used to filter the events. Remember from Chapter [3](476252_1_En_3_Chapter.xhtml)
+    that EVM logs can have up to four indexed topics – these are used for filtering
+    them during queries. The first topic is always the event selector, while the remaining
+    topics are the indexed arguments from Solidity. A filter can impose restrictions
+    on any of the topics, requesting a topic to optionally match a set of values.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'As an example, the following filter object can be used to retrieve all transfers
+    of an ERC20 token sent to a group of three token holders during the last 1000
+    blocks.> const block = await web3.eth.getBlockNumber();> const filter = { to:
+    [holder1, holder2, holder3] };> const opts = { fromBlock: block - 1000, filter:
+    filter };> await erc20.getPastEvents(''Transfer'', opts);'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The web3 library has no support for event filters. Instead, monitoring for
+    events is done via the third and last mechanism for listening to changes: subscriptions.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Creating Subscriptions
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: A more advanced option to monitor events is to create a subscription. Event
+    subscriptions work similar to event filters in that they are created in a node
+    from a set of filters (block range, addresses, and topics) to indicate which events
+    are of interest to the client. However, subscriptions do not require the client
+    to poll for changes, but rely on two-way connections to directly push new events
+    to the client. For this reason, subscriptions are only available on websockets
+    or IPC connections and not on HTTP ones.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Unlike event filters, Infura does support websocket connections, via the URL
+    wss://mainnet.infura.io/ws/v3/PROJECTID. Still, in the event that the user chooses
+    a custom node via a regular HTTP connection, Metamask also ships with a subprovider
+    to fake subscriptions client-side by relying on polling. Again, this allows you
+    to transparently use event subscriptions on your app, having a subprovider polyfill
+    the feature if the connection or node does not support it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Under the hood, web3 uses subscriptions when you listen to an event (Listing
+    [4-10](#PC23)). This means that you will only be able to rely on events if you
+    are running on a websocket or IPC connection, or you have a subprovider to polyfill
+    for subscriptions. The web3 event emitter will report whenever a new event that
+    matches the filter is available, when an error occurs, and when an event is removed
+    from the blockchain due to a reorganization.> const filter = { to: [holder1, holder2,
+    holder3] };> const sub = erc20.events.Transfer({ filter })  .on(''data'', (evt)
+    =>    console.log(`New tx from ${evt.returnValues.from}`)  )  .on(''error'', (err)
+    =>    console.error(err)  )  .on(''changed'', (evt) =>    console.log(`Removed
+    tx from ${evt.returnValues.from}`)  )Listing 4-10'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Setting up a subscription to monitor Transfer events on an ERC20 token contract.
+    The `data` handler fires on every new event, while `error` fires upon an error
+    in the subscription. Events removed from the chain due to a reorganization are
+    fired in `changed`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Subscriptions are automatically cleared when the connection to the server is
+    closed. Alternatively, they can be removed via the unsubscribe() method  on the
+    subscription object, or by using web3.eth.clearSubscriptions(), which removes
+    all active subscriptions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As with event filters, it is possible to set up subscriptions for events from
+    multiple addresses, as well as for new pending transactions or new blocks. Using
+    the latter, a similar pattern to polling can be implemented, in which a subscription
+    is installed to monitor for new blocks, and upon every block the state of the
+    contract is re-read. Nevertheless, if the contract emits events for all state
+    changes, monitoring them is much more efficient.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Example Application
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: We will now put together everything we learned in this chapter and build a web
+    application for monitoring transfers on an ERC20 token. This application will
+    just retrieve data from the token and not provide any interface for actually sending
+    transactions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Setup
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: We will once again use the create-react-app package to bootstrap our application.
+    Needless to say, using this package is not required, but will simplify our setup
+    and let us focus on building the app itself.npm init react-app erc20-app
+  prefs: []
+  type: TYPE_NORMAL
+- en: Dependencies
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: Besides web3, we will install the openzeppelin-solidity package as a dependency.
+    OpenZeppelin is an open source library of secure reusable smart contracts, and
+    includes vetted implementations for some standards. We will use it to obtain the
+    ABI of the ERC20 contract that we need to create the web3 Contract instance. We
+    will also add bignumber.js for manipulating a few numeric values throughout the
+    app.npm install web3@1.2.0 openzeppelin-solidity@2.1 bignumber.js@8.0
+  prefs: []
+  type: TYPE_NORMAL
+- en: As before, try running npm start to make sure that the sample react-app runs
+    successfully. We can now start coding.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Initializing Web3
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: We will create a network.js file  as before to manage a web3 object to connect
+    to the network. We will rely on the injected web3 provider, falling back to a
+    websocket connection to Infura. Note that since we will not request access to
+    user accounts, we can skip the ethereum.enable() call.
+  prefs: []
+  type: TYPE_NORMAL
+- en: // src/eth/network.jsimport Web3 from 'web3';let web3;export function getWeb3()
+    {  if (!web3) {    web3 = new Web3(window.ethereum              || (window.web3
+    && window.web3.currentProvider)              || "wss://mainnet.infura.io/ws/v3/PROJECT_ID");  }
+    return web3;}
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Make sure to use a valid URL for the fallback provider, by filling in with your
+    Infura token, in case the user browsing the site does not have Metamask or a web3
+    compatible browser. Note that it is websocket-based, since we will be using event
+    subscriptions later on the app.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The ERC20 Contract
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: We will create a small function for initializing new web3 contract objects for
+    ERC20s. Recall that in order to do this, we needed access to the web3 object (which
+    we have already set up), the contract ABI, and the address.// src/contracts/ERC20.jsimport
+    ERC20Artifact from 'openzeppelin-solidity/build/contracts/ERC20Detailed.json';export
+    default function ERC20(web3, address = null) {  const { abi } = ERC20Artifact;  return
+    new web3.eth.Contract(abi, address);}
+  prefs: []
+  type: TYPE_NORMAL
+- en: We retrieve the contract ABI from OpenZeppelin, while we’ll leave the address
+    as a parameter for now. Now that we have all basic components set up, we can get
+    started with the application views.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Building the Application
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: We will start with a main App component that will initialize the connection
+    and set up the ERC20 contract instance that we will be monitoring. Once we have
+    the contract instance ready, we will begin by retrieving some information from
+    it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Root Component
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: The App component will be the root of our component tree (Listing [4-11](#PC28)).
+    This component will manage the connection to the network and the ERC20 contract
+    instance, both of which will be set up on the componentDidMount lifecycle method.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Remember that this method is automatically fired by React when the component
+    has mounted, and is the suggested event for retrieving async data. Of course,
+    if you are using a particular state management library (such as Redux), your strategy
+    for loading async data may be different.// src/App.jsimport React, { Component
+    } from ''react'';import ERC20Contract from ''./contracts/ERC20'';import { getWeb3
+    } from ''./eth/network'';const ERC20_ADDRESS = "0x1985365e9f78359a9B6AD760e32412f4a445E862";class
+    App extends Component {  state = { loading: true };  async componentDidMount()
+    {    const web3 = getWeb3();    **const erc20 = await ERC20Contract(web3, ERC20_ADDRESS);**    this.setState({
+    erc20, loading: false });  }  render() {    return (      <div className="App">        {
+    this.getAppContent() }      </div>    );  }  getAppContent() {    const { erc20
+    } = this.state;    if (!erc20) {      return (<div>Connecting to network...</div>);    }
+    else {      return (<div>ERC20 at {erc20.options.address}</div>);    }  }}Listing
+    4-11'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Initial version of the root App component for our application. Note that the
+    highlighted line in componentDidMount that is setting up the ERC20 contract is
+    using the factory method we built earlier
+  prefs: []
+  type: TYPE_NORMAL
+- en: Since the address in the preceding example refers to a contract on mainnet,
+    the app will only work if we have a connection to the Ethereum main network. If
+    we are connecting to another network, the contract will probably not exist at
+    the address listed, causing the app to fail.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: If you are curious about the ERC20 address chosen, it is the Augur REP token.
+    Augur is a decentralized oracle and prediction market, and its main token is used
+    reporting and disputing the outcome of events. If you want to experiment with
+    other ERC20s, Etherscan provides a handy list of top tokens at etherscan.io/tokens.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To handle this case, we will add a few lines to detect the current network,
+    and validate that we are indeed on mainnet (Listing [4-12](#PC29)). You can play
+    with this by changing the current network on metamask while on the application.  async
+    componentDidMount() {    const web3 = getWeb3();    **const networkId = await
+    web3.eth.net.getId();**    **const isMainnet = (networkId === 1);**    **this.setState({
+    isMainnet });**    if (isMainnet) {      const erc20 = await ERC20Contract(web3,
+    ERC20_ADDRESS);      this.setState({ erc20 });    }    this.setState({ loading:
+    false });  }Listing 4-12'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Checking that we are currently connected to mainnet. Note that the contract
+    is only instantiated if we are on the correct network
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The render method needs to be changed accordingly to handle not just the loading
+    and loaded states but also the state where we are not on mainnet.  getAppContent()
+    {    const { loading, isMainnet, erc20 } = this.state;    if (loading) {      return
+    (<div>Connecting to network...</div>);    } else if (!isMainnet) {      return
+    (<div>Please connect to Mainnet</div>);    } else {      return (<div>ERC20 at
+    {erc20.options.address}</div>);    }  }We still have another issue to tackle:
+    what if the connection just fails? The node we are connecting to may be offline,
+    or the contract address could just be incorrect. We need to add proper error handling
+    when we are retrieving blockchain data (Listing [4-13](#PC31)).  async componentDidMount()
+    {    const web3 = getWeb3();    await this.checkNetwork(web3);    await this.retrieveContract(web3);    this.setState({
+    loading: false });  }  async checkNetwork(web3) {    try {      const networkId
+    = await web3.eth.net.getId();      const isMainnet = (networkId === 1);      this.setState({
+    isMainnet });    } catch (error) {      console.error(error);      **this.setState({
+    error: `Error connecting to network` })**    }  }  async retrieveContract(web3)
+    {    if (!this.state.isMainnet) return;    try {      const erc20 = await ERC20Contract(web3,
+    ERC20_ADDRESS);      this.setState({ erc20 });    } catch (error) {      console.error(error);      **this.setState({
+    error: `Error retrieving contract` })**    }  }Listing 4-13'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Updated componentDidMount method to add error handling. Note that the render
+    method also needs to be updated accordingly to display the error message if it
+    is present in the component state
+  prefs: []
+  type: TYPE_NORMAL
+- en: We can now focus on the token itself. Let’s create a new component named ERC20,
+    display it instead of the contract’s address (Listing [4-14](#PC32)), and start
+    working on it.  getAppContent() {    const { loading, error, isMainnet, erc20
+    } = this.state;    if (error) {      return (<div>{error}</div>);    } else if
+    (loading) {      return (<div>Connecting to network...</div>);    } else if (!isMainnet)
+    {      return (<div>Please connect to Mainnet</div>);    } else {      **return
+    (<ERC20 contract={erc20} />);**    }  }Listing 4-14
+  prefs: []
+  type: TYPE_NORMAL
+- en: Updated render helper method to display an ERC20 component, which expects the
+    erc20 contract instance as a property
+  prefs: []
+  type: TYPE_NORMAL
+- en: ERC20 Component
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: This component shall receive the contract instance, knowing that all connection
+    details have been settled by the parent component, and display it. We will start
+    by retrieving some static information, such as the name, symbol, and number of
+    decimals (Listing [4-15](#PC33)). These are optional attributes according to the
+    ERC20 standard, since they are never used as part of the contract’s logic; nevertheless,
+    most tokens do implement them.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We will also retrieve the token’s total supply. This is the total number of
+    tokens created for this contract. Unlike the name, symbol, and decimals, there
+    is no guarantee that this value will stay constant: some tokens have a continuous
+    issuance model, which causes the total supply to increase on every block, while
+    others may have a deflationary model where certain events actually burn tokens.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: For the sake of this app, we will work only with tokens with a fixed supply,
+    so we will not need to refresh the total supply. Nevertheless, you could easily
+    add a polling mechanism for updating the total supply on every call, as we have
+    seen earlier in this chapter.class ERC20 extends Component {  async componentDidMount()
+    {    const { contract } = this.props;    **const [name, symbol, decimals, totalSupply]
+    =**      **await Promise.all([**        **contract.methods.name().call(),**        **contract.methods.symbol().call(),**        **contract.methods.decimals().call(),**        **contract.methods.totalSupply().call(),**      **]);**    this.setState({
+    name, symbol, decimals, totalSupply });  }}Listing 4-15
+  prefs: []
+  type: TYPE_NORMAL
+- en: React component for displaying information on the ERC20 token. Once again, we
+    rely on the componentDidMount method to load async information to populate the
+    state. By using Promise.all(), we fire all four requests simultaneously and only
+    set the return values once we have obtained all of them
+  prefs: []
+  type: TYPE_NORMAL
+- en: We can now render this information by showing the token name and symbol to our
+    users, as well as the total supply (Listing [4-16](#PC34)). We will rely on the
+    decimals of the token to format all the values we display.render() {  if (!this.state.totalSupply)
+    return "Loading...";  const { name, totalSupply, decimals, symbol } = this.state;  const
+    formattedSupply = formatValue(totalSupply, decimals);  return (<div>    <h1>{name}
+    Token</h1>    <div>Total supply of {formattedSupply} {symbol}</div>  </div>);}Listing
+    4-16
+  prefs: []
+  type: TYPE_NORMAL
+- en: Render method to display the static information of an ERC20 token. Note that
+    the totalSupply is adjusted by the decimals of the token
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For the auxiliary formatValue function (Listing [4-17](#PC35)), we will rely
+    on bignumber.js, a library for manipulating and formatting big numbers in javascript.
+    We will convert the total supply value to a bignumber instance, right-shift it
+    (on base 10) by the number of decimals, and format the result as a string.// src/utils/format.jsimport
+    BigNumber from ''bignumber.js'';BigNumber.config({ DECIMAL_PLACES: 4 });export
+    function formatValue(value, decimals) {  const bn = new BigNumber(value);  return
+    bn.shiftedBy(-decimals).toString(10);}Listing 4-17'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Auxiliary function to format token amounts based on the decimals property of
+    the contract
+  prefs: []
+  type: TYPE_NORMAL
+- en: The output so far should look like Figure [4-3](#Fig3), assuming you did not
+    change the token address from the example.![../images/476252_1_En_4_Chapter/476252_1_En_4_Fig3_HTML.jpg](../images/476252_1_En_4_Chapter/476252_1_En_4_Fig3_HTML.jpg)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 4-3
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Our sample application displaying the static information of the Augur REP token:
+    name (Reputation), symbol (REP), and total supply (1.1e25) formatted with the
+    token decimals (18)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Displaying Transfer Events
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: We will now add the last component of our application that will display the
+    latest transfers of the token and listen for any new ones in real time.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Loading Past Transfers
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: 'Let’s start by adding a Transfers component to the ERC20 component we already
+    have (Listing [4-18](#PC36)), that will start out by loading past transfers. This
+    component will receive the contract, decimals, and symbol as props from its parent:
+    the first one to monitor for events and the other two to format values.render()
+    {  if (!this.state.totalSupply) return "Loading...";  const { name, totalSupply,
+    decimals, symbol } = this.state;  const { contract } = this.props;  const formattedSupply
+    = formatValue(totalSupply, decimals);  return (    <div className="ERC20">      <h1>{name}
+    Token</h1>      <div>Total supply of {formattedSupply} {symbol}</div>      <div>        **<h2>Transfers</h2>**        **<Transfers
+    contract={contract}**           **decimals={decimals} symbol={symbol} />**      </div>    </div>  );}Listing
+    4-18'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Updated render method from the ERC20 component to include the new Transfers
+    component
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We will be loading all transfer events from the past 1000 blocks to seed the
+    component. Attempting to load all transfers in history will probably fail, given
+    that REP has over 75,000 transfers at the time of this writing, which is too large
+    an amount to query from the node in a single request. There are other tokens with
+    even more transfers, such as OMG, which is at over 2 million at the time of this
+    writing.// src/components/Transfers.jsimport React, { Component } from ''react'';import
+    { getWeb3 } from ''../eth/network'';export default class Transfers extends Component
+    {  async componentDidMount() {    const { contract } = this.props;    const blockNumber
+    = await getWeb3().eth.getBlockNumber();    const EVENT = ''Transfer'';    **const
+    pastEvents = await contract.getPastEvents(EVENT, {**      **fromBlock: blockNumber
+    - 1000,**      **toBlock: blockNumber**    **});**    this.setState({      loading:
+    false,      transfers: pastEvents.reverse()    });  }}'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: For the sake of this application, we are just loading the events from an arbitrary
+    number of blocks ago, in order to seed the component with initial data as it loads.
+    Depending on your use case, you may want to add an option to load more events
+    (for instance, when the user scrolls to the end of the list) by firing subsequent
+    getPastEvents calls.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The render method for this component is straightforward: we will show a pure
+    component to display each transfer in a list (Listing [4-19](#PC38)). We will
+    pass down the symbol and decimals to format the amount of tokens transferred in
+    each event.  render() {    const { loading, transfers } = this.state;    const
+    { decimals, symbol } = this.props;    if (loading) return "Loading...";    return
+    (<div className="Transfers">      { transfers.map(transfer => (        <Transfer          key={getLogId(transfer)}          transfer={transfer}          decimals={decimals}          symbol={symbol}
+    />      )) }    </div>)  }Listing 4-19'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Displaying each transfer in the collection by using a pure component that simply
+    displays the data received
+  prefs: []
+  type: TYPE_NORMAL
+- en: Keep in mind that React requires us to assign a unique key to each element in
+    a collection. To generate this key, we are using a getLogId helper function (Listing
+    [4-20](#PC39)) that combines the transaction hash in which the event occurred
+    and the log index (i.e., the index of the particular event in the array of all
+    logs emitted in the transaction). This combination is guaranteed to be unique.function
+    getLogId(log) {  return `${log.transactionHash}.${log.logIndex}`;}Listing 4-20
+  prefs: []
+  type: TYPE_NORMAL
+- en: Simple function for generating a unique identifier for a log. Note that web3.js
+    already assigns an ID to a log entry, calculated as a hash over the same parameters.
+    However, the hash is then truncated to 4 bytes, which may yield collisions if
+    we are dealing with a large number of events
+  prefs: []
+  type: TYPE_NORMAL
+- en: For the Transfer pure component (Listing [4-21](#PC40)), we will just rely on
+    the formatValue helper function we used previously and fetch the from, to, and
+    value arguments from the transfer object. As an extra, we will include a link
+    to the transaction on etherscan so our users can review the transaction there,
+    so they can perform an additional check on the data we display on our app.^([10](#Fn10))const
+    ETHERSCAN_URL = 'https://etherscan.io/tx/';export default function Transfer (props)
+    {  const { decimals, symbol, transfer } = props;  const { from, to, value } =
+    transfer.returnValues;  const roundedValue = formatValue(value, decimals);  const
+    url = ETHERSCAN_URL + transfer.transactionHash;  return (    <div>      <a href={url}>        {from}
+    to {to} for {roundedValue} {symbol}      </a>    </div>  );}Listing 4-21
+  prefs: []
+  type: TYPE_NORMAL
+- en: Transfer component for displaying a single Transfer event loaded from the ERC20
+    token contract
+  prefs: []
+  type: TYPE_NORMAL
+- en: With this code, every time we reload the page, we will see the transfers from
+    the last 1000 blocks for the token. We can now add support for listening to new
+    transfers as they occur.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Monitoring New Transfers
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: 'In order to monitor new transfers, we will install a *subscription* for Transfer
+    events of this contract (Listing [4-22](#PC41)), as we have already seen previously
+    in this chapter. We will listen to all transfers starting from the block right
+    after the one we used for fetching past events and unsubscribe once the component
+    is unmounted (Listing [4-23](#PC42)).  subscribe(contract, fromBlock) {    const
+    eventSub = contract.events.Transfer({ fromBlock })      .on(''data'', (event)
+    => {        this.setState(state => ({          ...state,          transfers: [event,
+    ...state.transfers]        }));      });    this.setState({ eventSub });  }Listing
+    4-22'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Subscription function to listen for new transfer events, to be called from componentDidMount,
+    using erc20 and blockNumber+1 as arguments. Note that we are storing the subscription
+    object in state to be able to unsubscribe later
+  prefs: []
+  type: TYPE_NORMAL
+- en: componentWillUnmount() {    const { eventSub } = this.state;    if (eventSub)
+    eventSub.unsubscribe();  }Listing 4-23
+  prefs: []
+  type: TYPE_NORMAL
+- en: Code to stop listening for events when the component is to be unmounted from
+    the tree. Even though we will never unmount the component in this particular application,
+    it is a good practice to always remove the subscriptions when they are no longer
+    used
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Your application should now show new transactions as they occur, without the
+    need for refreshing the page. However, to make sure we properly handle all scenarios,
+    we will add handlers for when a transfer event is removed from the blockchain
+    due to a reorganization and for when the subscription fails (Listing [4-24](#PC43)).  subscribe(contract,
+    fromBlock) {    const eventSub = contract.events.Transfer({ fromBlock })      .on(''data'',
+    (event) => {        this.setState(state => ({          ...state,          transfers:
+    [event, ...state.transfers]        }));      })      **.on(''changed'', (event)
+    => {**        **this.setState(state => ({**          **...state,**          **transfers:
+    state.transfers.filter(t =>**            **t.transactionHash !== event.transactionHash**            **||
+    t.logIndex !== event.logIndex**        **)}))**      **})**      **.on(''error'',
+    (error) => {**        **this.setState({ error })**      **});**    this.setState({
+    eventSub });  }Listing 4-24'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Adding handlers for the changed and error events of the subscription. The former
+    fires whenever an event is removed from the blockchain, so we remove it from our
+    state, while the latter fires upon an error, which we add to our state to be displayed
+    to the user
+  prefs: []
+  type: TYPE_NORMAL
+- en: Awaiting Confirmations
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: As the last step in the application, we will avoid displaying unconfirmed transfers
+    to the user. Instead of showing a transfer event as soon as we receive it, we
+    will instead wait for a certain number of blocks to be added to the chain before
+    rendering it in our list.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In order to do this, we first need to monitor the current block number. We
+    will add a subscription specifically for that (Listing [4-25](#PC44)), though
+    we could also poll the getBlockNumber method every second to achieve a similar
+    result.  async componentDidMount() {    const blockNumber = await getWeb3().eth.getBlockNumber();    this.setState({
+    blockNumber });    const HEADERS = ''newBlockHeaders'';    **const blockSub =
+    getWeb3().eth.subscribe(HEADERS)**      **.on(''data'', ({ number }) => {**        **if
+    (number) this.setState({ blockNumber: number});**      **});**    this.setState({
+    blockSub });    // Subscribe to new transfers and load previous ones    // ...  }Listing
+    4-25'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Updated section of componentDidMount to set the initial block number in the
+    component’s state, and add a subscription to update it as new blocks are received
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now we can limit our component to just render the transfer events that happened
+    at least a number of blocks ago (Listing [4-26](#PC45)). By checking the block
+    number in which the transaction occurred against current block number, we can
+    easily implement this filter.  render() {    const { transfers, blockNumber }
+    = this.state;    **const confirmed = transfers.filter((transfer) => (**      **blockNumber
+    - transfer.blockNumber > 12**    **));**    // Render only confirmed transfers    //
+    ...  }Listing 4-26
+  prefs: []
+  type: TYPE_NORMAL
+- en: Updated render method to show only transfers with at least 12 confirmations
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Different applications will have different requirements for the number of confirmations,
+    some of them going up to hundreds of blocks. This will depend strictly on your
+    use case.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In this chapter, we have gone in-depth into how to extract data from the Ethereum
+    network and feed it into our app. We started out by reviewing how connections
+    to nodes work, listing the protocols available for the JSON-RPC interface, and
+    looking into the Provider object used by web3 and other libraries to manage the
+    underlying connection. We also learned that there are different types of nodes
+    available and how a Provider, such as the one injected by web3-enabled browsers,
+    may abstract away some of these differences via the usage of subproviders.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Using web3.js as a sample library, we studied what kind of queries we could
+    issue to the blockchain: general network information, address-specific data such
+    as balance and code, and calls to existing contracts. When connecting to an archive
+    node, these queries can be issued to any block in the past, not just the most
+    recent ones.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We also studied different ways for monitoring changes to contracts in real time
+    in our applications. While polling is a classic method that is always available,
+    event filters or subscriptions may be more interesting options due to better performance
+    or faster notification times.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To wrap up the chapter, we built an application for retrieving information from
+    an ERC20 token contract, and monitor all its transfer events using subscriptions.
+    In the next chapter, we will learn how to make changes to the blockchain, going
+    into all the details involved in sending a new transaction to the network.
+  prefs: []
+  type: TYPE_NORMAL
