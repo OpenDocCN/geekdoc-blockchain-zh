@@ -973,208 +973,259 @@
   id: totrans-194
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于需要高随机性的应用，使用外部随机数生成器和Oracle为
 - en: recommended to use external randomness generators and Oracle to bring
   id: totrans-195
   prefs: []
   type: TYPE_NORMAL
+  zh: 建议使用外部随机数生成器和Oracle为
 - en: the randomness to smart contracts.
   id: totrans-196
   prefs: []
   type: TYPE_NORMAL
+  zh: 随机数到智能合约中。
 - en: '**Signature Vulnerability**'
   id: totrans-197
   prefs: []
   type: TYPE_NORMAL
+  zh: '**签名漏洞**'
 - en: '**Vulnerability: Signature Manipulation**'
   id: totrans-198
   prefs: []
   type: TYPE_NORMAL
+  zh: '**漏洞：签名篡改**'
 - en: Sometimes, smart contracts implement cryptographic functions to verify
   id: totrans-199
   prefs: []
   type: TYPE_NORMAL
+  zh: 有时，智能合约实现密码学函数来验证
 - en: signed messages and perform transfer operations accordingly. To ensure
   id: totrans-200
   prefs: []
   type: TYPE_NORMAL
+  zh: 签名消息并进行相应的转账操作。为确保
 - en: security, the smart contract functions need to ensure that the signed
   id: totrans-201
   prefs: []
   type: TYPE_NORMAL
+  zh: 安全性，智能合约功能需要确保已签名的
 - en: messages are authentic and the message cannot be replayed. When using
   id: totrans-202
   prefs: []
   type: TYPE_NORMAL
+  zh: 消息是真实的，且消息不能被重复发送。当使用
 - en: a message, a private key and a message are supplied as input to create a
   id: totrans-203
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个消息，一个私钥和一个消息作为输入，来创建一个
 - en: signature. One important thing to note is that the signature is not unique.
   id: totrans-204
   prefs: []
   type: TYPE_NORMAL
+  zh: 签名。需要注意的是签名不是唯一的。
 - en: A hacker can manipulate (r,s,v) parameters to create a different yet valid
   id: totrans-205
   prefs: []
   type: TYPE_NORMAL
+  zh: 黑客可以操纵(r,s,v)参数来创建不同但有效的
 - en: signature for the same private key and message. Hence, signature or hash
   id: totrans-206
   prefs: []
   type: TYPE_NORMAL
+  zh: 签名使用相同的私钥和消息。因此，签名或散列
 - en: cannot be used as a unique identifier of a message transaction. Otherwise,
   id: totrans-207
   prefs: []
   type: TYPE_NORMAL
+  zh: 无法作为消息交易的独特标识符。否则，
 - en: hackers can take advantage of this by creating different valid signatures to
   id: totrans-208
   prefs: []
   type: TYPE_NORMAL
+  zh: 黑客可以利用这一点，通过创建不同的有效签名来
 - en: replay previously signed messages.
   id: totrans-209
   prefs: []
   type: TYPE_NORMAL
+  zh: 重复发送以前签名的消息。
 - en: For example, the following msgid is not unique and should not be used
   id: totrans-210
   prefs: []
   type: TYPE_NORMAL
+  zh: 例如，下面的msgid不是唯一的，不应该使用
 - en: 'as an identifier for the signed message:'
   id: totrans-211
   prefs: []
   type: TYPE_NORMAL
+  zh: 作为已签名消息的标识符：
 - en: '286'
   id: totrans-212
   prefs: []
   type: TYPE_NORMAL
+  zh: '286'
 - en: Chapter 7 programming Smart ContraCt with Solidity
   id: totrans-213
   prefs: []
   type: TYPE_NORMAL
+  zh: 第7章用Solidity编程智能合约
 - en: '*bytes32 msgid = keccak256(abi.encodePacked(getTransferHash(_to,*'
   id: totrans-214
   prefs: []
   type: TYPE_NORMAL
+  zh: '*bytes32 msgid = keccak256(abi.encodePacked(getTransferHash(_to,*'
 - en: '*_value, _gasPrice, _nonce), _signature));*'
   id: totrans-215
   prefs: []
   type: TYPE_NORMAL
+  zh: '*_value, _gasPrice, _nonce), _signature));*'
 - en: '*require(!signatureUsed[msgid]);*'
   id: totrans-216
   prefs: []
   type: TYPE_NORMAL
+  zh: '*require(!signatureUsed[msgid]);*'
 - en: Here, msgid is supported to be unique for the same message signed by
   id: totrans-217
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这里，msgid被支持为使用相同私钥签名的同一消息
 - en: a private key. However, since _signature is not unique, msgid can be made
   id: totrans-218
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个私钥。然而，由于_signature不是唯一的，msgid可以被制作
 - en: different, and the same signed message can be replayed multiple times to
   id: totrans-219
   prefs: []
   type: TYPE_NORMAL
+  zh: 不同，相同的签名消息可以被多次重复发送到
 - en: trigger other actions that might involve asset transfer.
   id: totrans-220
   prefs: []
   type: TYPE_NORMAL
+  zh: 触发可能涉及资产转移的其他操作。
 - en: To fix this problem, simply remove _signature in the hashing function
   id: totrans-221
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了解决这个问题，在散列函数中简单地移除_signature即可
 - en: to make the msgid to be unique to block the replay of the message.
   id: totrans-222
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了使msgid唯一，以阻止消息的重复发送。
 - en: '*bytes32 msgid = keccak256(abi.encodePacked(getTransferHash(_to,*'
   id: totrans-223
   prefs: []
   type: TYPE_NORMAL
+  zh: '*bytes32 msgid = keccak256(abi.encodePacked(getTransferHash(_to,*'
 - en: '*_value, _gasPrice, _nonce)));*'
   id: totrans-224
   prefs: []
   type: TYPE_NORMAL
+  zh: '*_value, _gasPrice, _nonce)));*'
 - en: '*require(!signatureUsed[msgid]);*'
   id: totrans-225
   prefs: []
   type: TYPE_NORMAL
+  zh: '*require(!signatureUsed[msgid]);*'
 - en: '**Module Summary**'
   id: totrans-226
   prefs: []
   type: TYPE_NORMAL
+  zh: '**模块概要**'
 - en: Security is the most essential component for smart contract development.
   id: totrans-227
   prefs: []
   type: TYPE_NORMAL
+  zh: 安全是智能合约开发中最基本的组成部分。
 - en: To ensure security, there should be a security framework in place, and
   id: totrans-228
   prefs: []
   type: TYPE_NORMAL
+  zh: 为确保安全，应该有一个安全框架来实施，并且
 - en: developers should also focus on details for each line of code. There will be
   id: totrans-229
   prefs: []
   type: TYPE_NORMAL
+  zh: 开发者还应该关注代码每一行的细节。将会有
 - en: more discussion of security in Chapter [8\.](https://doi.org/10.1007/978-1-4842-8164-2_8)
   id: totrans-230
   prefs: []
   type: TYPE_NORMAL
+  zh: 有关安全的更多讨论请参考第[8章](https://doi.org/10.1007/978-1-4842-8164-2_8)
 - en: '**Module 5: Tools, Test, and Debug**'
   id: totrans-231
   prefs: []
   type: TYPE_NORMAL
+  zh: '**模块5：工具、测试和调试**'
 - en: In Chapter [1](https://doi.org/10.1007/978-1-4842-8164-2_1), we discussed basic
     tools such as setting up a smart contract development environment by using Truffle
     and Remix to compile and
   id: totrans-232
   prefs: []
   type: TYPE_NORMAL
+  zh: 在第[1](https://doi.org/10.1007/978-1-4842-8164-2_1)章中，我们讨论了基本工具，如使用Truffle和Remix设置智能合约开发环境来编译
 - en: deploy smart contracts. In this module, we continue to introduce useful
   id: totrans-233
   prefs: []
   type: TYPE_NORMAL
+  zh: 部署智能合约。在本模块中，我们继续介绍一些有用的
 - en: tools such as smart contract visualization tools, security scanning tools,
   id: totrans-234
   prefs: []
   type: TYPE_NORMAL
+  zh: 诸如智能合约可视化工具、安全扫描工具等工具
 - en: and gas estimation tools. We also discuss how to test and debug smart
   id: totrans-235
   prefs: []
   type: TYPE_NORMAL
+  zh: 以及燃料估算工具。我们还讨论了如何测试和调试智能
 - en: contract programs.
   id: totrans-236
   prefs: []
   type: TYPE_NORMAL
+  zh: 合约程序时。
 - en: '287'
   id: totrans-237
   prefs: []
   type: TYPE_NORMAL
+  zh: '287'
 - en: '![](index-299_1.jpg)'
   id: totrans-238
   prefs: []
   type: TYPE_IMG
+  zh: '![](index-299_1.jpg)'
 - en: Chapter 7 programming Smart ContraCt with Solidity
   id: totrans-239
   prefs: []
   type: TYPE_NORMAL
+  zh: 第7章用Solidity编程智能合约
 - en: '**Tools**'
   id: totrans-240
   prefs: []
   type: TYPE_NORMAL
+  zh: '**工具**'
 - en: '**MythX: A Security Scanning Tool**'
   id: totrans-241
   prefs: []
   type: TYPE_NORMAL
+  zh: '**MythX：一个安全扫描工具**'
 - en: MythX is a security scanning tool that is released as a fee-based service of
   id: totrans-242
   prefs: []
   type: TYPE_NORMAL
+  zh: MythX是一个安全扫描工具，作为一项有偿服务发布
 - en: mythx.io, or a CLI package, or a plug-in for other tools.
   id: totrans-243
   prefs: []
   type: TYPE_NORMAL
+  zh: mythx.io，或者是一个CLI包，或者其他工具的插件。
 - en: Here, we explain how to use MythX as a plug-in for Remix. To use
   id: totrans-244
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里，我们解释了如何将MythX作为Remix的插件使用。要使用
 - en: Remix, follow the instructions in Chapt[er 6](https://doi.org/10.1007/978-1-4842-8164-2_6)
     and launch your application.
   id: totrans-245
@@ -6098,194 +6149,242 @@
   id: totrans-1296
   prefs: []
   type: TYPE_NORMAL
+  zh: 对所有可能引起安全
 - en: breach. Public functions in smart contracts are globally public and can be
   id: totrans-1297
   prefs: []
   type: TYPE_NORMAL
+  zh: 漏洞。智能合约中的公共函数是全局公开的，可以被
 - en: called in any order with any data. Therefore, it is extremely important to
   id: totrans-1298
   prefs: []
   type: TYPE_NORMAL
+  zh: 称为任何顺序和任何数据。因此，确保函数
 - en: 'check the following attributes for a smart contract function:'
   id: totrans-1299
   prefs: []
   type: TYPE_NORMAL
+  zh: 检查智能合约函数以下属性：
 - en: • **Scope of function** – Declare whether it is public or
   id: totrans-1300
   prefs: []
   type: TYPE_NORMAL
+  zh: • **函数范围** – 声明它是公共的还是
 - en: private, or view.
   id: totrans-1301
   prefs: []
   type: TYPE_NORMAL
+  zh: 私有，或查看。
 - en: '334'
   id: totrans-1302
   prefs: []
   type: TYPE_NORMAL
+  zh: '334'
 - en: Chapter 8 SeCurity ConSiderationS
   id: totrans-1303
   prefs: []
   type: TYPE_NORMAL
+  zh: 第8章 安全考虑
 - en: • **Scope of access** – Check who can call the function,
   id: totrans-1304
   prefs: []
   type: TYPE_NORMAL
+  zh: • **访问范围** – 检查谁可以调用函数，
 - en: maybe only owner, or only a predefined user role.
   id: totrans-1305
   prefs: []
   type: TYPE_NORMAL
+  zh: 可能只有所有者，或只有预定义的用户角色。
 - en: • **Parameter permutation** – Check parameter range of
   id: totrans-1306
   prefs: []
   type: TYPE_NORMAL
+  zh: • **参数置换** – 检查参数范围的
 - en: data. Check validity of inputs.
   id: totrans-1307
   prefs: []
   type: TYPE_NORMAL
+  zh: 数据。检查输入的有效性。
 - en: Ethereum blockchain’s intrinsic security has some constraints. When
   id: totrans-1308
   prefs: []
   type: TYPE_NORMAL
+  zh: 以太坊区块链的固有安全性有一些限制。当
 - en: a variable is declared in a smart contract, it can be a private variable.
   id: totrans-1309
   prefs: []
   type: TYPE_NORMAL
+  zh: 在智能合约中声明一个变量，它可以是一个私有变量。
 - en: However, a private variable is really not private as the Ethereum Virtual
   id: totrans-1310
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，私有变量实际上并不是私有的，因为以太坊虚拟
 - en: Machine (EVM) installed on blockchain nodes can reveal it. To ensure
   id: totrans-1311
   prefs: []
   type: TYPE_NORMAL
+  zh: 机器（EVM）安装在区块链节点上可以揭示它。为了确保
 - en: privacy of data in smart contracts, the data should be encrypted before
   id: totrans-1312
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了在智能合约中保护数据隐私，数据应该在
 - en: sending to blockchain and then decrypted after receiving from the
   id: totrans-1313
   prefs: []
   type: TYPE_NORMAL
+  zh: 发送到区块链然后接收后解密。
 - en: blockchain. Because of the transparency of public blockchain, onchain
   id: totrans-1314
   prefs: []
   type: TYPE_NORMAL
+  zh: 区块链。由于公共区块链的透明性，链上
 - en: data encryption and decryption are not secure in smart contracts. The
   id: totrans-1315
   prefs: []
   type: TYPE_NORMAL
+  zh: 数据加密和解密在智能合约中是不安全的。该
 - en: execution steps and internal data are viewable with an EVM with debugger
   id: totrans-1316
   prefs: []
   type: TYPE_NORMAL
+  zh: 执行步骤和内部数据可以通过带有调试器的EVM
 - en: enabled. The encryption and decryption should be performed through
   id: totrans-1317
   prefs: []
   type: TYPE_NORMAL
+  zh: 启用。加密和解密应通过
 - en: offchain computing.
   id: totrans-1318
   prefs: []
   type: TYPE_NORMAL
+  zh: 离线计算。
 - en: For decentralized applications that need to use time sequence in
   id: totrans-1319
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于需要使用时间序列的去中心化应用程序，
 - en: computing, it is important to know that timestamps in blockchain are
   id: totrans-1320
   prefs: []
   type: TYPE_NORMAL
+  zh: 计算，重要的是要知道区块链中的时间戳是
 - en: not accurate because miners can manipulate the block time by delaying
   id: totrans-1321
   prefs: []
   type: TYPE_NORMAL
+  zh: 不准确，因为矿工可以通过延迟
 - en: or accelerating block computation and proposal. It is not a good practice
   id: totrans-1322
   prefs: []
   type: TYPE_NORMAL
+  zh: 加速区块计算和提案。这是一种不好的做法
 - en: to use block timestamp to check for sequencing execution and ordering
   id: totrans-1323
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用区块链时间戳来检查顺序执行和排序
 - en: transaction steps. The timestamp of blockchain or transactions should not
   id: totrans-1324
   prefs: []
   type: TYPE_NORMAL
+  zh: 交易步骤。区块链或交易的时间戳不应该
 - en: be used as a unique identifier for multiple events as there is no guarantee
   id: totrans-1325
   prefs: []
   type: TYPE_NORMAL
+  zh: 可以作为多个事件的唯一标识符，因为没有保证
 - en: of block timestamp collision within the range of seconds.
   id: totrans-1326
   prefs: []
   type: TYPE_NORMAL
+  zh: 秒内的区块时间戳冲突。
 - en: Security needs to be considered in all life cycles of smart contract
   id: totrans-1327
   prefs: []
   type: TYPE_NORMAL
+  zh: 在智能合约的所有生命周期中都需要考虑安全
 - en: development, from conceptions, requirements, token design, architecture,
   id: totrans-1328
   prefs: []
   type: TYPE_NORMAL
+  zh: 从概念、要求、代币设计、架构、
 - en: to implementation and operations. One important security factor to
   id: totrans-1329
   prefs: []
   type: TYPE_NORMAL
+  zh: 实现和运营。一个重要的安全因素是
 - en: consider is safe-guarding private keys in the deployment process. Crypto
   id: totrans-1330
   prefs: []
   type: TYPE_NORMAL
+  zh: 需要考虑在部署过程中的安全保护私有密钥。加密
 - en: assets are stored in accounts, and each account is represented by a private
   id: totrans-1331
   prefs: []
   type: TYPE_NORMAL
+  zh: 资产存储在账户中，每个账户由一个私有
 - en: and public keypair. Private keys are used to sign transactions to send assets
   id: totrans-1332
   prefs: []
   type: TYPE_NORMAL
+  zh: 和公钥对。私钥用于签署交易以发送资产
 - en: from one user to another. Whoever has the private key of an account owns
   id: totrans-1333
   prefs: []
   type: TYPE_NORMAL
+  zh: 从一个用户到另一个用户。拥有账户私钥的人
 - en: the asset of that account. When deploying a smart contract to a blockchain,
   id: totrans-1334
   prefs: []
   type: TYPE_NORMAL
+  zh: 该账户的资产。当将智能合约部署到区块链上时，
 - en: '335'
   id: totrans-1335
   prefs: []
   type: TYPE_NORMAL
+  zh: '335'
 - en: Chapter 8 SeCurity ConSiderationS
   id: totrans-1336
   prefs: []
   type: TYPE_NORMAL
+  zh: 第8章 安全考虑
 - en: there needs to be a user who sends the deployment transaction to the
   id: totrans-1337
   prefs: []
   type: TYPE_NORMAL
+  zh: 需要有一个用户向
 - en: blockchain. To sign a transaction, the user needs to unlock the account
   id: totrans-1338
   prefs: []
   type: TYPE_NORMAL
+  zh: 区块链。为了签署交易，用户需要解锁账户
 - en: with its private key. If an account is unlocked in a blockchain, its private
   id: totrans-1339
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用其私钥。如果一个账户在区块链上解锁，它的私
 - en: key is open and can be stolen by a spoofer. This has happened many times
   id: totrans-1340
   prefs: []
   type: TYPE_NORMAL
+  zh: 密钥是开放的，可以被欺骗者窃取。这已经发生了很多次
 - en: in the cryptoworld.
   id: totrans-1341
   prefs: []
   type: TYPE_NORMAL
+  zh: 在加密世界中。
 - en: There are several secure ways to deploy smart contracts. For example,
   id: totrans-1342
   prefs: []
   type: TYPE_NORMAL
+  zh: 有几种安全的方法可以部署智能合约。例如，
 - en: users can use a hardware wallet or use an offline wallet for the deployment.
   id: totrans-1343
   prefs: []
   type: TYPE_NORMAL
+  zh: 用户可以使用硬件钱包或离线钱包进行部署。
 - en: In both cases, the private keys are kept in separate devices, and only
   id: totrans-1344
   prefs: []
@@ -7006,430 +7105,537 @@
   id: totrans-1497
   prefs: []
   type: TYPE_NORMAL
+  zh: 将主网区块链用作托管，
 - en: auditing platform for the trusted channel between two or multiple parties.
   id: totrans-1498
   prefs: []
   type: TYPE_NORMAL
+  zh: 为两个或多个方之间的受信任通道提供一个审计平台。
 - en: For example, a state channel can be built as a proof of authority (POA)
   id: totrans-1499
   prefs: []
   type: TYPE_NORMAL
+  zh: 例如，状态通道可以构建为权威证明（POA）
 - en: or Byzantine Fault Tolerance private blockchain that is permissioned
   id: totrans-1500
   prefs: []
   type: TYPE_NORMAL
+  zh: 或经过授权的拜占庭容错私有区块链
 - en: for the participants only. To make it simpler, the private blockchain
   id: totrans-1501
   prefs: []
   type: TYPE_NORMAL
+  zh: 只有参与者。为了简单起见，私有区块链
 - en: can be replaced with a smart wallet that can connect with other wallets
   id: totrans-1502
   prefs: []
   type: TYPE_NORMAL
+  zh: 可以替换为可以与其他钱包连接的智能钱包
 - en: and record the transactions among them. Participants use the private
   id: totrans-1503
   prefs: []
   type: TYPE_NORMAL
+  zh: 记录他们之间的交易。参与者使用私有
 - en: blockchain or smart wallet as a state channel to do fast and low cost
   id: totrans-1504
   prefs: []
   type: TYPE_NORMAL
+  zh: 作为状态通道进行快速低成本的
 - en: transactions.
   id: totrans-1505
   prefs: []
   type: TYPE_NORMAL
+  zh: 交易。
 - en: '343'
   id: totrans-1506
   prefs: []
   type: TYPE_NORMAL
+  zh: '343'
 - en: '![](index-354_1.png)'
   id: totrans-1507
   prefs: []
   type: TYPE_IMG
+  zh: '![](index-354_1.png)'
 - en: Chapter 9 Layer 2 and ethereum 2
   id: totrans-1508
   prefs: []
   type: TYPE_NORMAL
+  zh: 第9章 第2层与以太坊2
 - en: To illustrate a use case of a state channel, we use a payment system of
   id: totrans-1509
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了说明状态通道的一个用例，我们使用一个
 - en: a construction company in which the builder needs to record contracting
   id: totrans-1510
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个建筑公司，其中承包商需要记录合同
 - en: employees earning on daily bases and pay them on a monthly basis. If the
   id: totrans-1511
   prefs: []
   type: TYPE_NORMAL
+  zh: 员工每天赚取收入，每月支付。如果
 - en: daily transactions are recorded on the blockchain, that would increase
   id: totrans-1512
   prefs: []
   type: TYPE_NORMAL
+  zh: 每天在区块链上记录交易，这将增加
 - en: transaction fees dramatically as the cost for gas fees could reach $100 per
   id: totrans-1513
   prefs: []
   type: TYPE_NORMAL
+  zh: 交易费用可能会达到每笔交易的100美元。
 - en: transaction. Using the state channel, the owner of the company can pay
   id: totrans-1514
   prefs: []
   type: TYPE_NORMAL
+  zh: 交易。使用状态通道，公司的所有者可以支付
 - en: daily transactions with the state channel and only pay employees the lump
   id: totrans-1515
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用状态通道进行日常交易，并只支付给员工一笔
 - en: sum each month. This will save the cost at roughly 1/30 of the original cost.
   id: totrans-1516
   prefs: []
   type: TYPE_NORMAL
+  zh: 每月的总和。这将节省大约原始成本的1/30。
 - en: The topology and workflow of a state channel is shown in the following
   id: totrans-1517
   prefs: []
   type: TYPE_NORMAL
+  zh: 状态通道的拓扑和工作流程如下：
 - en: 'diagram (Figure [9-2](#p354)):'
   id: totrans-1518
   prefs: []
   type: TYPE_NORMAL
+  zh: 图表（图[9-2](#p354)）：
 - en: '***Figure 9-2\.** Topology and workflow of state channel solutions*'
   id: totrans-1519
   prefs: []
   type: TYPE_NORMAL
+  zh: 图9-2.*状态通道解决方案的拓扑和工作流程*
 - en: The preceding diagram shows the schema of a state channel that has
   id: totrans-1520
   prefs: []
   type: TYPE_NORMAL
+  zh: 前面的图表显示了具有
 - en: 'the following components:'
   id: totrans-1521
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下组件：
 - en: • State channel smart contract is deployed to the
   id: totrans-1522
   prefs: []
   type: TYPE_NORMAL
+  zh: 状态通道智能合约部署到
 - en: mainnet.
   id: totrans-1523
   prefs: []
   type: TYPE_NORMAL
+  zh: 主网。
 - en: This smart contract is multisigned, and not a single user can alter or
   id: totrans-1524
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个智能合约是多签的，没有一个用户可以更改或
 - en: delete the smart contract.
   id: totrans-1525
   prefs: []
   type: TYPE_NORMAL
+  zh: 删除智能合约。
 - en: '344'
   id: totrans-1526
   prefs: []
   type: TYPE_NORMAL
+  zh: '344'
 - en: Chapter 9 Layer 2 and ethereum 2
   id: totrans-1527
   prefs: []
   type: TYPE_NORMAL
+  zh: 第9章 第2层与以太坊2
 - en: The state channel smart contract can accept deposits for users and
   id: totrans-1528
   prefs: []
   type: TYPE_NORMAL
+  zh: 状态通道智能合约可以为用户提供存款，
 - en: create a state channel for a group of users. The depositor needs to specify
   id: totrans-1529
   prefs: []
   type: TYPE_NORMAL
+  zh: 为一群用户创建状态通道。存款人需要指定
 - en: the participants’ account addresses.
   id: totrans-1530
   prefs: []
   type: TYPE_NORMAL
+  zh: 参与者的账户地址。
 - en: The state channel smart contract also has functions to (a) process
   id: totrans-1531
   prefs: []
   type: TYPE_NORMAL
+  zh: 状态通道智能合约还有处理
 - en: multisign signatures and distribute funds to participants and (b) process
   id: totrans-1532
   prefs: []
   type: TYPE_NORMAL
+  zh: 多重签名签名，并将资金分配给参与者和（b）处理
 - en: audit requests from any of the participants by accepting evidence sent by
   id: totrans-1533
   prefs: []
   type: TYPE_NORMAL
+  zh: 从任何参与者那里接受审计请求，通过接受发送的证据
 - en: any participants.
   id: totrans-1534
   prefs: []
   type: TYPE_NORMAL
+  zh: 任何参与者。
 - en: • Each user can have a state channel wallet (SC wallet).
   id: totrans-1535
   prefs: []
   type: TYPE_NORMAL
+  zh: 每个用户可以有一个状态通道钱包（SC钱包）。
 - en: The wallet can interact among participants by sending transactions,
   id: totrans-1536
   prefs: []
   type: TYPE_NORMAL
+  zh: 钱包可以通过发送交易，
 - en: requesting receipts, or multisigning a transaction for the main chain. The
   id: totrans-1537
   prefs: []
   type: TYPE_NORMAL
+  zh: 请求收据，或者为主链多签名交易。主要链
 - en: wallet also has storage to store local copies of the transaction history and
   id: totrans-1538
   prefs: []
   type: TYPE_NORMAL
+  zh: 钱包还具有存储交易历史本地副本的功能
 - en: receipts.
   id: totrans-1539
   prefs: []
   type: TYPE_NORMAL
+  zh: 收据。
 - en: 'The workflow is as follows:'
   id: totrans-1540
   prefs: []
   type: TYPE_NORMAL
+  zh: 工作流程如下：
 - en: • A payer uses a crypto wallet to deposit ether assets
   id: totrans-1541
   prefs: []
   type: TYPE_NORMAL
+  zh: 付款人使用加密货币钱包存入以太坊资产
 - en: to the state channel smart contract and specify the
   id: totrans-1542
   prefs: []
   type: TYPE_NORMAL
+  zh: 向状态通道智能合约发送，并指定
 - en: payees’ accounts who will receive payments.
   id: totrans-1543
   prefs: []
   type: TYPE_NORMAL
+  zh: 收款人账户将收到支付。
 - en: • The smart contract creates a record and returns a
   id: totrans-1544
   prefs: []
   type: TYPE_NORMAL
+  zh: 智能合约创建一个记录并返回一个
 - en: deposit record with balance and payee addresses.
   id: totrans-1545
   prefs: []
   type: TYPE_NORMAL
+  zh: 存入记录，带有余额和收款人地址。
 - en: The payee addresses are also recorded by the smart
   id: totrans-1546
   prefs: []
   type: TYPE_NORMAL
+  zh: 收款人的地址也由智能合约记录。
 - en: contract to process claims or audit requests.
   id: totrans-1547
   prefs: []
   type: TYPE_NORMAL
+  zh: 处理索赔或审计请求的智能合约。
 - en: • The payer gets the deposit receipt and starts sending
   id: totrans-1548
   prefs: []
   type: TYPE_NORMAL
+  zh: 付款人获得存款收据并开始发送
 - en: payments through offchain signed transaction to
   id: totrans-1549
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过离线签名交易进行支付，
 - en: payees. For each transaction, the state channel wallet
   id: totrans-1550
   prefs: []
   type: TYPE_NORMAL
+  zh: 收款人。对于每笔交易，状态通道钱包
 - en: will update the account balance offchain and have
   id: totrans-1551
   prefs: []
   type: TYPE_NORMAL
+  zh: 将账户余额离线更新，并具有
 - en: signed receipt for both sender and receiver. These
   id: totrans-1552
   prefs: []
   type: TYPE_NORMAL
+  zh: 双方发件人和收件人的签名收据。这些
 - en: transactions are offchain and hence have a low
   id: totrans-1553
   prefs: []
   type: TYPE_NORMAL
+  zh: 交易是离链的，因此具有较低的**交易速度**。
 - en: transaction fee or even no fee.
   id: totrans-1554
   prefs: []
   type: TYPE_NORMAL
+  zh: 交易费用或甚至没有费用。
 - en: '345'
   id: totrans-1555
   prefs: []
   type: TYPE_NORMAL
+  zh: '345'
 - en: Chapter 9 Layer 2 and ethereum 2
   id: totrans-1556
   prefs: []
   type: TYPE_NORMAL
+  zh: 第9章第2层和以太坊2.0。
 - en: • Once the operation of the state channel is completed,
   id: totrans-1557
   prefs: []
   type: TYPE_NORMAL
+  zh: • 一旦完成状态通道的操作，
 - en: the offchain transactions will need to be transferred
   id: totrans-1558
   prefs: []
   type: TYPE_NORMAL
+  zh: 离线交易需要转让
 - en: to the mainnet, and each participant’s balance will
   id: totrans-1559
   prefs: []
   type: TYPE_NORMAL
+  zh: 主网，每个参与者的余额将
 - en: need to be updated. Each participant will check the
   id: totrans-1560
   prefs: []
   type: TYPE_NORMAL
+  zh: 需要更新。每个参与者将检查
 - en: local copy of their transaction receipt and sign the exit
   id: totrans-1561
   prefs: []
   type: TYPE_NORMAL
+  zh: 他们的交易收据本地副本并签署退出
 - en: state channel transaction. Once the exit transaction
   id: totrans-1562
   prefs: []
   type: TYPE_NORMAL
+  zh: 状态通道交易。一旦退出交易
 - en: is multisigned by all parties, it is sent to the mainnet
   id: totrans-1563
   prefs: []
   type: TYPE_NORMAL
+  zh: 由各方多签名，发送到主网
 - en: state channel smart contract for processing. The
   id: totrans-1564
   prefs: []
   type: TYPE_NORMAL
+  zh: 状态通道智能合约进行处理。
 - en: mainnet smart contract will verify the information
   id: totrans-1565
   prefs: []
   type: TYPE_NORMAL
+  zh: 主网智能合约将验证信息
 - en: and then distribute the deposited funds to respective
   id: totrans-1566
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后将存款资金分发给各自的
 - en: participants.
   id: totrans-1567
   prefs: []
   type: TYPE_NORMAL
+  zh: 参与者。
 - en: • If any of the participants does not sign the transaction,
   id: totrans-1568
   prefs: []
   type: TYPE_NORMAL
+  zh: • 如果任何参与者没有签署交易，
 - en: the other participants can send a transaction to call the
   id: totrans-1569
   prefs: []
   type: TYPE_NORMAL
+  zh: 其他参与者可以发送交易以调用
 - en: smart contract’s claim or audit function and provide
   id: totrans-1570
   prefs: []
   type: TYPE_NORMAL
+  zh: 智能合约的索赔或审计功能，并提供**安全保障**。
 - en: the needed local receipt as proof. If the state channel
   id: totrans-1571
   prefs: []
   type: TYPE_NORMAL
+  zh: 所需的本地收据作为证明。如果状态通道
 - en: smart contract verifies the payer frauds, the deposited
   id: totrans-1572
   prefs: []
   type: TYPE_NORMAL
+  zh: 智能合约验证支付者的欺诈行为，所存
 - en: balance of the payer can be slashed.
   id: totrans-1573
   prefs: []
   type: TYPE_NORMAL
+  zh: 支付者的余额可以被削减。
 - en: There are different implementations for layer 2 state channel solutions.
   id: totrans-1574
   prefs: []
   type: TYPE_NORMAL
+  zh: 有不同的实现方式用于第2层状态通道解决方案。
 - en: In the aforementioned, we have offchain computing and storage built into
   id: totrans-1575
   prefs: []
   type: TYPE_NORMAL
+  zh: 在前述内容中，我们在
 - en: the state channel wallet. This will increase the footprint of the wallet and
   id: totrans-1576
   prefs: []
   type: TYPE_NORMAL
+  zh: 状态通道钱包。这将增加钱包的足迹并
 - en: need to customize the crypto wallet. Another solution is to implement
   id: totrans-1577
   prefs: []
   type: TYPE_NORMAL
+  zh: 需要定制加密货币钱包。另一种解决方案是实现
 - en: the state channel offchain computing through a private blockchain using
   id: totrans-1578
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过私有区块链使用状态通道离线计算。
 - en: permissioned consensus such as proof of authority (POA) or Byzantine
   id: totrans-1579
   prefs: []
   type: TYPE_NORMAL
+  zh: 权限共识，如证明权限（POA）或拜占庭
 - en: Fault Tolerance (BFT) blockchain. The private blockchain can process
   id: totrans-1580
   prefs: []
   type: TYPE_NORMAL
+  zh: 容错（BFT）区块链。私有区块链可以处理
 - en: and record transactions among state channel participants. Only the entry
   id: totrans-1581
   prefs: []
   type: TYPE_NORMAL
+  zh: 在状态通道参与者之间记录交易。只有条目
 - en: and exit transactions of the state channel will be sent to mainnet for
   id: totrans-1582
   prefs: []
   type: TYPE_NORMAL
+  zh: 和状态通道的退出交易将发送到主网进行
 - en: security and persistent record. The wallet can be a regular wallet such as a
   id: totrans-1583
   prefs: []
   type: TYPE_NORMAL
+  zh: 安全和持久记录。钱包可以是普通的钱包，如一个
 - en: MetaMask wallet that can switch from mainnet chain to private chain for
   id: totrans-1584
   prefs: []
   type: TYPE_NORMAL
+  zh: MetaMask钱包可以在主网链切换到私有链。
 - en: state channel transactions.
   id: totrans-1585
   prefs: []
   type: TYPE_NORMAL
+  zh: 状态通道交易。
 - en: '346'
   id: totrans-1586
   prefs: []
   type: TYPE_NORMAL
+  zh: '346'
 - en: Chapter 9 Layer 2 and ethereum 2
   id: totrans-1587
   prefs: []
   type: TYPE_NORMAL
+  zh: 第9章第2层和以太坊2.0。
 - en: Although state channels can improve scalability for Ethereum
   id: totrans-1588
   prefs: []
   type: TYPE_NORMAL
+  zh: 虽然状态通道可以提高以太坊的可扩展性
 - en: by moving transactions offchain, there are some limitations for this
   id: totrans-1589
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过将交易离链，对此有一些限制
 - en: mechanism. First, state channel participants need to actively participate
   id: totrans-1590
   prefs: []
   type: TYPE_NORMAL
+  zh: 机制。首先，状态通道参与者需要积极参与
 - en: in the transactions. Their accounts will need to be registered in the state
   id: totrans-1591
   prefs: []
   type: TYPE_NORMAL
+  zh: 在交易中，参与者的账户需要在州内注册。
 - en: channel smart contract. A sender cannot send transactions to an arbitrary
   id: totrans-1592
   prefs: []
   type: TYPE_NORMAL
+  zh: 通道智能合约。发件人不能向任意
 - en: address not in the channel. Secondly, all state channel participants will
   id: totrans-1593
   prefs: []
   type: TYPE_NORMAL
+  zh: 地址不在通道中。其次，所有状态通道参与者将
 - en: need to be actively involved in the transactions by verifying transactions
   id: totrans-1594
   prefs: []
   type: TYPE_NORMAL
+  zh: 需要积极参与交易，通过验证交易来确保安全。
 - en: and multisign exit transactions. Thirdly, since the mainnet only has the
   id: totrans-1595
   prefs: []
   type: TYPE_NORMAL
+  zh: 和多签名退出交易。第三，由于主网只有
 - en: initial state and final state, it will need to rely on the offchain participants
   id: totrans-1596
   prefs: []
   type: TYPE_NORMAL
+  zh: 初始状态和最终状态，它需要依赖离线参与者
 - en: to provide proof if there are discrepancies with the state channel
   id: totrans-1597
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果与状态通道存在差异，需要提供证据。
 - en: transactions. Needing participants to be involved to secure state channels
   id: totrans-1598
   prefs: []
   type: TYPE_NORMAL
+  zh: 交易。需要参与者参与确保状态通道的安全。
 - en: is a big drawback and makes it difficult to develop a generalized solution
   id: totrans-1599
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是一个很大的缺点，使得难以开发出通用的解决方案
 - en: for state channels.
   id: totrans-1600
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于状态通道。
 - en: '**Plasma As a Layer 2 Technology**'
   id: totrans-1601
   prefs: []
   type: TYPE_NORMAL
+  zh: '**Plasma作为第2层技术**'
 - en: Ethereum Plasma is another layer 2 scaling solution that uses smart
   id: totrans-1602
   prefs: []
   type: TYPE_NORMAL
+  zh: 以太坊Plasma是另一种第2层可扩展性解决方案，使用智能
 - en: contracts to link external blockchains with Ethereum mainnet as a security
   id: totrans-1603
   prefs: []
   type: TYPE_NORMAL
+  zh: 合同将外部区块链与以太坊主网链接作为安全
 - en: and arbitration platform. These children blockchains are called plasma
   id: totrans-1604
   prefs: []
