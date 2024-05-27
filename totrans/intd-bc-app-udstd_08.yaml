@@ -1,0 +1,488 @@
+- en: © The Author(s), under exclusive license to APress Media, LLC, part of Springer
+    Nature 2022J. T. GeorgeIntroducing Blockchain Applications[https://doi.org/10.1007/978-1-4842-7480-4_8](https://doi.org/10.1007/978-1-4842-7480-4_8)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 8. The Consensus Algorithms for Blockchains Project
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Joseph Thachil George^([1](#Aff2)  )(1)Rome, Italy
+  prefs: []
+  type: TYPE_NORMAL
+- en: This project is a basic blockchain written in Python. It is a set of blocks
+    that are linked together in such a way that the information they store is impossible
+    to modify (and more and more difficult as more blocks are joined to the blockchain).
+  prefs: []
+  type: TYPE_NORMAL
+- en: The PoW (Proof of Work) algorithm is used to mine every block in this blockchain.
+    Its purpose is to find a hash of all the data saved in the blocks that meets certain
+    criteria. For this purpose, each block has a variable data called nonce that must
+    be modified until the desired hash is discovered.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The desired hash in bitcoin, for example, requires the first *X* digits to be
+    zeros. The amount X determines how difficult mining is (the larger the X, the
+    greater the difficulty). In this blockchain, X is a property of the blockchain
+    that can be set in its constructor. However, this is dependent on the mining capacity
+    of the nodes that support the network in Bitcoin and the majority of other coins.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 8.1 Starting the Project
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: This project has one dependency, called hashlib, which secures the hashes and
+    message digests the import hashlib.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To run the project, open a terminal and type the following:python3 project1.py
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Create Transaction method  is used to generate transactions. Required inputs
+    include the sending address, the receiving address, and the number of FDCs (*Federated
+    Data Collaborations*  in the Internet of Things). To add the transaction to the
+    blockchain, use the Mine Pending Transactions function  after it has been created.
+    As an argument, this method requires the address of the block’s miner, i.e., the
+    address that will be rewarded in the future. You may also use the Show Address
+    Balance method  with the address name you want to verify as an argument to check
+    each address balance.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 8.2 The Python Code
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Listing [8-1](#PC2) shows the TransactionProject.py Python file. The python
+    file TransactionProject.py will help us do following tasks:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '1.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Create transaction in blockchain
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '2.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Mining of transaction
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '3.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Validate Transaction
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '4.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Creating blocks in blockchain
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '*import datetime**import hashlib**from pprint import pprint**class Transaction(object):*      *"""Transaction
+    class*      *"""*      *def __init__(self, fromAddress, toAddress, amount):*            *self.fromAddress
+    = fromAddress*            *self.toAddress = toAddress*            *self.amount
+    = amount**class Block(object):*      *"""Block class*      *"""*      *def __init__(self,
+    timestamp, transactions, previousHash=""):*            *self.timestamp = timestamp*            *self.transactions
+    = transactions*            *self.previousHash = previousHash*            *self.nonce
+    = 0*            *self.hash = self.calculateHash()*      *def calculateHash(self):*            *info
+    = str(self.timestamp) + str(self.transactions) + str(self.previousHash) + str(self.nonce)*            *return
+    hashlib.sha256(info.encode(''utf-8'')).hexdigest()*      *# Proof of work algorithm*      *def
+    mineBlock(self, difficulty):*            *self.hash = self.calculateHash()*            *while(self.hash[:difficulty]
+    != "0"*difficulty):*                  *self.nonce += 1*                  *self.hash
+    = self.calculateHash()**class BlockChain(object):*      *"""Blockchain class*      *"""*      *def
+    __init__(self):*            *self.chain = [self.createGenesisBlock()]*            *self.difficulty
+    = 4*            *self.pendingTransactions = []*            *self.miningReward
+    = 100*      *def createGenesisBlock(self):*            *return* *Block**("20/03/2018",
+    [], "0")*      *def getLatestBlock(self):*            *return self.chain[-1]*      *def
+    minePendingTransactions(self, miningRewardAddress):*            *newBlock =* *Block**(datetime.datetime.now(),
+    self.pendingTransactions)*            *newBlock.previousHash = self.getLatestBlock().hash*            *#
+    you can check if transactions are valid here*            *print("mining block...")*            *newBlock.mineBlock(self.difficulty)*            *print("block
+    mined:", newBlock.hash)*            *print("block succesfully mined.")*            *self.chain.append(newBlock)*            *self.pendingTransactions
+    = [Transaction(None, miningRewardAddress, self.miningReward)]*      *def createTransaction(self,
+    transaction):*            *self.pendingTransactions.append(transaction)*      *def
+    getBalanceOfAddress(self, address):*            *balance = 0*            *for
+    block in self.chain:*                  *for transaction in block.transactions:*                        *if
+    transaction.fromAddress == address:*                              *balance -=
+    transaction.amount*                        *if transaction.toAddress == address:*                              *balance
+    += transaction.amount*            *return balance*      *def isBlockChainValid(self):*            *for
+    previousBlock, block in zip(self.chain, self.chain[1:]):*                  *if
+    block.hash != block.calculateHash():*                        *return False*                  *if
+    block.previousHash != previousBlock.hash:*                        *return False*            *return
+    True*      *def showBlockChain(self):*            *print("blockchain: fedecoin\n")*            *for
+    block in self.chain:*                  *print("block")*                  *print("timestamp:",
+    block.timestamp)*                  *pprint("transactions:", block.transactions)*                  *print("previousHash:",
+    block.previousHash)*                  *print("hash:", block.hash, "\n")*      *def
+    showAddressBalance(self, address):*            *print(address, "balance:", self.getBalanceOfAddress(address))**fedecoin
+    = BlockChain()**fedecoin.createTransaction(Transaction("address1", "address2",
+    100))**fedecoin.createTransaction(Transaction("address2", "address1", 50))**fedecoin.minePendingTransactions("fede_address")**fedecoin.createTransaction(Transaction("address1",
+    "address3", 100))**fedecoin.createTransaction(Transaction("address2", "address1",
+    50))**fedecoin.minePendingTransactions("fede_address")**fedecoin.showAddressBalance("fede_address")**print("fedecoin
+    is valid?", fedecoin.isBlockChainValid())**fedecoin.chain[1].transactions = Transaction("address1",
+    "address2", 1000)**print("fedecoin is valid?", fedecoin.isBlockChainValid())**fedecoin.chain[1].calculateHash()**print("fedecoin
+    is valid?", fedecoin.isBlockChainValid())*Listing 8-1'
+  prefs: []
+  type: TYPE_NORMAL
+- en: TransactionProject.py
+  prefs: []
+  type: TYPE_NORMAL
+- en: '8.3 Example 2: Using Flask in Python'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'We utilized the Python Flask framework to create this blockchain application.
+    The following are the requirements for this application.*Python 3.0+**Flask and
+    requests**for Install**pip install Flask == 0.122 requests==2.18.4*Here are the
+    steps:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '1.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Put in place a basic proof of work.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '2.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Create an API interface for the blockchain.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '3.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Construct a blockchain miner.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '4.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Use the blockchain to interact.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '8.3.1 Step 1: Create a Simple Proof of Work'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The goal of PoW (Proof of Work) is to provide a number that solves a problem.
+    It must be difficult to track down the number, but anyone else on the network
+    should be able to verify it. Because the number is made up of cryptographic signatures,
+    it will be denied access if it is supplied incorrectly elsewhere. The PoW approach
+    allows you to send money without having to trust anyone or any institution because
+    the blockchain only cares about cryptographic signatures. This is the foundation
+    of PoW.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Bitcoin is based on PoW. Listing [8-2](#PC4) illustrates an example.*from hashlib
+    import sha256**x = 10**y = 0  # We don''t know what y should be yet...**while
+    sha256(f''{x*y}''.encode()).hexdigest()[-1] != "0":*    *y += 1**printf(''The
+    solution is y = {y}'')* *@staticmethod*    *def hash(block: Dict[str, Any]) ->
+    str:*        *"""*        *Creates a SHA-256 hash of a Block*        *:param block:
+    Block*        *"""*        *# We must make sure that the Dictionary is Ordered,
+    or we''ll have inconsistent hashes*        *block_string = json.dumps(block, sort_keys=True).encode()*        *return
+    hashlib.sha256(block_string).hexdigest()*            *def proof_of_work(self,
+    last_proof: int) -> int:*        *"""*        *Simple Proof of Work Algorithm:*         *-
+    Find a number 0'' such that hash(00'') contains leading 4 zeroes, where 0 is the
+    previous 0''*         *- 0 is the previous proof, and 0'' is the new proof*        *"""*        *proof
+    = 0*        *while self.valid_proof(last_proof, proof) is False:*            *proof
+    += 1*        *return proof*    *@staticmethod*    *def valid_proof(last_proof:
+    int, proof: int) -> bool:*        *"""*        *Validates the Proof*        *:param
+    last_proof: Previous Proof*        *:param proof: Current Proof*        *:return:
+    True if correct, False if not.*        *"""*        *guess = f''{last_proof}{proof}''.encode()*        *guess_hash
+    = hashlib.sha256(guess).hexdigest()*        *return guess_hash[:4] == "0000"*Listing
+    8-2'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ProofOfWork.py
+  prefs: []
+  type: TYPE_NORMAL
+- en: '8.3.2 Step 2: Create an API Endpoint for Blockchain'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Place the code shown in Listing [8-3](#PC5) at the end of your Python file.
+    Your file will then be an API endpoint thanks to this code. This will enable you
+    to use Postman to transmit and receive requests in your blockchain.*class Blockchain(object):**#
+    Instantiate our Node**app = Flask(__name__)**# Generate a globally unique address
+    for this node**node_identifier = str(uuid4()).replace(''-'', '''')**# Instantiate
+    the Blockchain**blockchain = Blockchain()**@app.route(''/mine'', methods=[''**GET**''])**def
+    mine():*    *return "We''ll mine a new Block"**@app.route(''/transactions/new'',
+    methods=[''POST''])**def new_transaction():*    *return "We''ll add a new transaction"**@app.route(''/chain'',
+    methods=[''**GET**''])**def full_chain():*    *response = {*        *''chain'':
+    blockchain.chain,*        *''length'': len(blockchain.chain),*    *}*    *return
+    jsonify(response), 200**if __name__ == ''__main__'':*    *app.run(host=''0.0.0.0'',
+    port=5000)**@app.route(''/transactions/new'', methods=[''POST''])**def new_transaction():*    *values
+    = request.get_json()*    *# Check that the required fields are in the* *POST''ed*
+    *data*    *required = [''sender'', ''recipient'', ''amount'']*    *if not all(k
+    in values for k in required):*        *return ''Missing values'', 400*    *# Create
+    a new Transaction*    *index = blockchain.new_transaction(values[''sender''],
+    values[''recipient''], values[''amount''])*    *response = {''message'': f''Transaction
+    will be added to Block {index}''}*    *return jsonify(response), 201*Listing 8-3'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Apiendpoint.py
+  prefs: []
+  type: TYPE_NORMAL
+- en: '8.3.3 Step 3: Create a Blockchain Miner'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'The code shown in Listing [8-4](#PC6) will establish a miner for your server
+    that will mine transactions and add them to the blockchain block. Use this code
+    with the help of your IDE (Eclipse or PyCharm).*@app.route(''/mine'', methods=[''**GET**''])**def
+    mine():*    *last_block = blockchain.last_block*    *last_proof = last_block[''proof'']*    *proof
+    = blockchain.proof_of_work(last_proof)*    *blockchain.new_transaction(*        *sender="0",*        *recipient=node_identifier,*        *amount=1,*    *)*    *block
+    = blockchain.new_block(proof=proof, previous_hash=0)*    *response = {*        *''message'':
+    "New Block Forged",*        *''index'': block[''index''],*        *''transactions'':
+    block[''transactions''],*        *''proof'': block[''proof''],*    *}*    *return
+    jsonify(response), 200*Listing 8-4'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Miner.py
+  prefs: []
+  type: TYPE_NORMAL
+- en: '8.3.4 Step 4: Run Your Blockchain Project'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Make sure that the server is up by using the following IP and port address:![../images/520777_1_En_8_Chapter/520777_1_En_8_Figa_HTML.jpg](../images/520777_1_En_8_Chapter/520777_1_En_8_Figa_HTML.jpg)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (To exit, press Ctrl+C.) Now launch Postman and look for the search bar at the
+    top of the screen. Make sure the GET button is selected to the left of it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Then type this address into the address bar:![../images/520777_1_En_8_Chapter/520777_1_En_8_Figb_HTML.jpg](../images/520777_1_En_8_Chapter/520777_1_En_8_Figb_HTML.jpg)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 8.4 Review Questions
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '1.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: “An orphan block is produced only when a 51% attack succeeds.” Is this statement
+    correct or incorrect?
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 2.What does a ledger in blockchain do?
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: a.
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Identifies the owners.
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: b.
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Identifies the objects owned.
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: c.
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Maps between the owner and the object.
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: d.
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Identifies the owners’ names.
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 3.Which of the following is the most common method of keeping bitcoins?
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: a.
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The pocket
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: b.
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The wallet
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: c.
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The box
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: d.
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The stack
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 4.What is the structure of a blockchain block?
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: a.
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Transaction data
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: b.
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Hash point
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: c.
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Timestamp
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: d.
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: All of these
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '5.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: “In the case of Bitcoin, after 10 minutes, a new block is created with the most
+    recent transactions.” Is this statement correct or incorrect?
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 8.5 Review Answers
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '1.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Answer: Incorrect, this is restricted to blockchain.'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '2.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Answer: C, Maps between the owner and the object.'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '3.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Answer: B, The wallet.'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '4.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Answer: D, All of these.'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '5.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Answer: Correct.'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 8.6 Summary
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: This chapter provided two examples that illustrate consensus algorithms. These
+    examples are provided in the Python language. These examples also help illustrate
+    the blockchain’s PoW system. With the help of these examples, you can build your
+    applications according to your needs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: When you think about blockchain technology, you need to understand distributed
+    system management, because blockchain technology is widely used in distributed
+    systems. The main purpose of this book is to implement blockchain in the distributed
+    system. The next chapter covers time management in the distributed system.
+  prefs: []
+  type: TYPE_NORMAL

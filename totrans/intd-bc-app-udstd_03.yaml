@@ -1,0 +1,2019 @@
+- en: © The Author(s), under exclusive license to APress Media, LLC, part of Springer
+    Nature 2022J. T. GeorgeIntroducing Blockchain Applications[https://doi.org/10.1007/978-1-4842-7480-4_3](https://doi.org/10.1007/978-1-4842-7480-4_3)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3. Bitcoin
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Joseph Thachil George^([1](#Aff2)  )(1)Rome, Italy
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the previous chapter, you saw how blockchain technology, without the need
+    for a central authority, and thanks to the techniques and algorithms discussed,
+    can establish trust between participants and certify the *immutability* of a distributed
+    ledger. The blockchain lends itself to being an ideal model for digital currencies,
+    where there is no need for intermediaries and third parties such as banks, insurance
+    companies, and other central organizations. In fact, blockchain was born and spread
+    thanks to Bitcoin.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In 2008, a person (or group of persons) named Satoshi Nakamoto released a research
+    paper entitled “Peer-to-Peer Electronic Cash System in Bitcoin.” This paper described
+    a peer-to-peer cash system that permitted network transactions to be sent directly
+    from one part to another without going through any intermediaries/banking organizations.
+    It explains Bitcoins in great detail.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The term cryptocurrency describes all the systems, networks, and media that
+    use cryptography to protect digital transactions, compared to those systems where
+    transactions are managed through a common trusted entity.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This chapter covers the *Bitcoin protocol*. It analyzes in detail the main parts
+    that compose it—the public and private keys, the Bitcoin addresses, and the blocks.
+    The chapter then illustrates the network and consensus mechanisms, including the
+    proof of work.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.1 The History of Bitcoin
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Almost all of the technological parts of Bitcoin were born in academic publications
+    of the 1980s and 1990s. “We need to emphasis that our aim is not to reduce the
+    work and success of Nakamoto, but only to emphasize what the real leap of intuition
+    was. Indeed, by tracking the initial of ideas present in Bitcoin, we can focus
+    on the specific and complex way they come put together the underlying components”.^([1](#Fn1))
+  prefs: []
+  type: TYPE_NORMAL
+- en: Bitcoin’s history doubles as a case study, as it proves relationships between
+    the academic world, external scientists, engineers, and professionals and shows
+    on how these teams can gain knowledge from each other. Many professionals have
+    studied Bitcoin and have produced numerous research papers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note that the ledger idea is the initial starting point for Bitcoin. If you
+    understand the ledger, you will understand the system’s structure and its communication.
+    The ledger is the place where all the transactions take place. It’s open and trusted
+    by all parties and components in the system (see Figure [3-1](#Fig1)).![../images/520777_1_En_3_Chapter/520777_1_En_3_Fig1_HTML.jpg](../images/520777_1_En_3_Chapter/520777_1_En_3_Fig1_HTML.jpg)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 3-1
+  prefs: []
+  type: TYPE_NORMAL
+- en: The main ideas behind Bitcoin
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In order to support a digital currency, the ledger must have these fundamental
+    properties:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Append-only:** It is only possible to add new transactions to the ledger.
+    It is not possible to abandon, modify, or reorder the existing ledger.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Immutable:** The information present cannot be changed in the ledger.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Prevents double spending:** It is not possible to spend the same currency
+    security more than once.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 3.1.1 Linked Timestamping and the Merkle Tree
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The Bitcoin ledgers data architecture is taken, with appropriate changes, from
+    several articles by Stuart Haber and Scott Stornetta (1990 and 1997)
+  prefs: []
+  type: TYPE_NORMAL
+- en: As we know well, since Nakamoto states it in the paper on Bitcoin, the Haber
+    and Stornetta’s paper dealt with the timestamp issue for documents. Note that
+    when it comes to commercial contracts, patents, and other documents, it is possible
+    to determine that the document was generated at given point of time. We understand
+    that their notion of a documents are quite generic, and it can include different
+    types of data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: They casually mentioned banking transactions as a possible application, but
+    note that this was not their goal. The originator of every document confirms the
+    time of generation and signs the document, its date, and time.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This initial document was approved/signed by the creator, so the document forms
+    a lengthy chain with pointers into the past. A third-party user cannot edit a
+    timestamped message because it is approved by its originator, and moreover the
+    originator or the creator cannot edit the message without changing the entire
+    subsequent chain of message.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Haber and Stornetta also mentioned in their articles several ideas to make
+    this data structure more fast, effective, and accurate:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The chain between documents can be created by using hashes instead of signatures;
+    note that these hashes are easier and faster to compute and are stronger when
+    it comes to data identifiers. We call such links *pointers* .
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Rather than timestamping documents separately, which could be inefficient if
+    many documents are generated at once, the documents can be combined into batches
+    or blocks, using the same timestamp in the documents.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The documents in each block should be tied by a binary tree of hash pointers
+    called the *Merkle tree*. Mr. Josh Benaloh and Mr. Michael de Mare presented these
+    ideas independently in 1991, immediately after Haber’s article.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Note that the Merkle trees are named after Ralph Merkle, who presented the asymmetric
+    cryptography logic in his 1980 document.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Either way, Bitcoin takes the data structure from the work of Haber and Stornetta
+    and redesigns its safety characteristics with the addition of the PoW scheme.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.1.2 Distributed Consensus
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: A common authority is required for Internet money or currency transactions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the case of a distributed ledger, you can see that there will automatically
+    be forks, which means that some nodes will conclude that block A is the last block,
+    whereas all other nodes will conclude that it is block B.^([2](#Fn2))
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this case, you need to understand that this is due to an opponent trying
+    to interrupt the transaction of the ledger or because of the network delay, occasionally
+    causing near-block generation together from different nodes, unaware of reciprocal
+    blocks. The linked timestamp is not sufficient to rectify the forks, and this
+    is expressed by Mike in 1997-1998.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The problem of how to reach consensus in situations where errors are possible
+    is called the *Byzantine generals problem* *.* It was talked about informally
+    in Chapter [2](520777_1_En_2_Chapter.xhtml). Byzantine faults include both natural
+    breakdowns and malicious behavior.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This idea was initially discussed in an article by Leslie Lamport, written with
+    Robert & Marshall in 1982\. In 1999, a document from Miguel Castro & Barbara Liskov
+    presented the PBFT algorithm, and this enables you to solve the problem of Byzantine
+    generals with excellent performance. (Note that the PBFT stands for Practical
+    Byzantine Fault Tolerance.)
+  prefs: []
+  type: TYPE_NORMAL
+- en: The replication algorithm can manage the Byzantine defects. Byzantine fault-tolerant
+    algorithms will become increasingly important in the near future, because as malicious
+    attacks and software bugs become very common in the cyber world, this can cause
+    faulty nodes to promote arbitrary behaviors.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But in the case of the previous algorithms, they needed a special synchronous
+    system and were slow. The algorithm described in this book is very practical,
+    because it works in asynchronous environments quickly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Nakamoto doesn’t cite the same article in his initial paper, nor does he utilize
+    his phrasing. However, he employs some concepts, referring to his own protocol
+    as a consensus protocol and taking into account both faults in the form of intruders,
+    as well as nodes joining and exiting the infrastructure.
+  prefs: []
+  type: TYPE_NORMAL
+- en: When asked about the connection between Bitcoin and the Byzantine generals problem
+    on a mailing list, Nakamoto claims that the Proof-of-Work (PoW) chain fixes the
+    issue.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Almost all failure systems assume that the majority of the nodes in the system
+    are both trustworthy and honest (e.g., more than half or two-thirds). Nodes in
+    an open peer-to-peer network are free to join and leave at any time.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As a result, a Sybil attack can be used to go around the system’s consent or
+    quality assurances. John Douceur defined the Sybil attack in 2002 and proposed
+    a cryptographic breakthrough called Proof of Work to combat it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.2 Proof of Work
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: This section goes over the first phases of Proof of Work so you can get a better
+    understanding of it. Cynthia Dwork and Moni Naor created the first proposal, which
+    was titled “Proof of Work,” in 1992\. Their purpose at the time was to discourage
+    spam.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, the Hashcash is a proof-of-work method that has been employed in
+    a variety of systems as a denial-of-service countermeasure.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A hashcash stamp is a proof-of-work that takes the sender a parameterizable
+    amount of time to compute. The recipient may quickly check the hashcash stamps
+    he or she has received.
+  prefs: []
+  type: TYPE_NORMAL
+- en: While hashcash was designed to add a penalty to sending email in order to prevent
+    high-volume email spammers, it may now be introduced to any internet service to
+    impose a computational cost on customers who might otherwise misuse a server’s
+    resources.
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, a spammer who wanted to transmit a million emails might need multiple
+    weeks to do it using a similar approach.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Occasionally, the Proof-of-Work instance (also known as a *puzzle*) is required
+    to identify the email and the recipient.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A spammer may otherwise send many messages to the same recipient (or the same
+    message to multiple recipients) for the cost of only sending one message to one
+    receiver. The second critical feature is that the recipient’s computing cost should
+    be as minimal as feasible; puzzle answers, no matter how complex to compute, should
+    be straightforward to check.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Dwork and Naor’s suggestion spawned an entire field of inquiry. Adam Back, a
+    post-doc in the cypherpunk research community at the time, separately devised
+    a similar concept called hashcash in 1997.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Cypherpunks* were anti-government and anti-centralized institution activists
+    who used encryption to bring about social and political change.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Hashcash is nothing more than a proof-of-work algorithm; it was used as a measure
+    against spam and denial-of-service attacks in different systems.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'It is based on a simple principle connected to the hash function: the only
+    way to identify an input that has a hash on a given output is to test various
+    inputs until the desired data is provided in a hash function. As a result, the
+    only method to identify an input that hashes in one arbitrary series of outputs
+    is to try hashing different inputs, one after the other.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.2.1 Nakamoto’s Genius
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Understanding all of the predecessors that comprise elements of the Bitcoin
+    design leads to an appreciate of Nakamoto’s truly great discoveries.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Proof-of-Work (PoW) is used to protect the book master or ledger. Proof-of-work
+    resolution is done by miners.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Each miner solves a slightly different form of the challenge; thus the odds
+    of success are proportional to the fraction of the world’s processing power that
+    the miner owns. A miner who solves a problem can donate a new transaction block
+    to the ledger, which is added to the ledger depending on the timestamp.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A prospector who contributes a block is paid with units of recently produced
+    coin in exchange for maintaining the ledger. If a prospector contributes to an
+    invalid block or a transaction, it will most likely be eliminated by the majority
+    of other prospectors who contribute to succeeding blocks, invalidating the block
+    reward for the wrong block.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Miners are mutually insured in this way, thanks to monetary incentives.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Instead of the sophisticated method used to bring the computer system, Nakamoto’s
+    genius is one of the individual components of Bitcoin.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Nobody thought of encouraging the knots to be truthful. No one has thought of
+    using a consent algorithm to avoid the twofold cost.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To eliminate duplicate spending and ensure that the currency has value, Bitcoin
+    requires a secure ledger. Miners must be rewarded in some way. The strength of
+    the miner’s power, in turn, is used to safeguard the ledger. Otherwise, an enemy
+    with more than 51% the world’s mining capacity may generate blocks quicker than
+    the rest of the network, do double-spend computations or transactions, and completely
+    rewrite history by avoiding the computer system.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As a result, Bitcoin is launched with a well-balanced reliance on these three
+    components.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.3 Key and Address
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'In order to have your own Bitcoins, that is, to spend them, it is necessary
+    to have:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A collection of digital keys, including a private key and a public key
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A Bitcoin address
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A digital sign
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The Elliptic Curve Digital Signature Method is a cryptographic algorithm that
+    underpins Bitcoin’s private and public keys. It’s used to make sure that only
+    legitimate owners can spend money.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.3.1 Private Key
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: In the context of Bitcoin, a private key  is a secret number that allows you
+    to spend Bitcoins. Each Bitcoin wallet comes with one or more private keys kept
+    in the wallet file.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It is also used to make a digital signature.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A private key is just a number that is created at random. It’s a signed 256-bit
+    (32-byte) integer. Not all 256-bit unsigned numbers, however, are Bitcoin private
+    keys. In fact, the standard secp256k1 used by Bitcoin limits the number of valid
+    private keys.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Secp256k1 is described in the standards for efficient cryptography and corresponds
+    to the parameters of the elliptic curve used in Bitcoin public key cryptography
+    (SEC).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Keep in mind that the private key is utilized to generate the public key.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.3.2 Public Key
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The argument is that a public key  can be used to verify the authenticity of
+    a signature (that is, produced with the correct private key). In general, the
+    public key is created by multiplying the private key by an elliptic curve. Bitcoin
+    is defined in the secp256k1 constant and uses a constant elliptic curve and a
+    set of mathematical constants.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Starting with a private key << privkey >> and multiplying it by a predefined
+    dot on the curve called the *generator point* G produces a different dot on the
+    curve, which corresponds to the public key << pubKey >>. Usually, a public key
+    can be defined by the coordinates of the point «privkey»*G=«pubKey» = (x,y) (see
+    Figure [3-2](#Fig2)).![../images/520777_1_En_3_Chapter/520777_1_En_3_Fig2_HTML.jpg](../images/520777_1_En_3_Chapter/520777_1_En_3_Fig2_HTML.jpg)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 3-2
+  prefs: []
+  type: TYPE_NORMAL
+- en: Example of an elliptic curve cryptographic function for calculating the public
+    key
+  prefs: []
+  type: TYPE_NORMAL
+- en: The generating point G is described as part of secp256k1, and it is the same
+    for all keys in Bitcoin.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The private key << privKey >> multiplied by G will have the outcome with the
+    same public key << pubKey >>. The connection between <<privKey >> and << pubKey
+    >> is constant. However it can only be compute in single direction, from << privKey
+    >> to << pubKey >>.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The (x; y) coordinates of a point on an elliptic curve can be used to describe
+    the public key. Hexadecimal is the most commonly used format for storing data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Hence, there are two formats for public keys  :'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Uncompressed public key
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Compressed public key
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Note that the uncompressed public key is the old format. It is generally no
+    longer used in favor of the compressed format. Bitcoin originally used both x
+    and y coordinates to store the public key. In this uncompressed format, the coordinates
+    are simply strung together, and the prefix 04 is added to indicate that it is
+    an uncompressed public key, as shown in Figure [3-3](#Fig3).![../images/520777_1_En_3_Chapter/520777_1_En_3_Fig3_HTML.jpg](../images/520777_1_En_3_Chapter/520777_1_En_3_Fig3_HTML.jpg)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 3-3
+  prefs: []
+  type: TYPE_NORMAL
+- en: Uncompressed public key
+  prefs: []
+  type: TYPE_NORMAL
+- en: With a compressed public key, the elliptical curve is symmetrical along the
+    axis of X, as shown in Figure [3-4](#Fig4).![../images/520777_1_En_3_Chapter/520777_1_En_3_Fig4_HTML.png](../images/520777_1_En_3_Chapter/520777_1_En_3_Fig4_HTML.png)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 3-4
+  prefs: []
+  type: TYPE_NORMAL
+- en: Symmetry of the elliptical curve
+  prefs: []
+  type: TYPE_NORMAL
+- en: Hence, in the compressed public key format (see Figure [3-5](#Fig5)), you only
+    save the full x coordinates, along with a prefix indicating if y is even or odd.![../images/520777_1_En_3_Chapter/520777_1_En_3_Fig5_HTML.jpg](../images/520777_1_En_3_Chapter/520777_1_En_3_Fig5_HTML.jpg)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 3-5
+  prefs: []
+  type: TYPE_NORMAL
+- en: Compressed public key
+  prefs: []
+  type: TYPE_NORMAL
+- en: This format saves a lot of space on the blockchain  .
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.3.3 Bitcoin Address
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: A Bitcoin address, or simply an address, is an identifier of 26-35 alphanumeric
+    characters, starting with the number 1, 3, or bc1, that represents a possible
+    destination for a Bitcoin payment. Transactions in Bitcoin (cryptocurrency, BTC)
+    can be made through an address, a bit like sending an email. However, unlike an
+    email addresses, people have different Bitcoin addresses and at the same time
+    a unique address should be used for every transaction.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A person can create an unlimited number of addresses, increasing the level
+    of anonymity of payments. An address is created from three elements:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A public key hash
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A prefix
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A checksum
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Let’s analyze these three components in detail.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The public key hash is nothing more than a double hash applied to the public
+    key. In particular, it is the hash obtained through the SHA-256 and RIPEMD160,
+    and therefore:<< PublicKeyHash >> = RIPEMD160 (SHA-256 (<< publicKey >>))
+  prefs: []
+  type: TYPE_NORMAL
+- en: It is sometimes referred to as HASH160 (<< publickey >>), because it is simpler
+    than writing RIPEMD160 (SHA256 (<< publickey >>)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: The prefix indicates the type of block to be created.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The most commonly used ones are:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '00: For the P2PKH locking script (you will learn what it is later)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '05: For P2SH locking script'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Finally, the checksum is obtained by performing the SHA-256 hash twice on the
+    public key hash and taking the first four bytes. So, you take these elements and
+    put them in order to get a queue (see Figures [3-6](#Fig6) and [3-7](#Fig7)):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '1.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: prefix
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '2.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: HASH160(«public key»)
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '3.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: checksum
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '![../images/520777_1_En_3_Chapter/520777_1_En_3_Fig6_HTML.jpg](../images/520777_1_En_3_Chapter/520777_1_En_3_Fig6_HTML.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 3-6
+  prefs: []
+  type: TYPE_NORMAL
+- en: Elements to form the Bitcoin address
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Base58 function is then applied, which will finally provide the Bitcoin
+    address, as shown in Figure [3-7](#Fig7).![../images/520777_1_En_3_Chapter/520777_1_En_3_Fig7_HTML.jpg](../images/520777_1_En_3_Chapter/520777_1_En_3_Fig7_HTML.jpg)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 3-7
+  prefs: []
+  type: TYPE_NORMAL
+- en: Bitcoin address
+  prefs: []
+  type: TYPE_NORMAL
+- en: Base58 is a converter that you can use to represent large numbers in a shorter
+    and more intuitive format, resulting in a text alphanumeric. Obviously, these
+    operations are implemented at the application level, and it is not up to the user
+    to carry out all these steps.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.3.4 Digital Signature
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The *digital signature* is a mathematical means of demonstrating that you are
+    aware of the private key associated with a public key without revealing the effective
+    private key. When making a transaction, you must first unlock the balances you
+    want to use (UTXO, as you’ll see in the next section). This can be accomplished
+    by demonstrating that you “own” the balance and that you know the private key
+    to the address where the balance is kept. Therefore, to unlock a balance without
+    providing the private key you use the digital signature. In this way you show
+    that you have the private key, without handing it over to the network. These are
+    then used in transactions to prove you own the balances you are spending.
+  prefs: []
+  type: TYPE_NORMAL
+- en: What stops someone from exploiting a transaction’s digital signature to unlock
+    other exits at your address? Each transaction has its own digital signature.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To put it another way, you employ not only the private key, but the private
+    key and the transaction data to construct a digital signature. As a result, any
+    digital signature is associated with the transaction in which it is employed.
+    As a result, if someone tries to use a transaction’s digital signature in a new
+    transaction, it will clash with the data of the transaction in the digital signature
+    shop and will be rejected by the Bitcoin network’s nodes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Consequently, the digital signature will also save against destroying the transaction
+    in which it is used. A digital signature consists of two parts:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A random part
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A part of the signature, consisting of
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A private key
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The data on which you are creating the digital signature
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: For the random part, let *n* be the order of point G of the second elliptic
+    curve the standard secp256k1. You generate a random number 2 [1; n - 1] and call
+    this random number.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You then multiply this random number by the point G (generator point) of the
+    elliptic curve. This is the same G you used for the public key and indicated by
+    the standard secp256k1. For the sake of brevity, you call the random number with
+    the variable k.
+  prefs: []
+  type: TYPE_NORMAL
+- en: k G = (xr; yr)
+  prefs: []
+  type: TYPE_NORMAL
+- en: The random part of this digital signature is the point on the curve that you
+    obtain (see Figure [3-8](#Fig8)). But you only take the xr coordinate.![../images/520777_1_En_3_Chapter/520777_1_En_3_Fig8_HTML.jpg](../images/520777_1_En_3_Chapter/520777_1_En_3_Fig8_HTML.jpg)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 3-8
+  prefs: []
+  type: TYPE_NORMAL
+- en: Random number obtained on the curve, from which you take the X coordinate
+  prefs: []
+  type: TYPE_NORMAL
+- en: For the sake of brevity, you can call r the randomPart value obtained from
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*r = randomPart = xr mod n*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: For the signature part, you need to take the private key for the random part.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*r * privKey*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Then you include the data on which you want to create the signature.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In Bitcoin, this is represented by the hash of the transaction that contains
+    the balance (UTXO) that you want to unlock. You define h (msg) = SHA-256 (<<transaction
+    >>) and get:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*[r * privKey] + h(msg)*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The inclusion of the transaction hash binds the signature to a transaction
+    (therefore it cannot be used in a different transaction). Finally, you divide
+    this by the initial random number k:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*s = sign = k-1 (r privKey + h(msg)) (mod n)*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: You have obtained the fundamental part of the digital signature. The digital
+    signature is made up of an r and an s.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If someone asks you to prove that you know the key private for a public key,
+    you can give them the signature digital (r; s) as proof.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.3.4.1 Verifying a Digital Signature
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: To verify that a digital signature has been made using a correct private key,
+    the person to whom you provide this digital signature must use both sides (r;
+    s) to find two new points on the elliptic curve and check the signature.
+  prefs: []
+  type: TYPE_NORMAL
+- en: From here on, the multiplication operator is used only when it is strictly necessary
+    to divide the variables, otherwise yes assumes the implicit multiplication operation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: First, let’s take the data on which the digital signature has been affixed.
+    In this case, it is the SHA-256 hash that’s applied to the transaction.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'You divide this value by s (the core part of the digital signature) and multiply
+    by G (the generator point), like so:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*u1 = (x1; y1) = (h(msg) s-1 mod n) G*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: You then find point 1 (see Figure [3-9](#Fig9)).![../images/520777_1_En_3_Chapter/520777_1_En_3_Fig9_HTML.jpg](../images/520777_1_En_3_Chapter/520777_1_En_3_Fig9_HTML.jpg)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 3-9
+  prefs: []
+  type: TYPE_NORMAL
+- en: Example of graphic representation of point 1
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Then you divide r by s and multiply by the < < publickey > >:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*u2 = (x2; y2) = (r s-1 mod n) pubKey*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: You then have point 2 (see Figure [3-10](#Fig10)).![../images/520777_1_En_3_Chapter/520777_1_En_3_Fig10_HTML.jpg](../images/520777_1_En_3_Chapter/520777_1_En_3_Fig10_HTML.jpg)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 3-10
+  prefs: []
+  type: TYPE_NORMAL
+- en: Example of graphic representation of point 2
+  prefs: []
+  type: TYPE_NORMAL
+- en: Finally, add these two points and you get a third point on the elliptic curve.
+    (See Figure [3-11](#Fig11).)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Rv = (xv; yv) = u1 + u2*![../images/520777_1_En_3_Chapter/520777_1_En_3_Fig11_HTML.jpg](../images/520777_1_En_3_Chapter/520777_1_En_3_Fig11_HTML.jpg)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 3-11
+  prefs: []
+  type: TYPE_NORMAL
+- en: Example of graphical representation of the sum between the point 1 and point
+    2
+  prefs: []
+  type: TYPE_NORMAL
+- en: If the value c = xv mod n of this point Rv = (xv; yv) obtained on the elliptic
+    curve is equal to r, that is, c == initial r, then it’s proof that the digital
+    signature was made with the public key’s connected private key.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.3.4.2 Understanding the ECDSA Sign/Verify Math
+  prefs:
+  - PREF_H4
+  type: TYPE_NORMAL
+- en: 'The ECDSA signature  has a simple description:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note that the signing process signature encodes a random dot R (represented
+    only from the X coordinate, you refer to r = randomPart =xr mod n) through transformations
+    of the elliptic curve uses the private key privKey. It then encodes the hash of
+    the message h (msg) in a number sign, which is proof that the signer understands
+    the private key privKey. The signature (random Part, sign) may reveal the private
+    key due to the complexity of the problem ECDLP.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Verification of the signature encodes the proof number sign using the public
+    key pubKey and the message hash h (msg). It then restores the original point R,
+    used to create the signature, called Rv. Then compare the X coordinate (xv mod
+    n) of the Rv retrieved with the r = randomPart value of the signature.
+  prefs: []
+  type: TYPE_NORMAL
+- en: So how does the reported signature and verification scheme work? Let’s consider
+    the verification, then the equation to derive Rv. We then write the equation in
+    the extended form.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Rv = (xv; yv) = h (msg) s-1 (modn) G + r s-1 (modn) pubKey*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Replace pubKey with privKey G:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Rv = (xv; yv) = h (msg) s-1 (modn) G + r s-1 (modn) privKey G*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Highlight G and s-1 (mod n), obtaining:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Rv = (xv; yv) = (h (msg) + r privKey) s-1 (mod n) G*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We know that:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*s-1 (mod n) = (k-1 (h (msg) + r privKey)) - 1 (mod n)*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'And so:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*s-1 (mod n) = k (h (msg) + r privKey) -1 (mod n)*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We substitute this in the equation of Rv:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Rv = (h (msg) + r privKey) k (h (msg) + r privKey) -1 (modn) G = k*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The last step is to compare the point Rv with the point R. This is encoded by
+    privKey. This algorithm compares the X coordinates of Rv with the X of R (where
+    R = (xr; yr) e r = randomPart = xr mod n). More precisely, the signature is expected
+    to be valid if given c = xv mod n, then c == r.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure [3-12](#Fig12) illustrates, at a high level, how the digital signatures
+    in Bitcoin transactions work.![../images/520777_1_En_3_Chapter/520777_1_En_3_Fig12_HTML.jpg](../images/520777_1_En_3_Chapter/520777_1_En_3_Fig12_HTML.jpg)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 3-12
+  prefs: []
+  type: TYPE_NORMAL
+- en: Transactions  and digital signatures
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.4 The Transaction
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The transaction is the most basic component of Bitcoin’s blockchain. Transactions
+    are verified and sent out. Many transactions combine to make a block. Furthermore,
+    a chain of blocks is formed through a digital data link.^([3](#Fn3))
+  prefs: []
+  type: TYPE_NORMAL
+- en: To select the next block to be put to the chain, the blocks go through a consensus
+    procedure. The chosen block is verified and added to the existing chain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Miners are special peer nodes that perform the validation and consensus processes.
+    It’s important to note that they are unique or powerful machines that run blockchain
+    protocol-specific software. Let’s take a look at the specifics of a single Bitcoin
+    transaction.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.4.1 The Unspent Transaction Output (UTXO)
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Unspent Transaction Output (UTXO) is a fundamental idea in the Bitcoin network
+    UTXOs are a set of Bitcoins that are linked to a certain user. They can only be
+    spent in a transaction if they are used entirely for that. A user can be associated
+    with zero, one, or many UTXOs. Obviously, once a user has used a UTXO to complete
+    a transaction, it cannot be used by another user. The sum of UTXOs associated
+    with a user is the total balance of the latter.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In other words, Bitcoin stores data relating to transactions and balances of
+    users in the form of UTXO, which are “unspent” Bitcoin amounts that have been
+    sent to a user, and that are potentially expendable from that user.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The set of all the UTXOs in the network constitute the state of the blockchain
+    Bitcoin. A Bitcoin transaction consists of inputs and outputs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A transaction takes as input one or more UTXOs and, according to the request
+    initiated by the sender, it generates one or more UTXOs to output the amount specified
+    by the transaction request. As a result, an Unspent Transaction Output is the
+    result of a transaction that a user receives and can spend later.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, suppose John has a UTXO with a value of ten Bitcoin and another
+    five Bitcoin UTXO, and he wants to send eight Bitcoins to Sara, who has no UTXO
+    in her portfolio. John can create a transaction, specifying the amount to spend
+    on Sara, and enter ten Bitcoin UTXO as the transaction input.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The transaction will therefore look like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Input:** 10 Bitcoin Mario UTXO'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Output:**'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: An 8 Bitcoin UTXO associated with Sara
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A 2 Bitcoin UTXO associated with Mario (the rest of the transaction)
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: So, once the transaction is recorded, Mario will have in his wallet a 5 Bitcoin
+    UTXO and a 2 Bitcoin UTXO, for a total balance of 7 Bitcoins. Sara will have an
+    8 Bitcoin UTXO, for a total balance of 8 Bitcoins. The anatomy of a UTXO is very
+    simple. (See Figure [3-13](#Fig13).)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'There are two sorts of scripts: locking scripts and unlocking scripts. Given
+    the definition of the term, and the fact that unlocking ownership is the first
+    step in transferring UTXO, the input value contains the phrase *unlocking script*.
+    The output value, on the other hand, will be *locking script* as a result of the
+    locking procedure. The term “script” means “stack structure,” however we’ll focus
+    on the method rather than the definition.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A transaction output UTXO has the following structure  (see Figure [3-13](#Fig13)).![../images/520777_1_En_3_Chapter/520777_1_En_3_Fig13_HTML.jpg](../images/520777_1_En_3_Chapter/520777_1_En_3_Fig13_HTML.jpg)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 3-13
+  prefs: []
+  type: TYPE_NORMAL
+- en: The UTXO structure
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.4.2 Input and Output (I&O)
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: This is the notion of “listing” the income source (input) and spending (output)
+    of a transaction, rather than the concept of transferring money by placing input
+    and the outcome being the output. That is, when you pay the amount, you explain
+    the revenue source of the UTXO you want to spend first, and then the quantity
+    you want to invest on the output item second. Let’s first look at the output’s
+    structure. (See Figure [3-14](#Fig14).)![../images/520777_1_En_3_Chapter/520777_1_En_3_Fig14_HTML.jpg](../images/520777_1_En_3_Chapter/520777_1_En_3_Fig14_HTML.jpg)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 3-14
+  prefs: []
+  type: TYPE_NORMAL
+- en: Input and output
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![../images/520777_1_En_3_Chapter/520777_1_En_3_Fig15_HTML.jpg](../images/520777_1_En_3_Chapter/520777_1_En_3_Fig15_HTML.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 3-15
+  prefs: []
+  type: TYPE_NORMAL
+- en: UTXO description
+  prefs: []
+  type: TYPE_NORMAL
+- en: When a transaction to transfer money is created, the transaction input must
+    specify which UTXO will be issued. Simply put, the transaction’s inputs are pointers
+    to UTXO. They define a specific UTXO, which relates to the transaction’s hash
+    and the transaction output’s index number. A transaction input additionally contains
+    the unlock script that satisfies the output conditions given by UTXO in order
+    to output UTXO (see Figures [3-15](#Fig15) and [3-16](#Fig16)). The unlock script
+    is usually a signature that verifies that the Bitcoin address identified in the
+    block script belongs to the owner.
+  prefs: []
+  type: TYPE_NORMAL
+- en: So, the structure of a UTXO input to a transaction is as shown in Figure [3-16](#Fig16).![../images/520777_1_En_3_Chapter/520777_1_En_3_Fig16_HTML.jpg](../images/520777_1_En_3_Chapter/520777_1_En_3_Fig16_HTML.jpg)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 3-16
+  prefs: []
+  type: TYPE_NORMAL
+- en: UTXO description
+  prefs: []
+  type: TYPE_NORMAL
+- en: This structure of transaction inputs and outputs leads to a transaction link
+    design, as shown in Figure [3-17](#Fig17).![../images/520777_1_En_3_Chapter/520777_1_En_3_Fig17_HTML.jpg](../images/520777_1_En_3_Chapter/520777_1_En_3_Fig17_HTML.jpg)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 3-17
+  prefs: []
+  type: TYPE_NORMAL
+- en: Bitcoin transaction input and output
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.4.3 Pay to Public Key Hash (P2PKH)
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Given a high-level description of how a transaction takes place  , this section
+    covers the technical and structural details of it, to understand how it is implemented.
+  prefs: []
+  type: TYPE_NORMAL
+- en: P2PKH (pay to a public key hash) is a script template for completing a Bitcoin
+    transaction or sending money to someone. It is most commonly used script to lock
+    an output on the key someone’s public key. It ensures that only the UTXO beneficiary,
+    or the person who owns the private key and therefore the public key relating the
+    address Bitcoin beneficiary of UTXO, can spend it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For greater understanding, let’s analyze the output part of the Transaction
+    process first, neglecting the details of the input. Then we will address the input
+    aspect of the process, going into the process of check that it combines both parts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.4.4 Looking at the Output Side
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Let’s say Mario wants to send 20 Bitcoins to Sara. Sara, therefore, will have
+    to generate a public key/private key pair associated with it. Then Sara will provide
+    her Bitcoin address (see the “Bitcoin Address” section) to Mario.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The address could be transmitted in any way, including in a one-way manner
+    that stops communication between the sender and receiver, and it can be further
+    encoded in a different format, such as a QR code that includes a Bitcoin: URI.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Then, Mario, the spender of the transaction, will receive Sara’s Bitcoin address
+    and can specify it as the beneficiary/recipient of the transaction. This will
+    be used to create the UTXO blocking script for the transaction, so that only Sara,
+    or whoever can prove to have the associated private key to the public key relating
+    to that Bitcoin address that Sara provided, can spend it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Then Mario will transmit the transaction. Once the transaction is validated,
+    added to the block, and reaches consensus, it will be part of the blockchain Bitcoin.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The network, therefore, classifies it as an Unspent Transaction Output (UTXO)
+    and Sara’s wallet software shows it as a spendable balance. In other words, Sara
+    now has a 20 Bitcoin UTXO in her wallet received from Mario.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Therefore, in each UTXO there is the PubKey script, which blocks the use of
+    the UTXO to the beneficiary, or to whoever owns the private key. It is then used
+    in the transaction validation process. This is structured as shown in Figure [3-18](#Fig18).![../images/520777_1_En_3_Chapter/520777_1_En_3_Fig18_HTML.jpg](../images/520777_1_En_3_Chapter/520777_1_En_3_Fig18_HTML.jpg)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 3-18
+  prefs: []
+  type: TYPE_NORMAL
+- en: PubKey script structure
+  prefs: []
+  type: TYPE_NORMAL
+- en: The fields starting with OP denote an operation, while the others denote a value.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'OP_DUP: Performs a duplication operation; serves to copy the public key present
+    in the scriptSig (which you will see later), which hash functions will be applied
+    to compare the result obtained with the pubKeyHash of this scriptPubKey.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'OP_HASH160: First applies the SHA-256 hash function and then RIPEMD160 to the
+    public key of the duplicate scriptSig.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'PubKeyHash: The public Key hash; comes from decoding the Bitcoin address provided
+    to the sender.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'OP_EQUALVERIFY: The operation that verifies that the two public key hashes
+    (the one from the complete public key in scriptSig and the one in this PubKey
+    script) are the same. Returns True if they are the same, False if they are different.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'OP_CHECKSIG: This operation is therefore carried out on the script. Mr. Check
+    signature <sig> against public key <pub-Key>. If the signature joining the public
+    key and has been generated using all the data required for the signature, OP_CHECKSIG
+    returns True.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In order for this UTXO to be spent, there needs to be a resolved script. In
+    order to solve this script and then use the UTXO to make a transaction, you must
+    prove that you have the key private and the public key related to the Bitcoin
+    address to which it was sent the UTXO.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.4.5 Looking at the Input Side
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Let’s see how the process of creating a transaction works from the spender’s
+    perspective. Let’s assume Sara wants to send 20 Bitcoins to Fabio. Sara, once
+    Fabio has provided her with the Bitcoin address, will enter as a beneficiary of
+    the transaction, together with the amount.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Bitcoin address provided by Fabio will also be used for the PubKey script,
+    which will therefore allow him to spend the output of the transaction exclusively
+    to the owner of the relative private key.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Then Sara will fill in the transaction input, where for each UTXO, she must
+    target and unlock the information shown in Figure [3-19](#Fig19).![../images/520777_1_En_3_Chapter/520777_1_En_3_Fig19_HTML.jpg](../images/520777_1_En_3_Chapter/520777_1_En_3_Fig19_HTML.jpg)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 3-19
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Script structure Sig
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.4.6 Validation Process
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The language used, Script  , is stack-based and allows for limited operations
+    to avoid loops in the code that would cause problems of execution. Because of
+    their low complexity and predicted lead times, these languages are referred regarded
+    as incomplete Turing languages. A stack is a data structure that resembles a stack
+    of playing cards.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'There are two procedures available: push and pop. Push puts a card to the top
+    of the deck, whereas pop removes it. In this case, the cards are the data. Anyone
+    who wants to send money to someone must prove they actually own that coin. The
+    scriptSig of the input and the scriptPubKey of the referenced output are combined
+    and evaluated.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Initially, the data entered in the Sig script is added to the stack of the transaction
+    input (therefore, first sig and then pubKey).
+  prefs: []
+  type: TYPE_NORMAL
+- en: The script extracts the public key from the stack, which coincides with the
+    pubKey of the scriptSig, and applies it to it, hashed it first SHA-256 and then
+    RIPEMD160. Then compare the result with the public key hash of the PubKey script  .
+    If it is successful, you proceed to verify the digital signature, otherwise the
+    transaction is rejected.
+  prefs: []
+  type: TYPE_NORMAL
+- en: So, if the signature common for the public key and has been generated using
+    all the data required to be signed, then the transaction is valid.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can see these operations, in more detail, through the diagrams in Figures
+    [3-20](#Fig20) through [3-26](#Fig26).![../images/520777_1_En_3_Chapter/520777_1_En_3_Fig20_HTML.jpg](../images/520777_1_En_3_Chapter/520777_1_En_3_Fig20_HTML.jpg)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 3-20
+  prefs: []
+  type: TYPE_NORMAL
+- en: Transaction validation process, Step 1
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![../images/520777_1_En_3_Chapter/520777_1_En_3_Fig21_HTML.jpg](../images/520777_1_En_3_Chapter/520777_1_En_3_Fig21_HTML.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 3-21
+  prefs: []
+  type: TYPE_NORMAL
+- en: Transaction validation process, Step 2
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![../images/520777_1_En_3_Chapter/520777_1_En_3_Fig22_HTML.jpg](../images/520777_1_En_3_Chapter/520777_1_En_3_Fig22_HTML.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 3-22
+  prefs: []
+  type: TYPE_NORMAL
+- en: Transaction validation process, Step 3
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![../images/520777_1_En_3_Chapter/520777_1_En_3_Fig23_HTML.jpg](../images/520777_1_En_3_Chapter/520777_1_En_3_Fig23_HTML.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 3-23
+  prefs: []
+  type: TYPE_NORMAL
+- en: Transaction validation process, Step 4
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![../images/520777_1_En_3_Chapter/520777_1_En_3_Fig24_HTML.jpg](../images/520777_1_En_3_Chapter/520777_1_En_3_Fig24_HTML.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 3-24
+  prefs: []
+  type: TYPE_NORMAL
+- en: Transaction validation process, Step 5
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![../images/520777_1_En_3_Chapter/520777_1_En_3_Fig25_HTML.jpg](../images/520777_1_En_3_Chapter/520777_1_En_3_Fig25_HTML.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 3-25
+  prefs: []
+  type: TYPE_NORMAL
+- en: Transaction validation process, Step 6
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![../images/520777_1_En_3_Chapter/520777_1_En_3_Fig26_HTML.jpg](../images/520777_1_En_3_Chapter/520777_1_En_3_Fig26_HTML.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 3-26
+  prefs: []
+  type: TYPE_NORMAL
+- en: Transaction validation process, Step 7
+  prefs: []
+  type: TYPE_NORMAL
+- en: So if False is not at the top of the stack after scriptsig and scriptPubKey
+    were evaluated, then the transaction is valid.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In fact, the complete validation process of a transaction, in addition to being
+    independent for each node that receives it, also includes other steps and checks
+    that you will see later.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.4.7 Transaction Structure
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: After learning about the operation and analyzing the fundamental components,
+    you’ll now learn how a transaction is structured. (See Figure [3-27](#Fig27)).![../images/520777_1_En_3_Chapter/520777_1_En_3_Fig27_HTML.jpg](../images/520777_1_En_3_Chapter/520777_1_En_3_Fig27_HTML.jpg)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 3-27
+  prefs: []
+  type: TYPE_NORMAL
+- en: Transaction structured
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Locktime variable  is a fascinating one. It defines when a transaction can
+    be added to the blockchain for the first time. In most transactions, it is set
+    to 0 to indicate instant execution.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If the block time is more than zero but less than 400 milliseconds, it is regarded
+    as a block height, implying that the transaction is not included on the blockchain
+    until the block height is reached. It is interpreted as a *UNIX timestamp* if
+    it exceeds 400 milliseconds, and the transaction is not included in the blockchain
+    before the required time. Locktime is the same as postdating a paper check.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.4.8 Transaction Fee
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: By charging a modest fee for each transaction, transaction fees serve as an
+    incentive to include a transaction in the next block, as well as a deterrent against
+    “spam” transactions or other forms of system abuse.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The miner who mines the block and stores the transaction in the blockchain collects
+    transaction fees. And, unlike the amount of a Bitcoin transaction, transaction
+    fees are calculated depending on the size of the transaction in bytes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note that Bitcoin blocks are limited to 1MB (1,000,000 bytes) of dimensions.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Transaction data takes up space in a block.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: So when a miner fills a block of transactions, they will want to maximize the
+    amount of money they can raise in taxes. They do it selecting the transactions
+    that give them the most money in commissions for the space they occupy in the
+    block. Therefore, when processing the value of the transaction fee, the important
+    metric is the commission per byte. The miners prioritize transactions based on
+    a variety of factors, and in some cases, they may even process transactions for
+    free.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Because transaction fees influence processing priority, a transaction with commissions
+    is more likely to be included in the next block extracted, but a transaction with
+    inadequate or no commissions may be postponed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Transaction costs are not required in most cases, and transactions without them
+    may be completed later; however, the inclusion of transaction fees encourages
+    priority processing. A charge field is also missing from the transaction data
+    structure.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Fees are implied instead as the difference between the sum of inputs and outputs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There is no risk of losing Bitcoins because most wallets compute and account
+    for transaction fees automatically. If the transactions are created programmatically
+    or via the command line, however, the fees must be manually entered and accounted
+    for.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Any excess amount left over after all expenses are subtracted from all inputs
+    is the commission charged by the miners.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Therefore, if you do not want to lose Bitcoin, it is important to also specify
+    the change in UTXOs of a transaction for your wallet.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.5 Transaction Flow
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Once a new transaction is made, it is forwarded to the Bitcoin network’s nearby
+    nodes to be spread throughout the network.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Each Bitcoin node that receives a transaction, however, verifies it first before
+    sending it to its neighbors. Only legitimate transactions are sent over the network,
+    and invalid transactions are discarded by the first node that encounters them.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If the transmitted transaction is genuine, that node forwards it to the other
+    nodes with whom it is connected, and a success message is sent back to the sender
+    synchronously. If the transaction is invalid, the node rejects it and sends the
+    sender a synchronous rejection message.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Therefore, invalid transactions will be rejected, while valid ones are disseminated
+    through the network and will form the *transaction pool* **.** The transaction
+    pool is the set of validated transactions that await be confirmed and added to
+    a new block.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As a result, it serves as a holding area for fresh transactions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To produce a new block, miners choose transactions from the transaction pool.
+    This new block is called the *candidate block* . Each miner then attempts to add
+    their candidate block to the blockchain through the mining process.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s say a transaction A is the child of a transaction B when a UTXO spent.
+    Transaction A is dependent on the output UTXO of the parent transaction (B). Transactions
+    do not always arrive in the same order when broadcast over the network.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It is possible that the child will come before the parents. In this situation,
+    nodes that view the child for the first time may notice that it belongs to an
+    unknown parent. Rather than rejecting it, it places the child in a temporary pool
+    until the parents arrive, after which the child is passed on to all the other
+    nodes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The orphan transaction pool, also known as the orphaned transaction pool, is
+    a parentless transaction pool. All orphans referring to the parent’s UTXO are
+    freed from the pool and recursively revalidated once their parents arrive, allowing
+    the complete transaction chain to be contained in the transaction pool, ready
+    to be pulled into a block.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The orphan pool’s detention mechanism ensures that otherwise acceptable transactions
+    are rejected solely because their parent is late, and that the chain of belonging
+    is finally rebuilt in the right order, independent of the order of arrival. The
+    transaction chains can be as long as you want them to be. Each node checks each
+    transaction it receives against a long list of criteria. Here is the fundamental
+    verification criteria:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The transaction’s syntax and data format must be accurate.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: None of the input or output lists can be empty.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: MAX BLOCK SIZE is less than the transaction size in bytes.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: For each input, the referenced output must exist and cannot be spent (to prevent
+    double spending).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If the referenced output in any other transaction in the pool exists for any
+    input, the transaction must be cancelled (to prevent double spending).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: To discover the referred output transaction for each input, scan the main branch
+    and the transaction pool. Note that if the output transaction is absent for any
+    input, the transaction will be orphaned. If a transaction match isn’t already
+    in the pool, add it to the orphaned transaction pool.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Each input’s unlock scripts must be compared to the equivalent output blocking
+    scripts. These are the most important verification rules, carried out by each
+    node that receives the transaction. The list may vary based on an updated protocol.
+    (See Figure [3-28](#Fig28).)![../images/520777_1_En_3_Chapter/520777_1_En_3_Fig28_HTML.jpg](../images/520777_1_En_3_Chapter/520777_1_En_3_Fig28_HTML.jpg)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 3-28
+  prefs: []
+  type: TYPE_NORMAL
+- en: Lifecycle of a transaction
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.6 The Block
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The blockchain’s data structure is an ordered list with transaction block backlinks.
+    The blockchain can be saved as a simple database or as a flat file. The blockchain
+    metadata is stored in Google’s LevelDB database by the Bitcoin Core client.^([4](#Fn4))
+  prefs: []
+  type: TYPE_NORMAL
+- en: The blocks are connected “backward,” with each one referencing the block before
+    it in the chain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Every block in the blockchain is identified by a hash created by the SHA-256
+    cryptographic hash technique in the block’s header. Additionally, each block uses
+    the prior block’s hash field in the block’s header to refer to the parent block,
+    which is the previous block.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To put it another way, each block’s header contains the hash of its parent.
+    The hash sequence that connects each block to its parent, known as the *genesis
+    block* *,* generates a chain that extends back to the first block ever created.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A block has only one parent, although it can have multiple children at any time.
+    Every child refers to the same block as its parent, and the “hash” field of the
+    previous block includes the same hash (parent). During a blockchain fork, which
+    is a transitory condition in which numerous blocks are mined almost simultaneously
+    by several miners, more child blocks appear.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Finally, the “fork” is rectified, and only a child block becomes part of the
+    blockchain. Even though a block can have multiple children, it can only have one
+    parent. Due to a block’s single field preceding block hash referencing its single
+    parent, this occurs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The hash of the previous block is located in the block and influence header,
+    followed by the hash of the current block.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Keep in mind that as the parent’s identify changes, the child’s identity changes
+    as well. The hash of the parent changes if the parent is altered in any way. As
+    a result, the modified hash of the parent necessitates a change in the child’s
+    pointer pre-block hash. This changes the hash of the child block, which changes
+    the hash of the nephew block’s preceding block hash field and the hash of the
+    nephew itself, and so on, until the last block in the chain is added.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Because of the cascade effect, a block with many subsequent generations cannot
+    be altered without causing all subsequent blocks to be recalculated.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Due to the massive computer power required for such a recalculation, the existence
+    of a long chain of blocks results in the blockchain’s deep history, which is a
+    major security element of Bitcoin. The first six blocks are taken as confirmation
+    of the seventh block.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As you learn more about blockchain technology, you’ll see that the blocks are
+    becoming less and less likely to change. Finally, a block is a data structure
+    that holds a collection of transactions uploaded to the blockchain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.6.1 The Structure of a Block
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The block is made up of a header with metadata or a model, followed by a series
+    of transactions that take up the majority of its space. A block’s average size
+    is set to 1MB. The block header is 80 bytes long, but the average transaction
+    is at least 250 bytes long. (See Figure [3-29](#Fig29).)![../images/520777_1_En_3_Chapter/520777_1_En_3_Fig29_HTML.jpg](../images/520777_1_En_3_Chapter/520777_1_En_3_Fig29_HTML.jpg)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 3-29
+  prefs: []
+  type: TYPE_NORMAL
+- en: Structure of block
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.6.2 The Block Header
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'There are three sets of block metadata in the block header:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A reference to a previous block hash that connects this block to the blockchain’s
+    preceding block.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The terms “target,” “once,” and “timestamp” all refer to Bitcoin mining.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The market root is the root of the Merkle tree, which is used to effectively
+    and securely summarize block transactions.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Merkle trees are a type of tree that grows in the Merkle. With Merkle trees,
+    a node can only download a few block headers (80 bytes per block) and still detect
+    the inclusion of a transaction in a block. It does this by recovering a small
+    Merkle path from a full node without having to store or expand the vast majority
+    of blockchains, which can be several gigabytes in size.
+  prefs: []
+  type: TYPE_NORMAL
+- en: SPV nodes (simplified payment verification)  are nodes that do not retain a
+    full blockchain and use Merkle pathways to verify transactions without downloading
+    full blocks. SPV nodes frequently employ Merkle trees. Only block headers are
+    downloaded by SPV nodes, which do not hold full transactions or download all blocks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: They employ an authentication or Merkle path to check if a transaction is contained
+    in a block without downloading all of the block’s transactions. The block header’s
+    detailed structure is shown in the table in Figure [3-30](#Fig30).![../images/520777_1_En_3_Chapter/520777_1_En_3_Fig30_HTML.jpg](../images/520777_1_En_3_Chapter/520777_1_En_3_Fig30_HTML.jpg)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 3-30
+  prefs: []
+  type: TYPE_NORMAL
+- en: Block header’s details
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure [3-31](#Fig31) shows a graphic example of the structure of the blocks
+    of the Bitcoin blockchain.![../images/520777_1_En_3_Chapter/520777_1_En_3_Fig31_HTML.jpg](../images/520777_1_En_3_Chapter/520777_1_En_3_Fig31_HTML.jpg)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 3-31
+  prefs: []
+  type: TYPE_NORMAL
+- en: Bitcoin blockchain structure
+  prefs: []
+  type: TYPE_NORMAL
+- en: The block hash is not included in the block’s structural data, either when it
+    is broadcast over the network or when it is stored in the blockchain, as you have
+    seen.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Instead, when a block is received by the network, every node computes the block
+    hash. The block height, or position in the blockchain, is the second way to identify
+    a block. As a result, a block may be identified in two ways: by looking at its
+    hash or by looking at its height.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Each consecutive block placed “above” the first block in the blockchain is one
+    position “higher,” like boxes stacked on top of each other.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It’s vital to realize that the block height isn’t a unique identifier like the
+    block hash. The block height may not always imply a single block. As you will
+    see, two or more blocks with the same block height might contend for the same
+    position in the blockchain. The data structure of the block does not include the
+    block’s height; it is not saved in the block.
+  prefs: []
+  type: TYPE_NORMAL
+- en: When a block is received by the Bitcoin network, every node dynamically determines
+    its position (height) in the blockchain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.7 The Nakamoto Consensus
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Furthermore  , all traditional payment systems rely on a trust with a central
+    authority that administers transactions and, as a result, the ledger.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Bitcoin has no central authority, but each full node has a copy of the blockchain,
+    complete with a public ledger that you can rely on as a record. The blockchain
+    is not established by a central authority, but rather by each network node working
+    independently. Using the information supplied over the network, each node of the
+    network can come to the same conclusion and assemble the same copy of the ledger.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The decentralized technique, through *emergent consensus* *,* is Satoshi Nakamoto’s
+    key invention.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Consensus is emerging because it is not expressly reached. There is no election
+    in which consent happens. Instead, the consensus is an emergent result of hundreds
+    of independent nodes interacting asynchronously under simple rules and regulations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The interaction of four processes that run independently on nodes in the network
+    results in Bitcoin’s decentralized consensus:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Independent verification of each transaction for each full node using a thorough
+    set of criteria.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Autonomous grouping of these transactions into new blocks by mining nodes, as
+    well as proved computations through a proof-of-work algorithm.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Each node independently verifies new blocks before adding them to the blockchain.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Independent selection of the longer proof-of-work chain for each node (i.e.,
+    proven to have higher computational power than the shorter one).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 3.7.1 Miner
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Some nodes are particular nodes, called mining nodes or *miner nodes* . They
+    are responsible for creating and registering new blocks to the ledger. These nodes
+    compete with each other to add a new block to the blockchain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: They are in contention with each other because who manages to win the block
+    and add it to the chain receives a Bitcoin reward such as an incentive for contributing
+    to the consensus of the Bitcoin network.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To form a new block, miners select transactions from the transaction pool,
+    thus obtaining a candidate block to be registered to the ledger. To select transactions,
+    miners apply a property metric transactions, giving higher priority to transactions
+    with UTXO in older inputs and of a higher amount than the most recent ones and
+    of smaller amount. In other words, given a transaction Tx. Let N be its UTXO number
+    in input and for each UTXO i in input. We define the priority of TX as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![../images/520777_1_En_3_Chapter/520777_1_En_3_Figa_HTML.gif](../images/520777_1_En_3_Chapter/520777_1_En_3_Figa_HTML.gif)'
+  prefs: []
+  type: TYPE_IMG
+- en: At the same time, they will assign more weight to those with costs of commission
+    per kilobyte higher than those that have commissions for lower kilobytes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The average size of a Bitcoin block is set at 1MB. Hence, a miner will try to
+    select the sequence of transactions which, respecting the priorities (of seniority
+    and value) and the maximum block size, will allow you to have a greater income.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As a result, transaction commissions are usually valued based on the magnitude
+    of the transaction.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.7.2 Coinbase Transaction
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The first transaction added to the block is a one-of-a-kind transaction that
+    differs from regular transactions. Coinbase Transaction  is the name given to
+    it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'It is the transaction that allows the miner who extracts the block to receive:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The incentive for having participated and contributed to the consent process
+    adding a new block.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The sum of all the commissions of all the transactions it has added to the block.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Obviously, the beneficiary Bitcoin address of this transaction is that of the
+    miner who extracts the block. The difference between the total value of input
+    and the total value of output for each transaction is used to compute the total
+    commissions. That is to say:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Take N as the total number of inputs, I as the index for each input, and Vi
+    as the amount of input i.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Let M be the total number of outputs, or the index for each output, and V be
+    the amount of the output. Then:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '![$$ \mathrm{Commission}i\mathrm{Total}i=\sum \limits_{\mathrm{i}=1}^{\mathrm{N}}{V}_i-\sum
+    \limits_{0=1}^{\mathrm{M}}{V}_0 $$](../images/520777_1_En_3_Chapter/520777_1_En_3_Chapter_TeX_Equ2.png)(3.2)'
+  prefs: []
+  type: TYPE_IMG
+- en: Instead, the miner reward is calculated from 50 bitcoin and by dividing this
+    value by 2, every 210,000 blocks. That means Bitcoins are “minted” at a set and
+    declining rate throughout the construction of each block. Each block, which is
+    formed every ten minutes, comprises a new Bitcoin created from scratch. The currency
+    issuance rate is reduced by 50% every 210,000 blocks, or about every four years.
+    Each block included 50 new Bitcoins throughout the first four years of the network’s
+    functioning.^([5](#Fn5))
+  prefs: []
+  type: TYPE_NORMAL
+- en: The reward is based on the block height, with a beginning value of 50 Bitcoins
+    per block and halving every 210,000 blocks. The proper reward is 25 Bitcoins because
+    this block has a height of 277,316.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The computation  may be observed in the Bitcoin Core client’s GetBlockValue
+    function, as demonstrated in Listing [3-1](#PC2).**int64_t** GetBlockValue(**int**
+    nHeight, **int64_t** nFees){    **int64_t** nSubsidy = 50 * COIN;    **int** halvings
+    = nHeight / Params().SubsidyHalvingInterval();        **if** (halvings >= 64)        **return**
+    nFees;    *// Every 210,000 blocks, or about every 4 years, the subsidy is decreased
+    in half..*    nSubsidy >>= halvings;    **return** nSubsidy + nFees;}Listing 3-1
+  prefs: []
+  type: TYPE_NORMAL
+- en: The GetBlockValue Function
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.7.3 Developing the Block Header
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'After calculating the transactions from the Transaction Pool and the Coinbase
+    Transaction, the miner continues on to construct the block header in order to
+    generate the Candidate Block  . The following steps will then be taken:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '1.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Indicates the block’s version number, which explains the block’s architecture.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '2.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Adds the hash of the previous block that it accepted as a block parent.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '3.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Add the Merkle tree root value to the equation. So, after calculating the SHA-256
+    hash for each transaction, these are merged in pairs to form each level of the
+    tree, until all transactions are summarized in a node at the “root” of the tree.
+    As a result, the Merkle tree’s root stores all transactions in a single 32-byte
+    value.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '4.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Adds the timestamp in Unix Epoch format that it refers to now of block creation.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '5.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Defines the test difficulty of work required to make it a legitimate block by
+    filling in the difficulty target.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '6.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The final field is the nonce, initialized to 0.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: The block header is now complete, with all other fields filled in, and the mining
+    operation may commence. The goal now is to discover a value for the nonce that
+    transforms the difficulty target into a hash of the lower block header.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.7.4 Difficulty Target
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The target  is used in mining. It is the number (expressed in hexadecimal) to
+    which the hash value of a block must be reduced in order for it to be added to
+    the ledger.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The target is adjusted every 2016 blocks (about two weeks) to ensure that blocks
+    are extracted on average every ten minutes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The complexity of the Proof of Work is determined by a moving average that aims
+    an average number of blocks per hour to adjust for increasing hardware speed and
+    variable interest in node execution over time. The difficulty increases if they
+    are generated too quickly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The target is calculated by each node of the network independently, but following
+    the Bitcoin protocol rules.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The rule stipulates that every 2,016 blocks, all nodes automatically retarget
+    the Proof of Work difficulty. The retargeting difficulty calculation compares
+    the time it takes to find the remaining 2,016 blocks to the expected time of 20,160
+    minutes (which equals two weeks, based on a time of desired block of ten minutes).
+  prefs: []
+  type: TYPE_NORMAL
+- en: The desired ratio between the actual period and the time period is then computed,
+    and an adjustment based on the difficulty is made. The difficulty rises if the
+    network finds blocks faster than every ten minutes. The difficulty decreases if
+    block finding is slower than planned.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let RecentBlockTime be the variable that indicates the time taken to find the
+    latest 2016 blocks. The equation for calculating the *Difficulty Target* is:![$$
+    \mathrm{NewDifficultyTarget}=\mathrm{OldTarget}\ast \left(\frac{\mathrm{RecentBlockTime}}{20160}\right)
+    $$](../images/520777_1_En_3_Chapter/520777_1_En_3_Chapter_TeX_Equ3.png)(3.3)
+  prefs: []
+  type: TYPE_NORMAL
+- en: The adjustment per cycle must be less than a factor of 4 to avoid significant
+    volatility in the difficulty objective.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If the required difficulty adjustment exceeds a factor of 4, it is limited to
+    the maximum allowed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: All remaining modifications will be performed in the next period. Because each
+    node adheres to the same consensus rules and all blocks are identical, they will
+    all arrive at the same difficulty value  .
+  prefs: []
+  type: TYPE_NORMAL
+- en: If a node miscalculates the goal (or lies about it) and then produces a block
+    based on that value, the rest of the network will reject it since it does not
+    match the target’s requirements, and all of the work invested in mining that block
+    will be lost.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.7.5 Proof of Work
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Once a miner node has created a candidate block, the block must be extracted
+    by the node’s hardware platform. It must solve the proof-of-work algorithm in
+    order for the block to be valid. The SHA-256 hash function is utilized in the
+    Bitcoin mining process.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Simply said, *mining* is the process of hashing the block header by modifying
+    the “nonce parameter repeatedly until the resulting hash does not match a specific
+    target.”. “The hash function’s result cannot be predicted in advance, nor can
+    a pattern that generates a certain hash value be generated.” Hash functions have
+    this property, which means that the only method to achieve a hash result that
+    matches a specific target is to repeat the input until the desired hash result
+    arises randomly.^([6](#Fn6))
+  prefs: []
+  type: TYPE_NORMAL
+- en: As a result, we must understand that the miner computes the hash of this block’s
+    header to determine whether it is smaller than the current target. If the hash
+    isn’t smaller than the target, the minor increases the nonce (typically by one)
+    and tries again. “Miners must try several million times to discover a nonce that
+    results in a low enough hash of the block header at the present difficulty level
+    of the Bitcoin network.”
+  prefs: []
+  type: TYPE_NORMAL
+- en: Furthermore, while it was possible to mine the blocks using a simple home computer
+    in the early years, today you must utilize specialized and expensive hardware
+    and share your processing power with other users by joining mining pools. When
+    a mining node solves the problem, it sends the block to all of its neighbors so
+    that it can propagate around the network, be validated, and ultimately be added
+    to the ledger.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.7.6 Validating a New Block
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The third step in reaching consensus on the blockchain is independent validation,
+    which is carried out by each node that receives a new block.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As the newly solved block propagates over the network, each node runs a series
+    of tests to ensure that it is valid before forwarding it to its peers. Only legitimate
+    blocks are propagated over the network as a result of this. Independent validation
+    also ensures that honest miners are putting their blocks on the blockchain and
+    profiting.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Those that act dishonestly have their blocks rejected, losing not only the reward,
+    but also the effort of finding a proof-of-work solution, and therefore bearing
+    the expense of electricity without reimbursement.
+  prefs: []
+  type: TYPE_NORMAL
+- en: When a node receives a new block, it verifies it by comparing it to a large
+    set of requirements that must all be met; otherwise, the block is eliminated.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'These is a list of the most significant characteristics that can be summarized:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The block’s structure and syntax are correct.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The target value is accurate.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: It’s important to realize that the block header hash is easier than the target
+    difficulty (proof of work check).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The block timestamp is less than two hours in the future (holding timing faults).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The block size follows the protocol’s criteria.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The initial transaction is made with coinbase.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The transactions contained therein are valid (recheck transactions using the
+    verification criteria outlined in the transaction flow).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: As a result, independent validation ensures that miners cannot cheat. Miners
+    must construct a complete block based on a shared protocol or set of rules observed
+    by all nodes and extract it using a proper proof of work solution. They use a
+    lot of electricity to do this, and if they cheat, all of the electricity and effort
+    is squandered. Therefore, the validation not depended on is a key part of the
+    decentralized consensus.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.7.7 The Blockchain Forks
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Different copies of the blockchain are not always constant because it is a decentralized
+    data architecture. Blocks could arrive at different times on different nodes,
+    giving nodes different perspectives on the blockchain. To tackle this problem,
+    each node picks the most effective proof of work blockchain, also known as the
+    highest chain or chain with the greatest cumulative difficulty, and tries to extend
+    it as much as possible.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A node can calculate the total amount of proof of work used to form a chain
+    by summing the difficulty recorded in each block.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The global Bitcoin network eventually converges to a coherent state by the time
+    all nodes select the longest cumulative chain of difficulty.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The nodes manage three groups of blocks:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The first is the one that is linked to the main blockchain.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The blocks that do not have a known parent in known chains.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The blocks that constitute the branches of the main blockchain (secondary chains)
+    (orphans).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: When any of the criterion validations fail, the invalid blocks are removed or
+    rejected, and they are not included in the chain. You must realize that the main
+    chain is the blockchain with the greatest or highest cumulative difficulty at
+    any given time.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Unless there are two chains of equal length, one of which has a larger number
+    of functioning proofs, this is usually the chain with the most blocks. When a
+    new block is discovered, a node tries to incorporate it into the current blockchain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The node examines the previous block’s hash field, which contains the address
+    of the new block’s parent. The node will then search the current blockchain for
+    that parent. The parent block is the “top” of the main chain in the most recent
+    examples, implying that this new block extends the main chain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Additionally, the new block may occasionally extend a chain that isn’t the main
+    chain. In this situation, the node connects the new block to the secondary chain,
+    allowing it to compare the secondary chain’s difficulty to that of the main chain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If the secondary chain has a higher cumulative difficulty than the main chain,
+    the node will fall back to it, making the secondary chain the new parent chain
+    and the former main chain a secondary chain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If a good lock is received but no parent is discovered in the current chains,
+    the block is referred to as an *orphan*. The orphaned blocks are placed in the
+    orphaned blocks pool and will remain there until their parent arrives.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The orphaned block can be retrieved from the orphan pool and attached to the
+    parent once the parent has arrived or been received and joined to the existing
+    chains. Keep in mind that orphaned blocks typically occur when two blocks mined
+    within a short period of time are received in reverse order. By selecting the
+    chain with the highest difficulty, all nodes reach network-level consensus in
+    the end.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Temporary chain modifications are finally resolved by extending one of the existing
+    chains with new proofs of work. Mining nodes use their mining power to “vote”
+    for the next block to be extracted. The new block will represent their vote when
+    they extract a new block to expand the chain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.8 Summary
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: When you think about the term “blockchain,” the main concept that should come
+    to mind is Bitcoin, which you learned about in this chapter. I explained the technical
+    aspects of Bitcoin, the block structure of the Bitcoin blockchain, and the flow
+    of transactions in the blockchain, with examples. To develop a blockchain application,
+    you must understand these fundamental concepts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The next chapter focuses on Ethereum, a blockchain-based software platform that
+    is primarily used to support the world’s second-largest cryptocurrency by market
+    capitalization after Bitcoin.
+  prefs: []
+  type: TYPE_NORMAL

@@ -1,0 +1,600 @@
+- en: © The Author(s), under exclusive license to APress Media, LLC, part of Springer
+    Nature 2022J. T. GeorgeIntroducing Blockchain Applications[https://doi.org/10.1007/978-1-4842-7480-4_10](https://doi.org/10.1007/978-1-4842-7480-4_10)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 10. Scheduling in Real-Time Systems
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Joseph Thachil George^([1](#Aff2)  )(1)Rome, ItalyThe task state determines
+    the milestone of a task in a process. The default states are as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The job has been received and is waiting to be accepted in the system.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The task has been accepted by the allocated user (or system). Other users and
+    systems cannot modify or complete the work since it is locked.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The task has been completed.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A user has been assigned to the job. (Manual tasks only.)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The task attempted to generate a work order in the activation system, but was
+    unsuccessful. (Activation tasks only.)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: These conditions must be met and cannot be changed. To support your business
+    processes, you can define extra states (user-defined states). You can set a task’s
+    state to suspended if it can’t be completed on time.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the absence of other operations, the processor executes a series of instructions
+    until they are completed. A task is a sequence of instances (jobs).![../images/520777_1_En_10_Chapter/520777_1_En_10_Fig1_HTML.jpg](../images/520777_1_En_10_Chapter/520777_1_En_10_Fig1_HTML.jpg)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 10-1
+  prefs: []
+  type: TYPE_NORMAL
+- en: State even
+  prefs: []
+  type: TYPE_NORMAL
+- en: Jobs that are ready are kept in a queue known as the waiting list (QUEUE)  .
+    The scheduling algorithm is a method for selecting a task to run on the CPU.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 10.1 The Concept of Scheduling
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The process is composed of the scheduling algorithm:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Preemptive:** Work can be briefly paused so that a more critical task can
+    be completed.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Non-preemptive:** The task can’t be interrupted. A schedule is a list of
+    tasks allocated to the processor in a certain order to the processor. A processor’s
+    process is a set of tasks that have been allocated to them.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '![../images/520777_1_En_10_Chapter/520777_1_En_10_Fig2_HTML.jpg](../images/520777_1_En_10_Chapter/520777_1_En_10_Fig2_HTML.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 10-2
+  prefs: []
+  type: TYPE_NORMAL
+- en: State transition and ready queue
+  prefs: []
+  type: TYPE_NORMAL
+- en: Processes may need to be swapped or paged out to secondary memory in applications
+    with severe real-time limitations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: An operating system is said to be *multitasking* when it runs multiple programs
+    at the same time. It is important to distinguish between a program intended as
+    a “container of instructions” and a program intended as an “in progress” entity.
+    A running program is called a process (or task).
+  prefs: []
+  type: TYPE_NORMAL
+- en: So while a *program* is a static entity that describes the actions to be performed,
+    a *process* is a dynamic entity that represents the execution of those actions.
+    The mechanism that the OS adopts to execute several processes “in parallel” (concurrent
+    processes) is called *time sharing* .
+  prefs: []
+  type: TYPE_NORMAL
+- en: It consists of assigning the CPU for a time slice called time-slice, which is
+    set for each process. When that time expires, the execution of the process is
+    suspended and the CPU is assigned to another process. This technique is called
+    *preemptive multitasking* .
+  prefs: []
+  type: TYPE_NORMAL
+- en: The most important problem with multitasking systems is the allocation of the
+    resources required by the various processes. In fact, it may happen that several
+    processes simultaneously request a specific single resource that cannot be shared
+    (e.g. the printer). In this case, the process requestor is suspended immediately
+    and the requesting process is placed in a wait queue. Only when the resource is
+    released and no other process in the queue precedes it, can it acquire the resource
+    and resume execution.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Another problem concerns access to peripherals. Because device I/O operations
+    are extremely slow relative to processor speed, a process’s request for an I/O
+    operation causes the process to suspend until the operation is complete (the hardware
+    mechanism at stake is obviously the interrupt).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A process can be in one of these three states:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Running. The process has the CPU and is running (ready).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The process was suspended because the time expired.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Blocked (blocked, waiting, suspended). The process cannot advance because it
+    needs a resource that is not yet available or because it is waiting for I/O.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Managing ready jobs is implemented by a set of queues, each with a defined priority.
+    Each process is assigned a priority so that when the process goes to the ready
+    state, it is placed in the queue with the corresponding priority.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The process that runs is the first in the queue. If there are no jobs waiting
+    in it, the first job in the queue is executed, and so on.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 10.2 Types of Constraints
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: A transition restriction prevents the data from entering an impossible state
+    as a result of a prior state. For example, a person should not be able to switch
+    from being “married” to “single, never married.” “Divorced,” “widowed,” or “dead”
+    are the only allowed states after “married.”![../images/520777_1_En_10_Chapter/520777_1_En_10_Fig3_HTML.jpg](../images/520777_1_En_10_Chapter/520777_1_En_10_Fig3_HTML.jpg)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 10-3
+  prefs: []
+  type: TYPE_NORMAL
+- en: Task processor
+  prefs: []
+  type: TYPE_NORMAL
+- en: A transitional constraint is a characteristic that governs every legitimate
+    transition from one state of the model to its successor state in the formal model
+    of information security. It can be thought of as a supplement to state criteria,
+    which applies to states as a whole but has no influence on transitions between
+    them.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Once its destination address has been written to secondary storage and it is
+    not waiting for a particular task, the process is executable and switchable. If
+    a process is waiting for a task, it is put to sleep and its whole address space
+    is written to secondary storage.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Note the following about constraints:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Types include jitter, trigger, completeness, and deadline.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: They can be explicit (included in the system activities specification) or implicit
+    (not included in the system activities specification).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: They impose a logical order on the execution limits of resources.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: They ensure that access to mutually exclusive resources is synchronized.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '![../images/520777_1_En_10_Chapter/520777_1_En_10_Fig4_HTML.jpg](../images/520777_1_En_10_Chapter/520777_1_En_10_Fig4_HTML.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 10-4
+  prefs: []
+  type: TYPE_NORMAL
+- en: Real-time tasks
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![../images/520777_1_En_10_Chapter/520777_1_En_10_Fig5_HTML.jpg](../images/520777_1_En_10_Chapter/520777_1_En_10_Fig5_HTML.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 10-5
+  prefs: []
+  type: TYPE_NORMAL
+- en: Tasks activation
+  prefs: []
+  type: TYPE_NORMAL
+- en: 10.2.1 Independent Task Scheduling Constraints
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: This category assumes that the tasks do not have any dependencies (e.g. mutual
+    exclusion).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The *rate monotonic algorithm* is a dynamic algorithm with preemption based
+    on static priorities with the following assumptions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '1.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Requests for all tasks belonging to a specific task set for which you have hard
+    real-time constraints are periodic.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '2.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: All tasks are independent (absence of mutual exclusion or dependencies).
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '3.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The expiration of each task (Ti) corresponds with the duration of its period
+    (pi).
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '4.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: You know a priori the maximum computation time for each task.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '5.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Context switching times are ignored.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '6.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'The sum of the utilization factors of the *n* tasks is limited at the top by:'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '![$$ \mu =\sum \frac{c_i}{p_i}\le n\;\left({2}^{\frac{1}{n}}-1\right) $$](../images/520777_1_En_10_Chapter/520777_1_En_10_Chapter_TeX_Equa.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Where:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: c[i] = Computation time of the i*th* task
+  prefs: []
+  type: TYPE_NORMAL
+- en: p[i] = Duration of the period of the i*th* task
+  prefs: []
+  type: TYPE_NORMAL
+- en: The algorithm assigns priorities statically and is based on the duration of
+    the task period. The tasks with shorter periods will have higher priority and
+    those with longer periods have lower priority. In the execution phase, therefore,
+    the task with the shortest period will be chosen each time.
+  prefs: []
+  type: TYPE_NORMAL
+- en: With the *earliest-deadline-first algorithm* *,* the algorithm with the earliest
+    expiration is selected. With the *least-laxity algorithm* *,* the task priority
+    is calculated based on the difference between the deadline and the computation
+    time necessary for the task. The lower this value is, the higher the priority
+    the task is![$$ {laxity}_i={d}_i-{c}_i $$](../images/520777_1_En_10_Chapter/520777_1_En_10_Chapter_TeX_Equb.png)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 10.2.2 Scheduling Dependent Tasks
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: In this category, which is closer to reality and therefore more interesting,
+    we assume that the tasks have dependencies (e.g. mutual exclusion).
+  prefs: []
+  type: TYPE_NORMAL
+- en: The *Kernelized Monitor algorithm* *,* proposed by Mok [2], allocates the processor
+    for non-interruptible time *q* and assumes that a critical section is executable
+    within the time limit. The earliest policy is used for scheduling deadlines first.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The scheduling analysis done in this protocol requires the use of upper bounds
+    on the times of execution of all the critical sections that appear in the tasks.
+    In fact, the quantity must be calibrated on the longest executable critical section.
+    Since these upper bounds can be too pessimistic, using the protocol kernelized
+    monitor can lead to low processor utilization.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The *Priority Ceiling Protocol* is used to schedule a periodic set of tasks
+    that have exclusive access to one or multiple common resources protected by traffic
+    lights.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This protocol was created by Sha, Rajkmar, and Lehocky in 1990 to solve the
+    problem of *priority inversion*. This arises when a high priority job has to wait
+    for a higher priority job to be executed, typically due to other resources being
+    used by running tasks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If there are three tasks (T1, T2, and T3) with priority p1> p2> p3, all three
+    use the resource R and the algorithm for scheduling the monotonic rate type.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Suppose that T1 and T3 need to access the resource to which the mutex S is associated.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If T3 starts processing and locks (S) before T1 starts, then T1 will be locked
+    for an undefined time, that is, until T3 it will not do an unlock (S), freeing
+    the resource S. In fact, T1 cannot continue execution without the resource S held
+    by T3\. In this case, T1 is penalized in favor of T3 in spite of the order of
+    priorities p1> p3.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If, before T3 unlocks (S), T2 starts, then T3 will be suspended to allow T2
+    to be processed under the priorities p2> p3\. In this case, T1 will have to wait
+    for T2 to stop being processed. Indeed, T1 is blocked on T3, which in turn is
+    blocked on T2 in spite of the order of priorities p1> p2.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The proposed algorithm is based on the following points:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A task is allowed to enter the critical section only if its priority is higher
+    than the task that is currently locking the resource.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: When it has finished using the critical section, it releases it, giving it the
+    previous priority.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 10.3 Review Questions and Answers
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Try these review questions as a test of knowledge.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 10.3.1 Review Questions
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '1.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: “A task is a set of events.” Is this statement correct or incorrect?
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 2.What is scheduling ?
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: a.
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Preventive: When a current task can be put on hold in order to finish an even
+    more important task.'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: b.
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Preventive: When a running task can be briefly paused in order to complete
+    a more critical task.'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: c.
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Preemptive: When the currently executing process can be used to temporarily
+    execute another task.'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: d.
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Preventive: When an ongoing task can be briefly paused to complete a less critical
+    task.'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 3.Which of the following task statements is correct?
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: a.
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Depending on the operating system, a task can be a process or a thread.
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: b.
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The job must be a program or a thread, depending on the operating system.
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: c.
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: A task might be a process or a thread, depending on the version.
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: d.
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: None of the preceding.
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 4.Which of the following claims regarding events are true?
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: a.
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: If the current task can’t be paused until it’s finished, it’s non-preemptive.
+    A schedule is a list of tasks that the processor has been allocated.
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: b.
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Non-preemptive is not whether a job in progress can be paused until it is completed.
+    A schedule is a list of tasks that the processor has been allocated.
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: c.
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Non-preemptive is when the current task can’t be halted until it’s completed.
+    A timetable is a set of responsibilities assigned to a specific event.
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: d.
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: All of these are true.
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '5.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: “A task is a set of instructions that is continually executed by the processor
+    in the absence of other activities.” Is this statement correct?
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 10.3.2 Answers
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '1.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Answer: Incorrect, a task is a series of events.'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '2.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Answer: B, preventive scheduling is when a running task can be briefly paused
+    in order to complete a more critical task.'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '3.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Answer: C, a task might be a process or a thread, depending on the version.'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '4.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Answer: A, If the current task can’t be paused until it’s finished, it’s non-preemptive.
+    A schedule is a list of tasks that the processor has been allocated.'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '5.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Answer: Incorrect, a task is a set of instructions that the processor executes
+    in the absence of other operations until it is completed.'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 10.4 Summary
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: This chapter explained how scheduling works in real-time systems. Scheduling
+    homogeneous processes arises when several processes with the same requests and
+    time constraints must be efficiently served by the scheduling policy. For example,
+    such a situation arises in a video server that must support the display of a fixed
+    number of videos all characterized by the same frame rate, video resolution, data
+    transmission frequency, etc.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this situation, a simple but effective scheduling policy is round-robin.
+    In fact, all processes are equally important; they have the same amount of work
+    to do and crash when they have finished processing the current frame. The scheduling
+    algorithm can be optimized by adding a timing mechanism to ensure that each process
+    runs at the correct frequency. The simple precedent model rarely occurs in practice.
+    A more realistic model provides for the presence of multiple processes competing
+    for CPU use, each with its own workload and deadlines.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The next chapter focuses on modeling and discusses how model-based engineering
+    helps in the distributed system. For the practical implementation of distributed
+    systems, the model’s guided engineering is an important concept.
+  prefs: []
+  type: TYPE_NORMAL
