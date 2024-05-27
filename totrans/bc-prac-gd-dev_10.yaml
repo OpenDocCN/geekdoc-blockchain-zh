@@ -1,30 +1,44 @@
 - en: '10   Sample Application: Blockchain and Betting'
+  id: totrans-0
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 10 示例应用：区块链与投注
 - en: 'In this chapter, we’re going to take a look at a practical application of blockchain
     technologies by creating a sports betting distributed application (dapp) from
     scratch. We will:'
+  id: totrans-1
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本章中，我们将通过从头创建一个体育投注分布式应用（dapp）来查看区块链技术的实际应用。我们将：
 - en: •   Set up a full development environment
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: •   设置完整的开发环境
 - en: •   Write and explain in detail the Ethereum Solidity code to perform the betting
     application functionality
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: •   详细编写并解释用于实现投注应用功能的以太坊 Solidity 代码
 - en: Our dapp will be modeled off PeerBet, an open-source peer-to-peer sports betting
     platform. If you’d like to view a working version of the code we are about to
     implement, the PeerBet main code repository can be found at [https://github.com/k26dr/peerbet](https://github.com/k26dr/peerbet)
     and a working implementation can found at peerbet.co. A branch has been set up
     for the simplified version used in the book and can be found at [https://github.com/k26dr/peerbet/tree/for-book](https://github.com/k26dr/peerbet/tree/for-book).
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们的 dapp 将模仿 PeerBet，一个开源的对等体育投注平台。如果你想查看我们即将实施代码的工作版本，PeerBet 的主代码仓库可以在 [https://github.com/k26dr/peerbet](https://github.com/k26dr/peerbet)
+    找到，而且一个工作实现可以在 peerbet.co 找到。为书中使用的简化版本设置了一个分支，可以在 [https://github.com/k26dr/peerbet/tree/for-book](https://github.com/k26dr/peerbet/tree/for-book)
+    找到。
 - en: What Is a Dapp?
+  id: totrans-5
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 什么是 Dapp？
 - en: Dapp is the name given to a distributed application or smart contract that is
     deployed on a blockchain like Ethereum. As opposed to a standard web application,
     a distributed application has no central server for storing data or performing
@@ -34,15 +48,20 @@
     of this, dapps are much harder to censor and take down than a centralized system,
     making them ideal for use cases where central servers could be compromised either
     by the law or by attackers.
+  id: totrans-6
   prefs: []
   type: TYPE_NORMAL
+  zh: Dapp 是指部署在如以太坊这样的区块链上的分布式应用或智能合约。与标准的 web 应用不同，分布式应用没有用来存储数据或执行计算的中心服务器。相反，所有的计算和数据存储都由区块链网络上的交易处理。这些交易由区块链对等网络中的每一个节点执行，数据也由网络中的每一个节点存储。因此，与中心化系统相比，dapp
+    更难以被审查和下架，这使它们成为中心服务器可能因法律或攻击者而被妥协的使用场景的理想选择。
 - en: Not all blockchains are capable of hosting dapps. The Bitcoin blockchain, for
     example, is not designed to handle the sort of general purpose computation required
     to host a proper dapp. In fact, the majority of blockchains cannot handle dapps.
     This is because most blockchains have been designed for a specific use case, such
     as Bitcoin for financial transactions.
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 并非所有区块链都能托管 dapps。例如，比特币区块链就不是为了处理托管真正 dapp 所需的通用目的计算而设计的。事实上，大多数区块链都无法处理 dapps。这是因为大多数区块链都是为了特定用例而设计的，比如比特币用于金融交易。
 - en: In order to support dapps, a blockchain must be able to encode transactions
     in a Turing complete programming language. There exists a formal definition of
     Turing completeness that is mathematically rigorous, but for our purposes it will
@@ -53,14 +72,20 @@
     to avoid the complications associated with Turing completeness on a blockchain.
     The more features the scripting language has, the greater its “attack surface”—that
     is, it is more vulnerable to security flaws and hacks.
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了支持 dapps，区块链必须能够用图灵完备的编程语言编码交易。存在一个数学上严密的图灵完备性的正式定义，但对于我们的目的，将图灵完备语言定义为支持循环和条件语句的语言就足够了。JavaScript
+    和 Python 都是图灵完备语言的例子，而 SQL 和 XML 则不是。比特币使用一种自定义的脚本语言来清除交易，但故意设计为没有循环和条件语句，以避免与区块链上的图灵完备性相关的复杂性。脚本语言的功能越强，其“攻击面”也就越大——也就是说，它更容易受到安全漏洞和黑客攻击。
 - en: 'There are currently two major blockchains that feature Turing complete transaction
     languages: Hyperledger and Ethereum. Hyperledger is a permissioned private blockchain
     (for more on the difference between public and private blockchains, see [Chapter
     8](ch8.xhtml#ch8), “Private Blockchain Use Cases”).'
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 目前有两个主要的具有图灵完备交易语言的区块链：Hyperledger和Ethereum。Hyperledger是一个需要权限的私有区块链（有关公共和私有区块链之间的区别，请参见第8章[Chapter
+    8](ch8.xhtml#ch8)，"Private Blockchain Use Cases"）。
 - en: The largest Turing complete public blockchain by market cap is Ethereum, and
     that is what we will be using to host our dapp. Ethereum uses a minimalist smart
     contract programming language named Solidity for developing contracts. The Solidity
@@ -69,17 +94,23 @@
     we will be doing all our development in Solidity. There are other languages supported
     by the EVM, such as Serpent and LLL (Low-level Lisp-like Language), but Solidity
     is the most popular.
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 市值最大的图灵完备公共区块链是以太坊，我们将使用它来托管我们的dapp。以太坊使用一种极简主义的智能合约编程语言Solidity来开发合约。Solidity编译器将Solidity代码转换为以太坊虚拟机（EVM）字节码。EVM字节码实际上是在区块链上存储和执行的，但我们将全部开发工作都集中在Solidity上。EVM还支持其他语言，如Serpent和LLL（低级Lisp-like语言），但Solidity是最受欢迎的。
 - en: Introduction to Lotteries, Betting, and Gambling on the Blockchain
+  id: totrans-11
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 区块链上的彩票、投注与赌博简介
 - en: Sports betting applications already exist on the Internet in various forms.
     In Europe and Asia, legal betting houses such as Bet365 and Bovada offer online
     sports books with house odds. So what’s the advantage of a blockchain for betting?
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 体育博彩应用已经在互联网上以各种形式存在。在欧洲和亚洲，像Bet365和Bovada这样的合法博彩公司提供在线体育投注，赔率由博彩公司设定。那么，区块链在投注方面的优势是什么？
 - en: The majority of blockchain applications are solutions looking for a problem.
     Today a blockchain is an expensive, inefficient, and slow way of performing computation
     and storage. This will change as the technology matures. Cloud servers and storage
@@ -87,109 +118,175 @@
     however, a blockchain offers certain specific advantages and features. An application
     that does not sufficiently benefit from or is hindered by these advantages should
     be implemented using traditional server technologies instead.
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 大多数区块链应用是寻找问题的解决方案。今天，区块链是一种昂贵、低效且缓慢的计算和存储方式。随着技术的成熟，这种情况将发生变化。云服务器和存储提供的计算和存储能力比区块链要高出许多倍，成本却只是其一小部分。然而，区块链提供了一些特定的优势和特性。如果一个应用不能充分利用这些优势或受到这些优势的阻碍，那么应该使用传统的服务器技术来实现。
 - en: Before deciding to develop your application on the blockchain, run through the
     following lists and make sure your application is a good fit for the technology.
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 在决定在区块链上开发您的应用之前，请浏览以下列表，确保您的应用适合这项技术。
 - en: 'Advantages:'
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: 优点：
 - en: •   Anonymous, cryptographically secure authentication
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 匿名、加密安全的身份验证
 - en: •   Fast, frictionless, anonymous, low fee payments
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 快速、无摩擦、匿名、低费用支付
 - en: •   Uncensorable network with 100 percent uptime
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: 不可审查的网络，100%的正常运行时间
 - en: •   Publically verifiable and guaranteed code transaction execution
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 公开可验证且保证的代码交易执行
 - en: •   Immutable data storage
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: 不可变的数据存储
 - en: 'Disadvantages:'
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 缺点：
 - en: •   Limited, expensive storage
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 有限的、昂贵的存储
 - en: •   Limited, expensive computation
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 有限的、昂贵的计算
 - en: •   Slow network
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: 缓慢的网络
 - en: •   Limited transaction rate
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: 有限的交易速率
 - en: •   Contract code deployment cannot exceed the block gas limit (~1000 loc)
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: 合约代码部署不能超过区块的gas限制（约1000行）
 - en: 'Other features that could go either way:'
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: 其他可能适合或不适合的特性：
 - en: •   Transaction fees are paid by users, not contract owners.
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 交易费用由用户支付，而不是合约所有者。
 - en: •   All data is public.
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 所有数据都是公开的。
 - en: 'A clear example of a class of applications that would be a poor fit for a blockchain
     are social media applications. Here’s a list of requirements and features for
     a typical social media application:'
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个清晰的应用例子，这类应用不适合区块链的是社交媒体应用。以下是典型社交媒体应用的一组需求和特性：
 - en: •   Scale to millions of users
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 扩展到数百万用户
 - en: •   Scale to thousands of requests per second
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: 扩展到每秒数千个请求
 - en: •   Large codebases
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 大型代码库
 - en: •   Big data storage for generating advertising insights
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: 大数据存储，用于生成广告洞察
 - en: •   Users expect the service to be free
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 用户期望服务是免费的
 - en: •   Users want to control their data
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: 用户想要控制他们的数据
 - en: If you go through each of these requirements, each of them contradicts one of
     the principles of blockchain development listed above.
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果您逐一查看这些要求，它们中的每一个都与上面列出的区块链开发原则之一相矛盾。
 - en: 'Let’s take a look now at betting applications. Here are some features required
     for a betting application:'
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在让我们来看看投注应用程序。投注应用程序需要具备以下一些功能：
 - en: •   Frequent payment processing
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: 频繁处理付款
 - en: •   Handle bets from multiple countries with different currencies
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: 处理多种货币的跨国投注
 - en: •   Avoid antigambling laws in certain countries
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: 避免某些国家的反赌博法律
 - en: •   Maintain an even balance of money on both sides of a bet
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: •   保持投注两边资金平衡
 - en: •   Option to bet anonymously
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: •   可以选择匿名投注
 - en: •   Provide verifiable and consistent bet execution
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: •   提供可验证和一致的投注执行
 - en: •   Provide competitive odds and fees
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: 提供有竞争力的赔率和费用
 - en: These requirements are much better suited to a blockchain solution. One of the
     biggest pain points for online betting has been moving money around through wires
     and bank transfers. Users must wait three to five business days to deposit or
@@ -200,388 +297,576 @@
     operate. Additionally, transacting in different countries requires supporting
     a variety of different currencies and banks, all of which contribute to the complexity
     of the operation.
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些要求更适合区块链解决方案。在线投注最大的痛点之一是将资金通过电线和银行转账转移。用户必须等待三到五个工作日才能从银行账户存入或提取资金，并且必须信任投注网站掌握他们的银行信息。反过来，这些网站必须保护这些信息，采取适当的网络安全措施保护其网站免受黑客攻击，并遵守其在运营的各个国家实施的一系列金融法规。此外，在不同国家进行交易需要支持多种不同的货币和银行，所有这些都增加了运营的复杂性。
 - en: Additionally, many bettors like to preserve their anonymity and rely on the
     sites to safeguard identifying information. Unfortunately, hackers regularly manage
     to gain access to this data and can use it to extort clients who don’t want their
     gambling debts to become public.
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: 此外，许多投注者喜欢保持自己的匿名性，并依赖网站保护他们的身份信息。不幸的是，黑客经常设法获取这些数据，并可能使用它来勒索那些不想让他们的赌博债务公开的客户。
 - en: Using a blockchain solution allows bettors to bet anonymously, transfer money
     across borders easily for international betting sites, and have a guarantee that
     their bet will be paid out in a timely fashion.
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用区块链解决方案允许投注者匿名投注，轻松跨境转账以支持国际投注网站，并保证他们的投注将及时支付。
 - en: So let’s begin writing our peer-to-peer blockchain betting dapp!
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: 那么让我们开始编写我们的点对点区块链投注dapp吧！
 - en: Setting Up a Development Environment
+  id: totrans-50
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 设置开发环境
 - en: Before getting started, we will need to download the necessary tools. This section
     will cover the installation process for Windows, OS X, and Debian-based Linux
     systems.
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: 在开始之前，我们将需要下载必要的工具。本节将涵盖Windows、OS X和基于Debian的Linux系统的安装过程。
 - en: 'In order to set up a proper development environment, we will need the following
     tools installed on our machines:'
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了设置一个合适的开发环境，我们将需要在我们的计算机上安装以下工具：
 - en: •   Mist browser
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: •   Mist浏览器
 - en: •   The Go Ethereum command line client (geth)
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: •   Go Ethereum命令行客户端（geth）
 - en: •   NodeJS + NPM
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
+  zh: NodeJS + NPM
 - en: •   Google Chrome browser
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: •   Google Chrome浏览器
 - en: •   MetaMask Chrome extension
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: •   MetaMask Chrome扩展
 - en: •   Solidity compiler
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: •   Solidity编译器
 - en: Geth comes bundled with the Mist browser, and both can be installed by downloading
     the latest release and following the installation instructions at [https://github.com/ethereum/mist/releases](https://github.com/ethereum/mist/releases).
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: Geth与Mist浏览器捆绑在一起，两者都可以通过下载最新版本并遵循[https://github.com/ethereum/mist/releases](https://github.com/ethereum/mist/releases)上的安装说明进行安装。
 - en: NodeJS and NPM can be installed by following the instructions on the official
     NodeJS download page, [https://nodejs.org/en/download/](https://nodejs.org/en/download/).
     If you are running OS X or Linux, you can also use a package manager for the installation.
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: NodeJS和NPM可以通过遵循NodeJS官方网站上的说明进行安装，[https://nodejs.org/en/download/](https://nodejs.org/en/download/)。如果您正在运行OS
+    X或Linux，您还可以使用包管理器进行安装。
 - en: '![Images](p0236-01.jpg)'
+  id: totrans-61
   prefs: []
   type: TYPE_IMG
+  zh: '![Images](p0236-01.jpg)'
 - en: MetaMask currently only supports Chrome, so you will have to download the Google
     Chrome browser ([https://www.google.com/chrome/](https://www.google.com/chrome/)).
+  id: totrans-62
   prefs: []
   type: TYPE_NORMAL
+  zh: MetaMask 目前只支持 Chrome 浏览器，因此你需要下载 Google Chrome 浏览器([https://www.google.com/chrome/](https://www.google.com/chrome/)).
 - en: Once Chrome is installed, open it and navigate to the MetaMask home page, [https://metamask.io/](https://metamask.io/),
     to download the Chrome extension/plugin.
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: 安装 Chrome 之后，打开它并导航到 MetaMask 主页，[https://metamask.io/](https://metamask.io/)，以下载
+    Chrome 扩展/插件。
 - en: 'The Solidity compiler is distributed as an NPM package. To install it globally:'
+  id: totrans-64
   prefs: []
   type: TYPE_NORMAL
+  zh: Solidity 编译器作为 NPM 包分发。要全局安装它：
 - en: '`npm install -g solc`'
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
+  zh: '`npm install -g solc`'
 - en: Syncing an Ethereum Node
+  id: totrans-66
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 同步 Ethereum 节点
 - en: 'Before we can get started with development, we will need a full, synced Ethereum
     node running on our computer. As opposed to a light client, a full node contains
     a full copy of the current Ethereum state tree (the blockchain database) so that
     we can run transactions against it. Run the following command in order to do so:'
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
+  zh: 在我们开始开发之前，我们需要在电脑上运行一个完整的、同步的 Ethereum 节点。与轻客户端不同，完整节点包含当前 Ethereum 状态树（区块链数据库）的完整副本，这样我们就可以对其运行交易。为此，请运行以下命令：
 - en: '`geth`'
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
+  zh: '`geth`'
 - en: Geth will automatically connect to the main Ethereum network (mainnet), locate
     peers, and begin downloading a copy of the blockchain onto our local node. The
     syncing process can take several hours, and it is usually best to leave it on
     overnight and check back in the morning by which time it should be complete. Once
     the node is synced, we can begin development on our dapp.
+  id: totrans-69
   prefs: []
   type: TYPE_NORMAL
+  zh: Geth 将自动连接到主 Ethereum 网络（mainnet），找到对等端，并开始将区块链副本下载到我们的本地节点。同步过程可能需要数小时，通常最好让它整夜运行，并在早上检查，届时应该完成。节点同步完成后，我们可以开始开发我们的
+    dapp。
 - en: Creating and Configuring a Private Development Chain
+  id: totrans-70
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 创建和配置私有开发链
 - en: Create a folder for our betting dapp. All of our project code will go in this
     folder.
+  id: totrans-71
   prefs: []
   type: TYPE_NORMAL
+  zh: 为我们的投注 dapp 创建一个文件夹。我们所有的项目代码都将放在这个文件夹中。
 - en: To be able to test our code locally, we need to run a private blockchain on
     our own computer. This will allow us to deploy, interact with, and iterate on
     our contract without polluting the main Ethereum network or constantly having
     to pay transaction fees.
+  id: totrans-72
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了能够在本地测试我们的代码，我们需要在电脑上运行一个私有区块链。这将允许我们部署、与之一致互动并迭代我们的合约，而不会污染主 Ethereum 网络，也无需不断支付交易费用。
 - en: The command to properly set up a private testnet is a bit verbose, so we are
     going to create a file to hold the command for us. Open up a file called geth.sh
     and insert the following code into it. This line of code is intended for a Linux
     machine. OS X users should replace all instances of ~/.ethereum with /Library/Ethereum
     and Windows users should replace it with `%APPDATA%/Ethereum`.
+  id: totrans-73
   prefs: []
   type: TYPE_NORMAL
+  zh: 正确设置私有测试网的命令有点冗长，所以我们创建一个文件来保存命令。打开一个名为 geth.sh 的文件，将其中的以下代码插入其中。此代码行旨在 Linux
+    机器上运行。OS X 用户应该将 ~/.ethereum 更改为 /Library/Ethereum，Windows 用户应该将其更改为 `%APPDATA%/Ethereum`。
 - en: '![Images](p0237-01.jpg)'
+  id: totrans-74
   prefs: []
   type: TYPE_IMG
+  zh: '![Images](p0237-01.jpg)'
 - en: •   **`--dev`**   This convenience option bootstraps a new private chain, creates
     a genesis block for the chain, and sets a series of debugging flags.
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
+  zh: •   **`--dev`**   这个便捷选项可以启动一个新的私有链，为该链创建一个创世区块，并设置一系列调试标志。
 - en: •   **`--datadir`**   This allows us to specify a custom directory to store
     chain data. The default directory is being used for the mainnet, so we specify
     an alternate path to store our private chain.
+  id: totrans-76
   prefs: []
   type: TYPE_NORMAL
+  zh: •   **`--datadir`**   这允许我们指定一个自定义目录来存储链数据。默认目录用于主网，因此我们指定一个替代路径来存储我们的私有链。
 - en: •   **`--ipcpath`**   By default, geth stores its interprocess communication
     (IPC) file at the directory specified by `--datadir`. The Mist browser, however,
     can only communicate with an IPC file located at `~/.ethereum/geth.ipc`, so we
     must specify this as our IPC path.
+  id: totrans-77
   prefs: []
   type: TYPE_NORMAL
+  zh: •   **`--ipcpath`**   默认情况下，geth将其进程间通信（IPC）文件存储在由 `--datadir` 指定的目录中。然而，Mist
+    浏览器只能与位于 `~/.ethereum/geth.ipc` 的 IPC 文件进行通信，因此我们必须指定这个作为我们的 IPC 路径。
 - en: •   **`--networkid`**   The network ID flag is used to identify to peers which
     network (mainnet, Ropsten testnet, Morden testnet, etc.) our chain is synced to.
     Since we are running a private network, we specify a random unused network ID
     so that peers do not connect to us.
+  id: totrans-78
   prefs: []
   type: TYPE_NORMAL
+  zh: •   **`--networkid`**   网络 ID 标志用于标识对等端哪个网络（主网、Ropsten 测试网、Morden 测试网等）我们的链是同步的。由于我们正在运行一个私有网络，我们指定一个随机的未使用网络
+    ID，以便对等端不会连接到我们。
 - en: •   **`--rpc`**   This flag turns on RPC (Remote Procedure Call) mode, which
     allows light clients and other nodes to access our node via the JSON RPC API.
     This flag is required so that web3.js and our front ends can access our node.
+  id: totrans-79
   prefs: []
   type: TYPE_NORMAL
+  zh: •   **`--rpc`**  这个标志开启了RPC（远程过程调用）模式，允许轻客户端和其他节点通过JSON RPC API访问我们的节点。这个标志是必需的，以便web3.js和我们前端可以访问我们的节点。
 - en: •   **`--rpcapi`**   By default, RPC mode enables the web3, net, and eth modules.
     In order to be able to access our node’s accounts and private keys to sign transactions,
     we will enable the personal module as well.
+  id: totrans-80
   prefs: []
   type: TYPE_NORMAL
+  zh: •   **`--rpcapi`**  默认情况下，RPC模式启用了web3、net和eth模块。为了能够访问我们节点的账户和私钥来签署交易，我们将启用个人模块。
 - en: •   **`--rpccorsdomain`** Web browsers using the JSON RPC API are restricted
     by the standard browser same-origin policy. In order to allow browsers to access
     our API, we will set our CORS domain to the broadest possible setting `“*”` (allow
     all access).
+  id: totrans-81
   prefs: []
   type: TYPE_NORMAL
+  zh: •   **`--rpccorsdomain`** 使用JSON RPC API的Web浏览器受到标准浏览器同源策略的限制。为了允许浏览器访问我们的API，我们将CORS域名设置为尽可能宽泛的`“*”`（允许所有访问）。
 - en: •   **`--mine`**   Mine our own network, so that transactions are processed
     and blocks created. Normally, miners would handle this process, but we will have
     to do it ourselves for our private chain. The `--dev` option by default sets a
     network mining difficulty that can be reasonably mined by a single CPU.
+  id: totrans-82
   prefs: []
   type: TYPE_NORMAL
+  zh: •   **`--mine`**  挖矿我们自己的网络，以便处理交易和创建区块。通常，矿工会处理这个过程，但我们将不得不亲自为我们的私有链执行此操作。默认的`--dev`选项设置了一个网络挖矿难度，可以由单个CPU合理地挖矿。
 - en: •   **`console`**   This will open the geth console, which allows us to interact
     directly with our node and private chain using JavaScript commands.
+  id: totrans-83
   prefs: []
   type: TYPE_NORMAL
+  zh: •   **`console`**  这将会打开geth控制台，允许我们使用JavaScript命令直接与我们的节点和私有链交互。
 - en: 'Once the script has been created and saved to geth.sh, we can execute the file
     directly to run our private chain. Ensure the file is executable, then run it:'
+  id: totrans-84
   prefs: []
   type: TYPE_NORMAL
+  zh: 一旦脚本创建并保存为geth.sh，我们就可以直接执行文件来运行我们的私有链。确保文件可执行，然后运行它：
 - en: '![Images](p0238-01.jpg)'
+  id: totrans-85
   prefs: []
   type: TYPE_IMG
+  zh: '![Images](p0238-01.jpg)'
 - en: You should now see a series of log output indicating that the private chain
     is running and being mined.
+  id: totrans-86
   prefs: []
   type: TYPE_NORMAL
+  zh: 你现在应该看到一系列日志输出，表明私有链正在运行并被挖矿。
 - en: Creating a Killable Contract
+  id: totrans-87
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 创建一个可终止合约
 - en: Before we begin developing our full contract, we are going to develop a small
     test contract to ensure that our development chain is working and can deploy and
     debug contracts.
+  id: totrans-88
   prefs: []
   type: TYPE_NORMAL
+  zh: 在我们开始开发完整的合约之前，我们将开发一个小型测试合约，以确保我们的开发链正在运行，并且可以部署和调试合约。
 - en: All of our contracts will be written in Solidity, a smart contract language
     that compiles into Ethereum Virtual Machine (EVM) bytecode. We will only have
     a single .sol file for this project, named bet.sol.
+  id: totrans-89
   prefs: []
   type: TYPE_NORMAL
+  zh: 所有我们的合约都将用Solidity编写，这是一种编译成以太坊虚拟机（EVM）字节码的智能合约语言。这个项目我们将只有一个.sol文件，名为bet.sol。
 - en: To prevent blockchain bloat and allow removal of old contracts from the blockchain,
     most contracts include a `kill` function that allows the contract to be removed
     from the blockchain by the owner.
+  id: totrans-90
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了防止区块链膨胀并允许从区块链中删除旧的合约，大多数合约包括一个`kill`函数，允许合约所有者从区块链中删除合约。
 - en: 'The code for a simple killable contract looks as follows:'
+  id: totrans-91
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个简单的可终止合约的代码如下所示：
 - en: '![Images](p0238-02.jpg)'
+  id: totrans-92
   prefs: []
   type: TYPE_IMG
+  zh: '![Images](p0238-02.jpg)'
 - en: 'Let’s review this contract line by line:'
+  id: totrans-93
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们逐行回顾这个合约：
 - en: '`contract Bet {`'
+  id: totrans-94
   prefs: []
   type: TYPE_NORMAL
+  zh: '`contract Bet {`'
 - en: The contract keyword creates a contract that goes by the succeeding name. The
     contract name will be required in later steps and we will be referring back to
     it.
+  id: totrans-95
   prefs: []
   type: TYPE_NORMAL
+  zh: 合约关键字创建了一个随后的名称而去的合约。合约名称将在后面的步骤中需要，我们也将回过头来参考它。
 - en: '`address owner;`'
+  id: totrans-96
   prefs: []
   type: TYPE_NORMAL
+  zh: '`address owner;`'
 - en: This creates a variable named `owner` of type `address` and allocates space
     for it in the contract storage.
+  id: totrans-97
   prefs: []
   type: TYPE_NORMAL
+  zh: 这创建了一个名为`owner`的类型为`address`的变量，并在合约存储中为其分配空间。
 - en: Every contract has storage and memory space allocated to it. Storage variables
     are stored on the blockchain and changes to it propagate across the network. Memory
     variables are temporary variables created during a function execution and destroyed
     at the end of the function. They do not get stored onto the blockchain. We will
     see examples of memory variables later in the chapter.
+  id: totrans-98
   prefs: []
   type: TYPE_NORMAL
+  zh: 每个合约都有分配给它的存储和内存空间。存储变量存储在区块链上，更改会在网络中传播。内存变量是在函数执行期间创建的临时变量，在函数结束时销毁。它们不会存储在区块链上。我们将在本章后面看到内存变量的例子。
 - en: All variables declared in the global scope outside of a function are declared
     as storage variables.
+  id: totrans-99
   prefs: []
   type: TYPE_NORMAL
+  zh: 在全局作用域外声明的所有变量都是作为存储变量声明的。
 - en: '`address` is a data type unique to Solidity. It is a 20-byte field that is
     designed specifically to hold Ethereum wallet and contract addresses.'
+  id: totrans-100
   prefs: []
   type: TYPE_NORMAL
+  zh: '`address`是Solidity特有的数据类型。它是一个20字节的字段，专门用于持有以太坊钱包和合约地址。'
 - en: '`function Bet() {`'
+  id: totrans-101
   prefs: []
   type: TYPE_NORMAL
+  zh: '`function Bet() {`'
 - en: In the Bet contract, the `Bet` function is a special type of function called
     a constructor function (similarly, in a Bid contract, the name of the constructor
     function would be `Bid`). The constructor function is executed immediately upon
     deployment of the contract onto the blockchain, and usually contains setup logic
     and variable initializations for the contract.
+  id: totrans-102
   prefs: []
   type: TYPE_NORMAL
+  zh: 在Bet合约中，`Bet`函数是一个特殊类型的函数，称为构造函数（同样，在Bid合约中，构造函数的名称将是`Bid`）。构造函数在合约部署到区块链上时立即执行，通常包含合约的设置逻辑和变量初始化。
 - en: '`owner = msg.sender;`'
+  id: totrans-103
   prefs: []
   type: TYPE_NORMAL
+  zh: '`owner = msg.sender;`'
 - en: Solidity defines a series of built-in convenience functions and values. One
     of these is `msg.sender`, which is an `address` variable containing the value
     of the wallet or contract address that initiated the current function call. Since
     the constructor function is executed when the contract is deployed, `msg.sender`
     is the deployer of the contract.
+  id: totrans-104
   prefs: []
   type: TYPE_NORMAL
+  zh: Solidity定义了一系列内置的便利函数和值。其中之一是`msg.sender`，这是一个包含发起当前函数调用的钱包或合约地址值的`address`变量。由于构造函数在合约部署时执行，`msg.sender`是合约的部署者。
 - en: '`function kill() {`'
+  id: totrans-105
   prefs: []
   type: TYPE_NORMAL
+  zh: '`function kill() {`'
 - en: This defines a public function (we will discuss private functions later) named
     `kill` that can be called with no arguments.
+  id: totrans-106
   prefs: []
   type: TYPE_NORMAL
+  zh: 这定义了一个公共函数（我们稍后讨论私有函数） named `kill`，可以不带任何参数调用。
 - en: '`if (msg.sender != owner) throw;`'
+  id: totrans-107
   prefs: []
   type: TYPE_NORMAL
+  zh: '`if (msg.sender != owner) throw;`'
 - en: By convention, only the owner of a contract is allowed to destroy it. If anybody
     else attempts to destroy the contract, this line will throw an error. The `throw`
     command consumes all the gas passed to the function to deter abuse.
+  id: totrans-108
   prefs: []
   type: TYPE_NORMAL
+  zh: 按照惯例，只有合约的所有者才被允许销毁它。如果其他任何人尝试销毁合约，这行代码将抛出一个错误。`throw`命令消耗传递给函数的所有燃料，以防止滥用。
 - en: Sometimes you will want to gracefully exit a function without forcing a user
     to lose all the gas they provided. This will be covered later.
+  id: totrans-109
   prefs: []
   type: TYPE_NORMAL
+  zh: 有时你可能希望优雅地退出一个函数，而不强迫用户失去他们提供的所有燃料。这将在后面讨论。
 - en: '`selfdestruct(owner);`'
+  id: totrans-110
   prefs: []
   type: TYPE_NORMAL
+  zh: '`selfdestruct(owner);`'
 - en: The `selfdestruct` function is built into Solidity. Calling it from within a
     contract deletes the contract and any data stored in the contract storage, then
     sends any ether contained at that contract address to the provided address. In
     this case, there should be no ether contained at the address, but in case someone
     accidentally sends ether to the contract address, we can send that money to the
     owner.
+  id: totrans-111
   prefs: []
   type: TYPE_NORMAL
+  zh: '`selfdestruct`函数是内置于Solidity中的。从合约内部调用它将删除合约以及合约存储中的任何数据，然后将存储在合约地址中的任何以太币发送到提供的地址。在这种情况下，合约地址中不应该有任何以太币，但如果有人意外地将以太币发送到合约地址，我们可以将这笔钱发送给合约所有者。'
 - en: Compiling the Contract
+  id: totrans-112
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 编译合约
 - en: 'The Ethereum blockchain can only store and execute EVM bytecode, so in order
     to deploy or execute our Solidity code, we have to first convert it into EVM bytecode
     by using the Solidity compiler. To compile, run:'
+  id: totrans-113
   prefs: []
   type: TYPE_NORMAL
+  zh: 以太坊区块链只能存储和执行EVM字节码，因此为了部署或执行我们的Solidity代码，我们首先必须使用Solidity编译器将其转换为EVM字节码。要编译，运行：
 - en: '`solc --bin --abi --optimize -o bin peerbet.sol`'
+  id: totrans-114
   prefs: []
   type: TYPE_NORMAL
+  zh: '`solc --bin --abi --optimize -o bin peerbet.sol`'
 - en: 'The options we invoked do the following:'
+  id: totrans-115
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们调用的选项如下：
 - en: '•   `--bin`: Include a bytecode file in the output. This will be the bytecode
     we deploy to the blockchain.'
+  id: totrans-116
   prefs: []
   type: TYPE_NORMAL
+  zh: • `--bin`：在输出中包含一个字节码文件。这将是我们部署到区块链上的字节码。
 - en: '•   `--abi`: Output a JSON file that describes the ABI interface for the contract.
     web3.js uses this to make interacting with our deployed contract easy.'
+  id: totrans-117
   prefs: []
   type: TYPE_NORMAL
+  zh: • `--abi`：输出一个描述合约ABI接口的JSON文件。web3.js使用它来简化与我们的已部署合约的交互。
 - en: '•   `--optimize`: Run optimizations to minimize the data footprint of the contract.
     This is important because deploying the contract requires gas proportional to
     the size of the bytecode output. As our contract gets larger, an unoptimized output
     can exceed the block gas limit and make our contract undeployable.'
+  id: totrans-118
   prefs: []
   type: TYPE_NORMAL
+  zh: • `--optimize`：运行优化以最小化合约的数据占用。这很重要，因为部署合约需要与字节码输出大小成比例的燃料。随着我们的合约越来越大，未优化的输出可能超过块燃料限制，使我们的合约无法部署。
 - en: '•   `-o`: Specify an output directory for our bytecode and ABI files (bin/).'
+  id: totrans-119
   prefs: []
   type: TYPE_NORMAL
+  zh: • `-o`：为我们的字节码和ABI文件指定输出目录（bin/）。
 - en: '•   `peerbet.sol`: The contract file we wish to compile.'
+  id: totrans-120
   prefs: []
   type: TYPE_NORMAL
+  zh: '`peerbet.sol`：我们希望编译的合约文件。'
 - en: Any errors present in our contract file will prevent compilation and be displayed
     in the output. Correct any errors that you see and recompile. If everything was
     copied properly from the previous section, your code should compile.
+  id: totrans-121
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们合约文件中存在的任何错误都会阻止编译并在输出中显示。修复你看到的任何错误并重新编译。如果从上一节正确复制了所有内容，你的代码应该可以编译。
 - en: 'The compiler should output two files into the `bin` directory:'
+  id: totrans-122
   prefs: []
   type: TYPE_NORMAL
+  zh: 编译器应该把两个文件输出到`bin`目录中：
 - en: '![Images](p0240-01.jpg)'
+  id: totrans-123
   prefs: []
   type: TYPE_IMG
+  zh: '![Images](p0240-01.jpg)'
 - en: Deploying a Contract
+  id: totrans-124
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 部署合约
 - en: Now that we’ve written a simple killable test contract, let’s deploy it to our
     private chain and try interacting with it. Deploying a contract to an Ethereum
     chain can be a complex operation, so we will be writing a small script to take
     care of it for us. The script is going to require the web3.js library, so let’s
     go ahead and install that before we get started.
+  id: totrans-125
   prefs: []
   type: TYPE_NORMAL
+  zh: 既然我们已经编写了一个简单的可终止测试合约，让我们将其部署到我们的私有链上并尝试与它交互。在以太坊链上部署合约可能是一个复杂的操作，所以我们将会写一个小脚本来自动处理。脚本将需要web3.js库，所以让我们先安装这个然后再开始。
 - en: '![Images](p0240-02.jpg)'
+  id: totrans-126
   prefs: []
   type: TYPE_IMG
+  zh: '![Images](p0240-02.jpg)'
 - en: Here’s what our basic deploy script will look like. Our script assumes that
     we’ve already compiled our bytecode and ABI to the bin/ directory.
+  id: totrans-127
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是我们基本部署脚本的样式。我们的脚本假设字节码和ABI已经编译到bin/目录中。
 - en: '![Images](p0240-03.jpg)'
+  id: totrans-128
   prefs: []
   type: TYPE_IMG
+  zh: '![Images](p0240-03.jpg)'
 - en: '![Images](p0241-01.jpg)'
+  id: totrans-129
   prefs: []
   type: TYPE_IMG
+  zh: '![Images](p0241-01.jpg)'
 - en: There’s a lot going on here, so let’s break it down.
+  id: totrans-130
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里有很多内容需要我们一步步来解析。
 - en: '![Images](p0241-02.jpg)'
+  id: totrans-131
   prefs: []
   type: TYPE_IMG
+  zh: '![Images](p0241-02.jpg)'
 - en: This opening block requires the necessary libraries. The fs and child_process
     libraries are built into Node.
+  id: totrans-132
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个开头的块需要必要的库。fs和child_process库是Node内置的。
 - en: '![Images](p0241-03.jpg)'
+  id: totrans-133
   prefs: []
   type: TYPE_IMG
+  zh: '![Images](p0241-03.jpg)'
 - en: The web3.js library needs a provider that exposes the Ethereum JSON RPC API.
     By this point, we should have a private chain synced and running on our command
     line. This block connects to that node and will fail if the node is not running.
+  id: totrans-134
   prefs: []
   type: TYPE_NORMAL
+  zh: web3.js库需要一个暴露以太坊JSON RPC API的提供者。至此，我们应该有一个私有链在我们的命令行上同步并运行。此块连接到该节点，如果节点没有运行，将会失败。
 - en: '![Images](p0241-04.jpg)'
+  id: totrans-135
   prefs: []
   type: TYPE_IMG
+  zh: '![Images](p0241-04.jpg)'
 - en: All Ethereum transactions, including contract deployments, must originate from
     a wallet address. This block accesses our account address, then unlocks the account
     so it can be used for the deployment transaction. Earlier when we created our
     private chain, we made sure the RPC API option contained the `personal` module.
     If we hadn’t done so, we would not have been able to access the accounts on this
     node from our script.
+  id: totrans-136
   prefs: []
   type: TYPE_NORMAL
+  zh: 所有以太坊交易，包括合约部署，都必须源自一个钱包地址。此块访问我们的账户地址，然后解锁账户，以便用于部署交易。当我们创建私有链时，我们确保RPC API选项包含`personal`模块。如果没有这样做，我们将无法从我们的脚本中访问此节点上的账户。
 - en: The second argument to the `unlockAccount` function is the password. Since you
     may wish to store this code on GitHub or some other public hosting service, the
     script is designed to take the password in as a command line argument. DO NOT
@@ -591,65 +876,95 @@
     all the public keys associated with that node. The only thing stopping a hacker
     from using your private key to sign a transaction and stealing all your ether
     is your password, so protect it accordingly!
+  id: totrans-137
   prefs: []
   type: TYPE_NORMAL
+  zh: '`unlockAccount`函数的第二个参数是密码。由于你可能希望将此代码存储在GitHub或其他公共托管服务上，脚本设计为通过命令行参数接收密码。绝不要在任何情况下在源文件中包含你的密码。虽然这个密码在私有链上不能被恶意使用，但后来我们将在主网上使用相同的代码。具有暴露`personal`
+    rpc模块的节点暴露与此节点关联的所有公钥。阻止黑客使用你的私钥签署交易并窃取你所有的以太币的唯一东西就是你的密码，所以要相应地保护它！'
 - en: '`exec(`solc --bin --abi --optimize -o bin peerbet.sol`);`'
+  id: totrans-138
   prefs: []
   type: TYPE_NORMAL
+  zh: '`exec(`solc --bin --abi --optimize -o bin peerbet.sol`);`'
 - en: Usually we want to compile and deploy our script at the same time, so as a convenience
     we can include the compilation step as a child process. This line is not necessary.
     You can compile and deploy separately if you prefer.
+  id: totrans-139
   prefs: []
   type: TYPE_NORMAL
+  zh: 通常我们希望同时编译和部署脚本，为此我们可以将编译步骤作为一个子进程包含在内。这一行是多余的。如果你愿意，可以分开编译和部署。
 - en: '![Images](p0242-01.jpg)'
+  id: totrans-140
   prefs: []
   type: TYPE_IMG
+  zh: '![Images](p0242-01.jpg)'
 - en: web3’s contract object allows for easy deployment and contract interaction.
     To set up this object, we read in the ABI and pass it to the contract constructor.
+  id: totrans-141
   prefs: []
   type: TYPE_NORMAL
+  zh: web3的合约对象可以方便地进行部署和合约交互。为了设置这个对象，我们读取ABI并将其传递给合约构造函数。
 - en: '`var compiled = ’0x’ + fs.readFileSync(“bin/PeerBet.bin”);`'
+  id: totrans-142
   prefs: []
   type: TYPE_NORMAL
+  zh: '`var compiled = ’0x’ + fs.readFileSync(“bin/PeerBet.bin”);`'
 - en: Read in the contract hex (remember, hex is just an alternate representation
     for binary) bytecode. A quirk of web3.js is that it requires all hex strings to
     be prefixed with `’0x’`, so we have done so.
+  id: totrans-143
   prefs: []
   type: TYPE_NORMAL
+  zh: 读取合约的十六进制（记住，十六进制只是二进制的另一种表示形式）字节码。web3.js的一个特点是它要求所有的十六进制字符串都要以`’0x’`前缀，所以我们已经这样做了。
 - en: '![Images](p0242-02.jpg)'
+  id: totrans-144
   prefs: []
   type: TYPE_IMG
+  zh: '![Images](p0242-02.jpg)'
 - en: The `.new` function on a contract object deploys the contract. The first arguments
     are the transaction (`tx`) options, and the second argument is a callback.
+  id: totrans-145
   prefs: []
   type: TYPE_NORMAL
+  zh: 合约对象上的`.new`函数用于部署合约。第一个参数是交易（`tx`）选项，第二个参数是一个回调函数。
 - en: The wallet address specified in the `from` field must be an unlocked wallet,
     and you must have access to the private key for that wallet. Attempting to use
     a public key whose private key is not stored in the local node will fail.
+  id: totrans-146
   prefs: []
   type: TYPE_NORMAL
+  zh: '`from`字段中指定的钱包地址必须是解锁的钱包，并且你必须有权访问该钱包的私钥。尝试使用私钥未存储在本地节点的公钥将失败。'
 - en: The data for a contract creation transaction is the bytecode for the contract.
+  id: totrans-147
   prefs: []
   type: TYPE_NORMAL
+  zh: 合约创建交易的数据显示了合约的字节码。
 - en: We have set a very high gas limit for now, but the actual gas consumed should
     be much lower (< 5e5). Any gas not used will be refunded, while transactions without
     enough gas will throw an OutOfGasError, so it is better to aim too high than too
     low. Gas limits are typically specified in increments of 100,000 (1e5). The block
     gas limit is currently set at 47e5 gas/block, so always make sure your gas limit
     is below this number or your transaction will fail.
+  id: totrans-148
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们目前设置了一个非常高的燃料限制，但实际消耗的燃料应该要低得多（< 5e5）。任何未使用的燃料都将退还，而燃料不足的交易将抛出OutOfGasError，所以宁可设置得高一些也不要低。燃料限制通常以100,000（1e5）为单位增加。当前每个区块的燃料限制设置为47e5燃料/区块，所以请确保您的燃料限制低于这个数字，否则您的交易将会失败。
 - en: The default gas price in Ethereum is 20e9\. Gas prices are typically measured
     in units of gigawei (1e9 wei, 1e-9 ether). On the privatenet, this number is meaningless.
     On the mainnet, it is real money, so you will have to pay attention to this number.
     Transactions will clear with gas prices as low as 1 Gwei, but the clearing times
     will be slow. Miners will prioritize the transactions with the highest gas prices
     for their blocks.
+  id: totrans-149
   prefs: []
   type: TYPE_NORMAL
+  zh: Ethereum中的默认燃料价格是20e9。燃料价格通常以吉瓦韦（1e9 Wei，1e-9以太币）为单位衡量。在私有网络中，这个数字没有意义。在主网上，这是真钱，所以你必须关注这个数字。交易可以用低至1
+    Gwei的燃料价格完成，但完成时间会变慢。矿工会优先处理他们区块中燃料价格最高的交易。
 - en: '![Images](p0243-01.jpg)'
+  id: totrans-150
   prefs: []
   type: TYPE_IMG
+  zh: '![Images](p0243-01.jpg)'
 - en: This is the callback portion of the deployment function. This callback is executed
     when the miner attempts to mine the transaction. It uses the standard Node (error,
     data) argument format. If there is an error, we log it. If there is no error,
@@ -657,370 +972,552 @@
     For the user’s benefit, we will log that the contract has been mined, then write
     the contract address to a file, so we can use it later to load the contract into
     web3.
+  id: totrans-151
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是部署函数的回调部分。当矿工尝试挖掘交易时执行此回调，它使用标准的Node（错误，数据）参数格式。如果出现错误，我们记录它。如果没有错误，合约地址应该被设置，并且第二个`if`语句应该执行。为了用户的利益，我们将记录合约已被挖掘，然后将合约地址写入文件，以便我们稍后可以将其加载到web3中。
 - en: 'If you’ve understood everything above, it is now time to deploy the contract.
     Save the file as deploy.js, then in your command line run:'
+  id: totrans-152
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果您上面的一切都理解了，现在就是部署合约的时候了。将文件保存为deploy.js，然后在您的命令行中运行：
 - en: '`node deploy.js [password]`'
+  id: totrans-153
   prefs: []
   type: TYPE_NORMAL
+  zh: '`node deploy.js [password]`'
 - en: Make sure to replace `[password]` with the password to your wallet key. The
     contract may take up to a minute to deploy. Once it is deployed, the log output
     will indicate that the contract has been mined.
+  id: totrans-154
   prefs: []
   type: TYPE_NORMAL
+  zh: 确保用您的钱包密钥密码替换`[password]`。合约部署可能需要长达一分钟的时间。部署完成后，日志输出将表明合约已被矿工处理。
 - en: Congratulations! You have deployed the contract to a private dev net. Now let’s
     put together a script for interacting with the contract.
+  id: totrans-155
   prefs: []
   type: TYPE_NORMAL
+  zh: 恭喜您！您已将合约部署到私有开发网络。现在让我们编写一个与合约交互的脚本。
 - en: Contract Debugging and Interaction
+  id: totrans-156
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 合约调试与交互
 - en: 'Similar to how we set up a deploy script, we are now going to set up a debugging
     script. In order to have a live debugging environment, we are going to use the
     NPM package locus. Let’s install locus:'
+  id: totrans-157
   prefs: []
   type: TYPE_NORMAL
+  zh: 就像我们设置部署脚本一样，现在我们要设置一个调试脚本。为了拥有一个实时的调试环境，我们将使用NPM包locus。让我们安装locus：
 - en: '`npm install locus --save`'
+  id: totrans-158
   prefs: []
   type: TYPE_NORMAL
+  zh: '`npm install locus --save`'
 - en: 'Once that is installed, we are ready to write our script. Here’s the full script:'
+  id: totrans-159
   prefs: []
   type: TYPE_NORMAL
+  zh: 安装完成后，我们就可以开始编写我们的脚本。以下是完整的脚本：
 - en: '![Images](p0243-02.jpg)'
+  id: totrans-160
   prefs: []
   type: TYPE_IMG
+  zh: '![Images](p0243-02.jpg)'
 - en: '![Images](p0244-01.jpg)'
+  id: totrans-161
   prefs: []
   type: TYPE_IMG
+  zh: '![Images](p0244-01.jpg)'
 - en: There are only two new blocks in this script, so let’s break those down.
+  id: totrans-162
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个脚本中只有两个新的块，所以我们来分解一下。
 - en: '![Images](p0244-02.jpg)'
+  id: totrans-163
   prefs: []
   type: TYPE_IMG
+  zh: '![Images](p0244-02.jpg)'
 - en: The web3 existing contract constructor requires an ABI and contract address.
     This block loads those in from the file system, and creates the contract object.
+  id: totrans-164
   prefs: []
   type: TYPE_NORMAL
+  zh: '`web3`现有的合约构造函数需要一个ABI和合约地址。此块从文件系统加载这些内容，并创建合约对象。'
 - en: '`eval(require(’locus’))`'
+  id: totrans-165
   prefs: []
   type: TYPE_NORMAL
+  zh: '`eval(require(’locus’))`'
 - en: This creates an active debugging environment similar to the node console but
     with all of our loaded variables.
+  id: totrans-166
   prefs: []
   type: TYPE_NORMAL
+  zh: 这创建了一个类似于node控制台但包含我们所有加载变量的活跃调试环境。
 - en: 'Execute the script to view the debugging environment:'
+  id: totrans-167
   prefs: []
   type: TYPE_NORMAL
+  zh: 执行脚本来查看调试环境：
 - en: '`node debug.js [password]`'
+  id: totrans-168
   prefs: []
   type: TYPE_NORMAL
+  zh: '`node debug.js [password]`'
 - en: 'You should see a debugging prompt that looks like this:'
+  id: totrans-169
   prefs: []
   type: TYPE_NORMAL
+  zh: 你应该看到一个类似于这样的调试提示：
 - en: '![Images](p0244-03.jpg)'
+  id: totrans-170
   prefs: []
   type: TYPE_IMG
+  zh: '![Images](p0244-03.jpg)'
 - en: Solidity automatically creates getter functions for public storage variables.
     Type `contract .owner()` into the debugging prompt and it should return the address
     of your contract.
+  id: totrans-171
   prefs: []
   type: TYPE_NORMAL
+  zh: Solidity会自动为公共存储变量创建getter函数。在调试提示符中输入`contract.owner()`，它应该返回合约的地址。
 - en: We can interact directly with the contract now. Let’s try to use the `kill`
     function we defined earlier.
+  id: totrans-172
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们现在可以直接与合约交互。让我们尝试使用我们之前定义的`kill`函数。
 - en: '`tx = contract.kill({ from: walletAddress, gas: 40e5 })`'
+  id: totrans-173
   prefs: []
   type: TYPE_NORMAL
+  zh: '`tx = contract.kill({ from: walletAddress, gas: 40e5 })`'
 - en: 'You may get back an error saying `Error: authentication needed: password or
     unlock`. This is because the password on your wallet key has expired. Use the
     following to unlock your account.'
+  id: totrans-174
   prefs: []
   type: TYPE_NORMAL
+  zh: '你可能会遇到一个错误，提示`Error: authentication needed: password or unlock`。这是因为你的钱包密钥上的密码已经过期。使用以下方法解锁你的账户。'
 - en: '![Images](p0244-05.jpg)'
+  id: totrans-175
   prefs: []
   type: TYPE_IMG
+  zh: '![Images](p0244-05.jpg)'
 - en: All transactions follow this same format. List the arguments to the function
     followed by a `tx` options object. The `kill` function takes no arguments, so
     the only argument here is the `tx` options object.
+  id: totrans-176
   prefs: []
   type: TYPE_NORMAL
+  zh: 所有交易都遵循相同的格式。首先列出函数的参数，然后是一个`tx`选项对象。`kill`函数不接收任何参数，所以这里只有一个`tx`选项对象。
 - en: When using a web3 contract object, `from` is the only required `tx` option.
     `data` is created by the library (it would be complex to create on our own), `gasPrice`
     defaults to 20e9, and `gas` defaults to 0.9e5\. The default `gas` value is usually
     too low to execute a contract transaction, so it is generally specified explicitly.
+  id: totrans-177
   prefs: []
   type: TYPE_NORMAL
+  zh: 当使用web3合约对象时，`from`是唯一必需的`tx`选项。`data`是由库创建的（自己创建会比较复杂），`gasPrice`默认为20e9，`gas`默认为0.9e5。默认的`gas`值通常太低，无法执行合约交易，所以通常需要明确指定。
 - en: 'When a contract transaction is sent, it returns immediately with a transaction
     id, but the transaction doesn’t execute until it is actually mined. Type `tx`
     into the debugger to view the transaction id. To see if the transaction has been
     mined, use:'
+  id: totrans-178
   prefs: []
   type: TYPE_NORMAL
+  zh: 当一个合约交易被发送时，它会立即返回一个交易ID，但交易实际上要在被挖掘后才会执行。在调试器中输入`tx`以查看交易ID。要查看交易是否已经被挖掘，使用：
 - en: '`web3.eth.getTransactionReceipt(tx)`'
+  id: totrans-179
   prefs: []
   type: TYPE_NORMAL
+  zh: '`web3.eth.getTransactionReceipt(tx)`'
 - en: If the function returns `null`, that means it has not been mined yet. If it
     has been mined, you will see a transaction receipt object in the console.
+  id: totrans-180
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果函数返回`null`，这意味着它还没有被挖掘。如果已经被挖掘，你将在控制台看到一个交易收据对象。
 - en: Just because you see a receipt does not mean the function executed properly.
     Transactions that throw errors or run out of gas will still display receipts.
     It is up to you to verify that the state changes you requested were made.
+  id: totrans-181
   prefs: []
   type: TYPE_NORMAL
+  zh: 仅仅因为你看到一个收据，并不意味着函数已经正确执行。抛出错误或耗尽燃料的交易仍然会显示收据。你需要验证所请求的状态变化是否已经完成。
 - en: In this case, the Solidity `selfdestruct` function deletes all the contract
     data by setting their values to 0\. Check the value of `contract.owner` in the
     debugger. If you get back `0x`, the contract has been successfully killed.
+  id: totrans-182
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这种情况下，Solidity的`selfdestruct`函数通过将所有合约数据设置为0来删除所有合约数据。在调试器中检查`contract.owner`的值。如果你得到`0x`，合约已经成功销毁。
 - en: Now that we have successfully deployed and killed a simple contract, it is time
     to build out a full betting contract.
+  id: totrans-183
   prefs: []
   type: TYPE_NORMAL
+  zh: 既然我们已经成功部署并销毁了一个简单的合约，是时候构建一个完整的投注合约了。
 - en: Defining Data Structures
+  id: totrans-184
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 定义数据结构
 - en: Before we can start coding our contract, we need to define the necessary data
     structures. [Figure 10-1](ch10.xhtml#ch10fig1) shows a rough flowchart of what
     we want our data relations to look like.
+  id: totrans-185
   prefs: []
   type: TYPE_NORMAL
+  zh: 在我们开始编写合同时，我们需要先定义必要的数据结构。[图 10-1](ch10.xhtml#ch10fig1) 展示了一个我们所希望的数据关系的大致流程图。
 - en: '![Images](fig10-1.jpg)'
+  id: totrans-186
   prefs: []
   type: TYPE_IMG
+  zh: '![图像](fig10-1.jpg)'
 - en: '**FIGURE 10-1   Flow of contract functionality**'
+  id: totrans-187
   prefs: []
   type: TYPE_NORMAL
+  zh: '**图 10-1   合同功能流程**'
 - en: Solidity uses structs to group related pieces of data. Solidity structs are
     similar to C structs. They contain a name and a series of member definitions.
+  id: totrans-188
   prefs: []
   type: TYPE_NORMAL
+  zh: Solidity 使用结构体来组织相关数据片段。Solidity 结构体与 C 语言的结构体类似，包含一个名称和一系列成员定义。
 - en: Let’s define our data structures using Solidity structs now so that we can use
     them in our application.
+  id: totrans-189
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们现在使用 Solidity 结构体定义我们的数据结构，以便我们可以在应用程序中使用它们。
 - en: '![Images](p0246-01.jpg)'
+  id: totrans-190
   prefs: []
   type: TYPE_IMG
+  zh: '![图像](p0246-01.jpg)'
 - en: Our Game struct stores some information about the game, a mapping of books (in
     case we want to add additional books later), and a GameResult. The locktime is
     equivalent to the game’s start time. Bets placed after the locktime will be rejected.
+  id: totrans-191
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们的游戏结构体存储了关于游戏的一些信息、书籍映射（以防我们以后想添加更多书籍）和一个游戏结果。锁定期相当于游戏开始时间。在锁定期之后投注将被拒绝。
 - en: GameStatus is a Solidity enum, which functions very similarly to a C enum. We
     will go into more depth on enums later in this section and list the enum definitions
     for our application.
+  id: totrans-192
   prefs: []
   type: TYPE_NORMAL
+  zh: 游戏状态是一个 Solidity 枚举，其功能与 C 枚举非常相似。我们将在本节的后面深入讨论枚举，并列出我们应用程序的枚举定义。
 - en: '![Images](p0246-02.jpg)'
+  id: totrans-193
   prefs: []
   type: TYPE_IMG
+  zh: '![图像](p0246-02.jpg)'
 - en: The GameResult struct stores a score for each team and a timestamp.
+  id: totrans-194
   prefs: []
   type: TYPE_NORMAL
+  zh: 游戏结果结构存储了每个球队的得分和一个时间戳。
 - en: '![Images](p0246-03.jpg)'
+  id: totrans-195
   prefs: []
   type: TYPE_IMG
+  zh: '![图像](p0246-03.jpg)'
 - en: The Book struct is modeled after a proper Vegas book, containing over bids,
     under bids, and bets. The full PeerBet application contains Spread, Money Line,
     and Over/Under books, but for our sample application we will only be building
     an Over/Under book.
+  id: totrans-196
   prefs: []
   type: TYPE_NORMAL
+  zh: 投注簿结构是基于正宗的拉斯维加斯投注簿设计的，包含高估、低估和投注。完整的 PeerBet 应用程序包含让分、金钱线和超过/低于投注簿，但我们的示例应用程序将只构建一个超过/低于投注簿。
 - en: The overBids and underBids arrays will actually be sorted stacks to allow for
     efficient bid matching. Unlike C structs, Solidity structs cannot be recursive,
     so they can’t be used to define recursive data structures like linked lists or
     stacks. Instead, Solidity allows for dynamic-length arrays, so we must use those
     instead.
+  id: totrans-197
   prefs: []
   type: TYPE_NORMAL
+  zh: 超过和高估数组实际上将是有序的栈，以允许高效的投注配对。与 C 结构体不同，Solidity 结构体不能是递归的，因此它们不能用于定义递归数据结构，如链表或栈。取而代之的是，Solidity
+    允许动态长度的数组，因此我们必须使用那些数组。
 - en: Since bids and bets require us to track multiple pieces of information, we will
     define structs for them as well.
+  id: totrans-198
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于投注和投注需要我们跟踪多个信息片段，我们将为它们定义结构体。
 - en: '![Images](p0246-04.jpg)'
+  id: totrans-199
   prefs: []
   type: TYPE_IMG
+  zh: '![图像](p0246-04.jpg)'
 - en: '![Images](p0247-01.jpg)'
+  id: totrans-200
   prefs: []
   type: TYPE_IMG
+  zh: '![图像](p0247-01.jpg)'
 - en: Since bids are unmatched, they only contain one address field. Matched bets
     have two parties, one on each side of the bet, so the struct contains an address
     field for each.
+  id: totrans-201
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于投注未配对，它们只包含一个地址字段。配对的投注有两方，投注簿结构中的每个字段都包含一个地址字段。
 - en: Those are all the structs we will be using in our application. In addition to
     structs, we would like to define a few enumerations (`enum`) as well to make our
     code easier to read. Enumerations in Solidity are similar to enumerations in C
     in that they are never necessary and can always be replaced with integer values
     but are convenient for readability.
+  id: totrans-202
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些是我们将在应用程序中使用的所有结构体。除了结构体外，我们还希望定义几个枚举（`enum`）以使我们的代码更容易阅读。Solidity 中的枚举与 C
+    语言中的枚举类似，因为它们从不必要，总是可以用整数值替换，但它们对于可读性很有帮助。
 - en: Enumerables
+  id: totrans-203
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 枚举类型
 - en: 'Here are the enums we will be using in our application:'
+  id: totrans-204
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们在应用程序中将要使用的枚举如下：
 - en: '![Images](p0247-02.jpg)'
+  id: totrans-205
   prefs: []
   type: TYPE_IMG
+  zh: '![图像](p0247-02.jpg)'
 - en: Games are Open when bets are being taken, Locked after the locktime has passed,
     Scored when the game has been scored, and Verified when bets have been paid out.
+  id: totrans-206
   prefs: []
   type: TYPE_NORMAL
+  zh: 游戏在接受投注时为开放状态，锁定期过后为锁定状态，得分时为计分状态，支付投注时为已验证状态。
 - en: Bets are Open when the result is undetermined, and Paid when the result has
     been determined and the participants’ balances have been updated.
+  id: totrans-207
   prefs: []
   type: TYPE_NORMAL
+  zh: 当结果未确定时，投注为开放状态；当结果已确定且参与者余额已更新时，投注为已支付状态。
 - en: Storage Variables
+  id: totrans-208
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 存储变量
 - en: Storage variables must be explicitly defined in the global scope in a Solidity
     contract. Storage variables use space in the Ethereum state tree, and can be expensive
     to create, so minimizing the total size of a contract’s storage variables is important.
+  id: totrans-209
   prefs: []
   type: TYPE_NORMAL
+  zh: 在Solidity合约中，存储变量必须在全局范围内显式定义。存储变量在以太坊状态树中使用空间，并且创建起来可能很昂贵，因此最小化合约存储变量的总大小很重要。
 - en: 'Here are the storage variables we will be creating:'
+  id: totrans-210
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下是我们要创建的存储变量：
 - en: '![Images](p0247-03.jpg)'
+  id: totrans-211
   prefs: []
   type: TYPE_IMG
+  zh: '![Images](p0247-03.jpg)'
 - en: '`owner` has been covered in the simple killable contract we wrote earlier.'
+  id: totrans-212
   prefs: []
   type: TYPE_NORMAL
+  zh: '`owner`在我们之前编写的简单可终止合约中已经介绍过。'
 - en: '`games` is a dynamic-length array of Game structs. It will be responsible for
     the majority of the storage space and is our primary storage variable. Custom
     structs cannot be made public, so games will remain private. As a reminder, Solidity
     automatically creates getter ABI functions for public variables but not private
     ones.'
+  id: totrans-213
   prefs: []
   type: TYPE_NORMAL
+  zh: '`games`是一个动态长度的Game结构体数组。它将负责大部分的存储空间，是我们主要的存储变量。自定义结构体不能公开，因此games将保持私有。作为提醒，Solidity会自动为公共变量创建getter
+    ABI函数，但不会为私有变量创建。'
 - en: '`balances` is a public mapping that stores user balances. A user is allowed
     to withdraw the value of their balance from the contract whenever they want. Mappings
     in Solidity can be tricky because there is no way to determine the keys of a mapping
     without storing them in a separate array. So given an address, we can determine
     the address’s balance, but given the amount of ether held in the contract, we
     cannot determine what the allocation of balances between addresses is.'
+  id: totrans-214
   prefs: []
   type: TYPE_NORMAL
+  zh: '`balances`是一个存储用户余额的公共映射。用户可以随时从合约中提取他们余额的价值。Solidity中的映射可能很棘手，因为没有方法可以在不将它们存储在另一个数组中确定映射的键。所以，给定一个地址，我们可以确定该地址的余额，但给定合约中持有的以太币数量，我们无法确定地址之间余额的分配。'
 - en: Events
+  id: totrans-215
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 事件
 - en: Solidity events are used to log transaction activity to the blockchain. Event
     logs are much cheaper to create than new entries in the state tree, so it is a
     great way to store read-only data. Logs are not accessible from within a contract
     (only variables are) but can be read by external client libraries such as web3.js.
+  id: totrans-216
   prefs: []
   type: TYPE_NORMAL
+  zh: Solidity事件用于将交易活动记录到区块链上。与状态树中新条目的创建相比，事件日志的创建要便宜得多，因此它是存储只读数据的好方法。日志不能从合约内部访问（只能访问变量），但可以被web3.js等外部客户端库读取。
 - en: Ethereum transactions are asynchronous and usually do not mine for 15–30 seconds
     after they have been broadcast to the network. Because of this, transactions cannot
     return values. The only way a transaction can create an output is by modifying
     the state or adding an event log. Client libraries usually parse the logs to determine
     the output of a transaction.
+  id: totrans-217
   prefs: []
   type: TYPE_NORMAL
+  zh: Ethereum交易是异步的，通常在它们被广播到网络后15-30秒内不会挖矿。因此，交易不能返回值。交易创建输出的唯一方式是修改状态或添加事件日志。客户端库通常解析日志以确定交易的输出。
 - en: A Solidity event is a schema for logs. Logs are automatically indexed by contract
     address and event type for efficient querying. In addition, Solidity events allow
     you to define three custom indexed fields. Only indexed fields can be queried
     when parsing logs. Currently, indexed string fields cannot be parsed for a value,
     so it is best practice to avoid creating string indexes.
+  id: totrans-218
   prefs: []
   type: TYPE_NORMAL
+  zh: Solidity事件是日志的架构。日志会自动按合约地址和事件类型索引，以便高效查询。此外，Solidity事件允许你定义三个自定义索引字段。只有索引字段在解析日志时才能查询。目前，不能解析字符串索引的值，因此避免创建字符串索引的最佳实践。
 - en: 'Here are the logs we will be using in our contract:'
+  id: totrans-219
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下是我们在合约中要使用的日志：
 - en: '![Images](p0248-01.jpg)'
+  id: totrans-220
   prefs: []
   type: TYPE_IMG
+  zh: '![Images](p0248-01.jpg)'
 - en: There is an event associated with each of the major state modifications that
     can occur in our contract. Together, they provide a history of the actions taken
     by the contract on the blockchain.
+  id: totrans-221
   prefs: []
   type: TYPE_NORMAL
+  zh: 每个可能在我们合约中发生的主要状态修改都有一个相关的事件。它们一起为合约在区块链上采取的行动提供了一个历史记录。
 - en: Functions
+  id: totrans-222
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 函数
 - en: Before we dive into the code, let’s create a list of the functions we will be
     defining in our application. Functions, like variables, can be either public or
     private. Public functions can be accessed by other contracts and client libraries
     (like web3.js) and are listed as part of the ABI. Private functions are only accessible
     by other functions in the same contract.
+  id: totrans-223
   prefs: []
   type: TYPE_NORMAL
+  zh: 在我们深入代码之前，让我们创建一个我们将在应用程序中定义的函数列表。函数和变量一样，可以是公共的或私有的。公共函数可以被其他合约和客户端库（如web3.js）访问，并作为ABI的一部分列出。私有函数只能被同一合约中的其他函数访问。
 - en: In addition, there are constant functions which read from but do not modify
     the blockchain. Public constant functions return immediately with their result,
     do not send a transaction to the network, and do not consume any gas when called.
+  id: totrans-224
   prefs: []
   type: TYPE_NORMAL
+  zh: 此外，还有常量函数，它们读取区块链但不会修改区块链。公共常量函数立即返回其结果，不将交易发送到网络，并且在调用时不会消耗任何燃料。
 - en: 'Here are the public non-constant ABI functions we will be defining:'
+  id: totrans-225
   prefs: []
   type: TYPE_NORMAL
+  zh: 下面是我们将要定义的公共非常量ABI函数：
 - en: '![Images](p0249-01.jpg)'
+  id: totrans-226
   prefs: []
   type: TYPE_IMG
+  zh: '![Images](p0249-01.jpg)'
 - en: A payable function is one that can accept a non-zero `value` in the `tx` options
     object.
+  id: totrans-227
   prefs: []
   type: TYPE_NORMAL
+  zh: 可支付函数是指可以在`tx`选项对象中接受非零`value`的函数。
 - en: 'Here are the public constant functions we will be defining:'
+  id: totrans-228
   prefs: []
   type: TYPE_NORMAL
+  zh: 下面是我们将要定义的公共常量函数：
 - en: '![Images](p0249-02.jpg)'
+  id: totrans-229
   prefs: []
   type: TYPE_IMG
+  zh: '![Images](p0249-02.jpg)'
 - en: Constant functions return a value whose type must be specified with the syntax
     above.
+  id: totrans-230
   prefs: []
   type: TYPE_NORMAL
+  zh: 常量函数返回一个必须用上述语法指定的类型的值。
 - en: 'In addition, we will be defining some private functions for our own internal
     use:'
+  id: totrans-231
   prefs: []
   type: TYPE_NORMAL
+  zh: 此外，我们将为我们的内部使用定义一些私有函数：
 - en: '![Images](p0249-03.jpg)'
+  id: totrans-232
   prefs: []
   type: TYPE_IMG
+  zh: '![Images](p0249-03.jpg)'
 - en: '**Note**   By default, variables in a function definition are presumed to be
     memory variables. To specify that the variable is a pointer to an existing storage
     variable in the state tree, it must be explicitly stated as above with `Bid[]
     storage stack` and `Game storage`.'
+  id: totrans-233
   prefs: []
   type: TYPE_NORMAL
+  zh: '**注意**   默认情况下，函数定义中的变量被认为是内存变量。为了指定变量是指向状态树中现有存储变量的指针，它必须像上面这样明确地声明为`Bid[]
+    storage stack`和`Game storage`。'
 - en: 'Let’s step through each of the functions and explain the code as we go:'
+  id: totrans-234
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们逐一解释每个函数并解释代码：
 - en: Creating a Game
+  id: totrans-235
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 创建游戏
 - en: '![Images](p0249-04.jpg)'
+  id: totrans-236
   prefs: []
   type: TYPE_IMG
+  zh: '![Images](p0249-04.jpg)'
 - en: '![Images](p0250-01.jpg)'
+  id: totrans-237
   prefs: []
   type: TYPE_IMG
+  zh: '![Images](p0250-01.jpg)'
 - en: The function definition specifies that the function returns an int even though
     we’ve mentioned that non-constant public functions don’t return a value because
     they don’t execute until the block is mined. The reason we include a return value
     anyway is for debugging purposes. There are three ways we can invoke a public
     function.
+  id: totrans-238
   prefs: []
   type: TYPE_NORMAL
+  zh: 函数定义指定函数返回一个int，尽管我们提到非常量公共函数不返回值，因为它们在区块被挖掘之前不会执行。我们仍然包含一个返回值的原因是为了调试目的。调用公共函数有三种方式。
 - en: '![Images](p0250-02.jpg)'
+  id: totrans-239
   prefs: []
   type: TYPE_IMG
+  zh: '![Images](p0250-02.jpg)'
 - en: When we call a non-constant function, it returns with a value just like a constant
     function. It runs the exact sequence of steps the miner would run in a transaction
     but doesn’t update the state tree or broadcast the transaction, so it’s great
@@ -1028,124 +1525,179 @@
     the return type. So for an int return type, an error will return 0\. By convention,
     we will be returning -1 in all our functions to indicate that the function executed
     with no errors, and use the positive integers to indicate an error code.
+  id: totrans-240
   prefs: []
   type: TYPE_NORMAL
+  zh: 当我们调用一个非常量函数时，它返回的值就像一个常量函数一样。它运行矿工在交易中会运行的确切步骤，但不会更新状态树或广播交易，所以它非常适合调试。抛出错误的调用返回返回类型的零/null值。所以对于一个int返回类型，错误将返回0。根据约定，我们将在所有函数中返回-1，以表示函数执行没有错误，并使用正整数来表示错误代码。
 - en: Creating a game requires us to pass in the game parameters (`home,` `away,`
     `category,` `locktime`). The locktime is in seconds since the UNIX epoch.
+  id: totrans-241
   prefs: []
   type: TYPE_NORMAL
+  zh: 创建游戏需要我们传入游戏参数（`home,` `away,` `category,` `locktime`）。锁时间是自UNIX纪元以来的秒数。
 - en: We start by creating an id from the global counter then incrementing the global
     counter so that our id remains unique. We then extend the games array length by
     1 to accommodate our new game, get a reference to the game we just created, and
     fill in the appropriate properties on the new game object.
+  id: totrans-242
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们首先从全局计数器创建一个id，然后增加全局计数器，以确保我们的id保持唯一。接着，我们将游戏数组的长度扩展1，以容纳我们的新游戏，获取对新创建游戏的引用，并在新游戏对象上填写适当的属性。
 - en: Once the game has been created, we emit a GameCreated event to log the state
     modification we just made and return -1 to indicate that there were no errors.
+  id: totrans-243
   prefs: []
   type: TYPE_NORMAL
+  zh: 一旦游戏被创建，我们将发出一个GameCreated事件，记录我们刚刚执行的状态修改，并返回-1，表示没有错误。
 - en: Bidding
+  id: totrans-244
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 出价
 - en: '![Images](p0250-03.jpg)'
+  id: totrans-245
   prefs: []
   type: TYPE_IMG
+  zh: '![Images](p0250-03.jpg)'
 - en: '![Images](p0251-01.jpg)'
+  id: totrans-246
   prefs: []
   type: TYPE_IMG
+  zh: '![Images](p0251-01.jpg)'
 - en: To place a bid, the client must provide the game_id for the game they wish to
     bid on, which side of the bet they are taking (over or under), and the line limit
     at which they would like to place the bet. Bids will be matched at or below the
     limit for over bids and at or above the line for under bids.
+  id: totrans-247
   prefs: []
   type: TYPE_NORMAL
+  zh: 要出价，客户端必须提供他们希望出价的游戏的game_id，他们要下注的赌注方向（超过或低于），以及他们想要下注的线程限制。超过的出价将在或低于限制时匹配，低于的出价将在或高于线时匹配。
 - en: The function is `payable` so clients can send a `value` with the transaction.
     For this function, that `value` will be interpreted as the bid amount. The value
     sent to a payable Solidity function is available in the built-in `msg.value` variable.
+  id: totrans-248
   prefs: []
   type: TYPE_NORMAL
+  zh: 该函数是`payable`的，因此客户端可以发送一个`value`随交易一起发送。对于这个函数，这个`value`将被解释为出价金额。发送到可支付的Solidity函数的值可以在内置的`msg.value`变量中找到。
 - en: 'This function is more complex than the `createGame` function, so let’s step
     through and explain it in parts:'
+  id: totrans-249
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个函数比`createGame`函数要复杂，所以让我们逐步解释它：
 - en: '![Images](p0251-02.jpg)'
+  id: totrans-250
   prefs: []
   type: TYPE_IMG
+  zh: '![Images](p0251-02.jpg)'
 - en: This portion grabs the desired game from storage and creates a temporary Bid
     in memory. `msg.sender` contains the address of the wallet/contract that signed
     and sent the transaction, while `msg.value` is a `uint` variable that contains
     the value of the ether sent to the function in units of wei (1e-18 ether).
+  id: totrans-251
   prefs: []
   type: TYPE_NORMAL
+  zh: 这部分从存储中获取所需的游戏，并在内存中创建一个临时的出价。`msg.sender`包含签署并发送交易的钱包/合约的地址，而`msg.value`是一个`uint`变量，包含以wei（1e-18以太币）为单位发送到函数的以太币值。
 - en: Struct variables by default are initialized as storage pointers, but struct
     constructors always return a pointer to memory. Without specifying `Bid` `memory`,
     the variable assignment will throw a compiler error saying the types of the value
     and variable do not match.
+  id: totrans-252
   prefs: []
   type: TYPE_NORMAL
+  zh: 结构体变量默认初始化为存储指针，但结构体构造器总是返回内存指针。不指定`Bid` `memory`，变量赋值将抛出编译器错误，指出值和变量的类型不匹配。
 - en: '`getGameById` is a helper function we will use to get a pointer to a specific
     game. Here’s the code for the `getGameById` function:'
+  id: totrans-253
   prefs: []
   type: TYPE_NORMAL
+  zh: '`getGameById`是我们将用来获取特定游戏指针的助手函数。以下是`getGameById`函数的代码：'
 - en: '![Images](p0251-03.jpg)'
+  id: totrans-254
   prefs: []
   type: TYPE_IMG
+  zh: '![Images](p0251-03.jpg)'
 - en: '![Images](p0252-01.jpg)'
+  id: totrans-255
   prefs: []
   type: TYPE_IMG
+  zh: '![Images](p0252-01.jpg)'
 - en: We have defined the function as both private and constant. It is constant because
     it does not modify the state. It must be defined as private as well because public
     functions are not allowed to return custom structs. The return type must be specified
     as `Game storage` because function definitions default to memory as the variable
     location and the game we wish to point to is contained in storage in the state
     tree.
+  id: totrans-256
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们已经将该函数定义为私有和常量。它之所以是常量，是因为它不会修改状态。它也必须定义为私有，因为公共函数不允许返回自定义结构体。返回类型必须指定为`Game
+    storage`，因为函数定义默认为内存作为变量位置，而我们希望指向的游戏包含在状态树中的存储中。
 - en: The function loops through the games array and checks for a matching game id.
     It maintains a flag that is set to true if a matching game exists in the array.
     If the game exists, it returns a storage pointer to the game.
+  id: totrans-257
   prefs: []
   type: TYPE_NORMAL
+  zh: 该函数遍历游戏数组，查找匹配的游戏ID。它维护一个标志，如果数组中存在匹配的游戏，则设置为真。如果游戏存在，它返回游戏存储指针。
 - en: If the game does not exist, it throws an error. The `throw` keyword ends the
     execution of both the current function and the current transaction. Any changes
     made during the current transaction are rolled back and all the gas provided to
     the transaction is consumed and given to the miner.
+  id: totrans-258
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果游戏不存在，它会抛出错误。`throw`关键字结束当前函数和当前交易的执行。当前交易期间所做的任何更改都将被回滚，并且所有提供给交易的gas都将被消耗并给予矿工。
 - en: '![Images](p0252-02.jpg)'
+  id: totrans-259
   prefs: []
   type: TYPE_IMG
+  zh: '![Images](p0252-02.jpg)'
 - en: The game status must be open to accept a bet. Additionally, a game may still
     have its status set as open when it is past the locktime. In that case, we lock
     the game and cancel all open bids. Both of these validations return error codes.
+  id: totrans-260
   prefs: []
   type: TYPE_NORMAL
+  zh: 游戏状态必须是开放状态才能接受投注。此外，当游戏已经过了锁定时间时，它的状态仍然可以设置为开放。在这种情况下，我们锁定游戏并取消所有开放的出价。这两个验证都返回错误代码。
 - en: '`now` is a built-in variable set to the value of the UNIX timestamp of the
     current block being mined. This will not be the same as the time the transaction
     was sent.'
+  id: totrans-261
   prefs: []
   type: TYPE_NORMAL
+  zh: '`now`是一个内置变量，设置为当前区块的UNIX时间戳值。这不会与交易发送的时间相同。'
 - en: '`cancelOpenBids` is a private helper function that cancels and refunds unmatched
     bids in a book. Here is the code for the function:'
+  id: totrans-262
   prefs: []
   type: TYPE_NORMAL
+  zh: '`cancelOpenBids`是一个私有助手函数，用于取消并退款市场上的未匹配出价。以下是该函数的代码：'
 - en: '![Images](p0252-03.jpg)'
+  id: totrans-263
   prefs: []
   type: TYPE_IMG
+  zh: '![Images](p0252-03.jpg)'
 - en: '![Images](p0253-01.jpg)'
+  id: totrans-264
   prefs: []
   type: TYPE_IMG
+  zh: '![Images](p0253-01.jpg)'
 - en: It is important that the parameter to this function be a storage pointer. If
     it were a memory pointer, we would be deleting items in local memory instead of
     on the state tree.
+  id: totrans-265
   prefs: []
   type: TYPE_NORMAL
+  zh: 参数对这个函数来说必须是存储指针。如果它是内存指针，我们将在本地内存中删除项目，而不是在状态树中。
 - en: We start by looping through the over bids and refunding the bids by adding the
     amount of the bid to the bidder’s balance. We do not need to worry about initializing
     the keys.
+  id: totrans-266
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们首先通过循环遍历`over bids`并退还出价，通过将出价金额添加到出价者的余额来实现。我们不需要担心初始化键。
 - en: A key in a Solidity mapping is converted to a 32-byte address that points to
     a location in the Ethereum state tree, which has a Patricia trie as the underlying
     data structure. The 32-byte address is generated by computing the keccak256 hash
@@ -1154,53 +1706,80 @@
     assumed to be the null value for the type. Since `balances` is of type `mapping(address
     => uint)`, all addresses can be assumed to be set initially to the null value
     for `uint`, 0.
+  id: totrans-267
   prefs: []
   type: TYPE_NORMAL
+  zh: 在Solidity映射中的键被转换为一个32字节的地址，该地址指向以太坊状态树中的一个位置，其底层数据结构为Patricia字典树。这个32字节的地址是通过计算一系列值的keccak256散列生成的，包括合约地址、变量地址和映射键。如果32字节的地址在Patricia字典树中不存在，则假设其值为对应类型的空值。由于`balances`的类型为`mapping(address
+    => uint)`，可以假设所有地址最初都被设置为`uint`类型的空值，即0。
 - en: Once the open bids have been refunded, the overBids array is deleted. The `delete`
     keyword sets a variable back to its null value by removing it from the state tree.
     The null value for a dynamic array is an array of length 0, so overBids is now
     an array of length 0.
+  id: totrans-268
   prefs: []
   type: TYPE_NORMAL
+  zh: 一旦开放出价被退还，`overBids`数组就会被删除。`delete`关键字通过将其从状态树中移除，将变量设置为其空值。动态数组的空值是一个长度为0的数组，所以`overBids`现在是一个长度为0的数组。
 - en: The same actions are then performed on the underBids array.
+  id: totrans-269
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后对`underBids`数组执行相同的操作。
 - en: '`Bid memory remainingBid = matchExistingBids(bid, game_id);`'
+  id: totrans-270
   prefs: []
   type: TYPE_NORMAL
+  zh: '`Bid memory remainingBid = matchExistingBids(bid, game_id);`'
 - en: Once a bid is validated, the first step in processing it is to match it against
     existing bids.
+  id: totrans-271
   prefs: []
   type: TYPE_NORMAL
+  zh: 一旦出价被验证，处理它的第一步是与现有出价匹配。
 - en: 'Here’s the code for the `matchExistingBids` helper function:'
+  id: totrans-272
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下是`matchExistingBids`帮助函数的代码：
 - en: '![Images](p0253-02.jpg)'
+  id: totrans-273
   prefs: []
   type: TYPE_IMG
+  zh: '![图片](p0253-02.jpg)'
 - en: '![Images](p0254-01.jpg)'
+  id: totrans-274
   prefs: []
   type: TYPE_IMG
+  zh: '![图片](p0254-01.jpg)'
 - en: This is a long function that goes through the stack for the opposing side of
     the bid, matches and deletes as many bids as it can, and logs every bet it places.
     It then returns a bid with the remaining unmatched amount so it can be added to
     the proper stack later.
+  id: totrans-275
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是一个很长的函数，它遍历出价的另一方的栈，匹配并删除尽可能多的出价，并记录它放置的每一注。然后返回一个剩余未匹配金额的出价，以便稍后添加到正确的栈中。
 - en: 'Let’s break this function down as well:'
+  id: totrans-276
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们也分解这个函数：
 - en: '![Images](p0254-02.jpg)'
+  id: totrans-277
   prefs: []
   type: TYPE_IMG
+  zh: '![图片](p0254-02.jpg)'
 - en: We start by getting a storage pointer to the game and determining which stack
     we will be matching against. Over bids will match the under stack, and under bids
     will match the over stack.
+  id: totrans-278
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们首先获取游戏存储的指针，并确定我们将要匹配哪个栈。上出价将匹配下栈，下出价将匹配上栈。
 - en: '![Images](p0254-03.jpg)'
+  id: totrans-279
   prefs: []
   type: TYPE_IMG
+  zh: '![图片](p0254-03.jpg)'
 - en: We are going to assume that the array is ordered into a stack already, with
     the best outstanding bid (highest bid for over stack, lowest bid for under stack)
     at the bottom of the stack. See [Figure 10-2](ch10.xhtml#ch10fig2) for the stack
@@ -1211,17 +1790,25 @@
     negative and will never express a value less than zero. However, array index accessing
     requires a `uint`, so we create a `uint` version of the iterator, j, once we enter
     the loop and have verified that the iterator is not negative.
+  id: totrans-280
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将假设数组已经按栈的顺序排列好，最优的待处理出价（对于上栈是最高出价，对于下栈是最低出价）位于栈底。参见[图 10-2](ch10.xhtml#ch10fig2)栈的排列。我们从栈底开始循环，通过设置迭代变量`i`。我们想要继续循环直到迭代器越界，在这种情况下，迭代器将为负数。为了实现这一点，我们必须使用`int`而不是`uint`，因为`uint`在变为负数时表现出未定义行为，并且永远不会表示小于零的值。然而，数组索引访问需要`uint`，因此在我们进入循环并验证迭代器不为负数后，我们创建了一个`uint`版本的迭代器`j`。
 - en: '![Images](fig10-2.jpg)'
+  id: totrans-281
   prefs: []
   type: TYPE_IMG
+  zh: '![图片](fig10-2.jpg)'
 - en: '**FIGURE 10-2   Bid stack structure**'
+  id: totrans-282
   prefs: []
   type: TYPE_NORMAL
+  zh: '**图 10-2   出价栈结构**'
 - en: '![Images](p0254-04.jpg)'
+  id: totrans-283
   prefs: []
   type: TYPE_IMG
+  zh: '![图片](p0254-04.jpg)'
 - en: Next, we validate the stack bid by checking if the bid has already been matched.
     Matched bids will have an amount of 0\. In most languages, we would rid ourselves
     of matched bids by deleting them from the stack. Unfortunately, our stacks are
@@ -1229,28 +1816,40 @@
     so deleting an item requires many rewrites and would be an expensive operation.
     In order to minimize gas costs, we will be leaving matched bids in the stack and
     overwriting them whenever possible when inserting new bids.
+  id: totrans-284
   prefs: []
   type: TYPE_NORMAL
+  zh: 接下来，我们通过检查出价是否已经匹配来验证堆叠出价。匹配的出价将有一个金额为0。在大多数语言中，我们会通过从堆叠中删除它们来摆脱匹配的出价。不幸的是，我们的堆叠是数组而不是链表，因为Solidity不允许递归数据结构，所以删除一个项目需要重写很多内容，并且将是一个昂贵的操作。为了最小化燃料成本，我们将保留堆叠中的匹配出价，并在插入新出价时尽可能地覆盖它们。
 - en: '![Images](p0255-01.jpg)'
+  id: totrans-285
   prefs: []
   type: TYPE_IMG
+  zh: '![Images](p0255-01.jpg)'
 - en: 'The break conditions for the stack are as follows:'
+  id: totrans-286
   prefs: []
   type: TYPE_NORMAL
+  zh: 堆叠的退出条件如下：
 - en: For an over bid, if the bid line is less than the underline pointed to by the
     stack iterator, break out of the loop. Because the under stack is sorted so that
     lines get higher as you move up the stack, once you encounter one under line that
     is too high to match, all lines above it will be too high to match as well.
+  id: totrans-287
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于超额出价，如果出价行小于堆叠迭代器指向的不足行，则退出循环。因为不足的堆叠是按行递增的，一旦遇到一个太高无法匹配的不足行，所有高于它的行也将太高无法匹配。
 - en: For an under bid, it is the opposite. If the bid line is greater than the over
     line pointed to by the stack iterator, break out of the loop. All lines above
     it will be too low to match as well.
+  id: totrans-288
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于不足出价，正好相反。如果出价行大于堆叠迭代器指向的超额行，则退出循环。所有高于它的行也将太低无法匹配。
 - en: '![Images](p0255-02.jpg)'
+  id: totrans-289
   prefs: []
   type: TYPE_IMG
+  zh: '![Images](p0255-02.jpg)'
 - en: If it has been determined that the break condition is not satisfied, we have
     ourselves a valid bet that can be matched. The bet amount is going to be the lower
     of the stack bet amount and the bid amount. The bet amount is subtracted from
@@ -1258,55 +1857,81 @@
     the stack bid, the bid amount will be 0 after subtraction and the loop condition
     will fail to satisfy on the next iteration. If the stack bid is lower, the remaining
     bid will be greater than 0 and the loop will continue.
+  id: totrans-290
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果确定退出条件不满足，我们有一个有效的可以匹配的出价。出价金额将是堆叠出价金额和出价金额中的较低者。出价金额从堆叠出价和当前出价中减去。如果当前出价金额低于堆叠出价，减去后出价金额将为0，循环条件在下次迭代中将无法满足。如果堆叠出价较低，剩余出价将大于0，循环将继续。
 - en: '![Images](p0255-03.jpg)'
+  id: totrans-291
   prefs: []
   type: TYPE_IMG
+  zh: '![Images](p0255-03.jpg)'
 - en: '![Images](p0256-01.jpg)'
+  id: totrans-292
   prefs: []
   type: TYPE_IMG
+  zh: '![Images](p0256-01.jpg)'
 - en: Once a bet has been placed, it has to be added to the stack and logged with
     the appropriate event. To make it easier to parse the logs by user, the BetPlaced
     event is called twice, once for each user.
+  id: totrans-293
   prefs: []
   type: TYPE_NORMAL
+  zh: 一旦下注，就必须将其加入堆叠并记录在适当的事件中。为了使用户更容易解析日志，BetPlaced事件为每个用户调用两次。
 - en: '![Images](p0256-02.jpg)'
+  id: totrans-294
   prefs: []
   type: TYPE_IMG
+  zh: '![Images](p0256-02.jpg)'
 - en: Decrement the iterator variable, and continue the loop. When the loop is complete,
     return the remaining bid so it can be added to the appropriate bid stack.
+  id: totrans-295
   prefs: []
   type: TYPE_NORMAL
+  zh: 递减迭代变量，并继续循环。循环完成后，返回剩余的出价，以便将其添加到相应的出价堆叠中。
 - en: Once bid matching is complete, we return back to the original bid function and
     add the bids to the stack.
+  id: totrans-296
   prefs: []
   type: TYPE_NORMAL
+  zh: 一旦出价匹配完成，我们返回到原始的出价函数并将出价加入堆叠。
 - en: '![Images](p0256-03.jpg)'
+  id: totrans-297
   prefs: []
   type: TYPE_IMG
+  zh: '![Images](p0256-03.jpg)'
 - en: 'If the remaining bid amount is 0, this code block doesn’t execute. If it isn’t,
     the bid gets added to the stack. Over and under bids get added differently. The
     third argument indicates the order in which the stack will be sorted: highest
     line at the bottom for over and lowest line at the bottom for under. Once the
     bid has been placed we emit an event, logging the action to the chain.'
+  id: totrans-298
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果剩余的出价金额为0，则此代码块不会执行。如果不止如此，出价将加入堆叠。超额和不足的出价以不同的方式加入。第三个参数表示堆叠将按顺序排序：超额时最高行在底部，不足时最低行在底部。一旦放置出价，我们就会发出一个事件，将动作记录在链上。
 - en: 'Let’s look into the `addBidToStack` helper function to see how that works:'
+  id: totrans-299
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们看看`addBidToStack`助手函数是如何工作的：
 - en: '![Images](p0256-04.jpg)'
+  id: totrans-300
   prefs: []
   type: TYPE_IMG
+  zh: '![Images](p0256-04.jpg)'
 - en: '![Images](p0257-01.jpg)'
+  id: totrans-301
   prefs: []
   type: TYPE_IMG
+  zh: '![Images](p0257-01.jpg)'
 - en: This is probably the most complicated function in the whole contract because
     it requires us to maintain a stack that can be sorted in both directions, add
     items to that stack, and replace bids that have been already matched instead of
     extending the stack length whenever possible.
+  id: totrans-302
   prefs: []
   type: TYPE_NORMAL
+  zh: 这可能是整个合约中最复杂的函数，因为它需要我们维护一个可以双向排序的堆栈，向该堆栈添加项目，并在可能的情况下替换已经匹配的出价，而不是尽可能地延长堆栈长度。
 - en: We mentioned earlier that adding a bid by extending the stack length or deleting
     an item from the stack is a very expensive operation. Space must be allocated
     or destroyed for the item in the state tree, then every item in the stack below
@@ -1314,103 +1939,148 @@
     must be modified with each resize. Normally, using a linked list would make these
     operations less expensive, but Solidity does not permit recursive data structures
     so that option is not available to us.
+  id: totrans-303
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们之前提到，通过延长堆栈长度或从堆栈中删除项目来添加出价是非常昂贵的操作。必须为状态树中的项目分配或销毁空间，然后必须重新编写插入/删除索引下方的堆栈中的每个项目，因此每次调整大小时必须修改大量状态。通常，使用链表会使这些操作变得不那么昂贵，但Solidity不允许递归数据结构，因此这个选项对我们来说不可用。
 - en: 'In order to avoid performing an expensive deletion operation, we left bids
     with 0 amount remaining in the stack during bid matching. Now we will perform
     the second part of the optimization by rewriting 0 amount bids whenever possible
     instead of extending the array. Let’s step through how:'
+  id: totrans-304
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了避免执行昂贵的删除操作，我们在出价匹配时将剩余金额为0的出价留在了堆栈中。现在我们将执行优化的第二部分，通过尽可能地重写金额为0的出价而不是延长数组来完成。让我们一步步来看：
 - en: '![Images](p0257-02.jpg)'
+  id: totrans-305
   prefs: []
   type: TYPE_IMG
+  zh: '![Images](p0257-02.jpg)'
 - en: We need to specify the bid to be inserted, the stack into which it should be
     inserted, and whether the stack is going sorted in normal or reverse order. For
     our purposes, normal order will be when the lowest bid is at the bottom and reverse
     order will be when the highest bid is at the bottom.
+  id: totrans-306
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们需要指定要插入的出价、应插入的堆栈以及堆栈是按正常顺序还是逆序排序。对于我们来说，正常顺序是指最低出价在底部，逆序顺序是指最高出价在底部。
 - en: '![Images](p0258-01.jpg)'
+  id: totrans-307
   prefs: []
   type: TYPE_IMG
+  zh: '![Images](p0258-01.jpg)'
 - en: This is the trivial case. If there are no items in the stack, there’s no need
     to go through the sorting or rewriting process, just append the item to the stack
     and return out.
+  id: totrans-308
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是一个简单的情况。如果堆栈中没有项目，那么就没有必要进行排序或重写过程，只需将项目添加到堆栈中并返回。
 - en: '![Images](p0258-02.jpg)'
+  id: totrans-309
   prefs: []
   type: TYPE_IMG
+  zh: '![Images](p0258-02.jpg)'
 - en: Before inserting the item into the sorted stack, we need to determine the index
     at which the insertion should occur. For a reverse stack, we start at the bottom
     and go up the stack while the bid line is less than the stack line. For a normal
     stack, we start at the bottom and go up the stack while the bid line is greater
     than the stack line.
+  id: totrans-310
   prefs: []
   type: TYPE_NORMAL
+  zh: 在将项目插入排序堆栈之前，我们需要确定插入应该发生的索引。对于逆序堆栈，我们从底部开始，向上遍历堆栈，同时出价线小于堆栈线。对于正常堆栈，我们从底部开始，向上遍历堆栈，同时出价线大于堆栈线。
 - en: '![Images](p0258-03.jpg)'
+  id: totrans-311
   prefs: []
   type: TYPE_IMG
+  zh: '![Images](p0258-03.jpg)'
 - en: Ordinarily, we would shift down all the items below the insert index to make
     room for the new item in the sorted stack, but because creating additional storage
     is an expensive operation, we will attempt to find an empty bid (`bid.amount`
     == 0) and overwrite that instead.
+  id: totrans-312
   prefs: []
   type: TYPE_NORMAL
+  zh: 通常，我们会将插入索引下方的所有项目向下移动，为新的排序堆栈中的项目腾出空间，但因为创建额外存储是一个昂贵的操作，我们将尝试找到一个空出价（`bid.amount`
+    == 0）并覆盖它。
 - en: The first check is to see if the slot above the insert index is an empty bid.
     If it is, nothing needs to be shifted, we can overwrite that bid with the new
     bid, and return out of the function. Next, we go down the stack starting at the
     insert index, and attempt to find the first empty bid. When we do, we exit the
     loop. If there are no empty bids, we will exit the loop once we hit the end of
     the stack.
+  id: totrans-313
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先检查插入索引上方的槽位是否为空出价。如果是，则不需要移动任何内容，我们可以用新出价覆盖那个出价，并退出函数。接下来，我们从插入索引开始向下遍历堆栈，尝试找到第一个空出价。当我们找到时，我们退出循环。如果没有空出价，我们在到达堆栈末尾时将退出循环。
 - en: '![Images](p0258-04.jpg)'
+  id: totrans-314
   prefs: []
   type: TYPE_IMG
+  zh: '![Images](p0258-04.jpg)'
 - en: '![Images](p0259-01.jpg)'
+  id: totrans-315
   prefs: []
   type: TYPE_IMG
+  zh: '![Images](p0259-01.jpg)'
 - en: If there were no empty bids in the stack below the insert index, we have to
     extend the stack length by 1\. Starting from right above the shift index and up
     to the insert index, we will shift all bids down by 1 slot. This will overwrite
     the bid at the shift index and open up a slot at the insert index, where we then
     insert the current bid.
+  id: totrans-316
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果插入索引下方的堆栈中没有空出价，我们需要将堆栈长度扩展1。从插入索引正上方开始，一直到shift索引，我们将所有出价向下一格移动。这将覆盖shift索引处的出价，并在插入索引处打开一个格子，然后我们插入当前的出价。
 - en: Scoring Games and Payouts
+  id: totrans-317
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 评分比赛和支付
 - en: 'Once a game has started and betting has closed, the game result can be set
     by the creator of the game using the `setGameResult` function:'
+  id: totrans-318
   prefs: []
   type: TYPE_NORMAL
+  zh: 一旦比赛开始并且投注关闭，比赛结果可以通过使用`setGameResult`函数来设置，该比赛由比赛创建者来设置：
 - en: '![Images](p0259-02.jpg)'
+  id: totrans-319
   prefs: []
   type: TYPE_IMG
+  zh: '![Images](p0259-02.jpg)'
 - en: This function sets the home and away scores for a specified game. The first
     part of this function performs a series of validations. The game must be past
     its locktime and not have been scored yet. Failing either of these validations
     returns an error code.
+  id: totrans-320
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个函数为指定比赛设置主队和客队的比分。这个函数的第一部分执行一系列验证。比赛必须已经过了锁定时间且还没有被评分。如果这些验证失败中的任何一项，将返回一个错误代码。
 - en: All open bids on the book are canceled. The `cancelOpenBids` helper function
     was explained in the bidding section. The scores for the home and away teams are
     updated in storage, the game status is updated, bets are paid out, and an event
     is logged indicating that the game has been scored.
+  id: totrans-321
   prefs: []
   type: TYPE_NORMAL
+  zh: 所有在记分牌上的开放出价都被取消。`cancelOpenBids`辅助函数在出价部分已经解释。主队和客队的比分在存储中更新，比赛状态更新，支付出注，并记录事件，表示比赛已被评分。
 - en: 'The `payBets` helper function looks like this:'
+  id: totrans-322
   prefs: []
   type: TYPE_NORMAL
+  zh: '`payBets`辅助函数看起来像这样：'
 - en: '![Images](p0259-03.jpg)'
+  id: totrans-323
   prefs: []
   type: TYPE_IMG
+  zh: '![Images](p0259-03.jpg)'
 - en: '![Images](p0260-01.jpg)'
+  id: totrans-324
   prefs: []
   type: TYPE_IMG
+  zh: '![Images](p0260-01.jpg)'
 - en: This function first uses the game result to calculate the total points scored.
     It then loops through each of the bets. If the bet has already been paid out,
     it skips the bet and moves to the next one. This should never be the case, but
@@ -1421,26 +2091,36 @@
     is added to the address of the under bet. If the point total and bet line are
     the same, both sides of the bet are refunded the bet amount. Once the bet has
     been paid out, the bet status is marked as paid.
+  id: totrans-325
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个函数首先使用比赛结果计算总得分。然后它遍历每个投注。如果投注已经被支付，它跳过这个投注并移动到下一个。这不应该发生，但为了防止未来版本的代码对同一比赛调用此函数两次，已经包含。如果计算得分的总和大于投注线，则将两倍的投注金额添加到过度投注的地址。如果计算得分的总和小于投注线，则将两倍的投注金额添加到投注不足的地址。如果得分的总数和投注线相同，则将投注的双方退款投注金额。一旦投注被支付，投注状态被标记为已支付。
 - en: Withdrawing
+  id: totrans-326
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 提现
 - en: Once a bet has been resolved and the user balances have been updated, the winning
     users will want to withdraw their money. The `withdraw` function allows them to
     do so.
+  id: totrans-327
   prefs: []
   type: TYPE_NORMAL
+  zh: 一旦投注被解决并且用户余额已经被更新，获胜用户将想要提取他们的钱。`withdraw`函数允许他们这样做。
 - en: '![Images](p0260-02.jpg)'
+  id: totrans-328
   prefs: []
   type: TYPE_IMG
+  zh: '![Images](p0260-02.jpg)'
 - en: To withdraw, we retrieve the balance of the user from the `balances` mapping
     and store it into a temporary variable. Then we zero out the user’s balance and
     send the ether to their wallet. If the send fails, we refund the amount to their
     balance and return an error code. If the send succeeds, we log the event.
+  id: totrans-329
   prefs: []
   type: TYPE_NORMAL
+  zh: 提现时，我们从`balances`映射中检索用户余额并存储在一个临时变量中。然后我们将用户的余额清零并将以太币发送到他们的钱包。如果发送失败，我们将退款到他们的余额并返回一个错误代码。如果发送成功，我们记录事件。
 - en: The order of logic in this function is *very* important. The infamous DAO hack
     was caused by an unidentified bug in this exact withdraw implementation. It seems
     a bit inefficient to zero out the balance of the user, then refund it later if
@@ -1451,35 +2131,49 @@
     contract and the balance has not been zeroed, it can run withdrawals over and
     over again until our contract’s balance has been drained. This was how the DAO
     attacker was able to drain all the funds from the DAO contract.
+  id: totrans-330
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个函数中逻辑的顺序*非常*重要。臭名昭著的DAO攻击是由于这个提现实现中的一个未知的虫子引起的。零用户余额然后如果发送失败再退款似乎有点效率低下。这样做的原因是调用`withdraw`函数的实体可能是一个合约。合约可以定义一个回退函数，当找不到匹配的ABI函数时作为默认动作执行。如果攻击者的合约定义了一个可支付的回退函数，该函数对我们的合约执行另一个提现，并且余额没有被清零，它可以反复执行提现直到我们的合约余额被耗尽。这就是DAO攻击者能够从DAO合约中提取所有资金的方式。
 - en: Reading Games
+  id: totrans-331
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 阅读游戏
 - en: We need a way for the front end to read active games from the blockchain. Doing
     so is a two-step process because we can’t directly return a custom struct in a
     public ABI function. Instead, what we will do is get a list of active game IDs
     from the contract, then parse the logs for the game details.
+  id: totrans-332
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们需要一种方法让前端从区块链上读取活跃游戏。这样做是一个两步过程，因为我们不能在公共ABI函数中直接返回一个自定义结构体。相反，我们要做的是从合约中获取一个活跃游戏ID列表，然后解析游戏详情日志。
 - en: Here is the contract ABI function for the first step of the process. The second
     step will be covered in the front-end section.
+  id: totrans-333
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下是过程的第一步的合约ABI函数。第二步将在前端部分介绍。
 - en: '![Images](p0261-01.jpg)'
+  id: totrans-334
   prefs: []
   type: TYPE_IMG
+  zh: '![Images](p0261-01.jpg)'
 - en: The function creates an empty memory array of game IDs initialized to the length
     of the games array. A memory array is used instead of a storage array because
     it is a constant function, meaning it can’t modify storage. We loop through the
     games and add each id to the memory array, then return the array.
+  id: totrans-335
   prefs: []
   type: TYPE_NORMAL
+  zh: 该函数创建一个初始化为游戏数组长度的空内存数组。我们使用内存数组而不是存储数组，因为这是一个常量函数，意味着它不能修改存储。我们遍历游戏并把每个ID添加到内存数组中，然后返回该数组。
 - en: Reading Bids
+  id: totrans-336
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 阅读出价
 - en: The order book changes with each placed bid, so we need a way of getting a current
     snapshot of the order book. Unfortunately, the logs aren’t going to be of much
     use to us here because placed bids can be matched and deleted, so a logged bid
@@ -1488,23 +2182,35 @@
     custom structs directly in the ABI. So instead we’re going to run a hack job and
     return a byte array containing the information, then parse the byte array back
     into a bid array on the front end.
+  id: totrans-337
   prefs: []
   type: TYPE_NORMAL
+  zh: 每个放置的出价都会改变订单簿，因此我们需要一种获取订单簿当前快照的方法。不幸的是，日志在这里对我们并没有太大用处，因为放置的出价可以被匹配并删除，所以记录的出价可能已经不存在了。为了获取当前书籍视图，我们必须从合约中直接返回出价。不幸的是，如前所述，我们不能直接在ABI中返回自定义结构体。所以，我们打算运行一个临时修改，返回一个包含信息的字节数组，然后在前端将字节数组解析回出价数组。
 - en: Here’s the contract function to encode the bids into a byte array.
+  id: totrans-338
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里是将出价编码成字节数组的合约函数。
 - en: '![Images](p0261-02.jpg)'
+  id: totrans-339
   prefs: []
   type: TYPE_IMG
+  zh: '![Images](p0261-02.jpg)'
 - en: '![Images](p0262-01.jpg)'
+  id: totrans-340
   prefs: []
   type: TYPE_IMG
+  zh: '![Images](p0262-01.jpg)'
 - en: Let’s break this code down since it gets complicated in places.
+  id: totrans-341
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们分解这段代码，因为它有些地方变得复杂。
 - en: '![Images](p0262-02.jpg)'
+  id: totrans-342
   prefs: []
   type: TYPE_IMG
+  zh: '![Images](p0262-02.jpg)'
 - en: The function is constant to indicate that it does not modify storage. First,
     we grab a storage pointer to the game. Then we count the total number of bids
     in the book and use that to allocate a byte array in memory. `bytes` is the data
@@ -1512,46 +2218,68 @@
     as well. This iterator variable will point to the current index in the byte array
     that is being written. Every time a byte is written to the byte array, we will
     increment the iterator.
+  id: totrans-343
   prefs: []
   type: TYPE_NORMAL
+  zh: 该函数是常量，以表示它不会修改存储。首先，我们获取一个指向游戏的存储指针。然后我们计算书籍中出价的总数，并使用该数目在内存中分配一个字节数组。`bytes`是动态大小字节数组的数据类型。还有一个迭代变量`k`也被初始化了。这个迭代变量将指向正在写入的字节数组中的当前索引。每次向字节数组写入一个字节，我们都会增加迭代器。
 - en: '![Images](p0262-03.jpg)'
+  id: totrans-344
   prefs: []
   type: TYPE_IMG
+  zh: '![Images](p0262-03.jpg)'
 - en: Loop through all the bids, and determine whether the current bid is in the over
     or under stack.
+  id: totrans-345
   prefs: []
   type: TYPE_NORMAL
+  zh: 遍历所有出价，确定当前出价是在过账还是未过账的栈中。
 - en: '![Images](p0262-04.jpg)'
+  id: totrans-346
   prefs: []
   type: TYPE_IMG
+  zh: '![图片](p0262-04.jpg)'
 - en: '![Images](p0263-01.jpg)'
+  id: totrans-347
   prefs: []
   type: TYPE_IMG
+  zh: '![图片](p0263-01.jpg)'
 - en: Convert each bid property into its byte representation. The bytesxx data types
     are defined for all values up to 32 (bytes2, bytes3, etc.) and for a single `byte`.
     Next, loop through each byte representation and add them to the main byte array,
     byte by byte.
+  id: totrans-348
   prefs: []
   type: TYPE_NORMAL
+  zh: 将每个出价属性转换为其字节表示形式。bytesxx数据类型为所有值定义到32（bytes2，bytes3等）以及单个`byte`。接下来，遍历每个字节表示形式并将它们添加到主字节数组中，逐字节。
 - en: Once all the bids have been encoded and concatenated, we return the byte array.
     We will cover how to parse the byte array into a JavaScript object on the front
     end later. For now it will suffice to define a data dictionary for the bid byte
     structure by byte index (see [Table 10-1](ch10.xhtml#ch10tab1)).
+  id: totrans-349
   prefs: []
   type: TYPE_NORMAL
+  zh: 一旦所有出价都已编码并连接，我们返回字节数组。稍后我们将介绍如何在客户端解析字节数组为JavaScript对象。现在定义一个数据字典来描述出字节结构按字节索引（参见[表10-1](ch10.xhtml#ch10tab1)）。
 - en: '**TABLE 10-1** Bid Byte Structure'
+  id: totrans-350
   prefs: []
   type: TYPE_NORMAL
+  zh: '**表10-1** 出字节结构'
 - en: '![Images](tab10-1.jpg)'
+  id: totrans-351
   prefs: []
   type: TYPE_IMG
+  zh: '![图片](tab10-1.jpg)'
 - en: Summary
+  id: totrans-352
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 摘要
 - en: In this chapter, we have introduced the development life cycle of a full-function
     betting application built on Ethereum. The focus was primarily on coding with
     Solidity. In the next chapter, we will deploy the contract and develop a simple
     front end to run the application.
+  id: totrans-353
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本章中，我们已经介绍了基于以太坊构建的全功能投注应用的开发生命周期。主要关注的是使用Solidity进行编码。下一章，我们将部署合约并开发一个简单的前端来运行应用。
