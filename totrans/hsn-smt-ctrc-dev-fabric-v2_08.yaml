@@ -1,0 +1,1348 @@
+- en: Chapter 5\. Smart Contract Invocation
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: This chapter equips you with the knowledge you need to invoke smart contracts.
+    We’ll use the prerequisites installed in [Chapter 4](ch04.xhtml#smart_contract_development).
+    Then, using a script, we’ll start and stop a local Fabric test network and deploy
+    the Fabcar smart contract.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Since we are leveraging Fabcar and the Fabric test network, we start with a
+    review of *fabric-samples*, the Fabcar smart contract, and the Fabric test network.
+    We’ll then start our test network and deploy the Fabcar smart contract. Next,
+    we’ll go through the steps executed by the script. Once our test network is up
+    and running with the Fabcar smart contract deployed, we’ll invoke Fabcar smart
+    contract functions. We’ll use the `peer invoke` command as well as a command-line
+    Node.js application to execute a Fabcar smart contract function. The Node.js application
+    will use the Fabric Client SDK for Node.js.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This chapter will help you achieve the following practical goals:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Invoking smart contracts via the command- line interface
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Evaluating transaction functions for queries
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Submitting transactions and query transaction history
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Creating and issuing an application contract
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Overview of fabric-samples, Fabcar, and the Test Network
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this section, you’ll learn how to start, deploy, and invoke a smart contract
+    on the Hyperledger Fabric test network. We’ll first look at the structure and
+    components of *fabric-samples*. Then we’ll walk through the essential steps for
+    deploying our sample smart contract, Fabcar. Once Fabric is set up and running,
+    we will start invoking the Fabric smart contract through the `peer` command and
+    Node.js methods. The Fabric test network is a great place for experimenting and
+    running essential operations on smart contracts before moving your Fabric application
+    to production.
+  prefs: []
+  type: TYPE_NORMAL
+- en: fabric-samples
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Installing the prerequisites in [Chapter 4](ch04.xhtml#smart_contract_development)
+    included *fabric-samples*, which is Hyperledger Fabric’s project for helping developers
+    learn Fabric smart contract development. It contains many smart contract samples
+    and tools for the rapid development of Fabric smart contracts. Included is a complete
+    development Fabric network comprising two organizations. Each organization has
+    a peer and CA. The network is containerized using Docker, which makes it easy
+    and fast to launch and manage.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you followed the instructions in [Chapter 4](ch04.xhtml#smart_contract_development)
+    to install the prerequisites, you should have the *fabric-samples* directory.
+    We will use the *bin*, *test-network*, *chaincode*, and *fabcar* subdirectories
+    with this chapter and [Chapter 6](ch06.xhtml#testing_and_maintenance).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Hyperledger Fabric has shown firm support for *fabric-samples*. Fabric continues
+    to introduce new functionality, improve existing code, and advance tools that
+    together make *fabric-samples* the primary project for Hyperledger Fabric smart
+    contract developers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The *bin* subdirectory contains the `peer` executable, which we will use as
+    the first method to invoke the Fabcar smart contract. The *chaincode* subdirectory
+    contains the Fabcar smart contract, and the *fabcar* directory contains the command-line
+    client for the Fabcar smart contract. We will use *test-network* to deploy the
+    *fabcar* smart contract. Once the contract is deployed, we can invoke it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this chapter, we will launch a test network for Fabcar with the help of the
+    *fabcar* script. Every Fabric smart contract needs a Fabric network. You can continue
+    to advance your skills by leveraging the test network and apply what you learn
+    in this chapter to the additional smart contracts in *fabric-samples*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Fabcar
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The Fabric smart contract, Fabcar, is one the earliest and simplest sample smart
+    contracts in *fabric-samples*. It is great for learning the basics of Fabric smart
+    contract operation and development. Getting hands-on with Fabric smart contract
+    development is easy and fast with Fabcar because it is mature, stable, and simple
+    in design, but fully functional. It implements the core functionality we need
+    to understand and develop Fabric smart contracts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Fabcar has two parts. The first part is the Fabcar smart contract, which we
+    examined in [Chapter 4](ch04.xhtml#smart_contract_development). The other part
+    is the Fabcar client. The client invokes the smart contract.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Fabcar client
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: As you can see in [Figure 5-1](#fabcar_client_implementations), the Fabcar client
+    has multiple implementations. We are interested in the JavaScript implementation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Fabcar client implementations](Images/HLF_0501.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 5-1\. Fabcar client implementations
+  prefs:
+  - PREF_H6
+  type: TYPE_NORMAL
+- en: Provided are two shell scripts, *startFabric.sh* and *networkDown.sh,* to start
+    and stop our Fabcar test network. The *startFabric.sh* script prepares and runs
+    a new environment; then it deploys and initializes our Fabcar smart contract.
+    The *networkDown.sh* script shuts down all Docker containers, removes them, and
+    cleans up the environment.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Warning
+  prefs:
+  - PREF_H6
+  type: TYPE_NORMAL
+- en: When the Fabric network restarts, it typically cleans all of the data. If you
+    need to persist any work that’s in a container that’s part of your Fabcar test
+    network, you need to persist your data prior to starting or stopping the test
+    network. Typically, you need to mount a volume for the directory */var/hyperledger/production*
+    in the orderer and peer Docker containers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Fabcar client is implemented as four Node.js command-line applications,
+    highlighted in [Figure 5-2](#fabcar_nodedotjs_applications). Two of the applications,
+    *enrollAdmin.js* and *registerUser.js,* handle enrolling an administrator and
+    registering an application user. The other two Node.js applications, *invoke.js*
+    and *query.js*, handle an invoke transaction and a query evaluation, respectively.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Fabcar Node.js applications](Images/HLF_0502.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 5-2\. Fabcar Node.js applications
+  prefs:
+  - PREF_H6
+  type: TYPE_NORMAL
+- en: These are the four Node.js applications we will examine and execute to invoke
+    the Fabcar smart contract. In [Chapter 6](ch06.xhtml#testing_and_maintenance),
+    we will refactor and incorporate them into a new Node.js Express web application
+    we develop, called Fabcar UI.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Fabric smart contract clients use a language-specific version of the Fabric
+    Client SDK. Clients developed in JavaScript can use the [Fabric Client SDK for
+    Node.js](https://github.com/hyperledger/fabric-sdk-node) to incorporate the Fabric
+    smart contract functionality to authenticate, submit transactions, and evaluate
+    queries. Because of these Node.js package dependencies from the *package.json*
+    file, npm installs the four Node.js modules highlighted in [Figure 5-3](#fabcar_client_fabric_sdk_for_nodedotjs):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![Fabcar client Fabric SDK for Node.js modules](Images/HLF_0503.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 5-3\. Fabcar client Fabric SDK for Node.js modules
+  prefs:
+  - PREF_H6
+  type: TYPE_NORMAL
+- en: The two packages we will directly use are *fabric-ca-client*, which handles
+    the interaction with the authority to enroll, register, and administrate identities;
+    and *fabric-network*, which provides `gateway`, `network` (channel), and `contract`
+    objects to interact with the Fabric smart contract.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Fabcar smart contract
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The Fabcar smart contract, *fabcar.js*, like the client, is implemented in several
+    languages; we discussed its implementation in [Chapter 4](ch04.xhtml#smart_contract_development).
+    The *chaincode/fabcar/javascript* subdirectory with the *lib* subdirectory should
+    be selected. The Fabcar smart contract that we will deploy and invoke in this
+    chapter is in the *lib* subdirectory.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The Node,js smart contract has dependencies:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'These two dependencies, *fabric-contract-api* and *fabric-shim*, result in
+    the Node.js packages being imported into the project. Only one import is required
+    for Fabric smart contracts, *fabcar.js*:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: The package *fabric-shim* is a low-level interface to the chaincode, and *fabric-shim-api*
+    is used by both *fabric-shim* and *fabric-contract-api* to provide type definitions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Fabric test network
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The Fabric test network will launch a working Fabric network that can be used
+    for smart contract deployment. The *network.sh* script is used indirectly when
+    we use the Fabcar script, *startFabric.sh*, to start, and *networkDown.sh* to
+    stop the test network. This script is modular and can be refactored into a set
+    of granular tools, suitable to your workflow and style. It can also serve as a
+    good example for learning how to develop a script or scripts to launch and manage
+    your own custom Fabric network. For our development, it is a quick start and takes
+    the pain out of designing, configuring, and managing all the resources required
+    to implement a functional Fabric network.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Once you develop a production-ready smart contract, you can package and promote
+    it to production. The process of deploying it is dependent on the network it is
+    being deployed to. Each production network will be different, but the functioning
+    of your smart contract will be consistent across each network. In [Chapter 9](ch09.xhtml#hyperledger_fabric_vtwo_integration),
+    we discuss test networks for Hyperledger Fabric v2\. As applications grow in complexity,
+    you will need to architect new custom networks to suit your specific requirements.
+    The Fabric test network is a minimal network, but fully functional. It is designed
+    with two organizations, and each runs a peer. Each organization has a CA to issue
+    X.509 certificates to the members of the organization.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Docker Container and CouchDB databases
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'The test network configuration for Fabcar in the Docker Dashboard has the following
+    servers running in Docker containers:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*ca_org2*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The credential authority for organization 2
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*ca_orderer*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The credential authority for the network orderer
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*ca_org1*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The credential authority for organization 1
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*couchdb1*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The world state database for organization 2
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*orderer.example.com*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The network order that creates blocks and sends them for commit
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*couchdb0*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The world state database for organization 1
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*peer0.org2.example.com*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The peer for organization 2
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*peer0.org1.example.com*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The peer for organization 1
+  prefs: []
+  type: TYPE_NORMAL
+- en: The two top containers are the smart contract runtime containers for each organization’s
+    peer.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The world state database for the organizations in our test network is CouchDB.
+    We can access CouchDB with our browser by using the Fauxton web application, which
+    is part of CouchDB. Open your browser and go to the following CouchDB URL: [*http://127.0.0.1:5984/_utils/*](http://127.0.0.1:5984/_utils/)#.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: You will receive a page to log in to CouchDB. You can enter `**admin**` for
+    username, and `**adminpw**` for the password, which are the defaults. These would
+    be changed and secured with limited access in production, but for development,
+    this works well. Also, the username and password will be part of network configurations
+    and will be available in your *.yaml* file.
+  prefs: []
+  type: TYPE_NORMAL
+- en: After the login, you will receive the page displaying the *couchdb0* databases
+    for organization 1\. The ninth row displays *mychannel_fabcar*. This is our Fabcar
+    world state database. *mychannel* is the name of the Fabcar Fabric channel, and
+    *fabcar* is the name of our chaincode.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Each CouchDB instance in our test network can be accessed by changing the port
+    number in the URL to the port number displayed in the Docker Dashboard list of
+    Fabric containers, which shows port 5984 is *couchdb0*, and port 7984 is *couchdb1*.
+    So changing the port to `**7984**` in the CouchDB URL gives us access to *couchdb1,*
+    the world state database for organization 2\. Notice they are identical, as they
+    should be, since they represent the world state for Fabcar.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here is a summary of key takeaway points:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Every organization in a Fabric network can have one or multiple channels.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Each channel will have a world state (like a database) per smart contract.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The world state database (and likely its contents) will be different for each
+    channel.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Each instance of a smart contract will run simultaneously on all channels in
+    a Fabric network.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Now that you understand the basics of *fabric-samples*, *fabcar*, and *test-network*,
+    we’re ready to launch a Fabcar test network and deploy the Fabcar smart contract.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Deploying a Smart Contract
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: We need a Fabric network to deploy our Fabcar smart contract. For development,
+    it is convenient to use *test-network,* part of *fabric-samples*. While you can
+    execute *test-network*’s *network.sh* to start a default network, we use *startFabric.sh*
+    to start *test-network* and *networkDown.sh* to stop *test-network*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: When *startFabric.sh* is executed, the first thing it does, besides setting
+    the default implementation language, is stop the network. This is to prevent runtime
+    issues relating to resources and their runtime states.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Warning
+  prefs:
+  - PREF_H6
+  type: TYPE_NORMAL
+- en: The test network has no persistence, and each execution brings up a new network.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Understand the startFabric.sh Anatomy
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Before we execute *startFabric.sh*, let’s examine it. The default implementation
+    language is Go. This line from the script sets the default implementation to Go:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'You can choose another supported implementation language, like JavaScript,
+    by supplying a supported argument as shown here:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'After setting the implementation language, run the following command:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: As you can see, all implementations have their *wallet* subdirectory contents
+    removed. We will discuss wallets when we execute the Fabcar client applications.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Finally, the script executes:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: As you see, *startFabric.sh* calls the *network.sh* script three times, supplying
+    various arguments. The first call instructs *network.sh* to shut down the network.
+    It does not matter if the network is not running; no errors are generated. It
+    always runs and is a safety measure to ensure that a new error-free network is
+    launched.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The second execution, or `createChannel` command, brings up the network, creates
+    a channel (network), and sets the world state database to CouchDB. After this
+    command completes, the network is up and running.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The third execution deploys the Fabcar chaincode (smart contract) to the network.
+    The network provides many default *.sh* scripts—for example, the channel name,
+    which is *mychannel*. Once completed, the Fabcar network is up and running, and
+    our Fabcar smart contract is deployed and initialized.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Execute startFabric.sh
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Now that we have looked at the *startFabric.sh* script and understand what it
+    does, let’s execute it and briefly review the output. It’s verbose but informative,
+    so becoming familiar with it will help us better understand what the *network.sh*
+    script is accomplishing for us.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Open a shell and make sure Docker is running. You can check whether Docker
+    is running by executing the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Change to the *fabric-samples/fabcar* directory located where you installed
+    the prerequisites described in [Chapter 4](ch04.xhtml#smart_contract_development)
+    and execute this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: Your console will begin scrolling text output and continue to completion. The
+    script will take a few minutes to complete. Once it’s completed, you can save
+    the text output for use and study. It contains the step-by-step sequence used
+    to bring up the network. We are interested in the last command and the sequence
+    of commands used to deploy the Fabcar smart contract.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Before we look at the smart contract deployment, let’s take a quick look at
+    the first part of the output, because it provides useful information, including
+    the channel name and versions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: We see our channel name is *mychannel*, and the Fabric version is 2.3.0, indicated
+    by `LOCAL_VERSION` and `DOCKER_IMAGE_VERSION`. The credential authority is version
+    1.4.9.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Generate Fabric Certificate Authorities
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Next, we are informed the script is going to generate certificates for CAs,
+    create the network, and create Docker containers for organization 1, organization
+    2, and the orderer credential authorities (as shown in the following output).
+    Credential authorities play an important role in managing identities for each
+    organization and the orderer:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: Then we are informed that the script is going to create the identities for organization
+    1\. This will take several commands to accomplish. The script repeats these steps
+    for organization 2 and the orderer.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Create Org1 Identities
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'We can use this output to capture commands and have a record of their expected
+    result. You can use a simple pattern to make this easy. First, the script employs
+    descriptive and informative text to guide the reader. Second, the script commands
+    are clearly identified by a leading `+` sign. For example, the following informative
+    text tells us the action is to enroll the CA admin, and it is followed by the
+    `+` character and command on the next line. The command to perform this action
+    is `fabric-ca-client`. The command is followed by command output:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: The commands the script executes, including `fabric-ca-client`, are contained
+    in the *bin* subdirectory of *fabric-samples*. This means we can execute these
+    commands by using this output as a model or guide. This pattern repeats for each
+    command and group of commands. The script groups repeatable sequences; for example,
+    we use a common sequence to create org1 identities, create org2 identities, and
+    create orderer identities but supply different arguments.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Invoke the Peer Chaincode
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'We will discuss the smart contract deployment after we look at the last command
+    executed by the script, which is `peer chaincode invoke`*.* We use this last command
+    to initialize the Fabcar smart contract:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: The `peer` command has many subcommands, and one we are interested in is `peer
+    chaincode invoke`. The `invoke` subcommand can invoke smart contract functions,
+    which we will do shortly. The last parameter switch is `-c`. It is followed by
+    an argument that designates the smart contract function to execute and any optional
+    arguments. We will use this command as one method to invoke a smart contract transaction
+    and evaluate a query.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Our primary purpose for this script is to start up our fully functional Fabric
+    network, so we can develop Fabric smart contracts. The secondary purpose is to
+    capture and leverage the script output. Toward this secondary purpose, we already
+    have a command we can use to invoke our smart contract and query it. Next, we
+    can leverage the script output’s smart contract deployment section by leveraging
+    it in maintenance and testing, which we’ll discuss in [Chapter 6](ch06.xhtml#testing_and_maintenance).
+  prefs: []
+  type: TYPE_NORMAL
+- en: When developing smart contracts, we want a fast iteration cycle. When we need
+    to deploy or redeploy smart contracts repeatedly, starting and stopping the network
+    will not work, so we need to customize the script and customize how we execute
+    our deployment to facilitate fast iterations. Hyperledger Fabric v2 comes with
+    external builders and launchers, which allow chaincodes to be deployed and executed
+    independently ([Chapter 9](ch09.xhtml#hyperledger_fabric_vtwo_integration) covers
+    this in more detail). First, we can examine the script output at the point where
+    it deploys the smart contract, in order to capture the steps that show us how
+    to deploy it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To locate the deployment section of the script output, go to the end of the
+    output and scroll up to the beginning of the last command:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'From there, scroll up until you see this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This is the end of the script output’s deployment section. To locate the start
+    of the script output’s deployment section, scroll up until you see this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: This is the beginning of the script output’s deployment section.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In [Chapter 6](ch06.xhtml#testing_and_maintenance), we will look at the commands
+    we need, and use the script output to help us deploy for maintenance and testing.
+    Right now, let’s look at the six-step deployment sequence the script executed:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chaincode is packaged on *peer0.org1*
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Chaincode is installed on *peer0.org1*
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Chaincode is installed on *peer0.org2*
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Chaincode definition is approved on *peer0.org1* on channel *mychannel*
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Chaincode definition is approved on *peer0.org2* on channel *mychannel*
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Chaincode definition is committed on channel *mychannel*
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'These six steps are the required actions we need to perform to deploy our smart
+    contracts so we can invoke them. We do not include the checks or queries the script
+    executed because they are only informative on status. From the six actions, we
+    can derive four groups of actions we need to execute for deployment:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Package
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Install
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Approve
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Commit
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: We need to do the package action only once—in this case, on *peer0.org1*. We
+    can then distribute the package as needed to organizations (*peer0.org2*). The
+    install action must be executed for every peer that endorses. The approve action
+    must be performed by all organizations as stated in policies, and the commit action
+    is executed once but includes all organizations’ endorsing peers in the command.
+    In [Chapter 7](ch07.xhtml#building_supply_chain_dapps_with_hyperl), we provide
+    script files to execute all these commands.
+  prefs: []
+  type: TYPE_NORMAL
+- en: With the successful completion of *startFabric.sh,* the Fabcar test network
+    is up and running. You can generate this output anytime you need an example of
+    a command or need to verify changes you may make.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Our Fabcar smart contract is deployed and initialized. The script executed a
+    command that invoked Fabcar. We can also use the command to invoke Fabcar, which
+    we will see next. But before we leave, we should appreciate the utility of this
+    output. It maps out the commands and command responses for creating from scratch
+    a Fabric network with an orderer; orderer credential authority; and two organizations,
+    each with a peer, a database, and a credential authority. The *network.sh* script
+    responsible for the output is a resource we can put to good use as our needs change.
+    For now, all we need is provided by this script. It has launched our test network,
+    deployed the Fabcar smart contract, and initialized it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We can now invoke the smart contract functions of Fabcar.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Invoking Smart Contract Transactions
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The `peer chaincode invoke` command is the first method we will look at and
+    execute to invoke our Fabcar smart contract functions. The next method we will
+    look at and use incorporates the Hyperledger Fabric SDK for Node.js, which can
+    be used for developing smart contract clients.
+  prefs: []
+  type: TYPE_NORMAL
+- en: By using the Hyperledger Fabric SDK for Node.js, you can develop both command-line
+    Fabric smart contract clients, like Fabcar, and Fabric smart contract clients
+    that incorporate a UI into the design of the Fabric smart contract client application.
+    We discuss a UI version of the command-line Fabcar smart contract client in `[Chapter 6](ch06.xhtml#testing_and_maintenance)`.
+    Let’s now look at and execute the `peer chaincode invoke` method.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Peer Command
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The `peer` command is a Hyperledger Fabric core binary. When you installed
+    the prerequisites, the *peer* binary along with several other binaries were downloaded
+    and placed into the *bin* subdirectory of *fabric-samples*. This binary has five
+    functions, or subcommands, it performs:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The `peer node` command is the subcommand used to function as a Fabric node
+    or Fabric peer:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Examining *docker-compose-test-net.yaml* in the *docker* subdirectory of *test-network,*
+    you see the startup command executed to start the node:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The `peer` subcommand we are interested in is the `chaincode` subcommand. This
+    subcommand also has several subcommands:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: We want to use the `invoke` subcommand. Some other `peer chaincode` subcommands
+    were used in the script that launches the test network and can be found by searching
+    the output text we saved from the launch.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using the `peer` command involves many parameters, so in a practice environment,
+    we use variables to minimize the length of the resulting `peer` command-line text.
+    We will use environment variables so we can execute `peer chaincode invoke` against
+    our Fabcar test network.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'When we executed *startFabric.sh,* we were in the *fabric-samples/fabcar* subdirectory.
+    The script executes a change directory command while saving the current directory,
+    which is *fabric-samples/fabcar.* The script changes to *fabric-samples/test-network.*
+    This makes *fabric-samples/test-network* the current directory for the execution
+    of the script. This is important to us because we are going to reuse the `peer
+    chaincode invoke` command from the script to execute our `invoke command`. For
+    this to work, we need to open a shell and change the directory to *fabric-samples/test-network*.
+    Then execute these export commands to configure your environment to find the *peer*
+    binary in the *bin* subdirectory, the created *test-network* configuration in
+    *fabric-samples/config*, and additional information `peer` needs to find in order
+    to execute correctly:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Once you execute these, your environment is configured to execute `peer`. To
+    test this, execute the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE21]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Your versions may be different, but you should see a result like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE22]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Locate the `peer chaincode invoke` command that initializes the Fabcar smart
+    contract and copy it to your editor, so we can refactor it. Remember, it is at
+    the last command executed in the launch script output and looks like this, except
+    your paths will be different:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE23]'
+  prefs: []
+  type: TYPE_PRE
+- en: We want to modify the following text at the end of this command
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE24]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'into this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE25]'
+  prefs: []
+  type: TYPE_PRE
+- en: Make sure you delete the `--isInit` switch. Since we removed the command to
+    be executed for initialization, it will fail and error, because this switch is
+    informing the peer to perform an initialization.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Once you modify the command text, it should look like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE26]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Now copy the command to your shell and execute it. The output will look like
+    this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE27]'
+  prefs: []
+  type: TYPE_PRE
+- en: We just invoked the Fabcar smart contract. What we invoked was a query, which
+    is a read transaction. When we invoke, we execute either a write or a read transaction.
+    The read transactions are not committed to the ledger; only write transactions
+    are committed, provided they get properly endorsed and validated.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The Fabcar smart contract transaction we invoked was the `queryAllCars` transaction.
+    Looking at *fabcar.js*, this Fabcar transaction is calling `getStateByRange` with
+    the arguments set to an empty string. This will return all data for a specific
+    car key, which we see in the result:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE28]'
+  prefs: []
+  type: TYPE_PRE
+- en: Remember, the `ctx` object is the first argument passed to every smart contract
+    transaction.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'It provides access to the `stub` object, which instantiates a `ChaincodeStub`
+    class (an implementation of `IChaincodeStub`), and the `clientIdentity` object,
+    which instantiates a `ClientIdentity` class (which implements `IClientIdentity`):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE29]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'These two classes, `ChaincodeStub` and `ClientIdentity`, are part of the *fabric-shim*
+    package, a Node.js module. We do not directly use the *fabric-shim* module, because
+    we use the *fabric-contract-api* package, which provides the `Contract` object
+    for our use:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE30]'
+  prefs: []
+  type: TYPE_PRE
+- en: The `Contract` object provides access to both `ChaincodeStub` and `ClientIdentity`
+    via the `Context` object `ctx`, which all smart contract functions receive as
+    their first argument. The `Contract` object also provides functions we can use
+    as interceptors before and after an invoked transaction. We look at these in the
+    next chapter, when we discuss maintenance and testing.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Now let’s use `peer chaincode invoke` to invoke a Fabcar write transaction.
+    We can use the same command we used for the query. All we need to do is change
+    the argument to the `-c` switch. Let’s execute `changeCarOwner`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE31]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'After you change the `-c` switch argument, you should have a command like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE32]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Now execute it and see this for the result:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE33]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This shows the transaction executed successfully. Since we change the owner
+    of `CAR0`, let’s check it with another query, but this time for specific data.
+    Again using the same `peer` command, we just need to change the `-c` switch argument:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE34]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'After executing, you should see this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE35]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'It worked! We changed the owner. Later you will see how to get the history
+    of transactions that are associated with the same key. The key for our write transaction,
+    `changeCarOwner`, is `CAR0`. Remember, the ledger has two parts: the world state
+    and the blockchain ledger (a file-based implementation of an immutable linked
+    list, in simple terms). The world state is the current state of the blockchain
+    for a given key. Our world state is implemented by CouchDB for our Fabcar test
+    network.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We can see our change by using the CouchDB browser interface we discussed earlier
+    in the chapter. Let’s view our change in the world state database. As we have
+    already discussed accessing CouchDB earlier in this chapter, open your browser
+    and log in to CouchDB with the username `**admin**` and password `**adminpw**`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[*http://127.0.0.1:5984/_utils/#login*](http://127.0.0.1:5984/_utils/#login)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Then go to this URL in CouchDB:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[*http://127.0.0.1:5984/_utils/#database/mychannel_fabcar/CAR0*](http://127.0.0.1:5984/_utils/#database/mychannel_fabcar/CAR0)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: You should see that the owner of `CAR0` is `Mark`, as displayed in [Figure 5-4](#carzero_record_in_couchdb).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![CAR0 record in CouchDB](Images/HLF_0504.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 5-4\. `CAR0` record in CouchDB
+  prefs:
+  - PREF_H6
+  type: TYPE_NORMAL
+- en: We’ll use the `peer chaincode invoke` command for more advanced purposes in
+    the next chapter. Now let’s look at the Fabcar client and see how it invokes the
+    Fabcar smart contract.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Fabric SDK for Node.js Command-Line Application
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'In [Chapter 4](ch04.xhtml#smart_contract_development), we examined the Fabcar
+    smart contract in depth. Now we are going to examine the Fabcar smart contract
+    client and use it to invoke the contract. The Fabcar smart contract client, as
+    discussed earlier in this chapter, is a group of four Node.js JavaScript command-line
+    applications: *enrollAdmin.js, invoke.js, query.js,* and *registerUser.js*.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We will execute each one and look at how they work to invoke the Fabcar smart
+    contract. To begin, open a shell and change to the directory *fabric-samples/fabcar/javascript*.
+    The Fabcar client is a Node.js command-line application, so we need to execute
+    the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE36]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This command will install project dependencies into our Fabcar project. When
+    the command completes, you should have a *node_modules* subdirectory. This is
+    where the dependencies listed here are placed:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE37]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'If we look in the *node_modules* subdirectory for installed Fabric modules,
+    we find the Fabric modules listed here:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE38]'
+  prefs: []
+  type: TYPE_PRE
+- en: These modules, which represent the Hyperledger Fabric SDK for Node.js, can be
+    found in the [Fabric GitHub repo](https://github.com/hyperledger/fabric-sdk-node)
+    *[fabric-sdk-node](https://github.com/hyperledger/fabric-sdk-node)*. The *fabric-protos*
+    module implements the Protocol Buffers protocol, which is a binary encoded communication
+    protocol. We don’t have to worry about this module, and we don’t directly use
+    it. The *fabric-common* module contains code used by both *fabric-ca-client* and
+    *fabric-network* modules. The *fabric-ca-client* module is used by the Fabcar
+    client, but is not required for a Fabric smart contract client. You need to import
+    and use *fabric-ca-client* only if your smart contract client needs to interact
+    with Fabric CA to manage the life cycle of user certificates. This includes the
+    ability to enroll, register, renew, and revoke users. If your smart contract client
+    does not perform any of these functions, you do not need *fabric-ca-client*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The *fabric-network* module is the only Fabric module required for a Fabric
+    smart contract client. It connects your client to the network, and provides the
+    ability to invoke transactions including writing to the ledger, and querying the
+    world state and ledger.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Now that our dependencies are installed, we can perform the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Enroll our application administrator.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Register our application user.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Invoke a write transaction.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Query the world state.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: We first need to enroll an application admin to create an admin-level wallet.
+    Then we can register users in an application with an assigned user wallet to secure
+    network access.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Enroll our application administrator
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'To enroll our administrator, we execute the *enrollAdmin.js* application:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE39]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'You should see the following result:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE40]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Now we can execute *registerUser.js* to register our user:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE41]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'You should see the following result:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE42]'
+  prefs: []
+  type: TYPE_PRE
+- en: Great! We can now invoke our smart contract by using the user identity we just
+    registered. But first let’s look at what happened here. We need to understand
+    what’s going on with these two applications to invoke transactions, because we
+    use identities when we invoke our transactions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The identities associate us with an organization as a member and permit us
+    to perform transactions. Let’s start with the *enrollAdmin.js* application because
+    it must be executed first. Open *enrollAdmin.js* in your editor. We are not going
+    to parse every line but rather focus on the important ones. The imports are first:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE43]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We can see the imports from *fabric-ca-client* and *fabric-network*. We import
+    all of *fabric-ca-client* and only *Wallets* from *fabric-network*. This is a
+    Node.js command-line application, so we have a `main` function that executes all
+    the application logic. This will come in handy when we look at the Fabcar UI,
+    which we ported Fabcar to. Now the main logic begins:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE44]'
+  prefs: []
+  type: TYPE_PRE
+- en: First, the filesystem path to the connection profile for organization 1 is assembled
+    and read. This path typically uses the *ccp-template.json* and *ccp-template.yaml*
+    files as templates, passing organization name, peer port, CA port, and CA Privacy
+    Enhanced Mail (PEM) certificates to generate organization connection files. [Chapter 7](ch07.xhtml#building_supply_chain_dapps_with_hyperl)
+    discusses this in more detail. This defines the network configuration to the client.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Once the connection profile is loaded, the certificate authority info and certificate
+    authority TLS certificate are set. Using the CA information and TLS certificate,
+    the CA object is created. We are using self-signed certificates, so we set the
+    `verify` parameter to `false`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'After we have created our CA, we create our wallet:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE45]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'First, we create a path. The code is using the current path, which should be
+    where our *fabric-samples/fabcar/javascript* subdirectory is located. The code
+    appends to the path *wallet*. This is the *wallet* subdirectory in our *fabric-samples/fabcar/javascript*
+    subdirectory. Using the full path as an argument to the `Wallets.newFileSystemWallet`
+    function, we create a wallet object that we will use to store identities. Next,
+    we check whether the *admin* is already enrolled:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE46]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We can enroll only once by design. If the admin is not enrolled, we continue
+    and enroll the admin:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE47]'
+  prefs: []
+  type: TYPE_PRE
+- en: The CA we created is now used to execute the enroll function. We can see it
+    takes the user ID and password for our `admin` as the `enrollmentID` and `enrollmentSecret`.
+    Then we create an `x509Identity` object by using the enrollment object we just
+    created. We are creating an `x509Identity` that contains the credentials—an object
+    containing the certificate and private key, both of which were created and returned
+    by the CA enroll function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Along with the credentials, we add object metadata that identifies the organization
+    this identity belongs to and the type of identity. Here `x509Identity` indicates
+    a certificate containing a public key paired with a private key. With the identity
+    created, we pass it to the wallet we created, which will store it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You should see a file called *admin.id* in the *wallet* subdirectory. If you
+    view it, you can see the data structure we just went over. This is it for the
+    *enrollAdmin.js* application. Its purpose is to enroll the admin. To accomplish
+    this, it requires a CA and a wallet. The CA comes from *fabric-ca-client*, and
+    the wallet comes from *fabric-network*. This sequence is specific to the admin.
+    Now let’s look at *registerUser.js* and see what’s different.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Register our application user
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'The beginning of *registerUser.js* contains the same imports as *enrollAdmin.js*,
+    but in a different order, which does not matter. Like *enrollAdmin.js,* its logic
+    is contained in a `main` function. The `main` logic starts off as in *enrollAdmin.js,*
+    loading the network configuration, creating the certificate authority, and creating
+    a wallet. We can see a pattern:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Load the network configuration.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Create the certificate authority.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Create the wallet.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'What then follows is a check to determine whether the user has an identity
+    in the wallet, which indicates the user is already registered and enrolled:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE48]'
+  prefs: []
+  type: TYPE_PRE
+- en: We return if the user is already in the wallet. This will happen if you execute
+    *startFabric.sh* and the *wallet* subdirectory contains these identities. At this
+    point, these identities do not exist in the Fabcar test network. The Fabcar application
+    is not designed for multiple enrollments by a user. When this happens, you need
+    to delete the contents of the *wallet* subdirectory and try the client again.
+    The *wallet* subdirectory is then checked for the `admin` identity, which should
+    exist because we always execute *enrollAdmin.js* first. If the `admin` is not
+    found*,* we return. At this point in the code, *registerUser.js* and *enrollAdmin.js*
+    differ. They differ because building the identity for the user differs from building
+    the admin identity.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To build the user identity, we begin by using *wallet* to get a `provider`
+    of the `x509` type and use it to create a `User` object from the `admin` identity.
+    We will use this identity to authenticate to the CA when we register our application
+    user:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE49]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Next we register our application user with the CA, providing our organization,
+    our ID, and our role. We supply the `admin` user we created with the `x509 provider`.
+    The CA registers our application user and returns an enrollment secret:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE50]'
+  prefs: []
+  type: TYPE_PRE
+- en: From this point on, the logic is the same as in *enrollAdmin.js,,* except *enrollAdmin.js*
+    used the admin password for the enrollment secret, and *registerUser.js* will
+    use the secret we got back from the CA when we registered using the admin user
+    to authenticate to the certificate authority. Therefore, we need the admin identity
+    because it is used to register users. The application user secret is like a password,
+    except the user will not know it and does not care to know. They have an identity,
+    which in this implementation is type `x509`, and it is stored in the wallet, which
+    is a filesystem-based store. We are now ready to execute *invoke.js* and then
+    *query.js* and compare the two.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Invoke a write transaction
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'The *invoke.js* application has a main function, and all logic is contained
+    within the main function. The application imports from only *fabric-network*:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE51]'
+  prefs: []
+  type: TYPE_PRE
+- en: This means it requires no interaction with the CA to invoke transactions. Like
+    *enrollAdmin.js* and *registerUser.js,* it too makes use of *Wallets* from *fabric-network*.
+    This makes sense because we need an identity to submit requests to the network,
+    and identities for a client are stored in a *wallet*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H6
+  type: TYPE_NORMAL
+- en: A user can have several identities, each with a unique name and purpose, like
+    a driver’s license, school ID, passport, and so forth.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The `Gateway` from *fabric-network* is our means to connect to the network,
+    as we will see shortly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The logic begins with familiar-looking code we saw in *enrollAdmin.js* and
+    *registerUser.js* to load the network configuration, which contains the information
+    for connecting to the network, creating the wallet, and checking for an identity.
+    We are seeing boilerplate code here that cross-cuts applications and is something
+    we would want to pull out and place in common code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE52]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We need the user identity to exist so the gateway can find it, if it does not
+    we return. To connect to the network, we use the `Gateway` we imported from *fabric-network*
+    to create a `gateway` object and use it to connect. The arguments we pass to the
+    `connect` function are the connection information, the wallet, the name of the
+    identity to use, and some discovery options used to locate peers:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE53]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'After connecting, we use the gateway to get the network, which is our channel
+    identified by our channel name:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE54]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'With the `network` object, we get a connection to our Fabcar smart contract:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE55]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Finally, we get to invoke our smart contract. We are performing a transaction
+    that will change the ledger, so this is a write transaction, and we expect it
+    to be committed. The `contract` API function we want to use is `submitTransaction`.
+    This will call our `createCar` smart contract function with these arguments:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE56]'
+  prefs: []
+  type: TYPE_PRE
+- en: As you can see, we invoke our smart contract indirectly through the `contract`
+    API. This design pattern is powerful but also risky if mitigations are not implemented
+    to prevent unwanted side effects from unexpected character or binary data. The
+    best industry practices should be implemented to validate and protect data integrity.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'At the end, the gateway is disconnected, and the application exits:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE57]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now let’s execute *invoke.js:*
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE58]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'You should see the following result:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE59]'
+  prefs: []
+  type: TYPE_PRE
+- en: Did you notice the time to process and return? There is a large difference in
+    the processing time to commit versus query, as we will see next when we execute
+    *query.js* and return the results of our committed transaction, which created
+    a new car.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Query the world state
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Let’s execute *query.js* and compare its logic to *invoke.js* to see any differences
+    and commonalities between them:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE60]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'You should see the following result:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE61]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Can you find the car we created, `CAR12`? It’s the third one right after `CAR1`.
+    Great, our `submitTransaction` was committed. If we looked in CouchDB, we would
+    see this data in our world state database: *mychannel_fabcar*.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let’s look at the code. The code is the same except for the contract API function
+    called:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE62]'
+  prefs: []
+  type: TYPE_PRE
+- en: For the query, we use `evaluateTransaction` because a query transaction is not
+    committed to the ledger. A query does not follow the same processing path as a
+    write transaction, which will use `submitTransaction`, so the transaction is processed
+    for committing to the ledger.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Did you notice the difference in processing speed compared to *invoke.js*? Queries
+    are much faster and can get cached, making them even faster because they do not
+    access the database. Writes are much longer and may never be committed. As a Fabric
+    smart contract developer, you will need to design for this long latency and for
+    no guarantee of being committed. In [Chapter 6](ch06.xhtml#testing_and_maintenance),
+    we will look at how events can help with these operating constraints.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We have executed the four applications that make up the Fabcar smart contract
+    client. We saw the differences and common code they use. Each performs one application
+    function, and has dependencies that determine the order they are executed. You
+    learned we need to first enroll an application administrator, and then use the
+    administrator to register and enroll application users. Once we have a user identity,
+    we can submit transactions to commit data to the ledger and query the world state.
+    These applications serve as good examples for solutions that are best implemented
+    with a command-line application, like batch jobs or serverless commands.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this chapter, you learned how to invoke a Fabric smart contract. We began
+    with a review of the Hyperledger *fabric-samples*, Fabcar smart contract, and
+    Fabric test network. This provided you with the background needed to understand
+    the resources used for this chapter and the next.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We then launched our Fabric test network and discussed the launch script and
+    its output to gain an understanding of what it takes to stand up a Fabric network
+    for developing Fabric smart contracts. Besides launching the test network, the
+    script also deployed the Fabcar smart contract. We went through the steps used
+    by the script to deploy a smart contract, which will help you to understand and
+    perform the deployment task for your own smart contracts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Next, we executed each of the four Fabcar client’s Node.js command-line applications
+    that together make up the Fabcar smart contract client. At the same time, we examined
+    each Fabcar application’s code, noting the common code and differences in the
+    applications, and their use of the Fabric SDK for Node.js. The Fabcar applications
+    use the SDK to call the Fabric APIs for interacting with Fabric smart contracts,
+    credential authorities, wallets, and invoking smart contracts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the next chapter, we will take these four applications and refactor them
+    into Node.js modules we can import into a Node.js and Express.js web application
+    called Fabcar UI. This application mirrors the functionality of the four command-line
+    Fabcar applications, but with a UI. You’ll continue to learn more about the Fabric
+    SDK for Node.js and the API available to Fabric smart contract developers.
+  prefs: []
+  type: TYPE_NORMAL

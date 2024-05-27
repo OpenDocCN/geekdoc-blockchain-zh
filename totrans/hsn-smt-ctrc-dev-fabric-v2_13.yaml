@@ -1,0 +1,2214 @@
+- en: Chapter 8\. Deploying Hyperledger Fabric on the Cloud
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In [Chapter 7](ch07.xhtml#building_supply_chain_dapps_with_hyperl), you built
+    an end-to-end blockchain supply chain with Hyperledger Fabric by applying all
+    the concepts from [Part III](part03.xhtml#developing_smart_contracts_with_hyperle),
+    where you learned how to build, deploy, test, invoke, and maintain Fabric smart
+    contracts. This chapter builds on top of what you learned in Parts III and IV;
+    you’ll put all of your Fabric skills into practice by creating and deploying Fabric
+    applications on the Amazon, IBM, and Oracle cloud platforms. As such, this chapter
+    covers highly practical steps for those interested in moving their Fabric application
+    from the pilot step to production.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This chapter will help you achieve the following practical goals:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Setting up Amazon Managed Blockchain for Fabric applications
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Creating and deploying a Fabric application on AWS
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Reviewing the IBM Cloud platform for building blockchain applications
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Creating and joining a Fabric network on the IBM Cloud platform
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Reviewing Oracle Blockchain Platform and its offerings
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Building and running a Fabric application on Oracle Blockchain Platform
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: We start by reviewing features of AWS, followed by IBM and Oracle cloud platforms,
+    which are essential for building and deploying Hyperledger Fabric. Each platform
+    has its own requirements, considerations, and features necessary for successfully
+    deploying and managing Fabric applications. We follow a concise yet holistic approach,
+    covering practical steps from the ground up—from setting up a network through
+    installing and instantiating the chaincode.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Deploying Hyperledger Fabric on Amazon Blockchain Services
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Amazon offers a variety of cloud services for deploying and managing both centralized
+    and decentralized applications. For the sake of brevity, this section focuses
+    on only the Amazon Managed Blockchain service and how to deploy and manage Hyperledger
+    Fabric on it. Amazon Web Services (AWS) has an active community with practitioners
+    ranging from system architects to developers and engineers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'AWS provides the following three ways to create blockchain services:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Amazon Quantum Ledger Database (QLDB)
+  prefs: []
+  type: TYPE_NORMAL
+- en: This fully managed NoSQL (Semi-SQL and Semi-NoSQL) immutable and transparent
+    ledger database is powered by blockchain. The append-only ledger data provides
+    a cryptographically verifiable transaction history with an audit log owned by
+    a central trusted authority. AWS QLDB automatically scales when applications need
+    more capacity for read and write limits.
+  prefs: []
+  type: TYPE_NORMAL
+- en: AWS Blockchain Templates
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'These templates provide you with a fast and easy way to create and deploy blockchain
+    projects on the network, and test applications on the AWS platform. Building users’
+    preset blockchain frameworks through AWS CloudFormation stacks helps developers
+    focus on building blockchain applications and spend less time setting up a blockchain
+    network. AWS currently provides two types of blockchain templates: Ethereum and
+    Hyperledger Fabric.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: AWS CloudFormation loads AWS Blockchain Templates and deploys the blockchain
+    framework as containers on an Amazon Elastic Container Service (ECS) cluster or
+    directly on an Amazon Elastic Compute Cloud (EC2) instance running Docker. The
+    network runs inside your own Amazon virtual private cloud (VPC). A VPC is a virtual
+    datacenter in the cloud that provides a completely separate environment to host
+    your machine in a custom way. A subnet is a logical subdivision of an IP network;
+    a network inside a VPC subnet makes networks more efficient. With VPC subnets
+    and network ACLs in Amazon, you can control how clients can access the AWS blockchain
+    network. You can define a permission policy using AWS Identity and Access Management
+    (IAM) to restrict which resources an Amazon ECS cluster or Amazon EC2 instance
+    can access.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Amazon Managed Blockchain
+  prefs: []
+  type: TYPE_NORMAL
+- en: This fully managed service provides a production-level blockchain network. It
+    can easily be scaled to support thousands of applications running millions of
+    transactions. You can use AWS Management Console, the AWS Command Line Interface
+    (CLI), or the Managed Blockchain software development kit (SDK) to set up a managed
+    blockchain application quickly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Managed Blockchain manages your certificates; the participants can transact
+    with peer nodes without having to know or trust each other.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This section covers how to use Amazon Managed Blockchain to create and work
+    with a Hyperledger Fabric blockchain network.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Set Up Amazon Managed Blockchain with Prerequisites
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: We can set up Amazon Managed Blockchain in multiple ways, as we discussed earlier.
+    While setting up a Managed Blockchain application, we will use AWS Management
+    Console to create a blockchain network and a member. Then, we’ll create a VPC
+    and security policy, and assign the policy to IAM roles. We will also create and
+    configure an EC2 instance to run AWS CLI to interact with Amazon Managed Blockchain.
+    The EC2 instance will be the primary node that runs the blockchain network. With
+    AWS Management Console, we will create a peer node to join the network. Finally,
+    we will create a channel in the network and then install and run chaincode.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To deploy Fabric on AWS Managed Blockchain, you need to have already created
+    the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: An AWS account.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: VPC and subnet—name it `**HF-VPC**`.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The AWS EC2 security group—name it `**HF-SG**`. The Hyperledger Fabric client
+    Amazon EC2 instance must have an inbound rule that allows SSH traffic (port 22)
+    from trusted SSH clients.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: An EC2 instance (as a bastion host); we use Amazon Linux 2 AMI (HVM) as an Amazon
+    Machine Image (AMI), a `t2.micro` AWS free usage instance type for this setup.
+    Name the EC2 instance `**HF-Node**` by entering the tag. Associate `HF-SG` with
+    the `HF-Node` EC2 instance.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Elastic IP addresses allocated to the `HF-Node` EC2 instance.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'AWS IAM policy with the following policy statement—name it `**HyperledgerFabricClientAccess**`,
+    replace `*youraccountId*` with your actual AWS account ID, and replace `*us-east-1*`
+    with the appropriate Region. Then attach to an IAM role for an `HF-Node` EC2 instance:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: An AWS IAM role called `**ServiceRoleForHyperledgerFabricClient**`. Select the
+    previously created policy, *ServiceRoleForHyperledgerFabricClient*, and attach
+    this role with the `HF-Node` EC2 instance.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: We now have completed all of the prerequisites for setting up the Hyperledger
+    Fabric network using the AWS Managed Blockchain console. We will start to set
+    up a blockchain network in the next section.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Set Up the Hyperledger Fabric Network
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'In this section, we will start to set up our HF network and run a Fabric application
+    on it. Currently, AWS Managed Blockchain supports only version 1.4 of Hyperledger
+    Fabric. Follow these steps:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Open the Managed Blockchain console and click “Create a network” and then enter
+    a network name. You can keep most of the default settings.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: On the Create Member page, create a member by entering `**member1**` as a member
+    name.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Under Hyperledger Fabric Certificate Authority (CA) configuration, specify an
+    Admin username and password to be used by the administrator on the Hyperledger
+    Fabric CA.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Create the network and members.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Creating your first network will take several minutes. Once the network is created,
+    you will see its summary. AWS Managed Blockchain creates a network and assigns
+    a network ID and a member ID to our `member1`. Write down these two important
+    pieces of information, as we will use them in a later setup step.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: We need to associate `HF-VPC`, which we created earlier, with the first network
+    by creating a VPC endpoint. On the first network summary screen, click “Create
+    VPC endpoint” and then select `HF-VPC` as the VPC. Select the `HF-SG EC2` security
+    group to create the VPC endpoint.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Set Up the Hyperledger Fabric Client
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Now we will install our Fabric client and join a peer node. But first, we need
+    to set up all necessary packages and samples in the `HF-Node` EC2 client node
+    so you can run a Managed Blockchain command to build our Fabric network and chaincode.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'You’ll start by using `ssh` to access the `HF-Node` EC2 instance. You can use
+    this command to connect to your instance, or you can use another SSH client tool
+    to log in:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: Once you access your EC2 instance, check the AWS version by entering `**AWS
+    –version**`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This EC2 instance must have version 1.16.149 or later of the AWS CLI installed.
+    Earlier versions of the AWS CLI do not have the Managed Blockchain command. We
+    assume you have installed Go, Docker, Docker Compose, and the other utilities
+    that are prerequisites for installing and using Hyperledger tools (refer to [Chapter 4](ch04.xhtml#smart_contract_development)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s set up the Hyperledger Fabric CA client next. In this step, you will verify
+    that you can connect to the Hyperledger Fabric CA by using the VPC endpoint you
+    configured previously. You’ll then install the Hyperledger Fabric CA client, which
+    issues certificates to administrators and network peers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To verify connectivity to the Hyperledger Fabric CA, you need the `CAEndpoint`.
+    Run the following AWS `managedblockchain get-member` command by passing the `network-id`
+    and `member-id`. You can get these two IDs from the AWS Managed Blockchain console:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Use cURL or Telnet to verify that the `CAEndpoint` resolves. Replace the `CAEndpoint`
+    with the `CAEndpoint` returned by the `get-member` command:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The command should return output similar to the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Alternatively, you can connect to the Fabric CA by using Telnet:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The command should return output similar to the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Now that you have verified that you can connect to the Hyperledger Fabric CA,
+    run the following commands to configure the CA client:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: Clone the Samples Repository
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'We will use *fabric-samples* as an example HF application in AWS Managed Blockchain.
+    Let’s clone the Git code in the EC2 instance by running the following command:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: Enroll an administrative user
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Because only admin identities can install, instantiate, and query chaincode
+    in Fabric, we need to register and issue certificate files for an administrative
+    user. We first need to create the certificate file by running the following command
+    to copy the *managedblockchain-tls-chain.pem* file to the */home/ec2-user* directory.
+    Replace `*us-east-1*` with the AWS Region you are using:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Run the following command to test that you correctly copied the contents to
+    the file:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The command should return the contents of the certificate in a human-readable
+    format. Once the certificate file is created, we need to enroll the member administrator.
+    Run the `fabric-ca-client enroll` command to enroll the member administrator by
+    providing the CA endpoint, administrator profile, and certificate file:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'In Fabric, the MSP identifies which root CAs and intermediate CAs are permitted
+    to define the members of a trust domain. In our setup, we will store certificates
+    for the administrator’s MSP in */home/ec2-user/admin-msp*. Let’s copy certificates
+    for the MSP by running this command:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: Create a peer node in your membership
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Fabric peer nodes perform the validation and updates to the ledger data. They
+    keep a local copy of the shared ledger. A typical Fabric network will have more
+    than one peer node in the network. In our setup, we will create a peer node in
+    the HF network.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To create a peer node using AWS Management Console, open the Managed Blockchain
+    console at [*https://console.aws.amazon.com/managedblockchain/*](https://console.aws.amazon.com/managedblockchain/).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Choose Networks, select the network from the list, and then choose View Details.
+    Next, select a Member from the list and click “Create peer node.” Choose configuration
+    parameters for your peer node. We can leave all default settings in this setup.
+    Then choose “Create peer node.” Once a peer node is created, you can get all peer
+    node information from the member page by clicking the peer node ID. We will use
+    a peer endpoint in our later setup.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Run the Hyperledger Fabric Application
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: After bringing up peer nodes in the previous step, in this section we will finally
+    start to configure and run the Hyperledger Fabric application. Let’s first start
+    the Hyperledger Fabric CLI.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Configure and run Docker Compose to start the Hyperledger Fabric CLI
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Create a Docker Compose configuration file *docker-compose-cli.yaml* in the
+    */home/ec2-user* directory:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'You will configure this file to run the Hyperledger Fabric CLI. Let’s open
+    *docker-compose-cli.yaml*. Copy the following contents into the file and replace
+    the `MyMemberID` and `*MyPeerNodeEndpoint*` values. You can find the member ID
+    and peer node ID from AWS Managed Blockchain console’s Member page:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Run `docker-compose` to start the Hyperledger Fabric CLI:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: Once Hyperledger Fabric CLI Docker Compose is up, you can start creating the
+    Hyperledger Fabric channel as usual.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Create configtx for the Hyperledger Fabric channel creation
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The *configtx.yaml* file contains details of the channel configuration. For
+    more information, see [Chapter 4](ch04.xhtml#smart_contract_development).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Create a *configtx.yaml* file under the */home/ec2-user* directory by using
+    vi.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Replace `*MemberID*` with your own member ID.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The `MSPDir` is set to the same directory location, */opt/home/admin-msp*,
+    that you established using the `CORE_PEER_MSPCONFIGPATH` environment variable
+    in the Docker container for the Hyperledger Fabric CLI in *docker-compose-cli.yaml*:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'After the configuration is completed, run this Docker command to generate the
+    channel *configtx*:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: Set environment variables for the orderer
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Set the `$ORDERER` environment variable for convenience by editing *.bash_profile*.
+    Replace the `ORDERER` value with your own ordering service endpoint. You can find
+    the endpoint on the Managed Blockchain console.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'After updating *.bash_profile*, apply the changes by running the `source` command:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'In the next step, we will start creating the channel. Run the following command
+    to read a genesis block from *channel.tx* that will create the channel:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'After the channel is created, join the peer node to the channel by running
+    this Docker command:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'With the successful creation of *mychannel*, we can install the sample chaincode
+    in our network. Run the following command to install the example chaincode on
+    the peer node:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE21]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Now we need to instantiate the chaincode::'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE22]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'It may take a minute to get a result; you can use the following command to
+    verify the instantiation result:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE23]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'At this stage, we can interact with chaincode in the HF network. Let’s start
+    querying the chaincode. Run this command to query a value:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE24]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Since we initialized variable `a` and have set its value to `100`, the command
+    should return a value of 100\. You should see a result similar to this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE25]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'In the previous command, we instantiated and queried a value of 100\. Use the
+    `invoke` command to subtract 10 from that initial value:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE26]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Query again using the following command:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE27]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'It should return the new value 90, as shown in the following output:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE28]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[This](https://www.youtube.com/watch?v=x-AjS-WuF2Q) [video](https://www.youtube.com/watch?v=x-AjS-WuF2Q)
+    “Build a Blockchain Track-and-Trace Application” by Carl Youngblood provides a
+    demo of setting up a Fabric network in AWS by using the Blockchain service offering.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using IBM Cloud for Blockchain Applications
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: As one of the major contributors to the Hyperledger Fabric project, IBM offers
+    a complete and intuitive platform, IBM Blockchain Platform, for building a Fabric
+    network and deploying Fabric applications. IBM Cloud allows users to fully manage
+    their deployments, certificates, and private keys. It provides a simplified UI
+    that allows developers to easily deploy Fabric components into a Kubernetes/Red
+    Hat OpenShift cluster.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Understand the Platform Features
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'In a nutshell, IBM Blockchain Platform features can be divided into three areas:
+    development, operation, and scalability.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Development
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'While developing Fabric applications, IBM offers a set of developer tools that
+    simplifies the job of development and deployment. In particular, you can do the
+    following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Use Ansible Playbooks or Red Hat Marketplace to deploy networks faster
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Go from proof of concept to production in a single environment by increasing
+    Kubernetes resources
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Leverage IBM Blockchain Platform developer tools to easily code
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Operation
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'While running a Fabric application on IBM Cloud, you can take advantage of
+    these great features:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Ability to deploy peers to multiple channels on multiple clouds, or to permit
+    other members to join your consortium.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The Unified Codebase feature allows you to run your components on any environment
+    backed by IBM Cloud and third-party, public clouds.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The Dynamic Signature Collection feature facilitates collaborative governance
+    over channel configurations.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Removal of Docker-in-Docker for chaincodes makes chaincode pods run more securely,
+    without peers requesting privileged access.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Ability to easily upgrade nodes running on older Fabric versions to the latest
+    version of Fabric. Upon upgrade, the capabilities of your channels and network
+    will also be increased accordingly.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Integration of Logging and Monitoring tools leveraging IBM Cloud services like
+    IBM Log Analysis; IBM Cloud Monitoring is helpful for managing the blockchain
+    network.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Scalability
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'As a prominent performance factor, scalability plays a vital role in the growth
+    of Fabric applications. IBM Cloud gives you the following capabilities for scalability:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Flexibility on the amount of compute power being utilized in your network by
+    setting the amount of CPU, memory, and storage you wish to provision in your Kubernetes
+    cluster
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Ability to adjust the amount of resources being utilized in your network by
+    easily scaling up and down the resources in your Kubernetes cluster
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Ability to replicate your Kubernetes deployment among multiple regions or zones
+    to ensure high availability of your components as well as disaster recovery
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Further, using the IBM Blockchain Platform console, you can easily create and
+    manage blockchain applications. Specifically, once a blockchain service instance
+    is provisioned on IBM Cloud, you can link it to your Kubernetes cluster, after
+    which you can create and manage your blockchain components like CA, peer, and
+    ordering service images through the console. However, before using the console,
+    you should know that you will be responsible for the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Monitoring the health, security, and logging of Kubernetes clusters.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Managing and securing your certificates and private keys. IBM does not save
+    your certificates in the Kubernetes cluster.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: For an additional list of considerations or requirements for using the IBM Blockchain
+    Platform, see the [IBM Cloud](https://cloud.ibm.com/docs/blockchain-multicloud?topic=blockchain-hyperledger-fabric)
+    documentation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Create an IBM Cloud Account
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Before proceeding with our discussion on creating and managing a Fabric network
+    on IBM Cloud, you need to create or have an IBM Cloud account. For new user registration,
+    visit the IBM Cloud site and follow the instructions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Once you have an IBM Cloud account, you can add IBM Blockchain Platform from
+    either the IBM Cloud Catalog or the Red Hat Marketplace. See the IBM documentation
+    for more details. Note that if you want to use a hardware security module (HSM)
+    to generate and save the private key for your peer and orderer nodes, you should
+    configure the HSM prior to deploying your platform. For more details on HSM implementation
+    on IBM Cloud and other considerations, visit the IBM documentation page.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H6
+  type: TYPE_NORMAL
+- en: The Storage Manage permissions are required for all users who link the service
+    to the Kubernetes cluster. Just go to the dashboard, choose Manage ® Access (IAM),
+    select Users, and click the user who will connect the service to the Kubernetes
+    cluster. Click the Classic infrastructure tab, expand the Services part, and choose
+    Storage Manage. Click Apply to give the permission to the user.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Decide the Structure of the Blockchain Network
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: As you know, the various parties of a business have to agree to be part of a
+    blockchain network. The type of participants and transactions of the blockchain
+    network plays a crucial role in deciding its structure. As a first step, you need
+    to decide the number of blockchain participants, number of organizations, number
+    of peers in each organization, certificate authorities, and so on as per the business
+    requirements. Once the blockchain network components are finalized, you can proceed
+    further to set up the network.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'As an example, let’s say our Fabric network includes the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Two CAs
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Two MSPs
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: One peer
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: One orderer
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: One channel that includes one peer organization and one orderer organization
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: This sample network structure is good for learning purposes, but we would need
+    to add more peers and organizations for it to look like an actual blockchain network.
+    The following sections will walk you through step-by-step instructions for creating
+    the sample Fabric network on IBM Cloud, and then you’ll add Fabric components
+    like peer, orderer, and channel to it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Create and Join the Fabric Network
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The blockchain service on IBM Cloud that allows you to set up a Fabric network
+    is called IBM Blockchain Platform and is considered a blockchain-as-a-service
+    system.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Start by logging in to IBM Cloud. This will take you to the IBM Cloud dashboard,
+    which lists resources (applications, storage services, clusters, etc.) created
+    (if any) for your account. The list of all available services on IBM Cloud can
+    be found on the Catalog tab.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To create a new service instance, click the Catalog tab and search for `**Blockchain**`.
+    Then, click the service tile IBM Blockchain Platform. This will redirect you to
+    the blockchain service instance creation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: First, select a location. The location specifies the region in the various geographical
+    areas like Asia-Pacific, North America, Europe, and so on. Then, select the pricing
+    plan. Next, provide a service name. This can be any name you choose. After this,
+    select the resource group. A resource group is a way to organize resources in
+    your cloud account. The `default` resource group will be created by default in
+    your cloud account. If you want to create a new resource group, choose Manage
+    ® Account ® Account resources ® Resource groups ® Create.
+  prefs: []
+  type: TYPE_NORMAL
+- en: After providing all the required values, click Create to create an instance
+    of the blockchain service. This service instance acts as a placeholder for your
+    Fabric network; the network has not been created yet. The service creation will
+    take you to the welcome page to set up your network step by step. The welcome
+    page shows you the required steps to manage your blockchain service. As you know,
+    Hyperledger Fabric uses containers to build the network, so you can use either
+    IBM Cloud Kubernetes cluster or Red Hat OpenShift on IBM Cloud to deploy blockchain
+    network components. The next step is to create a new cluster and link the existing
+    cluster to the setup network.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Make a note that if a cluster exists in your Cloud account (i.e., you have created
+    a cluster already), skip this step. You do not need to create a new cluster again.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you create a new cluster on IBM Cloud through the Manage Service page, it
+    lists the cluster requirements, so first refer to those and decide the appropriate
+    size (number of worker nodes, vCPUs, RAM size, single zone or multizone).
+  prefs: []
+  type: TYPE_NORMAL
+- en: While creating a Kubernetes/Red Hat OpenShift cluster, you will be asked to
+    provide the cluster name, location, size, etc. Each has its own pricing plan.
+    Once you create the cluster, setting it up will take some time. Wait until the
+    cluster is completely deployed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Next is to link your cluster with this blockchain service. Click that option,
+    and it provides you a list of all available clusters in your account. Choose the
+    cluster that you want to use for your blockchain network. It will associate the
+    cluster to your blockchain service. Now you are ready to launch the service console.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can launch the IBM Blockchain Platform console by successfully linking your
+    blockchain service with the cluster. It will take you to the IBM Blockchain Platform
+    page, where you will start creating your actual network components.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Build the Blockchain Network
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The concept of CA, MSP, peer, orderer, organization, channel, and more have
+    been explained in [Chapter 3](ch03.xhtml#hyperledger_fabric_architecture_and_com);
+    refer to that chapter for more details. This section focuses on setting up the
+    Fabric network on IBM Cloud, using the IBM Blockchain Platform.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We will detail the steps to set up the sample network—an ordering service, a
+    single peer organization, and a peer on a single channel—as explained in [“Decide
+    the Structure of the Blockchain Network”](#decide_the_structure_of_the_blockchain).
+  prefs: []
+  type: TYPE_NORMAL
+- en: The IBM Blockchain Platform console provides an interface to work with nodes
+    (peers, CAs, ordering service), channels, smart contracts, wallet, organizations,
+    and users. Let’s get started.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Add a certificate authority
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: To deploy peers, you first need to create their organizations. This requires
+    an MSP definition of your organization, which in turn requires an organization
+    admin user identity. A CA is the one that creates identities for all network participants.
+    Therefore, as a first step to setting up the blockchain network, you need to create
+    the CA for the organization.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'From the IBM Blockchain Platform console, choose Nodes ® Add Certificate Authority.
+    To create a new CA, provide the following values:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: CA Display name (for example, `Org1CA`)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: CA Administrator Enroll ID
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: CA Administrator Enroll Secret
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The advanced deployment options, like creating a high-available CA, multizone
+    CA, and HSM are also available. Refer to IBM documentation for more details.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: You can use your own CA as well. If you have your own CA, you need to import
+    it by using a JSON file. The CA has to fulfill certain specifications, such as
+    the format of the issued certificates. You can refer to the IBM docs for specifications.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Associate the admin identity
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: After deploying the CA, you need to associate an admin identity. This identity
+    will allow you to work with the CA and will be used to create the organization’s
+    MSP, register users, and add peers in the network.
+  prefs: []
+  type: TYPE_NORMAL
+- en: From the IBM Blockchain Platform console, choose Nodes ® [CA node] ® Associate
+    Identity.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Provide the CA Administrator Enroll ID and the Enroll Secret that you provided
+    in the previous step. On clicking “Associate identity,” the CA admin identity
+    becomes associated with the CA node and is added into the wallet. You can check
+    the wallet by going to the IBM Blockchain Platform console and selecting Wallet.
+    This admin identity will be used to register new users and generate certificates.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Register users
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'As previously noted, every node requires a certificate and a private key to
+    participate in the blockchain network. So using the CA admin identity of the organization,
+    you need to register the two following identities:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: An identity that will work as an admin of the organization
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The identity of the peer itself, which will be used for signing the peer’s action
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Make a note that if an organization has more than one peer, one admin identity
+    is sufficient, but you need to create a peer identity for each peer.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To proceed with identity registration, go to IBM Blockchain Platform console
+    and choose Nodes ® [CA node] ® Register User. If this is the first time you are
+    registering the admin for your organization, use the following steps:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H6
+  type: TYPE_NORMAL
+- en: Except for step 1, these steps are for more advanced users. Refer to the IBM
+    documentation for further details.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Provide the Enroll ID and Enroll Secret for the organization administrator and
+    select Admin for the Type.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: For the affiliation needed for role-based access control, keep the default selection.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: For the optional Maximum Enrollments field, keep the default value, which is
+    blank.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Create key-value pairs if you wish to set up attribute-based access control.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Now that the admin user is registered, we can proceed with registering the peer
+    identity. To do that, repeat step 1 by selecting Peer for Type instead of Admin.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Check the wallet to view these identities. You might think that these identities
+    are not available in the wallet yet. That’s correct!
+  prefs: []
+  type: TYPE_NORMAL
+- en: You have registered the identities but not yet enrolled them. Once an identity
+    gets enrolled, its certificates will be generated, and the identity can be viewed
+    in the wallet. In the upcoming sections, you will learn about enrolling these
+    identities.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Create the peer organization’s MSP definition
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Now we will create the MSP, a formal definition of the peer’s organization.
+    To do that, go to IBM Blockchain Platform console and choose Organizations ® Create
+    MSP definition. Provide the required values as listed here:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: MSP name (for example, `Org1MSP`) and its ID
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The Root CA details, like the root CA that was used to create nodes and identities
+    for the organization
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Admin Certificate, like the ID and secret of the user that you registered with
+    the admin identity in the previous section
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The certificates of the admin identity are generated in this step, while this
+    identity gets exported to the wallet. Likewise, you can manage the certificates
+    by exporting the admin certificates and saving them into your filesystem.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For the next step, we create an MSP definition, with which you can add peers
+    in the organization.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Create the peer node
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Peers are the nodes that host smart contracts and maintain the ledger. To create
+    a peer node, go to IBM Blockchain Platform console and choose Nodes ® Add Peer.
+    Creating a peer node requires the following details:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A name for the peer node (for example, `peer1`)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: CA details—use the CA that you used to create the organization’s MSP
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The user ID and secret, which was registered as a Peer type
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Select the Organization MSP
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Associate the peer admin identity. This will act as the administrator of your
+    peer. You can make the organization admin the same as the peer admin; however,
+    you can register and enroll a different identity with the organization CA to make
+    that the admin of your peer.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: With all this information, you’ve created the peer node. Advanced deployment
+    options are also available—for example, if you want to use your own CA, state
+    database, or HSM, refer to the IBM documentation for more information.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note
+  prefs:
+  - PREF_H6
+  type: TYPE_NORMAL
+- en: To add more peers to the same organization, you need to register a new user
+    with the Peer identity and repeat the steps as mentioned.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Create the ordering service
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The ordering service is a node or a cluster of nodes. You can create one node
+    ordering service (sufficient for testing purposes) or a crash fault-tolerant ordering
+    service using multiple nodes. Refer to the IBM documentation for more information.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To create an ordering service node, we need to follow the same steps as for
+    the peer node. As before, you must create a CA, create new identities using that
+    CA, and create an organization definition; similarly, you need to perform the
+    same steps given next before creating an ordering service:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Create a CA for the ordering service organization (say, `OrdererCA`). Follow
+    the same steps as in [“Add a certificate authority”](#add_a_certificate_authority).
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Associate the CA admin identity by following the same steps as in [“Associate
+    the admin identity”](#associate_the_admin_identity).
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Register new identities. You need to register two identities, one admin identity
+    as type Admin and another node identity as type Orderer. Repeat the same steps
+    as given in [“Register users”](#register_users).
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Create an MSP for the ordering service organization (for example, `OrdererMSP`)
+    in the same way as in [“Create the peer organization’s MSP definition”](#create_the_peer_organizationapostrophes).
+    Make sure in this step that you use the identities related to the ordering service
+    appropriately.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Create the ordering service node from the IBM Blockchain Platform console by
+    choosing Nodes ® Add Ordering Service.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: While creating an ordering service node, you need to enter the ordering service
+    name, number of ordering nodes, and details of the ordering service CA, the user
+    with the orderer identity, and MSP. At the end, associate the identity from your
+    wallet, which will act as an admin of your ordering service. You can choose the
+    Ordering Service MSP admin for this or create a new identity.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Add the organization as a consortium member
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Now that you have created peer(s), its organizations, and the ordering service,
+    the ordering service should know about the organizations before creating a channel
+    in the blockchain network. Hence you need to add organizations as known to the
+    ordering service. This process is called *joining the consortium*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: From the IBM Blockchain Platform console, in the Consortium Members section,
+    choose Nodes ® [Ordering Service Node] ® Add Organization. Choose the organization
+    from all the available organizations and click Add Organization. Repeat the same
+    step for all of the organizations that will be part of the consortium.
+  prefs: []
+  type: TYPE_NORMAL
+- en: After completing this step, the organizations can create or join a channel hosted
+    on the ordering service in the blockchain network.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Create a channel
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'The channels act as a messaging medium among peers through the ordering service.
+    Before creating the channel, make sure you have deployed an ordering service and
+    peer organization, and that the organization has joined the consortium. To create
+    a channel, go to the IBM Blockchain Platform console and choose Channels ® Create
+    Channel. Then complete the following steps:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Provide the channel name and choose the ordering service.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Add the organization’s MSP as a channel member along with its permissions as
+    operator, reader, or writer. Each channel must have at least one organization
+    with Operator permission.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The channel update policy specifies the number of organizations that need to
+    approve the updates to the channel configuration whenever required. If you have
+    one organization in your network, the policy will be “1 out of 1.”
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Next, select the channel creator organization and its admin identity. This specifies
+    which organization is creating the channel.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: After creating the channel, the next step is to join a channel.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Join the channel
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: After the peer joins the channel, the setup of the sample blockchain network
+    is completed. To join the channel, go to the IBM Blockchain Platform console and
+    choose Channels.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The channel created in the previous step has no peer that has joined yet and
+    shows the status as “Pending – add peer.” Clicking this will give you the available
+    peers list, from which you can choose the peer.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Alternatively, you can go to the IBM Blockchain Platform console and choose
+    Channels ® Join Channel. You then need to choose the ordering service associated
+    with your channel and provide the channel name. Then you’ll see the available
+    peers list, from which you can choose the peer.
+  prefs: []
+  type: TYPE_NORMAL
+- en: After the selection of peers, you’ll see an option to make your peer an anchor
+    peer. For more information on anchor peers, refer to [Chapter 3](ch03.xhtml#hyperledger_fabric_architecture_and_com).
+    You can have one anchor peer or many/all peers as anchors. Make your peer an anchor
+    peer and proceed with joining the channel.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now the setup of your blockchain network is completed, and with this, you have
+    a fully functional blockchain network. As a next step, you can start deploying
+    your smart contract on the channel and start transacting in the network.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Deploy the Smart Contract
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Through the IBM Blockchain Platform console, you can manage the deployment of
+    the smart contract, but not its development. The smart contract should be packaged
+    as *.cds* (for older Fabric versions) or *.tgz* or *.tar.gz* before installing
+    it on the Fabric network.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For older versions of Fabric (< 2.*x*) go to the IBM Blockchain Platform console
+    and choose Smart Contracts ® Install Smart Contract.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Provide the packaged (*.cds*) smart contract, and it will be installed on all
+    peers. Once it’s installed, you have the option to instantiate the smart contract.
+    During this process, you set the endorsement policy, function name, and its required
+    arguments to initialize the contract. On successful instantiation, the contract
+    can be viewed under Instantiated Smart Contracts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For current Fabric versions (> 2.*x*), smart contracts are managed differently.
+    You need to take the following three steps:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Propose the smart contract.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: From the IBM Blockchain Platform console, choose Channels ® [*Your channel node*]
+    ® Propose smart contract definition. Then provide the peer admin identity, smart
+    contract name and its version, and endorsement policy. Then click Propose. This
+    will install the packaged smart contract on the selected peer’s node and propose
+    the smart contract to the channel. Proposing the smart contract to the channel
+    means it will notify the channel members for their approval.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: Assign members to the smart contract.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The channel members can view this proposed smart contract under Channels on
+    the console. Select your organization and associated peer admin identity to proceed
+    with your approval/rejection for the proposal.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: Commit the smart contract to the channel.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Once all the required approvals are in place, you commit the smart contract.
+    This process is similar to smart contract instantiation. Any channel member can
+    commit the smart contract on the channel. Select your organization, provide the
+    peer admin identity, and commit the smart contract.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: Once the smart contract is instantiated, or committed to the channel, your network
+    is ready to accept the transactions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Create the Application
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Once the blockchain network is successfully created, and the smart contract
+    has been committed in a channel of your network, you can start writing your client
+    application to transact in the network. An application can interact with the Fabric
+    network by using Fabric SDKs. Fabric provides several SDKs for various programming
+    languages. The SDK uses the connection profile to connect to your network. The
+    connection profile contains the endpoint information of the peers, CA, and organization
+    MSP.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To download the connection profile, go to IBM Blockchain Platform console and
+    choose Organizations ® [*Organization Name*] ® Create connection profile. Then
+    select the peer and download the connection profile.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The next step is to connect to your blockchain network from your application
+    by using the SDK and connection profile and then perform transactions to create,
+    update, or transfer the assets in your network.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Oracle Blockchain Platform Overview
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this section, we dive into Oracle’s platform for blockchain and its offerings.
+    This is followed by complete coverage of a blockchain use case designed and deployed
+    on Oracle.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Oracle Blockchain Platform* (*OBP*) is a preassembled platform that offers
+    the ease of building and running chaincodes and maintaining an immutable distributed
+    ledger. Before we delve into OBP, it’s important to understand that the blockchain
+    platform uses the Oracle Cloud Infrastructure (OCI) VM to deploy and run the blockchain
+    network and other supporting services including object storage (product and related
+    binaries and logs), identity services (user, role, authentication, security),
+    and load balancers.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A typical blockchain network on OBP will consist of nodes that validate transactions
+    and respond to queries by executing the chaincode. External applications can use
+    the SDK or REST APIs to invoke transactions on the blockchain network. One or
+    more endorsing peers digitally sign (endorse) the chaincode execution results,
+    which are further verified by the ordering service. Upon reaching a consensus,
+    transactions are ordered, grouped, and sent to peer nodes for validation before
+    being appended to the ledger.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The console allows administrators to configure a blockchain network and monitor
+    its operations, check logs, and more. While configuring a blockchain network,
+    you complete a few simple instance creation steps, and then Oracle takes care
+    of service management, patching, backup and restoration, and other service life-cycle
+    tasks. You start by creating a blockchain instance that includes all that you
+    need to build, deploy, run, and monitor a production-grade permissioned blockchain
+    ledger powered by Fabric.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In this section, you’ll use Oracle Blockchain Platform Cloud Service to build
+    a sample use case that demonstrates OBP. Oracle offers the following blockchain
+    products:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Oracle Blockchain Platform Cloud Service
+  prefs: []
+  type: TYPE_NORMAL
+- en: This cloud service includes a preassembled platform as a service (PaaS) with
+    template-based provisioning. It leverages OCI, which takes care of dependencies
+    like containers, virtual machines, identity management, and block and object storage.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Oracle Blockchain Platform Enterprise edition
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is designed for customers who need greater data privacy or prefer to manage
+    their data on premises. This edition offers a preassembled, on-premises blockchain,
+    which can be deployed on your datacenter. It has feature parity with the cloud-based
+    Oracle Blockchain Platform and offers the same APIs and portability of applications.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Prebuilt solution
+  prefs: []
+  type: TYPE_NORMAL
+- en: This prebuilt option offers pre-integrated, quickly deployable blockchain solutions.
+    These solutions can seamlessly connect with SaaS applications like supply chain
+    management. For example, Intelligent Track and Trace is a pre-integrated blockchain
+    solution to achieve end-to-end supply chain visibility.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Tamper-resistant blockchain tables in Oracle Database
+  prefs: []
+  type: TYPE_NORMAL
+- en: This solution is designed for an enterprise that needs immutable storage for
+    use cases such as tamper-resistant transaction logs, audit trails, compliance
+    data, financial ledgers, or legal hold data. It is a tamper-resistant option in
+    Oracle Database that allows only insert operations. Each row contains the previous
+    row’s hash, thus chaining the rows. Nonrepudiation is guaranteed as users sign
+    the content of the rows with a PKI-based signature.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Figure 8-1](#oracle_blockchain_platform_architecture) shows the high-level
+    architecture of OBP. This permissioned blockchain offers a closed ecosystem in
+    which the founder organization invites other participating organizations. It follows
+    a three-step consensus process: endorsement, ordering, and validation. The platform
+    itself is a managed service with zero-downtime managed patching, upgrades, and
+    backups of ledger and configurations.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Oracle Blockchain Platform architecture](Images/HLF_0801.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 8-1\. Oracle Blockchain Platform architecture
+  prefs:
+  - PREF_H6
+  type: TYPE_NORMAL
+- en: Based on the OCI infrastructure tenancy model, this architecture helps isolate
+    the organization’s data and offers enhanced security and in-transit and at-rest
+    data encryptions. It offers a web application firewall (WAF) to protect against
+    attacks. The identity management cloud service offers user and role management.
+    It also provides a simplified ecosystem to form consortiums, ease participant
+    onboarding to the blockchain network, and provide authentication of the CA, REST
+    proxy, and platform console.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Each organization’s instance uses managed VMs and containers per node. To avoid
+    outages, the *orderers*, *console*, REST proxy, and *fabric-ca* nodes are replicated.
+    A separate VM is provisioned for the chaincode execution container. And to withstand
+    datacenter outages, object stores are automatically replicated across OCI availability
+    domains (ADs).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now that we have covered various offerings and OBP architecture, let’s focus
+    on Oracle Blockchain Platform by starting with a sample use case.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Oracle Blockchain Platform Use Case
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'In this section, we set up and deploy a Fabric application on OBP by going
+    through four steps sequentially: explore, engage, experiment, and experience.
+    Specifically, we start the Explore step by defining the use case. Then we follow
+    the Engage step by reviewing transactions, channels, digital assets, and other
+    relevant artifacts for our use case. At the Experiment step, we configure the
+    Fabric network and the transaction infrastructure on OBP. Finally, at the Experience
+    step, we add the “smartness” to our Fabric network by deploying and instantiating
+    our chaincode.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Explore the Use Case
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Before we begin any work, we need to assess the use case to determine whether
+    it is a fit for a blockchain-based solution and identify the type of network that
+    will help set up the business case.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This section briefly describes our use case. In this example, a university uses
+    Fabric to manage the authenticity of its students’ credentials. Along the way,
+    you’ll learn how to solve a business problem with Fabric as well as how to deploy
+    solutions on OBP.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Like other industries, universities and other higher education institutions
+    are investing in and adopting digital solutions to enhance students’ efficiency
+    and experiences. Higher-education institutions are preparing the future workforce,
+    and that workforce is already tech-savvy. They need a thriving ecosystem, efficient
+    anytime-anywhere learning capabilities, and tamper-proof credential storage to
+    showcase their skills to future employers. In general, the education industry
+    faces key challenges in building this ecosystem, such as legacy technology, data
+    silos, low collaboration with peer universities, credential verification, paper-based
+    degrees and certificates, tracking and protecting IPs, and seamless and fair allocation
+    of grants to the bright and needy.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Our use case targets credential verification. Many will agree that credential
+    verification is slow and mostly a manual process. Fake certificates and degrees
+    can tarnish universities and harm employers in many ways.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This use case deals with issuing certificates by a CA and allowing a certificate
+    owner (student/learner), employers, and other institutions to verify a tamper-proof
+    credential of the certificate owner. This example includes the following stakeholders:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Certificate viewer/verifiers (CVs)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Student, employer, other universities
+  prefs: []
+  type: TYPE_NORMAL
+- en: Oracle Business School (OBS)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Certificate creator (school of studies)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Oracle Global University (OGU)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Certificate approver and issuer (university)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Engage with the Solution
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: To begin, we need to define the holistic design of the solution, shown in [Figure 8-2](#solution_components),
+    to ensure synchronicity among the process flows, use cases, and technology. This
+    stage focuses on defining a blockchain-based business network and its components,
+    such as business topology, access control, digital assets, transactions, events,
+    and channels. Finally, it ends with defining the solution architecture.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Solution components](Images/HLF_0802.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 8-2\. Solution components
+  prefs:
+  - PREF_H6
+  type: TYPE_NORMAL
+- en: Business topology
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Our use case has three stakeholders. Oracle Global University (OGU) is the
+    governing body with several affiliated business schools such as Oracle Business
+    School (OBS). Learners are enrolled in OBS, and OBS submits their credentials
+    to OGU, which issues a digital certificate to the learner. The following are the
+    stakeholders:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Oracle Global University (OGU)
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is the certificate authority (digital asset), acting as approver and issuer
+    of the certificates. It is also the founder of the network.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Oracle Business School (OBS)
+  prefs: []
+  type: TYPE_NORMAL
+- en: The certificate (digital asset) creator and requestor.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Digital certificate verifier (CVs)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Potential employers, other certificate providers (for example, Pearson VUE),
+    universities, and other authorities. It also includes the certificate owner, which
+    is the learner.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Access control
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Different stakeholders have different permissions for accessing and managing
+    the network. Such permissions are set via access rights, like read or write privileges
+    assigned to each stakeholder, as listed in [Table 8-1](#network_participant_access_control_list).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Table 8-1\. Network participant access-control list
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| Organization | Entity type | Access type |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| OGU | Founder | Read/write |'
+  prefs: []
+  type: TYPE_TB
+- en: '| OBS | Endorsing participant | Read/write |'
+  prefs: []
+  type: TYPE_TB
+- en: '| CVs | Participant | Read |'
+  prefs: []
+  type: TYPE_TB
+- en: Channel
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: In our founder-initiated business network, participating stakeholders (like
+    OBS and CVs) will communicate over a blockchain channel. In addition, all the
+    stakeholders are dealing with the same digital asset; participants need to be
+    on the same channel with appropriate access rights. Hence, we will have one channel,
+    defined by the founder, and other participants will join the channel.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Digital asset
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Once the stakeholders and network topology are defined, you need to focus on
+    defining the digital asset(s) that will be stored in the ledger. For this use
+    case, we will have two digital assets: the learner (certificate owner) information
+    and the digital certificate data.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Transactions
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: While designing the solution for a use case, we recommend charting the transactions
+    and events. During the life cycle of the digital asset, stakeholders will perform
+    the transactions listed in [Table 8-2](#transactions_and_events).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Table 8-2\. Transactions and events
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| Transaction | Stakeholders | Milestone | Description |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- | --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `CreateReceiver` | OBS | Receiver created | Creates a new receiver or student
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `AddCertificate` | OBS | Certificate added | Inserts a certificate for a
+    receiver |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `ApproveCertificate` | OGU | Certificate approved | Approves a certificate
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: '| **Search operation** |  |  |  |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `QueryByCert_id` | All | N/A | Queries a certificate |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `QueryByRecev_id` | All | N/A | Queries a receiver by ID |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `GetCertificateHistory` | OGU/OBS/receiver | N/A | Queries history of one
+    key for the record |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `QueryAllCerts` | OGU/OBS | N/A | Queries all certificates of all students
+    |'
+  prefs: []
+  type: TYPE_TB
+- en: Solution architecture
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Let’s examine the high-level solution architecture for the use case. Several
+    components interact and integrate at various levels by working in tandem to realize
+    the solution:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: OBP dashboard
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is the console that provides authorized participants to perform various
+    tasks. For example, OGU users can create compartments (Oracle infrastructure logical
+    partitions), define blockchain networks, create channels, and allow other participants
+    to collaborate on the channel.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Client UI
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Various participants and certificate viewers can use the client application
+    UI to perform tasks, such as these:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Users with OBS access control can search for certificate data for a given learner.
+    They can also create a learner entry, request for certificate approval, and insert
+    certificate data for the student on the ledger.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Users with OGU access control can search for certificate data for a given learner
+    and can also approve or reject a learner’s certificate data.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Certificate verifiers (CVs) include learners and viewers. Learners (the certificate
+    owner) can use client applications to view their certificate data and its approval
+    state, and to generate a token to share with other certificate verifiers to validate
+    their credentials. Viewers are users who can verify a learner’s credentials by
+    using the token.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Experiment with Oracle Blockchain Platform
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Now that we’ve defined the key components, we can start using OBP to create
+    network stakeholders with OBP instances, configure the OBP network infrastructure,
+    and configure the OBP transaction infrastructure. [Figure 8-3](#workflow_of_tasks_and_subtasks)
+    shows the major tasks and subtasks in this section. Adding Smartness will be covered
+    in [“Experience the Solution”](#experience_the_solution).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Workflow of tasks and subtasks](Images/HLF_0803.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 8-3\. Workflow of tasks and subtasks
+  prefs:
+  - PREF_H6
+  type: TYPE_NORMAL
+- en: Configure the Oracle Cloud infrastructure
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Before you dive into creating a blockchain network and run transactions, you
+    will start with OCI configurations. The tasks that need to be performed are signing
+    in or signing up, planning for blockchain edition, and creating a compartment.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Signing in or signing up
+  prefs: []
+  type: TYPE_NORMAL
+- en: To start, you need an Oracle Cloud account. You can sign up for a free Oracle
+    cloud promotion or place an order for OBP. Your Oracle Cloud account will include
+    Oracle Identity and Access Management (IAM) and Identity Cloud Service (IDCS).
+    With IAM, you can control who can access which cloud resources. As a cloud admin,
+    you use IDCS to add users, assign roles, and manage access to the blockchain platform.
+    Roles are mapped against IAM.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Planning for blockchain edition
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'OBP is available in many regions, including Europe, North America, and APAC—and
+    its popularity is growing. Before you set up a blockchain network, you need to
+    plan for using any specific blockchain platform edition. OBP Cloud Service offers
+    two editions: Standard edition with two CPUs, 50 GB storage, and two peers; and
+    Enterprise edition, which can range from 4 to 32 CPUs, 150 GB storage, and two
+    to six peers, depending on the size (small, medium, large, or XL). You can scale
+    (up or down) the enterprise shape as per your load. For the sake of simplicity,
+    we will create an instance with the Standard edition.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Creating a compartment
+  prefs: []
+  type: TYPE_NORMAL
+- en: We recommend that you create a separate compartment for a blockchain network.
+    When you first log in to OCI, Oracle autocreates a root compartment in your tenancy.
+    As an OCI admin, you can create additional compartments under the root compartment
+    for the blockchain network.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Log in as an admin user, navigate to the blockchain platform, and choose the
+    appropriate compartment. We have created a separate compartment, `OracleBlockchainCompartment`,
+    for this use case.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Create OBP instances
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'As per the business topology, you will create three blockchain instances: one
+    for the founder (OGU) and one for each participant (OBS and CV). Following are
+    the subtasks for this section:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Create the founder blockchain instance for OGU.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Create the participant blockchain instance for OBS.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Create the participant blockchain instance for the CVs.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'The steps are as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Sign in to your Oracle Cloud Infrastructure account as a federated Oracle Identity
+    Cloud Service admin user.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: At the console, click the Navigation menu in the top-left corner and select
+    Blockchain Platform.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: From the list of compartments, select the compartment (`OracleBlockchainCompartment`)
+    in which you want to create the service.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Enter the founder’s blockchain instance display name, `**OGUInstance**`, and
+    a description.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Choose “Create a new network” as a platform role, because this is a founder
+    instance.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Choose the Standard edition, which will offer two CPUs, 50 GB storage, and two
+    peers.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Click Create Instance.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The instance goes to Creating status. Provisioning the blockchain instance takes
+    a few minutes. Once the instance is created, the state changes to Active.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Click the service console to navigate to the founder’s blockchain instance.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'At the blockchain instance dashboard, navigate to the Nodes tab. This tab lists
+    all the nodes, as follows:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: With Standard edition, you will receive two peer nodes (`peer0` and `peer1`),
+    three orderer nodes, one CA, and one proxy node. Also there will be a console
+    node.
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: You will also get a `default` channel.
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Similarly, create other participant instances. However, while creating a participant
+    instance, choose “Join a network” as the participant role.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Create a blockchain network
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Once the stakeholder instances are established, we will create a blockchain
+    transaction network for blockchain instances, which will establish connectivity
+    among blockchain instances and enable an underlying shared ledger infrastructure
+    between them. To proceed, the initial task is to export the participant(s) organization
+    certificate, and then import the participant(s) certificate to the founder organization.
+    In the next step, export the Orderer setting from the founder, followed by importing
+    the Orderer setting into the participant(s).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Export participant(s) organization certificate
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'A participant certificate contains keys for admin, CA, and TLS, along with
+    its signature. It’s a JSON file. Follow these steps:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Navigate to a participant(s) blockchain instance and go to their dashboard.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Navigate to the Network tab.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Click the export certificate at one of the participants.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Repeat steps 1 to 3 for all other participants.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Import participant(s) certificate to founder organization
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'In this section, we will import participant certificates into the founder organization.
+    Here are the steps:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Go to the founder blockchain dashboard.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Navigate to the Network tab.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Click Add Organization.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: At the Add Organization dialog, browse the exported certificate’s JSON file
+    and click Add.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Once the file is added successfully, click Finish.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Export orderer setting from founder
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Next we will export the orderer configuration from the founder to the participant.
+    Orderers are associated with founders, and to ensure that the same orderers validate
+    the transaction submitted by participants, we recommend exporting the orderer
+    setting from the founder and importing into participants.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Orderer settings contain the founder’s certificate, signatures, and orderer
+    endpoints, so follow these steps:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Go to the founder blockchain instance’s dashboard.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Navigate to the Network tab.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Click Export Ordering Settings.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Download the JSON file, which will be imported at the participants.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Import orderer setting to participants
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Now we will import the orderer configuration to participants by following these
+    steps:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Go to the participant blockchain instance’s dashboard.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Navigate to the Network tab.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Click the Orderer setting.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Choose the Import option.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Browse the founder’s orderer setting JSON file.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Click Submit to import the orderer settings.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Create the transaction infrastructure
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Once a blockchain network and instances are created and the orderer information
+    is exchanged between the founder and participants, you can create the blockchain
+    transaction infrastructure. Essentially, this step will define a shared ledger
+    and the associated transacting blockchain instances to read or read/write to the
+    shared ledger.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Create a channel at the founder
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'In this section, we will create channels. Channels include peers, the shared
+    ledger, instantiated chaincode, and one or more orderers. Channels allow stakeholders
+    (blockchain instances) to share data via a shared ledger. Follow these steps to
+    create the channel:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Go to the founder’s dashboard.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Navigate to the Channels tab.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Click Create a New Channel.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Enter the name of the channel: `**verifyed**` (lowercase).'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Select one or more participant organizations.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Choose the participant’s access control as per the access control defined in
+    the preceding section.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: For each participant, select one or more peers to join the channel. We have
+    selected `peer0` for both participants.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Click Submit to create the channel.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Add the participant’s peer node to the channel
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Once a channel is created at the founder instance, we will add a participant’s
+    peer to the same channel. This ensures that transactions performed by client applications
+    on the blockchain network are handled by the defined peer nodes. These peer node(s)
+    will validate and execute chaincode and will perform RWSet (ReadWriteSet) creation.
+    These RWSets are later submitted to orderer nodes for sequencing and adding to
+    the ledger. Follow these steps to add a participant to the channel:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Go to the participants dashboard.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Click Nodes.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Find the peer (`peer0`).
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Select “Join new channel.”
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Choose the channel `verifyed`.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Click Submit.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: These steps will add the OBS and CV participant’s `peer0` to the channel.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Tip
+  prefs:
+  - PREF_H6
+  type: TYPE_NORMAL
+- en: You can check the blockchain platform and Hyperledger Fabric version by going
+    to the Oracle Blockchain Platform console. Then locate your login username and
+    click About. This displays the version number of the blockchain platform and the
+    Hyperledger version number as well.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Experience the Solution
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Now that we’ve defined the OBP instance, configured the OBP network infrastructure,
+    and configured the OBP transaction infrastructure, we can focus on developing
+    chaincode and verifying it. Let’s proceed with the final step of *adding the smartness*
+    to our Fabric network by deploying and instantiating our Fabric chaincode.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Develop chaincode
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Chaincode can be developed in various languages like Go, Node.js, and Java.
+    All chaincode needs to be packaged into a ZIP file for deployment. But if your
+    chaincode is a single *.go* file, you can directly deploy and instantiate the
+    chaincode on OBP without packaging it. For our use case, you can find the source
+    code file *verifyed.go* at [*https://myhsts.org/hyperledger-fabric-book/*](https://myhsts.org/hyperledger-fabric-book/).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Use OBP’s app builder
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: OBP offers blockchain app builders to simplify and ease the process of chaincode
+    development. OBP injects speed and agility to chaincode development. Platform
+    autogenerates CRUD methods that can be used directly via REST APIs or can be invoked
+    from custom functions. It supports various types of assets, including embedded
+    assets (modular and nested asset structure) and user-controlled chaincode versioning.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'OBP allows you to generate chaincode from a specification file, where you can
+    specify assets in TypeScript (for Node.js chaincode) or Go (for Go chaincode).
+    The specification file allows you to define multiple assets, their data mode,
+    behaviors, and validation rules. It facilitates quick chaincode generation that
+    can be tested on a local machine or on a preconfigured blockchain instance inside
+    the blockchain app builder or by deploying on OBP network (cloud or on-premises
+    edition). The platform includes two interfaces: CLI (command line) for CI/CD automation,
+    and a Visual Studio Code extension for IDE-based interactive development.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Deploy and instantiate the chaincode
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'OBP offers two deployment options: quick and advanced. The quick deployment
+    option can be used for testing and developing PoC. The advanced option is used
+    for selected peers and the endorsement policy; thus, the steps for the advanced
+    option are as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Go to the founder dashboard.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Navigate to the Chaincodes tab.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Click Deploy a New Chaincode and then choose the Advanced option.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: In the Advanced Option dialog, enter the chain code name (`**verifyed**`) and
+    chaincode version (v1). Choose the peer node (`peer0`) and select the chaincode
+    source, which will be a single (dot) Go file.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Click Next to install (deploy) the chaincode.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: After successful chaincode installation, the Advance Deployment dialog will
+    jump to instantiate the chaincode option. Enter the channel name (`**verifyed**`).
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Select the peer (`peer0`) that will participate in the transactions and opt
+    for the other default values.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Click Next.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: REST proxies are enabled by default. The REST proxy for the founder and other
+    participants is listed on the dashboard’s Node tab.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Deploy chaincode at participants
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Once the chaincode is deployed and instantiated at the founder node, you can
+    navigate to the participant’s dashboard and go to the Chaincodes tab to deploy
+    the same version of chaincode at all the participants since you don’t need to
+    instantiate the chaincode. Once instantiated at the founder, the chaincode stays
+    instantiated for all the participants because instantiation is specific to the
+    channel, not to the organization or peer.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Test the chaincode
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Once chaincode is deployed and instantiated, you can invoke it via the REST
+    proxy or by using a mock shim. OBP offers a REST proxy to connect to chaincode
+    via REST endpoints. Post instantiation, the ledger is empty, so let’s proceed
+    with running a test.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'First, navigate to the founder or participant’s dashboard and go to the Nodes
+    tab. The `RESTPROXY` node is enabled. Copy this URL for the REST proxy:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*https://<blockchain instance name>-<tenancy>-region.blockchain.ocp.oraclecloud.com:port/restproxy*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Next, send a request for the `restproxy` endpoints, which are in JSON format
+    and contain channel and chaincode information. Because you can configure multiple
+    chaincodes in a single REST proxy, channel and chaincode information helps in
+    dispatching the request to the correct chaincode. Every call should contain authorization
+    and content type. Also, the REST proxy offers two target endpoints: *transaction/invocation*
+    and *transaction/query*. You can use any REST testing tool like Postman or ReadyAPI
+    to test the rest endpoint. The header has the following three parts:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Authorization
+  prefs: []
+  type: TYPE_NORMAL
+- en: Use your Oracle cloud username and password.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Content-Type
+  prefs: []
+  type: TYPE_NORMAL
+- en: Use *application/json*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Target Endpoint
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Use this format: *https://<blockchaininstancename>-<tenancy>-region.blockchain.ocp.oraclecloud.com:port/restproxy/bcsgw/rest/v1/transaction/invocation*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Once the testing step is completed, you can perform an invocation to insert
+    the certificate receiver information. Set the target endpoint to `/invocation`
+    and the target method to `insertReceiver`. Also, set `Input JSON` as shown here:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE29]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'For the final step, we query the endpoint. Similarly to querying a certificate
+    owner (receiver), you can query it by its ID, using the query endpoint with three
+    parameters: the target endpoint (`/query`), the target method (`queryReceiverById`),
+    and `Input JSON`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE30]'
+  prefs: []
+  type: TYPE_PRE
+- en: Verify transactions at the ledger
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Each channel has only one ledger, which is shared by the founder and participating
+    organizations. OBP offers the option to view transaction blocks on the shared
+    ledger for a given channel. Follow these steps to access the ledger and view transactions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Go to the founder dashboard.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Navigate to the channel.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Choose the channel `verifyed`.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Click the ledger.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: This lists all the blocks on the ledger. You can find blocks from the genesis
+    to the latest blocks. It also segregates user transactions from system and genesis
+    blocks. It is evident that each block stores various information such as transaction
+    ID, status, chaincode name, method name, arguments, results, initiator, and endorser.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this chapter, you learned how to deploy Fabric on AWS, IBM, and Oracle cloud
+    platforms. We started out with a discussion on the Amazon cloud platform. You
+    learned to set up Amazon Managed Blockchain services, a Fabric network, and a
+    Fabric client to run and manage chaincodes. We completed our AWS journey by configuring
+    and running the Fabric application.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Next we explained the features, considerations, and capabilities of the IBM
+    cloud platform for building Fabric applications. Specifically, we showed you how
+    to create and join a Fabric network on IBM Cloud, including how to build a Fabric
+    network and create an orderer or a channel. We concluded our IBM section by going
+    over smart contract deployment on IBM Cloud.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Finally, we explored the Oracle Blockchain Platform, its offerings, and architecture.
+    We delved into defining business topology, access control, partitions, assets,
+    and transactions. In addition, you experimented with Oracle Blockchain Platform
+    to experience the ease of setting up a Fabric network and deploying and testing
+    chaincodes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The next chapter covers the new features of Hyperledger Fabric v2, such as new
+    chaincode application patterns and an external chaincode launcher. We also discuss
+    how to update Fabric components as well as the capability level of a channel.
+  prefs: []
+  type: TYPE_NORMAL

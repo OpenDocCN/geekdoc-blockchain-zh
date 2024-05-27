@@ -1,0 +1,689 @@
+- en: Chapter 3\. Hyperledger Fabric Architecture and Components
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In the previous chapter, we surveyed four generations of blockchain technology,
+    followed by the Hyperledger architecture and its components. We also introduced
+    you to the Hyperledger ecosystem by reviewing its projects, tools, and libraries.
+    This chapter looks deeper into the Hyperledger family by focusing on the Hyperledger
+    Fabric project. Along the way, we will introduce you to all the Hyperledger Fabric
+    components, including peers, channels, and chaincodes, for both building blockchain
+    applications and understanding concepts covered in the rest of the chapters.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This chapter will help you understand the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Major highlights of Fabric versus other blockchain development platforms
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The role of membership service providers, CAs, and identities in a Fabric permissioned
+    network
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The role of the ledger in Fabric
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Main components of the Fabric network
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The roles that a peer plays in a Fabric network
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The mechanisms through which peers process transactions
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The role of private data and data collection in a Fabric permissioned network
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Hyperledger Fabric Overview
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '*Hyperledger Fabric* started as a codebase project, combining previous work
+    by Digital Asset Holdings (now called Digital Asset), Blockstream’s Libconsensus
+    library, and IBM’s Open Blockchain platform. Fabric offers a unique elastic and
+    extensible architecture, which performs over and above alternative blockchain
+    platforms. Fabric works very well with other Hyperledger projects, libraries,
+    and tools, allowing it to be a full-fledged blockchain platform. The Fabric network
+    is scalable to meet the needs of enterprise applications.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Fabric is a platform for building distributed ledger solutions. It comes with
+    several handy features, such as a modular architecture that offers high levels
+    of confidentiality, flexibility, and scalability. This modular architecture makes
+    it possible for components like consensus and membership services to act as plug-and-play
+    accessories. Further, Fabric is designed to be resilient to technology changes
+    by catering to the intricacies of the economic ecosystem. Lastly, Fabric is revolutionary
+    because it allows entities to conduct confidential transactions without passing
+    information through a central authority.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Throughout the remainder of this chapter, we will review the various Fabric
+    components to provide a holistic view of its powerful features. By the end of
+    this chapter, you will have a solid understanding of why Fabric is becoming a
+    prominent choice for enterprise blockchain implementation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Hyperledger Fabric Model
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In blockchain application development, developers can build a distributed ledger
+    technology in multiple ways. Hyperledger Fabric, however, is a unique implementation
+    of DLT mainly aimed at enterprises rather than individuals.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Fabric’s architecture separates the transaction flow into three main steps
+    while following the execute-order-validate paradigm. In doing so, it lets Fabric
+    execute untrusted codes in an untrusted environment. The execute-order-validate
+    paradigm alone distinguishes Hyperledger from other widely adopted permissionless
+    blockchains like Bitcoin or Ethereum, which have only order-execute models in
+    place. Here’s how the steps in the paradigm are executed in a Fabric system:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: For Fabric to execute a transaction, it first checks the transaction’s correctness.
+    Then Fabric produces state updates for the transaction. The nodes that are executing
+    transactions are called endorsers. They are called upon to validate and add a
+    set of state updates produced as the result of a computation. At this stage, multiple
+    transactions can be executed simultaneously. Therefore, state updates may contain
+    a conflict.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The Fabric ordering service follows the consensus protocol defined in the Fabric
+    network regardless of transaction semantics. The nodes running the consensus algorithm
+    are called orderers (covered later in this chapter).
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Fabric validates the transaction to ensure that two conditions are met:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Transactions are executed according to the given transaction logic.
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: No state conflicts exist among submitted transactions, in which two transactions
+    want to update the same state.
+  prefs:
+  - PREF_IND
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: After transactions are validated, they are added to the ledger by using *committer*
+    nodes. Note that endorsers are also committers.
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'The execute-order-validate design has several main benefits. First, in an order-execute
+    model, the nodes that are ordering transactions are also executing them. Thus,
+    there will be validation against two assumptions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The ordering is correct.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The computation is carried out properly.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Conversely, trust assumption in Fabric can be treated differently for consensus
+    as compared to transaction execution. This gives Fabric great flexibility, especially
+    when it comes to confidentiality, because only a given subset of the network is
+    called to execute certain transactions and not others.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Secondly, the execute-order-validate design enables the parallel execution of
+    multiple transactions simultaneously by different parts of the network. This is
+    highly beneficial for the system’s overall throughput and addresses potential
+    nondeterminism (which prevents the same input from acting differently in different
+    environments). A flexible endorsement policy specifies which peers, or how many
+    of them, should participate in the correct execution of the given business logic.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Fabric has the following six essential capabilities:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Identity management
+  prefs: []
+  type: TYPE_NORMAL
+- en: The *membership service provider* (*MSP*) handles identity management. Fabric
+    provides a membership identity service that manages user IDs and authenticates
+    all participants on the network. It is a great asset for enterprise applications
+    since they have a huge stock of credentials.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Privacy and confidentiality
+  prefs: []
+  type: TYPE_NORMAL
+- en: One way to achieve privacy and confidentiality in Fabric is through private
+    channels. To put it simply, *private channels* are restricted message routes that
+    can be used for transactions between specific subsets of network members. These
+    private channels have many practicalities, especially among enterprise consortium
+    members, as a subset of members may wish to share private data without affecting
+    the rest of the network operation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Channels deliver their promise as long as the ordering service is trusted, because
+    all transactions must go through ordering, and their content is therefore visible
+    to that service. Fabric offers *private data collections* (*PDCs*) when the ordering
+    service cannot be trusted for confidentiality. A PDC can be considered a partition
+    of a ledger visible only to a subset of the network. We discuss more on the ordering
+    service and PDC later in this chapter.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Efficient processing
+  prefs: []
+  type: TYPE_NORMAL
+- en: Fabric assigns network roles by node type to provide concurrency and parallelism.
+    Such a feature alone will boost the performance of network operation by allowing
+    transactions to be threaded for faster processing in a Fabric network. In addition,
+    only a subset of the network working on executing certain transactions needs to
+    know the business logic; thus, it frees up resources for the rest of the network.
+    This makes it possible to load the business logic only where it is strictly needed
+    and not make it available to the entire network.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Business logic
+  prefs: []
+  type: TYPE_NORMAL
+- en: The smart contract, or chaincode, defines the business logic that constitutes
+    the execution of a transaction. Business logic can be written in any general-purpose
+    programming language without systemic dependency on a native cryptocurrency. We
+    discuss this more later in this and subsequent chapters.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Governance
+  prefs: []
+  type: TYPE_NORMAL
+- en: Governance models provide another essential capability. In Fabric, these models
+    can be expressed by *policies*. A policy is required to identify the parties that
+    can deploy a chaincode or can add an MSP to a channel. They are flexible and can
+    be updated as needed by issuing proper configuration transactions. We discuss
+    more on the role of policies later in this chapter.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Modular architecture
+  prefs: []
+  type: TYPE_NORMAL
+- en: As discussed earlier, Fabric comes with a modular architecture that makes it
+    more resilient to changes while allowing its common parts to be shared with other
+    networks. In other words, once endowed with a modular design, Fabric will result
+    in a universal blockchain architecture that any industry or public domain can
+    adopt.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Blockchain Network
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Unlike other blockchain platforms, Fabric comes with a network that offers great
+    flexibility in catering to various project sizes, from a basic two-member layout
+    to a multilayer consortium consisting of multiple consortiums, each with several
+    members. As a whole, networks play a crucial role in the scalability and adaptability
+    of blockchain platforms among enterprises.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Fabric network may vary depending on the project being implemented. All
+    organizations in a Fabric network will have access to certain components without
+    restrictions, whereas some components are assigned to only a specific organization
+    via an independent node called the *orderer service*. Thus, considering the logical
+    characteristics of Fabric networks, you can begin to understand the multiple components
+    that go into operation within Fabric.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Each organization within the network can deploy as many nodes as it wishes.
+    The trust that Fabric grants as a private and permissioned network is comprehensive,
+    since the identity of all node participants within its network is known.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Identity
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The concept of *identity* within Hyperledger Fabric is closely related to the
+    concept of an MSP that we will see later. Each component that is part of the network—such
+    as nodes, computers, administrators, and clients—have certified credentials generated
+    by one or more authorities. These credentials are the identity that accredits
+    them as network operators.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Once an identity is issued, it will act on the network according to its assigned
+    policies. That means it is the job of policies (as discussed later in this chapter)
+    to set several authentication parameters such as who has access to what, and what
+    actions an identity holder can perform in the network. For example, only an identity
+    with specific administrative permissions can install a chaincode on a given peer,
+    or only an identity with write permission can request to append a new transaction
+    to a given ledger.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Fabric does not impose any specific identity infrastructure/technology. This
+    offers great flexibility and allows administrators to deploy Fabric networks in
+    various contexts. Nevertheless, by default, Fabric can be configured to support
+    any *public-key infrastructure* (*PKI*). A PKI is a commonly used infrastructure
+    to organize the management of digital identities (from issuance to revocation).
+    A digital identity is usually bound to a cryptographic key-pair (public/private
+    keys). In such schemes, digital signatures are generated using a secret key in
+    the possession of the owner of the digital identity, and a public key, available
+    to anybody, is used to verify those signatures.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Last but not least, identities can be revoked. When this happens, an identity
+    loses the ability to operate in the network. The mechanism used to revoke identities
+    depends on the membership service provider used, and therefore, the underlying
+    system used to organize digital identities.
+  prefs: []
+  type: TYPE_NORMAL
+- en: By leveraging the MSP, which we explore in the next section, other ways to organize
+    digital identities can be supported.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Membership Service Provider
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The *membership service provider* (*MSP*) provides Fabric a convenient abstraction
+    that hides all the cryptographic mechanisms and protocols behind the definition
+    and validation of identities and authentication. Indeed, an MSP provides a generic
+    notion of identity and the rules to assert its validity. Also, it provides an
+    API for authentication based on the well-defined concept of digital signatures.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Fabric uses one or more MSPs to manage identities and their life cycles in its
+    network. As a result of MSP abstraction, interoperability among different membership
+    standards and architectures becomes a reality. In fact, when a new channel is
+    created, the list of MSPs governing that channel must be included in the genesis
+    block. This list can then subsequently be updated by issuing a proper channel
+    configuration transaction.
+  prefs: []
+  type: TYPE_NORMAL
+- en: On the other hand, an MSP does not prescribe how identities should be issued,
+    only how they should be validated. Indeed, once an identity is issued and assigned
+    to a Fabric entity, this entity can then start interacting with the network. For
+    example, clients use these credentials to authenticate their transactions, and
+    peers use these credentials to authenticate transaction processing results (endorsements).
+  prefs: []
+  type: TYPE_NORMAL
+- en: To be more concrete, let’s consider Fabric’s default MSP implementation based
+    on the X.509 standard. The *X.509* standard, commonly used on the internet, prescribes
+    how public-key certificates must be formatted and used. These certificates carry
+    public keys and information about the owners of these keys. Each certificate is
+    signed by a certificate authority whose public key is stored in another certificate
+    called the *root certificate*. Intermediate certificates are allowed, forming
+    a chain of certification.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this context, an X.509-based MSP is defined by a set of root and intermediate
+    certificates identifying the sources of trust for identity certification and a
+    certificate revocation list (CRL). An identity is simply an X.509 certificate.
+    We say that an identity is valid under a given X.509-based MSP if the corresponding
+    certificate has been issued by one of the authorities listed in the MSP and is
+    not in the list of revoked certificates. Keep in mind that certificate authorities
+    typically maintain CRLs. When an authority updates its CRL, the MSP definition
+    must be updated consequently. In Fabric, an MSP definition can be updated by issuing
+    a valid configuration transaction. We talk about this in the coming sections.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To recap, the X.509-based MSP allows Fabric to support almost any PKI whose
+    certificates are issued by the major certificate authorities on the market (the
+    same as normally used in a browser). If needed, a PKI can be put in place by using
+    Hyperledger Fabric CA, a Fabric companion project that implements a certificate
+    authority.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It is worth mentioning that X.509 is not the only technology supported by Fabric.
+    For additional privacy, Fabric is equipped with a technology called *Identity
+    Mixer* (*Idemix*). This cryptographic protocol offers strong authentication while
+    maintaining privacy. This lets a transactor obtain a valid member status for interacting
+    with the network while safeguarding its own identity. Likewise, a transactor can
+    sign multiple transactions without revealing any traces of its signatures. Though
+    the anonymous operation of a transactor is possible, the transaction content can
+    still be used to link multiple transactions and needs to be protected in other
+    ways, such as using private data collections or advanced crypto technologies like
+    ZKPs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: At this point, it should be clear that the permissioned nature of Fabric heavily
+    depends on the MSPs available in a given network. At one extreme, Fabric becomes
+    permissionless as soon as a given network is equipped with an MSP that accepts
+    any public keys like Bitcoin. Under such circumstances, the public parameters
+    of the signature scheme are set in the genesis block. (An exception can still
+    be represented by the orderers whose identities might be fixed in the genesis
+    block.)
+  prefs: []
+  type: TYPE_NORMAL
+- en: As we have seen, the MSP equips Fabric with a well-defined concept of identity
+    on top of which a complex access-control policy can be defined.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Policies
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In the previous section, you saw that the MSP gives Fabric the ability to recognize
+    valid identities. Then, *policies* are the tools Fabric provides to reason about
+    these identities. Policies configure the structure for how decisions are made
+    within the network. In other words, these policies configure who can do what and
+    on which element of the network.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Policies are overarching in Fabric, and they are the golden tool used to set
+    the governance of the network. A policy governs who is allowed to access a given
+    ledger, who can deploy a chaincode, and who can upgrade the channel configuration.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The first place where we encounter policies in Fabric is the *system channel*.
+    Each Fabric network must define a system channel that, among other things, contains
+    the MSPs that identify the parties forming the ordering service (also called *ordering
+    organizations*), and the MSPs identifying the identities that can transact in
+    the network (also known as *consortium organizations*). Then, using those MSPs,
+    the system channel identifies who can create application channels (or simply *channels*)
+    via a policy included in the system channel’s genesis block.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A channel’s *genesis block* is the second place where we come across policies.
+    Indeed, creating a new channel means setting policies to add and remove members,
+    and to approve a chaincode before it is defined and committed to the channel,
+    among others. If policies are not set, they are inherited from the system channel.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Administrators can update a channel’s configuration by issuing a proper configuration
+    update transaction. This transaction must be endorsed by enough entities that
+    together can satisfy the specific policy the update is targeting. After the transaction
+    gets committed, the changes are to be considered operational.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The most commonly used form of policy in Fabric is called a *signature policy*.
+    This is simply a monotone Boolean formula. The supported Boolean operators are
+    `AND`, `OR`, and `NOutOf`, and they can be combined with flexibility. Here is
+    an example: `OR(''Org1.peer'', ''Org2.peer'')`. This policy requires that at least
+    a peer identity, valid under either the MSP named `Org1` or the MSP named `Org2`,
+    provides a signature.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This example also shows another useful tool that Fabric provides, called an
+    *MSP principal*. A principal represents a group of identities that have some common
+    characteristics. For instance, the `peer` MSP principle identifies all identities
+    that are peers in a Fabric network. Fabric offers a series of handy principles
+    to identify clients, peers, orderers, administrators, and so on.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To summarize, policies are the tools that administrators can use to govern a
+    Fabric network. Policies can be set to configure a network to be permissionless
+    by allowing anyone to perform any operation (again, the ordering service may be
+    an exception) or can be set to restrict access to specific processes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Nodes
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '*Nodes* are the communication entities of the blockchain. A node is just a
+    logical function in the sense that multiple nodes of different types can run on
+    the same physical server. What counts is that the nodes are grouped *into trusted
+    domains* and associated with the logical entities that control them.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A node has an identity, and this identity allows the node to perform certain
+    operations. We can identify the following nodes in a Fabric network:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Clients
+  prefs: []
+  type: TYPE_NORMAL
+- en: Initiate the life cycle of a transaction in Fabric.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Endorsers
+  prefs: []
+  type: TYPE_NORMAL
+- en: Responsible for the execution of the business logic encapsulated in programs
+    called *chaincodes*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Orderers
+  prefs: []
+  type: TYPE_NORMAL
+- en: Participate in the consensus algorithm to decide the order of transactions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Committers
+  prefs: []
+  type: TYPE_NORMAL
+- en: Fetch the ledger from the orderers and apply the validation logic to establish
+    the validity of each ordered transaction. Endorsers are also committers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Sometimes we will use the word *peer* to mean either an endorser or a committer.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chaincode
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The widely used term *smart contract* is known as *chaincode* in Hyperledger
+    Fabric. A chaincode is a piece of code that implements the application logic and
+    runs during the execution phase. Besides exposing a predefined interface, chaincode
+    developers are free to encode the computation in the best way they find to fit
+    their goals. Fabric, for example, does not require the chaincode to be deterministic.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chaincode is installed and instantiated in the peers of a channel required to
+    execute it by duly authorized members and through a *Fabric chaincode life cycle*.
+    A chaincode can be updated as well by using a similar process.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Each chaincode must define an *endorsement policy* that is evaluated by the
+    committers in the validation phase. A typical endorsement policy lets the chaincode
+    specify the endorsers for a transaction in the form of a set of peers necessary
+    for endorsement. It represents the trust assumption for the correct execution
+    of the specific business logic encoded in the chaincode.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A chaincode must expose two functions: `Init` and `Invoke`. `Init` is used
+    to initialize any data structure the chaincode might need and is invoked only
+    once, at initialization time. `Invoke` is the entry point to the business logic
+    offered by the chaincode. A chaincode receives arguments, and on these, the chaincode
+    decides what operation to execute.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A chaincode can be thought of as a namespace inside the ledger that groups
+    a set of key-value pairs managed by that chaincode. Those pairs are subject to
+    change by completing a Fabric transaction life cycle. Let’s review this life cycle.
+    The following steps are required to successfully commit a transaction:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Propose the transaction. A client prepares and sends a transaction proposal
+    to the endorsers of the chaincode the proposal is targeting. The transaction proposal
+    specifies the chaincode and the arguments for the chaincode invocation.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Execute the transaction proposal. The endorsers that receive the proposal execute,
+    or simulate, the chaincode with the arguments provided in the proposal (the `Invoke`
+    function is invoked). The result of the simulation consists of a return value
+    and a read/write set.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The *read/write set* is a data structure that captures the updates to and the
+    dependencies on the world state (more on this in [“Ledger”](#ledger)). The *read
+    set* contains a list of unique keys and their current version numbers (the value
+    does not need to be added because it is already known to the network). On the
+    other hand, the *write set* contains the updated list of unique keys. In this
+    case, the new values assigned to the keys must be included. Finally, a marker
+    can be used to say that a key is deleted and should not be available anymore in
+    the world state.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: We call the execution of the chaincode a *simulation* because the world state
+    does not change at this stage. These are only proposed changes to the world state
+    that need to be validated later. All peers that execute the chaincode sign the
+    output of the execution and send it back to the application. This signature is
+    called an *endorsement*.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: Assemble the transaction. The client bundles all endorsers’ responses (the endorsements)
+    into a transaction (an endorser transaction) and sends it to the ordering service.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Order the transaction. The ordering service collects incoming transactions and
+    assembles them into blocks based on a consensus algorithm. Once a block is complete,
+    the ordering service sends it to the committing peers.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Validate the transaction. When the committing peers receive a new block, they
+    append it to the ledger and validate every transaction in that block. Validation
+    consists of ensuring that two requirements are satisfied: the endorsements of
+    a transaction satisfy the endorsement policy for that chaincode, and the read/write
+    set does not conflict with concurrent updates that were committed before. Only
+    if a transaction is valid, the world state is updated by applying the changes
+    in the read/write set.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Decide transaction finality. As a nonmandatory step, the client can contact
+    a selected number of peers in the network to ask about the finality of the transaction.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: A chaincode can also be invoked to retrieve state information as a result of
+    a computation or just a lookup in the world state (e.g., the value of a certain
+    key). This operation is sometimes called a *query*. In this case, steps 3 to 6
+    can be avoided. The client is just retrieving information, not updating. Suppose
+    the client decides to assemble a transaction with the received endorsements and
+    submits that transaction for ordering. In that case, the client is making a *strong
+    query* because the result is time-stamped on the ledger and can be verified by
+    anyone.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Long story short, the endorsers do not differentiate between an invocation or
+    a query. The entry point is always the `Invoke` function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Ledger
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The *ledger* is one of the fundamental pieces within the entire blockchain and
+    in Hyperledger Fabric as well. The ledger is stored as identical copies in each
+    of the nodes that make up the network. Thus, each Fabric channel is bound to a
+    ledger. Notice that a Fabric network can contain multiple channels, and in this
+    sense, a channel can be seen as a way to partition data in multiple shards.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'When we talk about a ledger, we refer to two key concepts: the world state
+    and the blockchain. The *world state* is a part of the blockchain that refers
+    to key-value pairs containing the latest data recorded within it. It is an easier
+    way to access stored data. And then the *blockchain* is something bigger. It is
+    all the records stored within the blockchain, in the form of transactions. These
+    transactions are stored in blocks to be consulted later.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Because of the execute-order-validate model used by Fabric, the ledger can be
+    distinguished as a *raw leger* or *validated ledger*. The former represents the
+    sequence of transactions ordered by the ordering service; the latter represents
+    the sequence of valid transactions. It is from the validated ledger that the world
+    state is constructed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Ordering Service
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The orderers run the *ordering service*—a communication that provides a guarantee
+    of delivery. The ordering service can be implemented in various ways: from a centralized
+    service (used, for example, in development and testing) to distributed protocols
+    that target different networks and different types of nodes.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The ordering service provides a shared communication channel to the nodes of
+    a Fabric network, offering a broadcast service for messages containing transactions.
+    Clients connect to the ordering service and can broadcast messages on a given
+    channel, as long as the client has permissions to do that, which are then delivered
+    to all peers. The channel broadcasts the same messages to all connected peers
+    and sends them to all peers in the same logical order. The communicated messages
+    are the candidate transactions for inclusion in the blockchain state.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In short, a defined group of nodes orders transactions in blocks and broadcasts
+    them to all connected peers. Some peers can interact directly with the ordering
+    service to broadcast blocks in the network to make the block delivery fast. Such
+    a dissemination process is done via a gossip protocol, which is particularly useful
+    by preventing each peer from connecting to the ordering service.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Private Collections of Data
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Among the evolutions of Hyperledger Fabric technology, one of the largest was
+    the creation of *private data collections* (*PDCs*). The two primary use cases
+    of a PDC are as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: When the ordering service cannot be trusted for confidentiality
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: When data in a single ledger or Fabric channel must be partitioned and made
+    visible only to certain parties
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Each PDC is attached to a list of organizations and properties that define how
+    private data should be disseminated and endorsed. With Fabric v2+, PDC definitions
+    are part of the chaincode definition. The chaincode developer can use a specific
+    API to manipulate those collections.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A PDC can then be thought of as a subnamespace defined in the chaincode’s namespace.
+    A PDC consists of a private part and a public part. The private part contains
+    data disseminated via a peer-to-peer protocol among the organizations’ peers belonging
+    to the PDC. The public part contains hashes of the private data that are endorsed
+    and committed to the ledger. By default, these hashes are not salted; therefore,
+    they can be susceptible to dictionary attacks. The chaincode developers should
+    use proper strategies to avoid that.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'In this chapter, you learned about the features and components of Hyperledger
+    Fabric. We started by reviewing its key features, such as assets, privacy, and
+    consensus. We then discussed the following important elements of the blockchain
+    network: identities, membership service provider, policies, peers, smart contracts
+    and chaincode, ledger, ordering service, and private data collections. Understanding
+    the Fabric network and how its components interact with one another is essential
+    for building blockchain applications in Hyperledger Fabric.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We hope that you have developed a good foundation for building your first blockchain
+    application in Fabric by now. Indeed, this chapter gave you a high-level review
+    of all parts that usually work in conjunction with one another in an enterprise
+    Fabric blockchain application.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In brief, in all previous chapters, we moved from a high-level hierarchy to
+    a lower one by covering the concepts of blockchain, the Hyperledger family, and
+    Hyperledger Fabric step by step. Now that we have covered all practical concepts,
+    we will proceed with coding. We will start doing hands-on coding in the next chapter
+    by building the first chaincode, or Fabric smart contract.
+  prefs: []
+  type: TYPE_NORMAL

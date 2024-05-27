@@ -1,0 +1,1730 @@
+- en: Chapter 9\. Hyperledger Fabric V2 Integration
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Since Hyperledger Fabric v1.0.0 released in 2017, many minor versions have been
+    rolled out for Fabric v1.*x* (1.1, 1.2, 1.3, 1.4). As an open source, permissioned
+    distributed ledger, Hyperledger Fabric has quickly become one of the most popular
+    enterprise blockchain frameworks, adopted by many organizations from small businesses
+    to enterprises worldwide. The major cloud vendors—including AWS, IBM, and Oracle—have
+    included Fabric in their blockchain cloud services, as you saw in [Chapter 8](ch08.xhtml#deploying_hyperledger_fabric_on_the_clo).
+    Fabric’s benefits and popularity stem from its powerful architecture for building
+    enterprise blockchain applications.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In 2020, the Hyperledger Community released Hyperledger Fabric v2, bringing
+    many improvements over v1\. This significant milestone has boosted the adoption
+    of enterprise blockchains and enhanced the efficiency and security of production
+    deployments.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This chapter will help you understand the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: New features of Hyperledger Fabric v2
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Updating the capability level of a channel
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Upgrading components
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Considerations for getting to v2
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: New Features of Hyperledger Fabric V2
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Hyperledger Fabric version 2, or v2, builds on what the community has learned
+    in the past four years, delivering several new features and improvements that
+    have made v2 shine as a production-ready enterprise blockchain. The new features
+    of Hyperledger Fabric 2.0 include support for enhanced governance around smart
+    contracts, improvements in chaincode life cycle management, introduction of a
+    new raft consensus mechanism, new patterns for working with and sharing private
+    data, and stronger token support. Let’s explore these features.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Decentralized Governance for Smart Contracts
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Prior to v2, the chaincode life cycle process was composed of these steps:
+    package, install, and instantiate. If multiple organization participants own the
+    same chaincode, the packaging step is needed. Only one organization is required
+    to install chaincode, with an optional instantiation policy. The chaincode is
+    installed on endorsing peer nodes of chaincode owners. With signed packaged chaincode,
+    chaincode can be instantiated and sent to other owners for inspection and signing.
+    When other peers refuse to install the chaincode, the original owner will not
+    be able to execute the chaincode, but still can validate and commit the transactions.
+    Once chaincode gets installed, chaincode is not yet in the channel since it is
+    not instantiated to the channel. When the selected peer performs chaincode instantiation,
+    the instantiate transaction invokes the life cycle system chaincode (LCSC). The
+    chaincode enters the active state and can be executed on the channel.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Figure 9-1](#hyperledger_fabric_onedotfour_chaincode) shows the Hyperledger
+    Fabric 1.4 chaincode life-cycle operation.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Hyperledger Fabric 1.4 chaincode life cycle operation](Images/HLF_0901.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 9-1\. Hyperledger Fabric 1.4 chaincode life cycle operation
+  prefs:
+  - PREF_H6
+  type: TYPE_NORMAL
+- en: 'One major drawback in this chaincode life cycle operation was chaincode governance:
+    only one organization had to instantiate, write, deploy, and update chaincode
+    for all the peers in the network. This centralized process limits other organizations
+    from participating in chaincode governance.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Hyperledger Fabric v2 introduces decentralized governance for the chaincode
+    life cycle. Instead of instantiating by one organization, the new process requires
+    multiple organizations to agree to the parameters of a chaincode and approve how
+    it will be operated on the channel. This more democratic process has significantly
+    improved security across the network. For example, approval of the chaincode definition
+    in a two-organization network is required for both channel members before chaincode
+    can be committed to the channel.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Figure 9-2](#hyperledger_fabric_two_chaincode_life_c) shows the Hyperledger
+    Fabric v2 chaincode life-cycle operation.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Hyperledger Fabric 2 chaincode life-cycle operation](Images/HLF_0902.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 9-2\. Hyperledger Fabric 2 chaincode life-cycle operation
+  prefs:
+  - PREF_H6
+  type: TYPE_NORMAL
+- en: 'In comparison with 1.4, the new life cycle eliminates the instantiate step
+    and replaces it with two new steps: approving the chaincode (which is done by
+    all organization members) and committing the chaincode definition.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here is a list of `peer` commands for chaincode initialization:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: In [Chapter 7](ch07.xhtml#building_supply_chain_dapps_with_hyperl), we walked
+    through the entire chaincode operation process; let’s quickly review how the chaincode
+    life-cycle endorsement policy is defined in the configuration.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Open *configtx.yaml* under the project *configtx* folder. The `Application`
+    section defines the values to encode into a config transaction or block for application-related
+    parameters:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: Here you can define the types of life-cycle endorsement policies. In our case,
+    we define governance as `MAJORITY Endorsement`. This `MAJORITY Endorsement` policy
+    will be used as the default if an endorsement policy is not explicitly specified.
+    It requires a majority of peers to participate in the chaincode transaction validation
+    and execution in the channel and to commit the transaction to the ledger.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We use the channel configuration to define our supply chain endorsement policy.
+    You can also explicitly specify a signature policy for the endorsement; for example,
+    the following command will require that a member of both `Org1` and `Org2` sign
+    the transaction:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: Channel configuration policies in *configtx.yaml* can be customized or overridden
+    by editing the file *configtx.yaml* for a specific channel. Channel configuration
+    policies in *configtx.yaml* can be customized or overridden by editing the file
+    for a specific channel when we need to update the config value.
+  prefs: []
+  type: TYPE_NORMAL
+- en: New Chaincode Application Patterns
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'As discussed in the previous section, the new chaincode decentralized life-cycle
+    management will apply in chaincode operation. This will ensure that multiple organizations
+    must agree to the parameters of a chaincode and approve how it will be operated
+    on the channel. The new chaincode application patterns will allow the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Automated checks
+  prefs: []
+  type: TYPE_NORMAL
+- en: Organizations can automate checks and validate additional chaincode information
+    before submitting a transaction proposal request to the orderer service.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Decentralized agreement
+  prefs: []
+  type: TYPE_NORMAL
+- en: Personal decisions can be modeled on a chaincode process that requires several
+    transactions. Based on the defined ledger transaction policy, the chaincode may
+    need different organizations to agree to process the transaction. Once all the
+    individual transactors are met and verified by a final chaincode proposal, the
+    business transaction is finalized across all channel members.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Private Data Enhancements
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In a centralized application, the superuser can view all the database data and
+    grant selected members permission to access it. In the blockchain network, the
+    transaction data is stored in the ledger, which is shared with all participants.
+    Prior to v2, in order to keep data private from other organizations on the channel,
+    we had to create a new channel that consisted of the organizations requiring data
+    access.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Today, Hyperledger Fabric MSP will ensure the privacy of all members of the
+    network. MSP provides an abstraction of membership operations and defines the
+    rules of how memberships are governed and authenticated. Fabric has three types
+    of MSPs:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Network MSP
+  prefs: []
+  type: TYPE_NORMAL
+- en: Defines members in the network
+  prefs: []
+  type: TYPE_NORMAL
+- en: Channel MSP
+  prefs: []
+  type: TYPE_NORMAL
+- en: Defines who can participate in certain actions on a given channel according
+    to channel policies
+  prefs: []
+  type: TYPE_NORMAL
+- en: Peer/orderer MSP
+  prefs: []
+  type: TYPE_NORMAL
+- en: The local MSP for a single peer or orderer, for identifying members of the same
+    organization
+  prefs: []
+  type: TYPE_NORMAL
+- en: In building our supply chain DApps example, we have manufacturer, wholesaler,
+    and pharmacy organizations in the blockchain. They share all device ownership
+    transition data in the ledger by creating a channel from the manufacturer to the
+    pharmacy. In [Figure 9-3](#channel_one_ledger_data_for_three_organ), we can see
+    that all three organizations can view that channel 1 ledger data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Channel 1 ledger data for three organizations](Images/HLF_0903.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 9-3\. Channel 1 ledger data for three organizations
+  prefs:
+  - PREF_H6
+  type: TYPE_NORMAL
+- en: After completing a trade with the manufacturer, the wholesaler may also want
+    to keep the trade’s confidential data from the pharmacy. They can create channel
+    2, in which the pharmacy can’t see transactions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The wholesaler may also want to have a private data relationship with the pharmacy,
+    so they create channel 3\. Similarly, the manufacturer can’t see transactions
+    in channel 3.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The channel design is elegant, providing a subnetwork to keep all transactions
+    confidential within a set of organizations. However, this design has some downsides.
+    First, it requires additional administrative overhead (to create a channel, deploy
+    chaincode, update policies and MSPs, etc.). Second, it doesn’t allow all channel
+    participants to see the transaction data, but keeps partial data privacy for selected
+    members. Third, when many members (hundreds) participate in the consortium network,
+    those members could create a large number of channels in the network. This will
+    make the network become very complex and hard to maintain, and tracking communications
+    will be difficult.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Instead of creating many multiple channels, Hyperledger Fabric v2 offers enhanced
+    private data collection or policy configuration by introducing a new endorsement
+    policy. Fabric can create private data collections on a peer node, sometimes called
+    a *SideDB*, which can be shared with selected peers. Private data collections
+    have two elements: the actual private data and a hash of private data.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The *actual private data* is sent between authorized peers through the gossip
+    data dissemination protocol. Each gossiped message is signed, and other unauthorized
+    peers will be prevented from seeing the message. The data is stored in a SideDB.
+    This process does not involve an ordering service, which may be controlled by
+    an unauthorized organization.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Figure 9-4](#how_public_data_and_a_private_data_coll) shows how public data
+    and a private data collection are stored in a peer node.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![How public data and a private data collection are stored in a peer node](Images/HLF_0904.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 9-4\. How public data and a private data collection are stored in a peer
+    node
+  prefs:
+  - PREF_H6
+  type: TYPE_NORMAL
+- en: Public block storage contains transaction logs for each channel and public world-state
+    data. The world state keeps the current state of data. Channel members can view
+    this data. The endorsed transaction logs are stored in blocks linked in sequence
+    with the hashing mechanism.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Private block storage consists of private `writeSet` storage, a private state
+    database, and a transient store. Private `writeSet` stores a number of private
+    data collections, and all private historical transactions for each private data
+    collection. A private state database is world-state storage that keeps the current
+    state of private data collections. The transient store is used to store temporally
+    private data during a transaction invocation process. The transient data is used
+    to determine whether a peer has already received the private data at chaincode
+    endorsement time.
+  prefs: []
+  type: TYPE_NORMAL
+- en: After the orderer validates the transactions, the *hash of private data* is
+    packaged into blocks and written to the ledger. The cryptographic hash serves
+    as evidence of the transaction and allows authorized organizations in the channel
+    to endorse, commit, or query private data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In our supply chain example, all the three peers have the private state database
+    instance for each related private collection. The private data between manufacturer
+    and wholesaler is privately managed by `Org1`’s peer and `Org2`’s peer only. Similarly,
+    `Org2`’s peer and `Org3`’s peer will maintain wholesaler and pharmacy private
+    data collections. [Figure 9-5](#three_peers_with_two_collections_of_pri) illustrates
+    these three peers with two collections of private data on the same channel.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![Three peers with two collections of private data on the same channel](Images/HLF_0905.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 9-5\. Three peers with two collections of private data on the same channel
+  prefs:
+  - PREF_H6
+  type: TYPE_NORMAL
+- en: To understand how Fabric private data works, let’s look at how a transaction
+    flow gets performed in the transaction life cycle. [Figure 9-6](#the_end_to_end_system_flow_for_processi)
+    depicts the end-to-end system flow for processing a private data transaction in
+    Hyperledger Fabric v2.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![The end-to-end system flow for processing a private data transaction in Hyperledger
+    Fabric v2](Images/HLF_0906.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 9-6\. The end-to-end system flow for processing a private data transaction
+    in Hyperledger Fabric v2
+  prefs:
+  - PREF_H6
+  type: TYPE_NORMAL
+- en: 'Here are the steps of the flow:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The client initiates a transaction by sending a transaction proposal request
+    with private data to endorsing peers. Those endorsing peers are authorized organizations
+    for private data collections.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The endorsing peers simulate the transaction by using a local copy of private
+    data in a transient data store to execute the chaincode. This chaincode execution
+    distributes the private data to authorized peers via gossip and sends back the
+    results to the application.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: At this point, the client application combines the transaction along with the
+    endorsements (including the proposal response with the private data hashes) and
+    broadcasts it to the ordering service. The private data hashes are distributed
+    to all peers. Without knowing the actual private data, all peers on the channel
+    can be involved in transaction validation in a consistent way.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Finally, authorized peers check the collection policy to make sure the client
+    has permission to access the private data. If authorized peers don’t have private
+    data in the local transient data store, they will pull data from other authorized
+    peers to get the private data.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Once the private data is validated against the hashes in the public block, the
+    transaction will be committed in the block. The private state database and private
+    `writeSet` storage in authorized peers will get updated. The private data in the
+    transient data store then gets deleted.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'You now understand how private data works. Before moving to the next new v2
+    features, let’s quickly review how private data collection is defined. Here is
+    a sample collection definition JSON file:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: The file contains two private data collection definitions. In each one, we need
+    to specify the collection name. [Table 9-1](#keywords_in_a_private_data_configuratio)
+    shows the keyword definitions of the JSON configuration.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Table 9-1\. Keywords in a private data configuration
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| Keyword | Definition |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `name` | The name of the collection |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `policy` | Defines which organizations’ peers are authorized to operate on
+    collection data |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `requiredPeerCount` | A minimum number of peers must successfully disseminate
+    private data. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `maxPeerCount` | For data redundancy purposes, when `maxPeerCount` is larger
+    than `requiredPeerCount`, and an endorsing peer becomes unavailable between endorsement
+    time and commit time, any peers that haven’t received private data yet can pull
+    it from other peers that are participating in the process. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `blockToLive` | Defines how long the data should live on the private database
+    in terms of blocks. |'
+  prefs: []
+  type: TYPE_TB
+- en: '| `memberOnlyRead` | Defines how long the data should live on the private database
+    in terms of blocks; `memberOnlyRead` defines the client |'
+  prefs: []
+  type: TYPE_TB
+- en: 'When using the peer CLI to approve and commit the chaincode definition, you
+    can use the `--collections-config` flag with a collection definition file similar
+    to the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: To read or write private data, we can use a shim API. For example, we can use
+    `PutPrivateData(*collection*,*key*,*value*)` to store private data in private
+    `writeSet` storage and `GetPrivateData(*collection*,*key*)` to query private data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: External Chaincode Launcher
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Prior to Hyperledger Fabric v2, the process of chaincode maintenance was quite
+    complex and cumbersome. Being in a decentralized environment, maintenance is a
+    real challenge. In most cases, the code is required to be installed by a number
+    of peers in the multi-organizations consortium network.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here’s a rundown of some of the Hyperledger v1 limitations:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The process used to build and launch chaincode was part of the peer implementation.
+    To customize the process, you had to change the source code and rebuild the chaincode.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'All chaincode installed on the peer was built by passing a hardcoded language-specific
+    logic. For example:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: This build process required Docker as the part of the deployment environment.
+    The process would generate a Docker container image for executing chaincode in
+    a Docker container. The client can connect to the peer through the container.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: To build and launch a chaincode, peers need the privileges to access a Docker
+    daemon, which can cause issues in production environments.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: To enhance the development and deployment process, v2 comes with external builders
+    and launchers whose functions are to empower operators to optimally customize
+    the building process in such a way that chaincode can be deployed and executed
+    independently (outside the Fabric system). This opens up further opportunities
+    to deploy other popular container systems like Kubernetes pods.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Before this update, the chaincode in different languages like Java and Node.js
+    needed to be compiled and built into a chaincode binary, then packaged with the
+    Go shim libraries for creating a chaincode server. Now the Go shim API can be
+    packaged to become independent of a chaincode server. The user chaincode can be
+    packaged independently and run as an external service and connected to the chaincode
+    server through the chaincode ID, server endpoint address, TLS information, and
+    so forth.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This loose coupling module design provides a flexible way to run in a cloud
+    service-based environment like Kubernetes. The Hyperledger Fabric external builders
+    and launchers are loosely based on Heroku buildpacks. To leverage external builders
+    and launchers, you will need to create your own buildpack and then modify the
+    `externalBuilder` configuration in the peer *core.yaml*. If no configured external
+    builder is specified, Fabric will use the standard Fabric packaging tools, such
+    as the peer CLI or node SDK. Let’s explore this in more detail.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Buildpacks* are sets of open source scripts that are responsible for transforming
+    deployed code into the target environment. Depending on the programming language
+    chosen, the scripts will examine your apps, download related dependencies, and
+    determine how to configure the application chaincode to communicate with the bound
+    chaincode server.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'An external builder and launcher repository contains the following four scripts
+    in the *bin* directory:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The first script is the *detect* script. This script determines whether the
+    buildpack should apply to build the chaincode package and launch it. The peer
+    invokes *detect* with two arguments: `CHAINCODE_SOURCE_DIR` is the location for
+    the chaincode source, and `CHAINCODE_METADATA_DIR` is the directory for the *metadata.json*
+    file from the chaincode package installed to the peer.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Fabric runs the *detect* script to determine whether the chaincode source package
+    should be applied based on return values. So if the script returns a value of
+    0, it should apply the chaincode source package; conversely, it takes no action
+    when the script returns nonzero values.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here is an example of a simple *detect* script for Go chaincode:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: This script uses `jq`, a lightweight command-line JSON processor, to check whether
+    the chaincode language is Go and that at least two arguments are passed when running
+    the script.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The second script is *build*. This script executes the buildpack logic and converts
+    the chaincode package into executable chaincode.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The peer invokes *build* with three arguments:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The following is an example of a simple *build* script for Go chaincode:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: Fabric runs the *build* script. If the script returns the success code 0, the
+    contents of `BUILD_OUTPUT_DIR` will copy to peer persistent storage; otherwise,
+    the build step should be considered a failure.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The third script is *release*. This script provides metadata to the peer, indicating
+    how the chaincode should be executed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The fourth script is *run*. This script runs the chaincode.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To implement the external builder, you can create your own external builder
+    directory within the *bin* subfolder. Then create all four scripts under that
+    directory:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'To ensure that the peer picks up the external builder, you need to add `externalBuilder`
+    information at the peer’s *core.yaml*. We can check the *fabric-samples* folder
+    *(/path/fabric-samples/config*) to see *core.yaml*. The default `externalBuilders`
+    section is an empty array []. You can update the `externalBuilders` section with
+    the required information. The following example defines one external builder:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: In this example, we define `externalBuilders-sample`, which has an *external-builder*
+    script under */path-to-external-builder/external-builder*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The environment allow list contains the values that will propagate only when
+    the peer invokes the build scripts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If the external builder scripts contain commands that are not included under
+    the *hyperledger/fabric-peer* Docker image (for example, the *jq* library in our
+    example), then you need to build your own peer image.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The Fabric Docker images are available at [*https://github.com/hyperledger/fabric.git*](https://github.com/hyperledger/fabric.git),
+    so you can clone and modify the Docker image in your own environment. Under the
+    *fabric/images/peer* folder, you can update the peer Dockerfile. For example,
+    you can add the `jq` command as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Once you update the Dockerfile, you can build a new peer image with a new name—for
+    example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: Once an image is built successfully, it will include *jq*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Since the peer Docker image has been updated, you need to update the related
+    peer Docker Compose file. The following example shows the peer section in this
+    file:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: After this step, you can start a Fabric network with new peer images. You can
+    run external builders and launchers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: State Database Cache for CouchDB
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Fabric supports two peer state databases: LevelDB and CouchDB. The default
+    state database embedded in the peer node is LevelDB.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*LevelDB* is an open source, on-disk, fast key-value store. *CouchDB* is a
+    document storage NoSQL database. It can store data in the flexible document-based
+    struct (JSON format) and supports powerful data mapping that allows rich queries,
+    combining, and filtering the information. You can create indexes to support rich
+    queries.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Prior to Fabric v2, when using the external CouchDB state database, the query
+    would cross-network to get results during the endorsement and validation phases.
+    This caused a performance bottleneck. With Fabric v2, the state data caches in
+    peers. Instead of expensive lookups, Fabric queries and reads the state data from
+    the local cache to fetch results. This can greatly improve the performance of
+    your network.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To set up cache size, update the peer *core.yaml* `cacheSize` property. The
+    following is an example of a *core.yaml* CouchDB configuration under the `ledger
+    -> state` section:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: We first define the database as CouchDB. The default `totalQueryLimit` is `100000`,
+    regardless of whether the pagination APIs are utilized. `couchDBConfig` specifies
+    a CouchDB-related configuration. When setting the optional `createGlobalChangesDB`
+    flag to `true`, Fabric will synchronize the network state data changes and maintain
+    the database, which requires additional system resources. The default is `false`.
+    The `cacheSize` setting defines how state data will be allocated for in-memory
+    storage, expressed in megabytes (MB). The `cacheSize` value needs to be a multiple
+    of 32 MB, or Fabric will round the size to the next multiple of 32 MB. We can
+    define 0 MB to disable the cache.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Alpine-Based Docker Images
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Starting from release 2.0, the Hyperledger Fabric Docker image now builds based
+    on security-oriented, lightweight *Alpine Linux*. This community-developed operating
+    system is built around the *musl* libc and BusyBox. It is widely adopted in cloud,
+    microservices, and container environments because of its small image size.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*BusyBox* is a single executable file that provides many tiny versions of common
+    Unix utilities. It runs in a variety of Portable Operating System Interface (POSIX
+    ) environments such as Linux, Android, and FreeBSD. With modular, size-optimized,
+    and limited resources design, BusyBox is fairly easy to customize for any small
+    or embedded system.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*musl* is a C implementation for standard library functionality described in
+    the ISO C and POSIX standards. By using static linking in *musl*, applications
+    would be able to fetch essential code or data to operate, which in turn leads
+    to more efficient application deployment. *Musl* integrates the entire standard
+    library implementation, including threads, math, dynamic linker itself into a
+    single shared object. This eliminated most of the startup time and memory overhead
+    of dynamic linking.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: With the *musl* libc and BusyBox, Alpine size is typically around 8 MB; it is
+    quite small compared to a minimal disk installation, which might be around 130
+    MB. This results in a faster boot time for the operating system that is heavily
+    used in containers. All Userland (user space) binaries are compiled as Position
+    Independent Executables (PIE) with stack smashing protection in Alpine Linux,
+    making it very secure.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s take a look at the Docker images in Hyperledger Fabric 1.3 and 2.0—the
+    Docker images with the latest tag and also different tagged versions of Docker
+    images that will get downloaded as part of the Fabric binaries download. [Table 9-2](Images/#docker_images_in_hyperledger_fabric_one)
+    shows the size of Docker images in Hyperledger Fabric 1.3.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Table 9-2\. Docker images in Hyperledger Fabric 1.3
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| Package | Version | Size |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| *Inyperledger/fabric-ca* | 1.3.0-rel | 244 MB |'
+  prefs: []
+  type: TYPE_TB
+- en: '| *Inyperledger/fabric-ca* | Latest | 244 MB |'
+  prefs: []
+  type: TYPE_TB
+- en: '| *Inyperledger/fabric-tools* | 1.3.0-rel | 1.5 GB |'
+  prefs: []
+  type: TYPE_TB
+- en: '| *Inyperledger/fabric-tools* | Latest | 1.5 GB |'
+  prefs: []
+  type: TYPE_TB
+- en: '| *Inyperledger/fabric-ccenv* | 1.3.0-rel | 1.38 GB |'
+  prefs: []
+  type: TYPE_TB
+- en: '| *inyperledger/fabric-ccenv* | Latest | 1.38 GB |'
+  prefs: []
+  type: TYPE_TB
+- en: '| *Inyperledger/fabric-orderer* | 1.3.0-rel | 145 GB |'
+  prefs: []
+  type: TYPE_TB
+- en: '| *Inyperledger/fabric-orderer* | Latest | 145 GB |'
+  prefs: []
+  type: TYPE_TB
+- en: '| *Inyperledger/fabric-peer* | 1.3.0-rel | 151 MB |'
+  prefs: []
+  type: TYPE_TB
+- en: '| *Inyperledger/fabric-peer* | Latest | 151 MB |'
+  prefs: []
+  type: TYPE_TB
+- en: '| *Inyperledger/fabric-zookeeper* | 0.4.12 | 1.39 GB |'
+  prefs: []
+  type: TYPE_TB
+- en: '| *Inyperledger/fabric-zookeeper* | Latest | 1.39 GB |'
+  prefs: []
+  type: TYPE_TB
+- en: '| *ihyperledger/fabric-kafka* | 0.4.12 | 1.4 GB |'
+  prefs: []
+  type: TYPE_TB
+- en: '| *ihyperledger/fabric-kafka* | Latest | 1.4 GB |'
+  prefs: []
+  type: TYPE_TB
+- en: '| *Inyper ledger/fabric-—couchdb* | 0.4.12 | 1.45 GB |'
+  prefs: []
+  type: TYPE_TB
+- en: '| *Inyper ledger/fabric-—couchdb* | Latest | 1.45 GB |'
+  prefs: []
+  type: TYPE_TB
+- en: Next, let’s take a look at Docker image sizes in Hyperledger Fabric v2, which
+    are listed in [Table 9-3](Images/#docker_images_in_hyperledger_fabric_vtw).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Table 9-3\. Docker images in Hyperledger Fabric v2
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| Package | Version | Size |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| *hyperledger/fabric-—javaenv* | 2.1.0-external-builder | 56.9 MB |'
+  prefs: []
+  type: TYPE_TB
+- en: '| *hyperledger/fabric—javaenv* | None | 895 MB |'
+  prefs: []
+  type: TYPE_TB
+- en: '| *hyperledger/fabric-javaenv* | None | 1.12 GB |'
+  prefs: []
+  type: TYPE_TB
+- en: '| *hyperledger/fabric-tools* | 3.10 | 5.58 MB |'
+  prefs: []
+  type: TYPE_TB
+- en: '| *hyperledger/fabric-tools* | 2.0 | 505 MB |'
+  prefs: []
+  type: TYPE_TB
+- en: '| *hyperledger/fabric-tools* | 2.0.1 | 505 MB |'
+  prefs: []
+  type: TYPE_TB
+- en: '| *hyperledger/fabric-peer* | Latest | 505 MB |'
+  prefs: []
+  type: TYPE_TB
+- en: '| *hyperledger/fabric-—peer* | 2.0 | 512 MB |'
+  prefs: []
+  type: TYPE_TB
+- en: '| *hyperledger/fabric-peer* | 2.0.1 | 512 MB |'
+  prefs: []
+  type: TYPE_TB
+- en: '| *hyperledger/fabric-orderer* | Latest | 512 MB |'
+  prefs: []
+  type: TYPE_TB
+- en: '| *hyperledger/fabric-orderer* | 2.0 | 57.2 MB |'
+  prefs: []
+  type: TYPE_TB
+- en: '| *hyperledger/fabric-orderer* | 2.0.1 | 57.2 MB |'
+  prefs: []
+  type: TYPE_TB
+- en: '| *hyperledger/fabric-ccenv* | Latest | 57.2 MB |'
+  prefs: []
+  type: TYPE_TB
+- en: '| *hyperledger/fabric-ccenv* | 2.0 | 39.7 MB |'
+  prefs: []
+  type: TYPE_TB
+- en: '| *hyperledger/fabric-ccenv* | 2.0.1 | 39.7 MB |'
+  prefs: []
+  type: TYPE_TB
+- en: '| *hyperledger/fabric-baseos* | Latest | 39.7 MB |'
+  prefs: []
+  type: TYPE_TB
+- en: '| *hyperledger/fabric-baseos* | 2.0 | 529 MB |'
+  prefs: []
+  type: TYPE_TB
+- en: '| *hyperledger/fabric-baseos* | 2.0.1 | 529 MB |'
+  prefs: []
+  type: TYPE_TB
+- en: '| *hyperledger/fabric-ca* | Latest | 529 MB |'
+  prefs: []
+  type: TYPE_TB
+- en: '| *hyperledger/fabric-ca* | 2.0 | 6.9 MB |'
+  prefs: []
+  type: TYPE_TB
+- en: '| *hyperledger/fabric-ca* | 2.0.1 | 6.9 MB |'
+  prefs: []
+  type: TYPE_TB
+- en: We can see that the image size is significantly reduced in v2—for example, that
+    *fabric-tools* in v1.3 is 1.5 GB, but only 512 MB in v2.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Sample Test Network
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Prior to v2, *first-network* was the most common example used to demonstrate
+    how Hyperledger Fabric works. In v2, a new Fabric test network is included in
+    the *fabric-samples* repository, as the long-term replacement of the *first-network*
+    sample.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Project structure
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The v2 test network project structure is more organized. For instance, all Docker
+    files are placed under the *docker* folder, and organization-related configuration
+    is put under the *organizations* folder. The *scripts* folder contains smart contract
+    installation- and deployment-related scripts. This makes the test network easy
+    for testing applications and smart contracts. We have built a similar project
+    structure in the [Chapter 7](ch07.xhtml#building_supply_chain_dapps_with_hyperl)
+    supply chain project. In the first network, most Docker files are under the root
+    project folder, so there is no organization folder.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Peers and orgs
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The test network defines one peer as two organizations, while the first network
+    comes with two peers, and each peer has two organizations. [Table 9-4](#peers_and_organizations_in_the_test_and)
+    shows the peers and organizations in these two sample networks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Table 9-4\. Peers and organizations in the test and first networks
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| Test network | First network |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| *peer0.org1.example.com peer0.org2.example.com* | *peer0.org1.example.com*
+    *peer1.org1.example.com*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*peer0.org2.example.com*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*peer1.org2.example.com* |'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Generating crypto material
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'In the first network, only Cryptogen is supported for generating crypto material.
+    However, in the test network, crypto material can be generated either through
+    Cryptogen or by the organization CA. Here is the script in the test network to
+    handle these two types of crypto material:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: Since the test network supports using CAs for crypto material, this makes enrolling
+    application users into the network easier.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Updating the Capability Level of a Channel
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: When upgrading to the latest 2.*x* release, we need to upgrade the Fabric channel
+    and components in the channel—for example, orderer and peers. In this section,
+    we discuss how to update the capability level of a channel.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Fabric enables capability levels in the configuration of each channel. These
+    version capabilities need to be closely related to node binary versions. When
+    it is defined, it must be present in a Fabric binary. For example, when a new
+    MSP type is added, newer binaries (v2) can validate those signatures of transactions,
+    while older binaries (v1.*x*) may fail. This could lead to multiple versions of
+    the Fabric binaries with different world states.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Three capabilities for an entire channel can be configured in the `capabilities`
+    section of *configtx.yaml*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following is a sample configuration for capabilities for 2.*x* and 1.*x*:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '| 2.*x* | 1.*x* |'
+  prefs: []
+  type: TYPE_TB
+- en: '| --- | --- |'
+  prefs: []
+  type: TYPE_TB
+- en: '| Capabilities:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Channel: &ChannelCapabilities'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'V2_0: true'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Orderer: &OrdererCapabilities'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'V2_0: true'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Application: &ApplicationCapabilities'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'V2_0: true'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '| Capabilities:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Channel: &ChannelCapabilities'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'V1_4_3: true'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'V1_3: false'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'V1_1: false'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Orderer: &OrdererCapabilities'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'V1_4_2: true'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'V1_1: false'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Application: &ApplicationCapabilities'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'V1_4_2: true'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'V1_3: false'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'V1_2: false'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'V1_1: false'
+  prefs:
+  - PREF_IND
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '|'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Channel capabilities apply to both the peer organizations and the ordering service.
+    The binary level of the ordering service and peers need to be at least the defined
+    minimum level in order to process the capability. When `ChannelCapabilities V2_0`
+    is set to `true`, it expects that all orderers and peers on a channel need to
+    be at v2.0.0 or later.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Orderer capabilities apply only to the ordering service. Orderer capabilities
+    don’t involve peers or transaction processes, so when the ordererer fails, only
+    the ordering service admins get impacted.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Application capabilities apply only to peers. In the case of private data, ordering
+    service admins and channel administration are not involved in setting up private
+    data between peer organizations, so we can enable these capabilities for only
+    private data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: While defining the capability level in *configtx.yaml*, we also need to upgrade
+    binaries to at least the level of the relevant capabilities; otherwise, binaries
+    will crash, which may cause a ledger fork. Once a capability has been enabled,
+    it is permanent and not reversible. Even after rolling back the configuration
+    changes, the old binaries will not be able to participate in transactions of the
+    channel.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Warning
+  prefs:
+  - PREF_H6
+  type: TYPE_NORMAL
+- en: Prior to enabling capabilities in production, we recommend trying the new capabilities
+    in a test environment to ensure the expected result.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Update to the Newest Capability Levels
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'When we start upgrading to v2, it becomes necessary to update to the newest
+    capability depending on your own use case or requirement. Note that it may be
+    necessary to update to the newest capability levels before using the features
+    in the latest release, and it is considered a best practice to always be at the
+    latest binary versions and capability levels. At a high level, this process has
+    three steps (for each channel):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Retrieve the latest channel configuration.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Modify the necessary channel configuration.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Create a config update transaction.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Retrieve the latest channel config
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'Before you start to retrieve the channel config, you need to set up environment
+    variables for your config update. The following variables need to be exported
+    as environment variables:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`CH_NAME`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The name of the system channel for updating
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`CORE_PEER_LOCALMSPID`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ID of orderer organization that proposes the channel update
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`TLS_ROOT_CA`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The absolute path to the TLS certificate of your orderer node(s)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`CORE_PEER_MSPCONFIGPATH`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The absolute path to the MSP representing your organization
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`ORDERER_CONTAINER`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The name of an orderer node container
+  prefs: []
+  type: TYPE_NORMAL
+- en: Once we set up environment variables, we can pull the channel configuration
+    in Protocol Buffers format, which is a method of serializing structured data,
+    and create a file called *config_block.pb*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In the peer container, you can issue the following command:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Next, we’ll convert the Protobuf file to a human-readable JSON file called
+    *config_block.json*:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Finally, use the `jq` command to remove all unnecessary metadata, and generate
+    a new file (in this example, we’ll call it *config.json*):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: Before starting to modify the JSON config file, we need to copy *config.json*
+    as a new JSON file called *modified_config.json*. In a later step, we need to
+    compare the differences between these two files and submit the changed configuration.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Run this command to copy *config.json*:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: Modify the necessary channel config
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'In this step, you can open a text editor or other JSON tool like *jq* to modify
+    the channel configuration to make all necessary changes. We define *capabilities.json*
+    as a sample config and then add the capabilities to the `orderer` or `application`
+    channel sections. Here is the *capabilities* config file:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'To add the orderer group capabilities to *modified_config.json*, issue this
+    command:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE21]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Similarly, to add the channel group capabilities to *modified_config.json*,
+    issue this command:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE22]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Three parts of the channel capability configurations can be updated:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Orderer group
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Channel group
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Application group
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'The orderer group and channel group are similar to the orderer system channel.
+    To add the application group capability, issue this command:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE23]'
+  prefs: []
+  type: TYPE_PRE
+- en: Note
+  prefs:
+  - PREF_H6
+  type: TYPE_NORMAL
+- en: For incremental change, you need to repeat the three-step process per change.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Create a config update transaction
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'To update the JSON configuration file, we first need to run the `configtxlator`
+    tool and submit a modified configuration. Then we convert the configuration from
+    JSON format back to Protobuf format:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE24]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'With the `compute_update` command from the `configtxlator` tool, we get the
+    calculated difference between the old config and the modified one. Next, we apply
+    the changes to the config:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE25]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Finally, we submit the config update transaction. The ordering service will
+    convert it to a full channel configuration:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE26]'
+  prefs: []
+  type: TYPE_PRE
+- en: Tip
+  prefs:
+  - PREF_H6
+  type: TYPE_NORMAL
+- en: To enable channel and application capabilities, you can either bundle all changes
+    at the same time or do it incrementally.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Upgrade Components
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Upgrading a component to a newer version (including v2) in Hyperledger Fabric
+    typically is a four-step process:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Back up the ledger and MSPs.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Upgrade the orderer binaries in a rolling fashion to the latest Fabric version.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Upgrade the peer binaries in a rolling fashion to the latest Fabric version.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Update the orderer system channel and any application channels to the latest
+    capability levels.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: For native deployments, you will also need to back up the *orderer.yaml* or
+    the *core.yaml* file and update the content with release artifacts including new
+    port changes if required.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Set Environment Variables for the Binaries
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'To run a peer or an orderer node operation, you typically need to set environment
+    variables relevant to Fabric CLI commands on each upgraded node. Here’s a list
+    of some of the peer environment variables; based on actual need; some of the variables
+    are optional:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE27]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Here’s a list of some of the orderer environment variables. Again, some of
+    the variables are optional:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE28]'
+  prefs: []
+  type: TYPE_PRE
+- en: Back Up and Restore the Ledger
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: A ledger backup can reduce time and computational costs when restarting nodes
+    and bootstrapping from the genesis block and reprocessing all transactions. The
+    process may take quite a long time if the size of the ledger is large.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We can back up ledger data in two ways:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Create a new peer to join the same channel. The new node will synchronize with
+    the network and rebuild its ledger by initiating the genesis block and state DB
+    for all joined channels.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Log in to the peer node as the peer admin, stop the peer, and then go to the
+    peer data folder. By default, peer data is stored under */var/hyperledger/production/*.
+    Back up folders such as *chaincodes*, *ledgersData*, and *transientStore*. Some
+    subfolders under *ledgersData* (including *stateLeveldb*, *historyLeveldb*, and
+    *chains/index*) can be ignored to reduce the storage demand for the backup, but
+    reconstructing them will take more time when peer starts.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Upgrade the Orderer Nodes
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'You should upgrade orderer nodes in a rolling fashion (one at a time). Before
+    upgrading orderer nodes, we need to set up the following environment variables:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`ORDERER_CONTAINER`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`LEDGERS_BACKUP`: The location of the local filesystem where the ledger data
+    will be backed up'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`IMAGE_TAG`: The Fabric version you are upgrading to'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'The process to upgrade the orderer node typically follows these steps:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Stop the orderer node and run this `docker` CLI command:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE29]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: 'Back up the ledger and MSP in the orderer node. Remember that the default orderer
+    nodes data is located under */var/hyperledger/production/orderer*:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE30]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: 'Delete the orderer node container:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE31]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: 'Start a new orderer node container with the newer version image tag:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE32]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: Repeat this process for each node of the ordering service until the entire ordering
+    service has been upgraded.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Upgrade the Peers
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Similar to upgrading the orderer nodes, peer upgrading should be done in a
+    rolling fashion. Before upgrading the peer nodes, we need to set up the following
+    environment variables:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`PEER_CONTAINER`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`LEDGERS_BACKUP`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`IMAGE_TAG`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'The process to upgrade the peer node is as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Stop the peer with the following command and then bring down the peer:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE33]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: 'Back up the peer’s ledger and MSP:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE34]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: 'Remove the chaincode containers and images:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE35]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: 'Remove the peer container:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE36]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: 'Start a new peer container by using the relevant image tag and issuing the
+    following command:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE37]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: Once the peer node starts, you can issue the chaincode invocation and query
+    to verify that the peer functions upgraded normally.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: Upgrade the Node SDK Clients
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Upgrading the node SDK client follows a regular npm upgrade; you issue a Node.js
+    `npm install` command under the project root directory containing the *package.json*
+    file. Issue this command to upgrade to the latest Fabric client and Fabric CA
+    client:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE38]'
+  prefs: []
+  type: TYPE_PRE
+- en: Considerations for Moving to V2
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: We have reviewed new features in v2; Hyperledger Fabric supports rolling upgrades
+    from v1.4.*x* to v2.0 without downtime. When upgrading from v1.4.*x* to v2.2,
+    we need to consider many factors.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chaincode Life Cycle
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: As you learned earlier, Hyperledger Fabric v2 decentralized governance for the
+    chaincode life cycle requires that multiple organizations agree to the parameters
+    of the chaincode and approve how it will be operated on the channel. When peers
+    participate in the new chaincode process, the peers and orderer nodes must be
+    at v2.*x*; otherwise, the peer will crash after the channel capability has been
+    enabled. This requires that all peers first be upgraded on the channel before
+    enabling channel capability. Once channel capability is enabled, we enable application
+    capability to `V2_0` on a channel.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To package, install, approve, and commit new chaincodes on the channel, we must
+    use the Hyperledger Fabric v2 chaincode life-cycle operation. Since the release
+    of the new decentralized governance chaincode life cycle, the endorsement policy
+    needs to be updated in the channel configuration (e.g., a `MAJORITY` of organizations).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chaincode Shim Changes (Go Chaincode Only)
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: If your chaincode is written in Go, the *fabric-chaincode-go/shim* libraries
+    need an upgrade to the 2.*x* version before making upgrades to the peers and channels.
+    The best practice approach is to vendor (or manage) the shim in your v1.4 Go chaincode.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Many tools are available for vendoring shim dependencies. One of the popular
+    tools is `govendor`, a Go package dependency management command-line tool. This
+    tool will flatten out all the project dependencies and import dependencies from
+    your `GOPATH`. The following demonstrates how to use `govendor`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE39]'
+  prefs: []
+  type: TYPE_PRE
+- en: This imports the external dependencies into a local vendor directory.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If you do not want to vendor the shim in your v1.4 chaincode, you have two
+    options:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Upgrade the chaincode on all peers and on the channel.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Set up peer environment variables to specify the v1.4 chaincode, including new
+    packages in chaincode. Use v1.4 *ccenv* to rebuild the chaincode images; the v1.4
+    *ccenv* should still work with a v2.*x* peer.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Chaincode Logger (Go Chaincode Only)
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'In v1.4, the shim provides logging objects for the chaincode to use via the
+    `NewLogger` API, which allows the chaincode to control the severity level; this
+    has been removed in v2\. The chaincode logs in the peer and orderer use the log
+    API library under *common/flogging*. This package supports the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Various levels of control for logging, based on the severity of the message
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Logging control based on the application logger generating the message
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Various log message formatting options, including pretty-printing format message
+    support
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: You can set up the `FABRIC_LOGGING_SPEC` environment variable to specify the
+    logging levels.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The full logging-level specification is of the following form:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE40]'
+  prefs: []
+  type: TYPE_PRE
+- en: Peer Databases Upgrade
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: When upgrading peer components to 2.*x*, you should also upgrade the peer database
+    to the new version. The data format in the v2.*x* is different from the earlier
+    format. The databases of all peers including state database, historical database,
+    and other internal databases for the peer must be rebuilt.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For the peer database upgrading process, you can perform the `peer node upgrade-dbs`
+    command to drop the local database volume directory. Before doing it, you should
+    back up the peer data. Set up the peer container and ledger environment first;
+    then run the following Docker command:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE41]'
+  prefs: []
+  type: TYPE_PRE
+- en: The peer node will rebuild the databases by using the v2.*x* data format after
+    it restarts. Rebuilding the database could take a while, depending on the data
+    volumes of your databases.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Capabilities
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'In [“Updating the Capability Level of a Channel”](#updating_the_capability_level_of_a_chan),
+    we noted that three new capabilities are introduced in the v2 release:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Channel capabilities
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Application capabilities
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Orderer capabilities
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Before updating the application and channel capabilities, you need to upgrade
+    your peer binaries to newer binaries (v2). Also, upgrade your orderer binaries
+    before updating the orderer and channel capabilities; otherwise, the old binaries
+    (v1.*x*) may fail. The failure could lead to multiple versions of the Fabric binaries
+    with different world states.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Define orderer node endpoint per organization
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: It is a best practice to define the orderer endpoints in both the system channel
+    and in all application channels by adding new `OrdererEndpoint`s.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If you haven’t included `OrdererEndpoint`s per organization, you can create
+    an endpoints config JSON file. The process to define and update orderer node endpoints
+    per organization is as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Create an orderer endpoint config JSON file (for example, *newOrdererEndpoinConf.json*):'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE42]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: 'Export the environment variables. Once you create an `OrdererEndpoint` JSON
+    file, you can start using the command line to update the orderer endpoint configuration.
+    Before doing that, as usual, we need to set up environment variables as follows:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '`CH_NAME`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: The updated name of the system channel
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`CORE_PEER_LOCALMSPID`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: ID of one of the orderer organizations that proposes the channel update
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`TLS_ROOT_CA`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: The absolute path to the TLS certificate of your orderer node(s)
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`CORE_PEER_MSPCONFIGPATH`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: The absolute path to the MSP representing your organization
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`ORDERER_CONTAINER`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: The name of an orderer node container
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`ORGNAME`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: The name of the organization you are currently updating
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'Pull and translate the config and add the life-cycle organization policy (as
+    listed in *orglevelEndpoints.json*) to *modified_config.json* by issuing the following
+    command:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE43]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: Finally, submit the config. This will define the orderer endpoints in your system
+    channel and application channels.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this chapter, we discussed the important new features of Hyperledger Fabric
+    v2\. We explored how to upgrade the components and the capability level of a channel.
+    By showing the detailed upgrading steps, you have a better understanding of the
+    upgrading process of the peer and orderer services.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It is a best practice to consider upgrading to a newer major release version
+    and reap the benefits of important new features. We discussed the many significant
+    factors you need to consider when changing to the v2 release from 1.*x*. Throughout
+    this chapter, you gained lots of practical knowledge for smart contract development
+    with Hyperledger Fabric v2\. The next chapter provides an overview of other new
+    Hyperledger projects.
+  prefs: []
+  type: TYPE_NORMAL
