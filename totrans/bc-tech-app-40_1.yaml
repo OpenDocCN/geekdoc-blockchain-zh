@@ -1718,6 +1718,7 @@
   id: totrans-139
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们以下面的例子来解释：如果客户端A想要进行一笔购买并转账，比如将700个IOTA转给客户端B，A端的钱包软件将会创建一组输入、输出交易（可能还会有元交易），这些交易需要集成到tangle中。这样，要么这个交易包内的所有交易都会被IOTA网络中的节点接受，要么一个也不接受。在创建交易包的过程中，首先准备一个输出交易，在交易地址字段中包含B客户端的地址*b*，在交易价值字段中填写正数700。这个交易被分配索引0（这个交易作为*N*个交易交易包的起始交易，但会在*N*个交易包一起发布时最后发出）。
 - en: 'Next, the input and meta transactions are prepared. If client A has, for example,
     three addresses (i.e., three accounts) *a*[1], *a*[2], and *a*[3] generated from
     the same private keys seed, with the account states of 200, 600, and 350 IOTAs
@@ -1732,6 +1733,9 @@
   id: totrans-140
   prefs: []
   type: TYPE_NORMAL
+  zh: 接下来，准备输入和元交易。如果客户端A有三个地址（即三个账户）*a*[1]、*a*[2]和*a*[3]，由相同的私钥种子生成，分别在其账户状态下有200、600和350个IOTA，那么这三个相应的输入交易将在索引、地址和价值字段中填写以下值：{1,
+    *a*[1], –200}、{3, *a*[2], –600}和{5, *a*[3], –350}。因为输入交易需要包含默认安全级别为二的地址的交易签名，所以每个输入交易后面都添加一个元交易以携带前一个输入交易的第二部分签名。这三个元交易将有以下索引、地址和价值：{2,
+    *a*[1], 0}、{4, *a*[2], 0}和{6, *a*[3], 0}。
 - en: An output transaction is prepared as the last one to balance the transfer (the
     so-called remaining transaction). Since client A spent 200 + 600 + 350 = 1,150 tokens
     through the three input transactions, and client B received 700 tokens through
@@ -1742,6 +1746,7 @@
   id: totrans-141
   prefs: []
   type: TYPE_NORMAL
+  zh: 准备一个作为最后交易的输出交易以平衡转账（所谓的剩余交易）。因为客户端A通过三个输入交易花费了200+600+350=1,150个代币，而客户端B通过第一个输出交易收到了700个代币，因此创建一个新的输出交易，将1,150-700=450个代币返给客户端A。这个交易有索引7（在交易包中最大），价值450（正数），地址为*a*[4]（由与客户端A的*a*[1]、*a*[2]、*a*[3]地址相同的种子创建）。
 - en: 'In the end, the complete bundle in a given example contains eight individual
     transactions with the following {“Index”, “Address”, “Value”} triplets: {0, *b*, 700},
     {1, *a*[1], –200}, {2, *a*[1], 0}, {3, *a*[2], –600}, {4, *a*[2], 0}, {5, *a*[3], –350},
