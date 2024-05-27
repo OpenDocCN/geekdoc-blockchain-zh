@@ -1,0 +1,641 @@
+- en: '4'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: THE CONSENSUS MECHANISM
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 4.1\. INTRODUCTION
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Blockchain is a system that enables unknown and untrusting parties to transact
+    with each other, and the records of these transactions are maintained in blocks.
+    The blocks are connected sequentially, so that the ordering and precedence of
+    transactions are preserved forever. The mechanism itself is self-executory in
+    that there is no central administration that is making the rules or ad hoc determinations,
+    rather it is the collective decision of *all* the participants in the network.
+    Each participant has an equal vote. Since it is feasible that different participants
+    can reach different conclusions based on the order in which the messages were
+    received, the system ought to be able to quickly resolve those disagreements and
+    ensure that there is a majority agreement.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The participants in the network all have equal rights, hence can be considered
+    *peers*. However, the peers can fail arbitrarily, and some peers may be malicious.
+    For the system to be effective it should have a built-in mechanism to ensure the
+    validity of the output, even when some peers are malicious or are malfunctioning.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The network itself requires minimal structure. Participants can leave or rejoin
+    the network as and when they please. Yet the system is able to attain consensus
+    despite arbitrary failure of some nodes, or even in presence of malicious behavior
+    on part of some nodes. This is a critical feature of blockchain technology and
+    is known as the consensus mechanism. As long as a majority of CPU power is controlled
+    by nodes that are not malicious, these properly functioning nodes will collectively
+    generate the longest chain and outpace attackers or malicious nodes. Additional
+    participants joining the network, or even those who had left and are re-joining
+    the network, will simply accept the longest chain, at the time, as the legitimate
+    one and a record of what occurred while they were away from the network.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'There are two popular and proven techniques that have been adopted in blockchains:
+    the proof of work and the proof of stake. The “proof or work” technique requires
+    a proof of computation and solving of a complex crypto-puzzle. The difficulty
+    of the computational work limits the rate at which new blocks can be added, and
+    also the participant who could add the block, thereby making it difficult for
+    malicious or non-functional nodes from adding new blocks with incorrect information.
+    The “proof of stake” grants the participant with a higher stake in the network
+    a higher chance of adding the block, thereby again preventing minor and malicious
+    nodes from sabotaging the network.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Nakamoto proposed a consensus mechanism in his treatise. This system does not
+    guarantee that there will always be an agreement or consensus, but guarantees
+    that the probability of reaching a consensus will be close to one. The probability
+    approaches one, as more and more non-malicious participants enter the network.
+    Increasing the difficulty of mining a new block leads to requiring more time to
+    insert the new block, and makes it rare that multiple solutions would gain traction.
+    Ethereum also builds upon the proof of work mechanism to validate new blocks.
+    However, Ethereum system generates a new block in 12–15 seconds relative to Bitcoin
+    requiring about 10 minutes to mine a new block. Consequently, the Ethereum system
+    improves throughput to recording transactions, it also leads to multiple solutions,
+    as different miners will be able to simultaneously propose alternative blocks.
+    To avoid this occurrence the protocol has instituted safeguards as discussed in
+    Wood (2014).
+  prefs: []
+  type: TYPE_NORMAL
+- en: The remainder of the chapter is organized as follows. In Section 4.2, we discuss
+    the importance of achieving consensus. In Section 4.3, we present the abstract
+    computer science problem, popularly known as the Byzantine Generals Problem. In
+    Section 4.4, we discuss the economic incentives of the participants. In Section
+    4.5, we discuss the widespread blockchain consensus mechanism, the proof of work.
+    Another consensus mechanism, the proof of stake, is described in Section 4.6\.
+    Some threats to these consensus mechanisms are discussed in Section 4.7\. We conclude
+    with a summary in Section 4.8.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 4.2\. IMPORTANCE OF CONSENSUS
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The consensus mechanism is essential to ensure that there is only one correct
+    order of the blocks. The blockchain grows through the addition of new blocks to
+    the existing chain. Hence it is imperative that not just the new block be verified
+    but also the current chain and the ordering of the blocks in that chain are verified.
+    This process is executed such that new blocks are appended to the chain, and multiple
+    sequencing of these new blocks are possible. The possibility of multiple sequencing
+    results in a branching process, commonly called a *fork*. Once a fork is discovered,
+    it has to be resolved quickly, to ensure that the *chain* does not transform into
+    a *tree*. [Fig. 4.1](#fig1) graphically illustrates the concept. The current blocks
+    *A* through *E* constitute the current chain, and suppose two more blocks have
+    to be added *F* and *G*. Now consider that some of the chains append *F* before
+    *G,* and others append *G* before *F*, this results in a fork. When additional
+    blocks *H, I* and *J* are added, the fork transforms the chain into a tree. Consequently,
+    a mechanism is needed to quickly resolve the forks and prevent the chain from
+    becoming a tree.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Fig. 4.1:    Adding New Blocks to existing Chain.**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![image](../images/C04-FIG1.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: Extending the example above, it is conceivable that there could be a variation
+    in the ordering of how the new blocks in Phase 2, *H, I* and *J* are ordered.
+    If those variations are allowed, the tree forms more branches and spreads. The
+    consensus algorithm resolves the forks quickly, thereby preventing the branches
+    from being formed, and ensuring that the chain does not transform to a tree.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It is natural in any system that the forks do get formed as different participants
+    of the blockchain may not receive the new information in the same sequence. However,
+    once the fork is discovered, in other words when the participants learn about
+    branches, there has to be a mechanism to agree on which branch is valid and prune
+    out the rest. This ensures that only the main trunk will be allowed to propagate,
+    preventing a tree from forming. Typically, the longest branch is adopted as the
+    valid one in both Bitcoin and Ethereum platforms, though there is a slight difference
+    on how “longest” is defined in these platforms (Natoli & Gramoli, 2016). The forks
+    are not necessarily resolved right away but can grow to some limited depth. Extending
+    a branch requires solving of puzzles that result in additional computational exercise
+    over a longer time period, during which the *longest chain* is identified and
+    propagated. Bitcoin recommends that six blocks be mined after a transaction is
+    issued to consider the transaction accepted by the system, similarly Ethereum
+    recommends that five to 11 additional blocks be appended (Wood, 2014).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Consensus has three main attributes: agreement, validity and termination. Agreement
+    indicates that two or more parties independently reach identical conclusion and
+    both are aware that they have reached the same conclusion. In other words, merely
+    arriving at the same conclusion isn’t sufficient, but each party has to be aware
+    and confident that others must have reached the same conclusion. Hence, the procedure
+    or algorithm of reaching conclusions should be objective, unambiguous and universal.
+    Validity indicates that the final solution is decided from one of the proposed
+    ones. The network or system should take into account the provision that there
+    may be some valid participants and some malicious ones. Hence, termination indicates
+    that the final solution is the one decided by a valid participant and not by the
+    malicious participant (Natoli & Gramoli 2016).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 4.3\. BYZANTINE GENERALS PROBLEM
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: In the early days of computer networks, a perennial problem that arose was the
+    ability of a computer system to continue operating reliably, despite failure of
+    one or more of its components. The information sent by the failed component is
+    ignored or overlooked, as the messages from the failed component could be conflicting
+    to those send by other parts of the system. This abstract problem was referred
+    to as the Byzantine Generals Problem (Shostak, Pease, & Lamport, 1982).
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Byzantine Generals Problem is a hypothetical problem of attacking army regiments
+    surrounding the enemy fort. Each regiment has its own general, and the generals
+    can communicate with each other only through messengers. The generals must decide
+    upon a common plan of action, to assure coordinated attack. To introduce points
+    of failure in the system, some of the generals are assumed to be traitors. The
+    traitors cannot change the course of action, but they can prevent the loyal generals
+    from reaching a consensus.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To simplify the problem further, it is assumed that the regiments have only
+    two courses of action: attack or retreat. All generals use the same method, or
+    algorithm, to aggregate information received from different sources, to reach
+    individual decisions. The success of attack depends on whether all regiments attack
+    simultaneously. If only some regiments attack, while others retreat, the attacking
+    regiments will be annihilated. That is reaching a consensus is imperative. Not
+    only should each general reach the same conclusion, but they should have the confidence
+    that other generals would have done so, as well. [Fig. 4.2](#fig2) illustrates
+    the problem through a picture.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Fig. 4.2:    Byzantine Generals Problem – Attack or Retreat.**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![image](../images/C04-FIG2.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: The difficulty of the Byzantine Generals Problem is that no solution is possible
+    unless more than two-thirds of the generals are loyal. In particular, as shown
+    in [Fig. 4.3](#fig3), with only three generals no consensus can be reached in
+    presence of a single traitor. As the message is controlled solely by the sender,
+    the traitor can send any possible message. In a computer system, this artifact
+    corresponds to the messages sent by computers to each other (Shostak et al., 1982).
+    Consider [Fig. 4.3](#fig3), in which the commander is loyal and sends identical
+    message to both generals asking them to attack. However, one of the generals is
+    a traitor and therefore sends the opposite message to the other general and asks
+    him to retreat. The loyal general receives conflicting messages, hence cannot
+    decide on a plan of action.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Fig. 4.3:    Simplified Byzantine Generals Problem with One General being
+    Traitor.**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![image](../images/C04-FIG3.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Fig. 4.4:    Byzantine Generals Problem When Commander is Traitor.**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![image](../images/C04-FIG4.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: Now consider a slightly different scenario, as shown in [Fig. 4.4](#fig4), in
+    which the commander is a traitor and sends conflicting messages to the two generals.
+    To one general he asks to attack and to the other he asks to retreat. The generals,
+    being loyal, transmit the message each received from the commander. As one would
+    note for the loyal general the messages in both Figs. [4.3](#fig3) and [4.4](#fig4)
+    are identical, and there is no way for this general to distinguish between these
+    two situations. So if the loyal general always follows the message he receives
+    from the commander, he must attack in both situations, while the other general
+    will retreat in both situations. Since one general attacks, while the other retreats,
+    the attack will fail in both situations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It has been shown, through proof by contradiction, that no solution is possible
+    in a system with fewer than 3*n*+1 generals in the presence of *n* traitors. In
+    [Fig. 4.5](#fig5), we illustrate how four generals can cope with one traitor in
+    their midst. First, let’s assume that the commander is loyal but one of the generals
+    is a traitor and changes the message. However, as long as the loyal generals adhere
+    to the majority message, they will take the unified action.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Fig. 4.5:    Extended Byzantine Generals Problem with One Traitor.**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![image](../images/C04-FIG5.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: Suppose General 1 is the traitor and alters the message from the commander,
+    however General 2 is loyal and transmits the same message as he received from
+    the commander. If commander transmitted identical messages to all the generals,
+    General 3 will get two similar messages and one contradictory. Similarly, of the
+    three messages received by General 2, two are for attack (from commander and General
+    3) and one is for retreat (from General 1). All three messages received by General
+    1 are consistent to attack. In this scenario, the consensus will be to attack,
+    and all three generals will comply. Note that the traitor can only send the wrong
+    message to hinder reaching the consensus, however must follow the consensus once
+    it has been decided.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The situation in [Fig. 4.5](#fig5) could be altered to make the commander the
+    traitor who sends out inconsistent messages to the three generals. Suppose the
+    commander is restricted to choose between two alternative messages: attack or
+    retreat. The commander instructs General 1 and General 3 to attack and instructs
+    General 2 to retreat. Each general being loyal, dutifully transmits the message
+    he received. Thus Generals 1 and 3 will instruct the other two generals to attack,
+    and General 2 will instruct the other two generals to retreat. [Fig. 4.6](#fig6)
+    illustrates the messages received by each of the generals. As shown, all three
+    generals receive two messages to attack and one to retreat. Again, if they are
+    following the majority rule, all three generals will attack, foiling the plans
+    of the treasonous commander.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Fig. 4.6:    Byzantine Generals Problem with Three Loyal Generals and Traitor
+    Commander.**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![image](../images/C04-FIG6.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'The situation gets more complex once the message doesn’t have to be binary
+    but could have multiple values. The example above could be extended by including
+    a third message of “unsure,” that is the commander or generals could send one
+    of three messages: attack, retreat and unsure. In that instance, the complexity
+    of finding a consensus between all the general and the commander is increased.
+    Now imagine the exponential increase in complexity when there are hundreds, or
+    even thousands, of generals.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Additionally, the message could be a continuous variable. In our example, rather
+    than deciding whether to attack or retreat, suppose the commander sends out the
+    time of attack. All generals have to attack within 10 minutes of each other for
+    the attack to be successful. A traitor would change the time of attack randomly
+    and send wrong messages to other generals. For the system to work, the loyal generals
+    should be able to independently arrive at the same conclusion on the time of attack,
+    in essence overriding or ignoring the message received from the traitors.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This Byzantine Generals Problem is applicable to every distributed network,
+    as some nodes in the network could be malicious or simply fail to send message.
+    The other functioning nodes should be able to function and reach consensus even
+    though not all the nodes are properly functioning. The solution to this abstract
+    problem requires an algorithm that each node must follow. Additionally, the vulnerability
+    of the system to malicious and non-functional nodes must be pre-determined. Mathematically,
+    it has been shown that the system would function if the traitor nodes are less
+    than one-third of total nodes, that is for a system with *n* malicious nodes,
+    the total number of nodes must be 3*n* +1 for the system to reach consensus.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In a blockchain network, the above problem is even more complex as there is
+    no true commander in the system. All participating nodes are the Generals and
+    have the same hierarchical position. All participating nodes have to agree upon
+    every message that is transmitted between the nodes, even though there is no node
+    that is superior to others. The system should be able to function even when a
+    node or a group of nodes are corrupt or malicious, in that the message sent from
+    these nodes are unreliable. In summary, the participants in the blockchain should
+    be able to arrive at a consensus even when some of the participants are malicious
+    or dysfunctional and are sending inaccurate messages.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 4.4\. ECONOMICS OF VALIDITY AND VERIFIABILITY
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The validity and propagation of blockchain requires effort of many unrelated
+    participants. These participants have to be compensated in some form to ensure
+    their continued engagement in the chain. These incentives are usually funded through
+    transaction fees. The transacting parties that want their transaction to be facilitated
+    through blockchain would pay a nominal transaction fee. The transaction fee is
+    then collected by a “miner” who mines the next block, either by solving a complex
+    cryptographic puzzle or by winning a random drawing, depending on the consensus
+    mechanism.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Another way that miners are compensated is through inflation. As the currency
+    they had initially mined become more valuable, their wealth grows, without having
+    to do any additional work. Hence, initial miners being motivated to preserve the
+    value of their coins and even grow those, would encourage growth in the system
+    and additional transactions being recorded. Moreover, they are vested in the security
+    and credibility of the system and wouldn’t want those to be compromised.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The incentive in blockchain, through transaction fee and inflation, encourage
+    participating nodes to stay honest. Even if a malicious attacker is able to assemble
+    sufficient CPU power, to out-compute honest nodes, they should have greater incentive
+    to block new blocks rather than alter the existing ones. In other words, the malicious
+    node with sufficient CPU power should have the opportunity of generating greater
+    profits by mining additional coins than by going back and reversing transactions.
+    That is the incentives of playing by the rules should exceed that of defrauding
+    the system. The cost of undermining the system would further reduce the value
+    of the coins or wealth the malicious node has amassed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To safeguard the sanctity of the system, the cost to defraud should be made
+    large relative to the ill-gotten gains. Thus, the benefit for a miscreant stealing
+    from the system would be less than the cost incurred thereby making it monetarily
+    unattractive for the miscreant to steal. In the Bitcoin setting this is accomplished
+    naturally through the setup. First the miners have to purchase expensive hardware
+    equipment that can solve the mining algorithm. The miscreant would have to invest
+    in computation capacity and thus have a high investment in the system. Moreover,
+    if the mining process is subverted the reputation and credibility of Bitcoin is
+    adversely affected, reducing its value. Thus the coins that the miscreant stole
+    from the system would be worth less, and would become lower as the miscreant steals
+    more and consequently damages the credibility of the process. Structuring the
+    process as such, whereby the value of the currency is based on its reputation,
+    deters miscreants to steal thereby damaging the reputation, and consequently diminishing
+    the value of the very object they are stealing.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 4.5\. PROOF OF WORK
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Nakamoto faced the challenge of “establishing trust in a trustless network.”
+    He had to rely on a system that would ensure that it will be impossible for an
+    individual or even a small group, to computationally outpace the collective network.
+    Thus the basic idea was to make it difficult to add blocks to the blockchain,
+    and would require substantial computational power. This is the common feature
+    of “proof of work” algorithm.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Proof of work is one of the consensus mechanisms for achieving agreement on
+    the blockchain network to confirm transactions and produce new blocks to the chain.
+    The proof of work solves the Byzantine Generals Problem of determining representation
+    in majority decision-making. Rather than assigning votes based on participation,
+    it assigns votes based on processing ability. Proof of work is essentially a vote
+    for each unit of CPU. This mechanism of voting, rather than one vote per participant
+    prevents subversion by an attacker who is able to obtain many marginal participants.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Of the many consensus protocols, the proof of work consensus mechanism accounts
+    for a considerable share (around 90%) of the total market capitalization of existing
+    digital currencies.[¹](#fn1) Introduced through Bitcoin, the proof of work consensus
+    mechanism has been adopted by Litecoin, Dogecoin and Ethereum. It has been widely
+    adopted even in spheres outside of digital currency.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It is important to prevent malicious participants from corrupting the network.
+    The proof of work mechanism reduces the relative gains from fraudulent behavior
+    by adding costs to engage in those. The costs in the case of Bitcoin is the computational
+    costs, the hardware and the electricity consumption (also known as “gas”). The
+    validators establish their authenticity by revealing to the network answers to
+    computationally difficult cryptographic puzzles.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the proof of work mechanism, the miners compete against each other to validate
+    the next set of transactions. The successful miner gets rewarded through transaction
+    fees to build the next block. The probability of being selected to build the next
+    block, and thus get rewarded, is proportional to the computation power. As will
+    be discussed later, the miners compete against each other to solve a complex cryptographic
+    puzzle. Having greater computational power increases the chances of being the
+    first to solve the puzzle, but does not guarantee it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Bitcoin, for example, employs a hash-based proof of work which requires finding
+    a “nonce” value. When combined with other variables, the resultant value of the
+    hash has to be less than the target value. When such a nonce is found, the miner
+    creates the block and forwards it to other participants for verification and adoption.
+    Once other participants have verified the solution, they accept the new block
+    and work on solving the next crypto-problem to gain the right to mine the next
+    block (Gervais et. al., 2016).
+  prefs: []
+  type: TYPE_NORMAL
+- en: The majority decision made through the proof of work is represented by the longest
+    chain, as discussed in Section 4.2\. The longest chain is representation of the
+    greatest “proof of work” invested in it. When a majority of processing power is
+    controlled by the honest nodes, the honest chains will grow faster and outpace
+    the alternative chain being propagated by malicious nodes. Moreover, to modify
+    a past block, the attacker will not only have to redo the block they are interested
+    in, but all the subsequent blocks. That is the attacker node will have to regenerate
+    the proof of work of that particular block and every subsequent block and then
+    catch up and surpass the work that has been performed by the honest nodes in the
+    meantime. This concept is illustrated in [Fig. 4.7](#fig7). Thus, the attacker
+    should have computation power that surpasses the combined computation power of
+    the honest nodes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Fig. 4.7:    Proof of Work Makes Alterations Difficult in Blockchain.[²](#fn2)**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![image](../images/C04-FIG7.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: While the longest chain, at any given point, is propagated and survives, it
+    is important to note that there could be “stale blocks.” Stale blocks refer to
+    blocks that were mined but are not included in the longest chain, instead they
+    are part of a defunct fork. These are detrimental to the security and performance
+    of the entire blockchain, as they trigger chain forks. The chain forks consume
+    computational time and energy away from the main chain, thereby slowing down the
+    growth of the main chain. Additionally, they impose security risks as malicious
+    nodes could take advantage of the stale blocks to compromise the network.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Fig. 4.8:    The Sudoku Puzzle.**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![image](../images/C04-FIG8.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'The cryptographic complex problem that needs to be solved by the miners can
+    be solved only through brute force. It requires finding a solution by iteratively
+    trying out all possible combinations. Thus, probabilistically the miner with the
+    most computational power will have the greater chance of being the first to solve
+    the puzzle. The puzzle has the following two properties:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The problem is hard to solve.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Once attained, the solution can be easily verified.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: To better understand how the above rules work, consider the Sudoku puzzle shown
+    in [Fig. 4.8](#fig8). For those unfamiliar with the game of Sudoku, the aim is
+    to fill each row, column and the nine boxes with numbers 1–9, such that no number
+    is repeated in the row, column or the box. The numbers already given in the cell
+    cannot be altered. Suppose, this is the puzzle to be solved and the fastest to
+    the correct solution gets to build the next block and collect coins for her efforts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Those who are quite proficient in solving Sudoku puzzles with logic will still
+    take about 10 minutes to solve the above. Whereas, with excess computation power,
+    the computer would solve it through brute force, randomly assigning numbers to
+    the cells, until the correct solution is found. More importantly, while it will
+    take about 10 minutes for proficient problem solvers to find the solution, it
+    will take less than a minute for anyone, with a basic understanding of numbers,
+    to verify the solution to this puzzle shown in [Fig. 4.9](#fig9).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Fig. 4.9:    Solution to the Sudoku Puzzle.**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![image](../images/C04-FIG9.jpg)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'This is why it is so difficult to tamper with existing blocks on blockchain.
+    Even for a simple puzzle like Sudoku, a miscreant would have to solve many of
+    these individually, whereas others are collectively solving additional puzzles.
+    Referring back to the example shown in [Fig. 4.7](#fig7), the miscreant has to
+    solve 16 puzzles, one for each block from #75 to #90, while others are working
+    on puzzle #91\. Let’s assume that the miscreant is actually twice as faster than
+    the collective group. Even then, by the time it takes the miscreant to solve 16
+    puzzles, the group conservatively would have solved at least eight more and would
+    be on puzzle #99\. Now for the miscreant to solve these eight puzzles, the group
+    would have solved four more, and so on. Perhaps, after solving 32 puzzles, or
+    by puzzle #106, the miscreant would have caught up with the group. Instead of
+    expending resources to recreate blocks from #74 onwards, the miscreant could have
+    legitimately been the first to solve the puzzles from #91 to #106 and collect
+    the reward. If the system provided substantial reward for solving the new puzzles,
+    it may not be in the economic interest of the miscreant to change block #74, and
+    would instead opt for legitimately creating new blocks and collecting corresponding
+    rewards.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The proof of work model is a security measure that combines incentives with
+    distributed computing and market economics. This innovation has empowered blockchain
+    to function with secure and distributed consensus building system that has proven
+    successful for over a decade. The limitation of proof of work is its reliance
+    on computational power and its energy-intensive design. For example, in the case
+    of Bitcoin, the balancing of costs of energy expenditure with its value is a convoluted
+    task.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 4.6\. PROOF OF STAKE
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: There is an alternate consensus mechanism that does not need the energy or computational
+    requirement of the proof of work mechanism. Instead of solving a complex problem,
+    as required in the proof of work, the proof of stake randomly selects one of the
+    participants with a probability proportional to the stake that the participant
+    possesses in the blockchain. Stake is referred to the amount of currency or interest
+    that a participant is willing to “lock up” for a certain amount of time. The “lock
+    up” is similar to putting up a collateral for a specified amount of time. In return
+    for committing funds to the system, the participant gets a higher chance of winning
+    the lottery, and the right to form the next block. Currently, the proof of stake
+    is being used in existing virtual coin such as Nxt and Blackcoin.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As noted above, the selection of the next block builder is decided by a lottery,
+    with each participant having a chance proportional to their stake in the network.
+    This is similar to the NBA[³](#fn3) draft lottery. The team with the worst record
+    has 16 tickets in the lottery, the team with the second worst record has 15 tickets,
+    and so on. Since the lottery is limited to teams not making the playoffs, only
+    16 teams are eligible. Thus, the team that just missed the playoff has only one
+    ticket. Overall, there are 136 tickets in the lottery, and the worst team having
+    16 tickets has about 12% chance of winning the lottery. The probabilities range
+    from 1% to 12%, but if one has more tickets, they have a higher likelihood of
+    winning the lottery.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Similar to the proof of work mechanism, the proof of stake also ensures the
+    integrity of the system and the impossibility of changing a prior block. The escrow
+    of tokens by each participant enables the selection of the next individual to
+    build a block. It is difficult, if not impossible, for one individual to invest
+    enough number of tokens to outpace the collective network. Moreover, if an individual
+    has invested in that many tokens in the network, then it is in their best economic
+    interest to preserve the value of the network, as they are heavily vested in the
+    value and reputation of the network.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are other consensus building mechanisms being trialed. One such mechanism
+    is the proof of elapsed time, which needs node to computationally wait for a period
+    of time before the next block is added to the blockchain. The compulsory wait
+    time makes it computationally difficult to add blocks to the blockchain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Another is a variation of the proof of stake model, known as the delegate proof
+    of stake. In this mechanism the stakeholders use their stake as weight in a voting
+    process to elect delegates, called witnesses. The witnesses, in turn, verify and
+    execute new transaction and have the responsibility of appending these to the
+    blocks. This is tantamount to election of Board of Directors in corporate governance.
+    The majority shareholders have a greater say on who should serve on the Board,
+    but at the same time have to nominate someone credible. Once nominated, the Directors
+    act on their own volition. Similarly, the top witnesses in this mechanism are
+    the ones who have collected the most votes, and earn the right to verify and execute
+    transactions. The votes for witnesses by the stakeholders are weighed in proportion
+    to their stake in the network.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 4.7\. CONCLUSION
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: The consensus mechanism, discussed in this chapter, is an essential feature
+    of permissionless blockchains. The consensus mechanism generates trust between
+    unknown individuals who cannot trust each other, hence would not transact with
+    each other in the absence of a trusted third party. The consensus mechanism enables
+    the blockchain framework to substitute for the trusted third party in peer-to-peer
+    transactions, thus replacing traditional trusted third parties, such as lawyers,
+    banks, agents and brokers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In permissioned blockchain, on the other hand, where all the participants are
+    known and trusted the consensus mechanism is not as critical. Transactions between
+    known and trusted parties can occur even without a robust consensus mechanism,
+    as the participants in permissioned blockchain have an inbuilt incentive to maintain
+    the integrity of the blockchain network. A breach of the networks’ credibility
+    will not only harm the participants financially but also would lead to a loss
+    of their personal credibility. Thus a robust consensus mechanism is not a critical
+    feature in permissioned blockchain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Of all the features of the blockchain, the consensus mechanism is the most technical
+    and is based on cryptographic proof as well as computational prowess. Obtaining
+    a technical understanding of the consensus mechanisms, such as in proof of work,
+    requires training in mathematics and computer science. Moreover, since it also
+    deals with incentives in a group setting with independent actors, a familiarity
+    with the discipline of game theory[⁴](#fn4) is also needed. In this chapter, we
+    have presented a non-technical appreciation of the concept. A basic familiarity
+    with the concept is essential to understand the functioning of various features
+    of the blockchain as well as its applications.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For permissionless blockchains to prosper and grow, the underlying consensus
+    mechanism has to gain universal trust. One of the key advantages of blockchain
+    infrastructure is its immutability, in that the records stored in the blockchain
+    cannot be altered and is preserved forever. The consensus mechanism, making it
+    difficult if not impossible to alter previous blocks, leads credence to the immutability
+    feature inherent in blockchains.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Currently, the proof of work is the widely accepted consensus mechanism in blockchains.
+    However, other consensus mechanisms, such as proof of stake or proof of elapsed
+    time, are being developed and tested. The proof of work mechanism requires much
+    computational power and energy (gas) to operate. Finding an easier and cheaper
+    alternative will hasten the growth and acceptance of blockchain-based substitute
+    of traditional and established recordkeeping processes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Subsequent chapters discuss many applications of blockchain and in all those
+    applications the consensus mechanism is relied upon to provide the trust and immutability
+    of the records. There are of course certain limitations and vulnerabilities to
+    the consensus mechanism which will be discussed in subsequent chapters. Current
+    research in computer science and security are exploring ways to make the consensus
+    mechanisms even more robust and less vulnerable to malicious attacks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: NOTES
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: '[1.](#ifn1) Data from CoinMarketCap. Available at [coinmarketcap.com/](http://coinmarketcap.com/)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[2.](#ifn2) [https://medium.com/loom-network/understanding-blockchain-fundamentals-part-2-proof-ofwork-proof-of-stake-b6ae907c7edb](https://medium.com/loom-network/understanding-blockchain-fundamentals-part-2-proof-ofwork-proof-of-stake-b6ae907c7edb)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[3.](#ifn3) National Basketball Association (NBA) is the men’s professional
+    basketball league in the United States.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[4.](#ifn4) Game theory is a branch of economics that deals with mathematical
+    modeling of economic conflicts.'
+  prefs: []
+  type: TYPE_NORMAL
