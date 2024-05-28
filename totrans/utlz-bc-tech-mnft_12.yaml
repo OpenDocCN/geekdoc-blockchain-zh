@@ -1268,35 +1268,42 @@
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 2\. Solidity 语言的特性，没有这些特性智能合约将无法正常工作；
 - en: 3\. Recommendations for the correct and safe functioning of smart contracts
     in the EVM Ethereum itself.
   id: totrans-179
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 3\. 关于 EVM 以太坊本身智能合约正确安全运行的建议。
 - en: A visual representation of the methodology plan is shown in Figure 11.
   id: totrans-180
   prefs: []
   type: TYPE_NORMAL
+  zh: 方法论计划的可视化表示如图 11 所示。
 - en: '| Figure 11\. The plan of the methodology for ensuring the security of a smart
     contract |'
   id: totrans-181
   prefs: []
   type: TYPE_TB
+  zh: '| 图 11\. 智能合约安全保障方法论计划 |'
 - en: '| ![Figure978-1-7998-8697-6.ch011.f11](i/ch011.f11.png) |'
   id: totrans-182
   prefs: []
   type: TYPE_TB
+  zh: '| ![图11](i/ch011.f11.png) |'
 - en: Vulnerabilities and Problems that Arise When Writing Smart Contracts
   id: totrans-183
   prefs: []
   type: TYPE_NORMAL
+  zh: 撰写智能合约时出现的漏洞和问题
 - en: The security of smart contracts must be reliably ensured. There are many examples
     of how the vulnerabilities of smart contracts lead to very significant economic
     losses, and here are just two examples.
   id: totrans-184
   prefs: []
   type: TYPE_NORMAL
+  zh: 智能合约的安全性必须得到可靠的保证。许多智能合约漏洞导致了非常重大的经济损失，这里只是两个例子。
 - en: Just following intuition instead of best practices may only lead to unwanted
     loopholes. The well-known DAO (Decentralized Autonomous Organisation) hack can
     be considered a prime example of overlooked side effects in smart contracts. The
@@ -1308,6 +1315,9 @@
   id: totrans-185
   prefs: []
   type: TYPE_NORMAL
+  zh: 仅仅跟随直觉而不是最佳实践可能只会导致意想不到的漏洞。众所周知的 DAO（去中心化自治组织）黑客事件可以被视为智能合约中被忽视的副作用的典型例子。基于以太坊的
+    DAO 最初是世界上最大的众筹项目之一，但很快就成为了最值得记忆的失败之一，当利用递归调用模式导致 DAO 资金被突然移除时。随后以太坊区块链的硬分叉（查看
+    https://www.zeit.de/digital/internet/2016-06/the-dao-blockchain-ether-hack）仅加剧了争议。
 - en: Just as severe, with damage totaling $30 million (see https://www.coindesk.com/30-million-ether-reported-stolen-parity-wallet-breach),
     was the Parity wallet breach related to Ethereum in July 2017\. Careless use of
     a delegate call command in a critical library enabled the attacker to gain ownership
@@ -1315,6 +1325,7 @@
   id: totrans-186
   prefs: []
   type: TYPE_NORMAL
+  zh: 与此同样严重的是，2017 年 7 月与以太坊相关的 Parity 钱包遭受的损失总额为 3000 万美元（查看 https://www.coindesk.com/30-million-ether-reported-stolen-parity-wallet-breach）。在一个关键库中不小心使用代理调用命令使攻击者能够获得多签名钱包的所有权并重定向其所有资金
 - en: For a smart contract to be secure and an attacker could not break it or send
     tokens to himself, you need to remember typical and well-known errors when writing
     code for applications. It is especially true for smart contracts since the developer
@@ -1445,11 +1456,13 @@
   id: totrans-198
   prefs: []
   type: TYPE_NORMAL
+  zh: 小地址攻击：由于用户可以与交易所合作，因此他可以输入一个位数较少的不正确地址。由于固定长度的字符串被馈送到 EVM 中，如果字符串比它小，EVM 就会用无关紧要的零来补充它。因此，由于编码中的这种情况，代币数量可能会发生变化。并且区块链中的条目将不会是用户想要的那个。在智能合约中检查地址的正确字符数是非常重要的，如果此检查未通过，则不执行交易。
 - en: 'Here are some examples of the source texts of smart contracts in which the
     vulnerabilities are present:'
   id: totrans-199
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里是一些存在漏洞的智能合约源文本示例：
 - en: 'Race Condition Type: The vulnerability lies in the possibility of calling the
     external code again, during the execution of the contract code. This can lead
     to different function calls interacting in destructive ways. Example of a smart
@@ -1457,42 +1470,52 @@
   id: totrans-200
   prefs: []
   type: TYPE_NORMAL
+  zh: 竞争条件类型：漏洞在于在执行合同代码期间再次调用外部代码的可能性。这可能导致不同的函数调用以破坏性的方式相互作用。具有此漏洞的智能合约代码示例：
 - en: 1     mapping (address} =˃ uint) private userBalances;
   id: totrans-201
   prefs: []
   type: TYPE_NORMAL
+  zh: 1     映射（地址} =˃ uint）私有 userBalances;
 - en: '2'
   id: totrans-202
   prefs: []
   type: TYPE_NORMAL
+  zh: '2'
 - en: 3 ▼     function wthdrawBalance() public {
   id: totrans-203
   prefs: []
   type: TYPE_NORMAL
+  zh: 3 ▼     function wthdrawBalance() public {
 - en: 4          uint amountToWithdraw = userBalances[msg.sender];
   id: totrans-204
   prefs: []
   type: TYPE_NORMAL
+  zh: 4          uint amountToWithdraw = userBalances[msg.sender];
 - en: 5          require(msg.sender.call.value(amountToWithdraw)(); // 1
   id: totrans-205
   prefs: []
   type: TYPE_NORMAL
+  zh: 5          require(msg.sender.call.value(amountToWithdraw)(); // 1
 - en: 6 ▼     /* In line 1, the external code is called, which can be called again
   id: totrans-206
   prefs: []
   type: TYPE_NORMAL
+  zh: 6 ▼     /* 在第一行调用了外部代码，该代码可以再次被调用
 - en: 7      until the end of the first call */
   id: totrans-207
   prefs: []
   type: TYPE_NORMAL
+  zh: 7      直到第一次调用结束为止 */
 - en: 8          userBalances[msg.sender] = Ø;
   id: totrans-208
   prefs: []
   type: TYPE_NORMAL
+  zh: 8          userBalances[msg.sender] = Ø;
 - en: 9     }
   id: totrans-209
   prefs: []
   type: TYPE_NORMAL
+  zh: 9     }
 - en: 'Dependence on the timestamp. When writing a smart contract, you need to keep
     in mind that the node offering the next block can write a timestamp into it based
     on its interests. Thus, it can influence the execution of a contract relying on
@@ -1500,34 +1523,42 @@
   id: totrans-210
   prefs: []
   type: TYPE_NORMAL
+  zh: 依赖于时间戳。编写智能合约时，需要牢记下一个区块的节点可以根据其利益将时间戳写入其中。因此，它可以影响依赖于其代码中时间戳值的合约的执行。具有此漏洞的智能合约代码示例：
 - en: 1     uint someVariable = now + 1;
   id: totrans-211
   prefs: []
   type: TYPE_NORMAL
+  zh: 1     uint someVariable = now + 1;
 - en: 2 ▼     if (now % 2 == Ø) { // now installed by the miner
   id: totrans-212
   prefs: []
   type: TYPE_NORMAL
+  zh: 2 ▼     if (now % 2 == Ø) { // 由矿工安装的 now
 - en: 3          // important code
   id: totrans-213
   prefs: []
   type: TYPE_NORMAL
+  zh: 3          // 重要代码
 - en: 4     }
   id: totrans-214
   prefs: []
   type: TYPE_NORMAL
+  zh: 4     }
 - en: 5 ▼     if ((someVariable - 1ØØ) % 2 == Ø) { // someVariable depends on now
   id: totrans-215
   prefs: []
   type: TYPE_NORMAL
+  zh: 5 ▼     if ((someVariable - 1ØØ) % 2 == Ø) { // someVariable 依赖于 now
 - en: 6          // important code
   id: totrans-216
   prefs: []
   type: TYPE_NORMAL
+  zh: 6          // 重要代码
 - en: 7     }
   id: totrans-217
   prefs: []
   type: TYPE_NORMAL
+  zh: 7     }
 - en: 'Data type overflow. Data type overflow is dangerous because the value change
     may occur according to logic not provided by the developer. This vulnerability
     can occur both with the upper bound of the data type and with the lower one. Example
@@ -1822,21 +1853,26 @@
   id: totrans-264
   prefs: []
   type: TYPE_TB
+  zh: '| 使用 SHA-3 作为加密哈希函数的可能性 | 没有可用信息 | 需要修改；平台默认未实现 SHA-3 | 没有可用信息 | 文档中未定义哈希方法
+    | 存在使用 SHA-3 的可能性 |'
 - en: '| The ability to import corporate certificates for signing transactions | No
     information available | There is no possibility | No information available | There
     is no possibility | Identically |'
   id: totrans-265
   prefs: []
   type: TYPE_TB
+  zh: '| 导入公司证书进行交易签名的能力 | 没有可用信息 | 没有可能性 | 没有可用信息 | 没有可能性 | 相同 |'
 - en: METHODS AND MEANS OF FORMAL VERIFICATION OF THE PROGRAM CODE OF SMART CONTRACTS
   id: totrans-266
   prefs: []
   type: TYPE_NORMAL
+  zh: 智能合约程序代码的形式验证方法和手段
 - en: Verification of the program code is verifying the results of its work for compliance
     with specifications (requirements formulated from the outside).
   id: totrans-267
   prefs: []
   type: TYPE_NORMAL
+  zh: 对程序代码的验证是验证其工作结果是否符合规范（从外部制定的要求）。
 - en: In the formulation of the problem of this work, the concept of verification
     is not used in a strictly mathematical sense. Verification, in the strict sense,
     really works with ready-made requirements received from the outside. In addition
@@ -1846,6 +1882,7 @@
   id: totrans-268
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本工作问题的表述中，验证的概念并没有严格按照数学意义使用。验证，在严格意义上，确实是与从外部接收到的现成要求一起使用的。除了验证符合性之外，它还意味着对主题领域进行初步分析，并确定有助于合同最安全运行的要求。
 - en: In addition to the requirements, each smart contract has a specific business
     logic, the requirements for which can only be collected separately. Verification
     of specific requirements for adequacy, unambiguity, completeness, consistency,
@@ -1855,6 +1892,7 @@
   id: totrans-269
   prefs: []
   type: TYPE_NORMAL
+  zh: 除了要求之外，每个智能合约还有特定的业务逻辑，对其要求只能单独收集。对于每个智能合约，只能分别验证其适当性、明确性、完整性、一致性和其他重要属性的具体要求，并验证智能合约代码是否符合这些具体要求。
 - en: The process of collecting and analyzing business requirements is a separate
     task, different from the task of this work. Formal verification of program code
     is a more strict concept, meaning formal proof of compliance or non-compliance
@@ -1862,21 +1900,25 @@
   id: totrans-270
   prefs: []
   type: TYPE_NORMAL
+  zh: 收集和分析业务需求的过程是一项单独的任务，与本工作的任务不同。程序代码的形式验证是一个更严格的概念，意味着对代码结果与形式规范的符合或不符合进行形式证明。
 - en: Currently, three approaches to formal verification of programs are most widely
     used •
   id: totrans-271
   prefs: []
   type: TYPE_NORMAL
+  zh: 目前，形式验证程序的三种方法最广泛使用 •
 - en: • Symbolic execution,
   id: totrans-272
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: • 符号执行，
 - en: • Checking models,
   id: totrans-273
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: • 检查模型，
 - en: • Verification using automatic proof of theorems.
   id: totrans-274
   prefs:
@@ -2052,6 +2094,7 @@
   id: totrans-292
   prefs: []
   type: TYPE_NORMAL
+  zh: 在谓词逻辑中，有推理和获取推论的规则，根据这些规则，一个或多个句子的有效性遵循另一个句子的有效性。自动证明定理的算法被简化为应用这些推理规则。自动证明需要推理规则和搜索证明的策略。例如，一种策略可能建议从末尾使用推理规则，从需要证明的句子开始。
 - en: The strategies used by the programs for proving theorems are based on algorithms
     for traversing in width and depth. The proof problem has twice the exponential
     complexity concerning the length of the sentence being proved. That is why automatic
@@ -2060,19 +2103,23 @@
   id: totrans-293
   prefs: []
   type: TYPE_NORMAL
+  zh: 自动证明定理的程序所使用的策略基于宽度优先和深度优先的算法。证明问题的复杂度是所证明句子长度的两倍指数复杂度。这就是为什么自动证明程序通常是交互式的，因为在这种情况下，用户可以帮助程序构建证明，从而显著降低了任务的复杂度。
 - en: Interaction with the automatic proof system requires a highly qualified user.
   id: totrans-294
   prefs: []
   type: TYPE_NORMAL
+  zh: 与自动证明系统的交互需要高度资质的用户。
 - en: We note Coq, Simplify, Isabelle/HOL, HOL 4, HOL Light, Mizar among the tools
     for automatic proof used to verify program code.
   id: totrans-295
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们注意到 Coq、Simplify、Isabelle/HOL、HOL 4、HOL Light、Mizar 等自动证明工具，用于验证程序代码。
 - en: Protection of Hyperleger and Exonum Services from Errors
   id: totrans-296
   prefs: []
   type: TYPE_NORMAL
+  zh: 保护 Hyperledger 和 Exonum 服务免受错误
 - en: 'In writing the functions of Hyperleger and Exonum smart contracts, which describe
     some business logic for working with objects stored in the blockchain, the programmer
     may make mistakes. Some of these errors can be found by the compiler itself and
@@ -2080,6 +2127,7 @@
   id: totrans-297
   prefs: []
   type: TYPE_NORMAL
+  zh: 在编写 Hyperledger 和 Exonum 智能合约的函数时，描述存储在区块链中的对象的某些业务逻辑，程序员可能会犯错误。这些错误中的一些可以由编译器本身发现，并将及时消除。其他错误可能会导致以下后果：
 - en: 1\. Emergency stop of the blockchain node. A program that implements the node's
     logic and executes the code of the services can terminate and output an error.
     Implementing the code of services on Rust, Exonum or Golang platforms in Hyperleger
@@ -2091,6 +2139,8 @@
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 1\. 区块链节点的紧急停止。实现节点逻辑并执行服务代码的程序可以终止并输出错误。在 Hyperledger 中将服务代码实现在 Rust、Exonum
+    或 Golang 平台上可能是因为未正确处理调用 panic 函数的情况，或者未考虑明确导致 panic 的函数。对于 Java、Node.js 中的服务，这种情况可能是由于未拦截的异常引起的。
 - en: 2\. Emergency termination of an external API call that changes the network state
     or does not change it. Similar to the previous case, there may be a situation
     when the REST API request handler will not be able to terminate correctly. This
@@ -2100,6 +2150,7 @@
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 2\. 外部 API 调用紧急终止，改变网络状态或不改变。与前一情况类似，可能会出现 REST API 请求处理程序无法正确终止的情况。这不会导致节点停止，但执行请求的程序将不会收到错误消息或结果。
 - en: 3\. The node hangs. If the transaction processing function has a high computational
     complexity or enters an erroneous state with an eternal cycle, the network nodes
     will not be able to perform the transaction.
@@ -2107,6 +2158,7 @@
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 3\. 节点挂起。如果事务处理函数具有很高的计算复杂性，或者进入错误状态并进入永恒循环，网络节点将无法执行事务。
 - en: 4\. The external API handler freezes. In case of a programmer error, the external
     REST API handler thread may never be complete, or it will run for an unacceptably
     long time, consuming the resources of network nodes. The Hyperleger and Exonum
@@ -2117,6 +2169,8 @@
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 4\. 外部 API 处理程序冻结。在程序员错误的情况下，外部 REST API 处理程序线程可能永远不会完成，或者它将运行的时间太长，消耗网络节点的资源。Hyperledger
+    和 Exonum 区块链是私有的，只有一组有限的节点可以在其中创建交易。因此，它们没有内置的防止 DOS 的机制，所有防止此类情况发生的责任都落在程序员身上。
 - en: 5\. Littering of the network. Since the smart contract can make transactions
     in calculating the next block, the network can constantly increase the size of
     the blockchain indefinitely.
@@ -2124,6 +2178,7 @@
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 5\. 网络的垃圾。由于智能合约可以在计算下一个块时进行交易，网络可能会不断增加区块链的大小，而大小可以无限制地增加。
 - en: 6\. Invalid calls inside transaction calculation functions. Functions that calculate
     transactions should not depend directly or indirectly on external data sources
     since transactions should result on any node.
@@ -2131,12 +2186,14 @@
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 6\. 在事务计算函数中调用无效。计算事务的函数不应直接或间接地依赖于外部数据源，因为事务应在任何节点上产生结果。
 - en: 7\. Recursive calls between the functions of smart contracts can violate the
     logic of their operation or an eternal loop in the handler thread.
   id: totrans-304
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 7\. 智能合约函数之间的递归调用可能会违反其操作逻辑或在处理程序线程中进入永久循环。
 - en: 8\. Inconsistency of transaction calls. The service can store data both locally
     on each node and globally. In the Exonum blockchain, the hash of the current state
     of the service is returned by the state_hash function; in Hyperleger, the PutState
@@ -2301,15 +2358,18 @@
   id: totrans-321
   prefs: []
   type: TYPE_NORMAL
+  zh: 克里斯，J. S. (2017)。谁会被区块链杀死：4个即将消失的小型企业领域。https://incrussia.ru/understand/kogo-ubet-blokchejn-4-sfery-malogo-biznesa-kotorye-skoro-ischeznut/
 - en: Dannen, K. (2018). Introduction to Ethereum and Solidity . Samizdat.
   id: totrans-322
   prefs: []
   type: TYPE_NORMAL
+  zh: Dannen, K. (2018)。《以太坊和Solidity简介》。Samizdat.
 - en: Egorov, V. (2021). Gazprom Neft sells its blockchain platform in the form of
     an NFT token. (https://beincrypto.ru/gazprom-neft-prodaet-reliz-sobstvennoj-blokchejn-platformy-v-vide-nft-tokena/)
   id: totrans-323
   prefs: []
   type: TYPE_NORMAL
+  zh: Egorov, V. (2021)。Gazprom Neft以NFT令牌的形式出售其区块链平台。(https://beincrypto.ru/gazprom-neft-prodaet-reliz-sobstvennoj-blokchejn-platformy-v-vide-nft-tokena/)
 - en: 'Eman, M. A., Abdullah, M. I., Passent, M. E., Oh-Young, S., & Ali, K. B. (2020).
     DITrust chain: Towards blockchain-based trust models for sustainable healthcare
     IoT systems. IEEE Access: Practical Innovations, Open Solutions , 8, 111223–111238\.
@@ -2317,28 +2377,34 @@
   id: totrans-324
   prefs: []
   type: TYPE_NORMAL
+  zh: Eman, M. A., Abdullah, M. I., Passent, M. E., Oh-Young, S., & Ali, K. B. (2020)。DITrust
+    chain：面向可持续医疗保健物联网系统的基于区块链的信任模型。IEEE Access：实用创新，开放解决方案，8，111223–111238。doi:10.1109/ACCESS.2020.2999468
 - en: Karaev, A. (2018). “Gazprom Neft” has tested blockchain and the Internet of
     Things in logistics. (https://www.gazprom-neft.ru/press-center/news/v-gazprom-nefti-ispytali-blokcheyn-i-internet-veshchey-v-logistike/)
   id: totrans-325
   prefs: []
   type: TYPE_NORMAL
+  zh: Karaev, A. (2018)。“Gazprom Neft”在物流领域测试了区块链和物联网。(https://www.gazprom-neft.ru/press-center/news/v-gazprom-nefti-ispytali-blokcheyn-i-internet-veshchey-v-logistike/)
 - en: Kustov, V. N., & Stankevich, T. L. (2018). Once Again about Blockchain Technology.
     Intellectual Technologies on Transport , (3), 38–46.
   id: totrans-326
   prefs: []
   type: TYPE_NORMAL
+  zh: Kustov, V. N., & Stankevich, T. L. (2018)。再谈区块链技术。交通智能技术，(3)，38–46。
 - en: 'Kustov, V. N., & Stankevich, T. L. (2018). Blockchain Prospects: a Dialogue
     between a Skeptic and an Optimist. Bulletin of Scientific Conferences, 1(37),
     77-84.'
   id: totrans-327
   prefs: []
   type: TYPE_NORMAL
+  zh: Kustov, V. N., & Stankevich, T. L. (2018)。区块链前景：怀疑论者和乐观主义者之间的对话。科学会议通报，1(37)，77-84。
 - en: 'Kustov, V. N., & Stankevich, T. L. (2019). Blockchain Technology: a Story of
     Ingenious Simplicity or Enlightened Thinking. How to protect yourself from blockchain?
     Information Protection. INSIDE, 2(86), 11-18.'
   id: totrans-328
   prefs: []
   type: TYPE_NORMAL
+  zh: Kustov, V. N., & Stankevich, T. L. (2019)。区块链技术：聪明的简单或开明的思考的故事。如何保护自己免受区块链的影响？信息保护。INSIDE，2(86)，11-18。
 - en: Nin, H. L., Mohamed, E., Shanka, K., Gupta, B. B., & Ahmed, A. A. (2021). Secure
     blockchain enabled Cyber–physical systems in healthcare using deep belief network
     with ResNet model. Journal of Parallel and Distributed Computing , 153, 150–160\.
@@ -2346,11 +2412,13 @@
   id: totrans-329
   prefs: []
   type: TYPE_NORMAL
+  zh: Nin, H. L., Mohamed, E., Shanka, K., Gupta, B. B., & Ahmed, A. A. (2021). 利用深度置信网络和ResNet模型在医疗保健中实现安全的区块链启用的物联网系统。《并行与分布式计算杂志》，153，150–160。doi:10.1016/j.jpdc.2021.03.011
 - en: Official documentation on the Solidity language from the Ethereum Foundation.
     (2018). https://solidity.readthedocs.io/en
   id: totrans-330
   prefs: []
   type: TYPE_NORMAL
+  zh: 以太坊基金会关于Solidity语言的官方文档。(2018)。https://solidity.readthedocs.io/en
 - en: Report of the company Positive Technologies. (2019). Initial Coin Offering.
     Threats to information security. https://www.ptsecurity.com/upload/corporate/ru-ru/analytics/ICO-Threats-rus.pdf
   id: totrans-331
