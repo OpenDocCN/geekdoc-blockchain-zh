@@ -515,6 +515,7 @@
   id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: 将区块链客户端和包装器解耦为actor的两个组件的关键好处是，与紧密耦合的解决方案相比，在交易丢失方面提高了容错性。具体来说，它允许包装器不仅监视区块链客户端，还可以根据需要关闭并重新启动客户端。这种设计使得包装器组件能够确保，如果区块链软件中出现任何已知或发现的缺陷引起的故障，包装器至少可以尝试恢复。
 - en: For example, in our Ethereum test network described in [Section 8](S0065245819300348.xhtml#s0100),
     we have encountered faults where transactions are never mined [[5]](S0065245819300348.xhtml#bb0030)
     a client is restarted. These lost transactions are problematic since they prevent
@@ -524,6 +525,7 @@
   id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: 例如，在我们描述的以太坊测试网络中[第8节](S0065245819300348.xhtml#s0100)，我们遇到了交易从未被挖掘的故障[[5]](S0065245819300348.xhtml#bb0030)在客户端重新启动时。这些丢失的交易是有问题的，因为它们阻止了客户端能够与区块链网络进行交互。其他类型的故障，如与网络的其他组件通信相关的故障，由其他中间件解决方案处理，如RIAPS。
 - en: PlaTIBART applies the Observer pattern to notify the wrapper of the occurrence
     of events, such as faults and other blockchain-related conditions. This notification
     is accomplished by a separate thread within the wrapper that monitors its paired
@@ -534,11 +536,13 @@
   id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: PlaTIBART应用了观察者模式来通知包装器发生的事件，如故障和其他与区块链相关的条件。这个通知是通过包装器内部的一个独立线程完成的，该线程监视其配对的geth客户端以获取新事件，如完成的交易或潜在故障。然后，当目标事件发生时，该线程通知已注册的回调函数。例如，如果geth客户端变得无响应或交易似乎已经停滞不前，则调用注册的回调方法来通知包装器。
 - en: 6.5 Domain specific language
   id: totrans-51
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 6.5 领域特定语言
 - en: PlaTIBART's DSL defines the roles that different clients in our net-work have,
     based on the Actor pattern. This DSL model implements a correct-by-construction
     design, thereby allowing for a verification stage on the model to check for internal
@@ -844,11 +848,14 @@
   id: totrans-84
   prefs: []
   type: TYPE_NORMAL
+  zh: 此时，局部逻辑和数据文件也可以通过网络管理器分发到为模型生成的每个主机的主机。这些文件的具体内容将取决于正在测试的ITBA（S）。本示例分发了我们用于Use-Case
+    1的代码。此时，新的区块链，在本示例中为以太坊，测试网络现在已完全创建并准备就绪。一些用例，例如我们的Use-Case 2，将对此网络进行归档以备将来使用，而其他用例将按原样使用它。
 - en: 7.2 Guided walkthrough of starting and stopping test networks
   id: totrans-85
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 7.2 启动和停止测试网络的指导漫游
 - en: Starting the network for mining and then the processing of data and requests
     start by starting the miners and clients. If the miners and clients can reach
     a single bootnode in the bootnode network, then they should eventually sync up
@@ -857,30 +864,38 @@
   id: totrans-86
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了进行挖矿并开始数据和请求的处理，首先启动矿工和客户端。如果矿工和客户端可以连接到引导节点网络中的单个引导节点，那么如果网络相当可靠，它们最终会同步。否则，如果不使用引导节点，矿工将需要手动连接到客户端（[图
+    9](S0065245819300348.xhtml#f0050)–[11](S0065245819300348.xhtml#f0060)）。
 - en: '![Fig. 9](images/S0065245819300348/f06-09-9780128171899.jpg)'
   id: totrans-87
   prefs: []
   type: TYPE_IMG
+  zh: '![图 9](images/S0065245819300348/f06-09-9780128171899.jpg)'
 - en: Fig. 9 Distributing logic code and data to each client.
   id: totrans-88
   prefs: []
   type: TYPE_NORMAL
+  zh: 图 9 分发逻辑代码和数据到每个客户端。
 - en: '![Fig. 10](images/S0065245819300348/f06-10-9780128171899.jpg)'
   id: totrans-89
   prefs: []
   type: TYPE_IMG
+  zh: '![图 10](images/S0065245819300348/f06-10-9780128171899.jpg)'
 - en: Fig. 10 Connecting miners to each client to connect the network.
   id: totrans-90
   prefs: []
   type: TYPE_NORMAL
+  zh: 图 10 连接矿工到每个客户端以连接网络。
 - en: '![Fig. 11](images/S0065245819300348/f06-11-9780128171899.jpg)'
   id: totrans-91
   prefs: []
   type: TYPE_IMG
+  zh: '![图 11](images/S0065245819300348/f06-11-9780128171899.jpg)'
 - en: Fig. 11 Starting miner and clients.
   id: totrans-92
   prefs: []
   type: TYPE_NORMAL
+  zh: 图 11 启动矿工和客户端。
 - en: Stopping the entire network can be done step-by-step by using the above commands,
     substituting “start” with “stop”. Alternatively, you can use the Network Manager's
     network options to stop the entire network at once. Starting the entire network
@@ -888,14 +903,18 @@
   id: totrans-93
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过使用上述命令逐步停止整个网络。或者，您可以使用网络管理器的网络选项一次性停止整个网络。启动整个网络也行，但出于清晰起见，上面已对此进行了详细解释（[图
+    12](S0065245819300348.xhtml#f0065)）。
 - en: '![Fig. 12](images/S0065245819300348/f06-12-9780128171899.jpg)'
   id: totrans-94
   prefs: []
   type: TYPE_IMG
+  zh: '![图 12](images/S0065245819300348/f06-12-9780128171899.jpg)'
 - en: Fig. 12 Network manager stopping entire network.
   id: totrans-95
   prefs: []
   type: TYPE_NORMAL
+  zh: 图 12 网络管理器停止整个网络。
 - en: Deleting the network will delete all files created by the setup process on all
     clients, miners, and bootnodes in the network, but will not delete the host machine's
     generated files, if those are to be kept separately ([Fig. 13](S0065245819300348.xhtml#f0070)).
@@ -1167,11 +1186,15 @@
   id: totrans-124
   prefs: []
   type: TYPE_NORMAL
+  zh: '分布式系统的规模化测试是一个持续的研究重点，将同时有许多不同的方法。区块链相关合同语言、系统和工具的正式验证，包括 PlaTIBART，是一个将继续关注的领域。此外，需要证明在教授
+    ITBAs 方面使用 PlaTIBART 的有效性验证；这是我们目前正在追求的研究领域。扩展 PlaTIBART 支持的网络拓扑结构是未来需要解决的工作，可能需要与网络模拟或管理软件集成。需要在单元测试和集成测试框架中包含私有测试区块链网络的工作已经进行了，目前至少对以太坊来说，在
+    Solidity IDE 之外进行集成测试似乎没有工具。 '
 - en: 11 Key terminology and definitions
   id: totrans-125
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 11个关键术语和定义
 - en: 'IoT Blockchain Applications (ITBAs): Blockchain Applications that run on an
     IoT system where Blockchain is leveraged for a wide range of potential uses ranging
     from distributed logging up to integration into the command and control decision
@@ -1183,6 +1206,7 @@
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 物联网区块链应用（ITBAs）：在物联网系统上运行的区块链应用，其中区块链被利用于从分布式日志记录到整合到物联网设备的指挥和控制决策过程等各种潜在用途。当区块链和物联网一起在系统中使用时，区块链和物联网用例场景都可能发生巨大变化。因此，我们使用这个术语来描述与物联网设备通过物理世界进行交互的区块链应用的增加复杂性。
 - en: 'Testing-at-Scale: Testing distributed systems incurs a much heavier cost, both
     in complexity and required resources, when attempting to test a fully integrated
     distributed system versus traditional systems. This is because fully testing a
@@ -1248,6 +1272,8 @@
   id: totrans-134
   prefs: []
   type: TYPE_NORMAL
+  zh: '[6] Bogner A., Chanson M., Meeuw A.在以太坊区块链上运行智能合约的分散共享应用程序。在：《第6届国际物联网大会，177–178。IoT’16》。德国斯图加特：ACM；2016：doi:10.1145/2991561.2998465
+    ISBN：978-1-4503-48140。'
 - en: '[7] Buccafurri F., Lax G., Nicolazzo S., Nocera A. Overcoming limits of blockchain
     for IoT applications. In: *Proceedings of the 12th International Conference on
     Availability, Reliability and Security, 26:1–26:6\. ARES ‘17.* Reggio Calabria,
@@ -1255,17 +1281,21 @@
   id: totrans-135
   prefs: []
   type: TYPE_NORMAL
+  zh: '[7] Buccafurri F., Lax G., Nicolazzo S., Nocera A.克服物联网应用的区块链限制。在：《第12届可用性、可靠性和安全性国际会议，26：1–26：6。ARES
+    ‘17》。意大利雷焦卡拉布里亚：ACM；2017：doi:10.1145/3098954.3098983 ISBN：978-1-45035257-4。'
 - en: '[8] Gubbi J., Buyya R., Marusic S., Palaniswami M. Internet of things (IoT):
     a vision, architectural elements, and future directions. *Futur. Gener. Comput.
     Syst.* 2013;29(7):1645–1660.'
   id: totrans-136
   prefs: []
   type: TYPE_NORMAL
+  zh: '[8] Gubbi J., Buyya R., Marusic S., Palaniswami M.物联网（IoT）：愿景、架构要素和未来方向。《未来。计算机系统》2013年；29（7）：1645–1660。'
 - en: '[9] Christidis K., Devetsikiotis M. Blockchains and smart contracts for the
     internet of things. *IEEE Access.* 2016;4:2292–2303.'
   id: totrans-137
   prefs: []
   type: TYPE_NORMAL
+  zh: '[9] Christidis K., Devetsikiotis M.区块链和智能合约用于物联网。《IEEE Access》。2016；4：2292–2303。'
 - en: '[10] Dorri A., Kanhere S.S., Jurdak R., Gauravaram P. *Blockchain for IoT security
     and privacy: the case study of a smart home.* In: IEEE International Conference
     on Pervasive Computing and Communications Workshops (PerCom Workshops), 2017;
@@ -1273,6 +1303,8 @@
   id: totrans-138
   prefs: []
   type: TYPE_NORMAL
+  zh: '[10] Dorri A., Kanhere S.S., Jurdak R., Gauravaram P.物联网安全和隐私的区块链：智能家居的案例研究。在：IEEE国际普适计算与通信研讨会（PerCom
+    Workshops）2017年；IEEE；2017：618–623。'
 - en: '[11] Ouaddah A., Abou Elkalam A., Ouahman A.A. Towards a novel privacy-preserving
     access control model based on blockchain technology in IoT. In: *Europe and MENA
     Cooperation Advances in Information and Communication Technologies.* Springer;
@@ -1280,12 +1312,14 @@
   id: totrans-139
   prefs: []
   type: TYPE_NORMAL
+  zh: '[11] Ouaddah A., Abou Elkalam A., Ouahman A.A.致力于基于区块链技术的物联网隐私保护访问控制模型的创新。在：《欧洲和中东北非合作信息和通信技术进展》。Springer；2017：523–533。'
 - en: '[12] Kumaresan R., Bentov I. *How to use bitcoin to incentivize correct computations.*
     In: Proceedings of the 2014 ACM SIGSAC Conference on Computer and Communications
     Security; ACM; 2014:30–41.'
   id: totrans-140
   prefs: []
   type: TYPE_NORMAL
+  zh: '[12] Kumaresan R., Bentov I.如何使用比特币激励正确计算。在：2014年ACM SIGSAC计算机和通信安全会议论文集；ACM；2014：30–41。'
 - en: '[13] Delmolino K., Arnett M., Kosba A., Miller A., Shi E. Step by step towards
     creating a safe smart contract: lessons and insights from a cryptocurrency lab.
     In: *International Conference on Financial Cryptography and Data Security.* Springer;
@@ -1293,6 +1327,7 @@
   id: totrans-141
   prefs: []
   type: TYPE_NORMAL
+  zh: '[13] Delmolino K., Arnett M., Kosba A., Miller A., Shi E.逐步创建安全智能合约的经验和见解：来自加密货币实验室的教训。在：《金融密码学和数据安全国际会议》。Springer；2016：79–94。'
 - en: '[14] Walker M.A., Dubey A., Laszka A., Schmidt D.C. Platibart: a platform for
     transactive IoT blockchain applications with repeatable testing. In: *Proceedings
     of the 4th Workshop on Middleware and Applications for the Internet of Things.*
@@ -1494,6 +1529,8 @@
   id: totrans-167
   prefs: []
   type: TYPE_NORMAL
+  zh: Mr. Walker 的研究兴趣包括分布式系统、大规模学习、隐私、安全和软件设计模式。他在各种会议、研讨会和国际著名期刊上发表了超过 11 篇研究论文，包括
+    IEEE 和 ACM。他参与了 10 门大规模开放在线课程，担任三门课程的教学人员和四门课程的讲师。他是几个非营利组织的现任和前任董事会成员，致力于推广科学、技术、工程和数学教育，重点关注计算机素养和科学理解，特别是惠及来自贫困背景的年轻女孩。此外，他还就弥合非传统学生之间的学术和产业分歧问题进行了多次会议演讲。
 - en: '**Dr. Douglas C. Schmidt** is the Cornelius Vanderbilt Professor of Computer
     Science, Associate Provost for Research Development and Technologies, Co-Chair
     of the Data Sciences Institute, and a Senior Researcher at the Institute for Software
@@ -1504,6 +1541,7 @@
   id: totrans-168
   prefs: []
   type: TYPE_NORMAL
+  zh: '**Douglas C. Schmidt 博士**是范德堡大学的康奈利斯·范德比尔特计算机科学教授、研究发展和技术副教务长、数据科学研究所联合主席以及软件集成系统研究所的高级研究员。他的研究涵盖了一系列与软件相关的主题，包括模式、优化技术以及用于分布式实时嵌入式系统和移动云计算应用的中间件框架的经验分析。'
 - en: Dr. Schmidt has published 12 books and > 600 technical papers covering a range
     of software-related topics, including patterns, optimization techniques, and empirical
     analyses of frameworks and model-driven engineering tools that facilitate the
@@ -1541,24 +1579,30 @@
   id: totrans-171
   prefs: []
   type: TYPE_NORMAL
+  zh: '**阿比舍克·杜贝**是范德堡大学电气工程和计算机科学的助理教授，也是软件集成系统研究所的高级研究科学家，范德堡智慧城市运营和研究计划的联合负责人。他的研究兴趣包括用于动态和有弹性的人类网络物理系统的模型驱动和数据驱动技术。他在大学指导着智能计算实验室（[scope.isis.vanderbilt.edu](https://na01.safelinks.protection.outlook.com/?url=http%3A%2F%2Fscope.isis.vanderbilt.edu&data=02%7C01%7Cabhishek.dubey%40Vanderbilt.Edu%7Cc1bc5ff6ca16470115b908d5c176ef8d%7Cba5a7f39e3be4ab3b45067fa80faecad%7C0%7C0%7C636627638934148505&sdata=7jGNtuWHa9XybgoJEZO0EC8G25k6eMbbeyRLG1fDzoI%3D&reserved=0)）。该实验室在分布式系统、大数据和网络物理系统的交叉领域开展研究，尤其是在交通和电力网络领域。阿比舍克于2009年从范德堡大学取得电气工程博士学位。他于2005年8月从范德堡大学获得电气工程硕士学位，并于2001年5月从印度理工学院班拉斯大学取得电气工程学士学位。他是IEEE的高级成员。'
 - en: '* * *'
   id: totrans-172
   prefs: []
   type: TYPE_NORMAL
+  zh: '* * *'
 - en: ^([a](S0065245819300348.xhtml#xfn0010 "label")) [https://nixos.org/](https://nixos.org/).
   id: totrans-173
   prefs: []
   type: TYPE_NORMAL
+  zh: ^([a](S0065245819300348.xhtml#xfn0010 "label")) [https://nixos.org/](https://nixos.org/).
 - en: ^([b](S0065245819300348.xhtml#xfn0015 "label")) RIAPS uses ZeroMQ [[16]](S0065245819300348.xhtml#bb0085)
     and Cap'n Proto [[17]](S0065245819300348.xhtml#bb0090) to manage the communication
     layer.
   id: totrans-174
   prefs: []
   type: TYPE_NORMAL
+  zh: ^([b](S0065245819300348.xhtml#xfn0015 "label")) RIAPS使用ZeroMQ [[16]](S0065245819300348.xhtml#bb0085)和Cap'n
+    Proto [[17]](S0065245819300348.xhtml#bb0090)来管理通信层。
 - en: ^([c](S0065245819300348.xhtml#xfn0020 "label")) [https://github.com/ethereum/go-ethereum/wiki/geth](https://github.com/ethereum/go-ethereum/wiki/geth).
   id: totrans-175
   prefs: []
   type: TYPE_NORMAL
+  zh: ^([c](S0065245819300348.xhtml#xfn0020 "label")) [https://github.com/ethereum/go-ethereum/wiki/geth](https://github.com/ethereum/go-ethereum/wiki/geth).
 - en: ^([d](S0065245819300348.xhtml#xfn0025 "label")) “balance” applies only to accounts
     created before a new blockchain is created. Accounts created after the blockchain,
     be it public or private, is created will not receive any starting balance.
