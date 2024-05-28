@@ -1,13 +1,19 @@
 - en: © Santiago Palladino 2019S. PalladinoEthereum for Web Developers[https://doi.org/10.1007/978-1-4842-5278-9_6](https://doi.org/10.1007/978-1-4842-5278-9_6)
+  id: totrans-0
   prefs: []
   type: TYPE_NORMAL
+  zh: © Santiago Palladino 2019S. PalladinoWeb开发人员的以太坊[https://doi.org/10.1007/978-1-4842-5278-9_6](https://doi.org/10.1007/978-1-4842-5278-9_6)
 - en: 6. Indexing and Storage
+  id: totrans-1
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 6. 索引和存储
 - en: Santiago Palladino^([1](#Aff2) )(1)Ciudad Autónoma de Buenos Aires, Argentina
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: Santiago Palladino^([1](#Aff2) )(1)阿根廷布宜诺斯艾利斯自治城
 - en: In the last two chapters, we learned how to read from and write to the Ethereum
     network. Reads can be made as regular calls to contracts, or by querying logged
     events, while writes are always performed in the context of a transaction. However,
@@ -20,12 +26,16 @@
     storage solutions. We will also review techniques for handling reorganizations
     and testing along the way, as well as discussing the value of centralized vs.
     decentralized solutions.
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: 在前两章中，我们学习了如何从以太坊网络中读取和写入数据。读取可以作为常规调用合约或查询已记录的事件来进行，而写入总是在事务的上下文中执行。然而，这些操作只适用于基本用例。如果我们想要从区块链显示聚合数据，仅仅在客户端查询事件就很快不够用了。同样，如果我们想要在合约中存储大量信息，燃气费用会使其在经济上不可行。在本章中，我们将使用链外组件来解决这两个问题。我们将首先介绍在服务器中索引区块链数据以从客户端应用程序查询它的过程，然后探讨链外存储解决方案。我们还将讨论处理重组和测试的技术，并在此过程中讨论集中化与去中心化解决方案的价值。
 - en: Indexing Data
+  id: totrans-4
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 索引数据
 - en: We will begin with the problem of indexing blockchain data. In this context,
     by *indexing* we refer to the action of collecting certain pieces of information
     from the network (such as token balances, sent transactions, or contracts created)
@@ -33,75 +43,109 @@
     analytics engine like ElasticSearch, in order to perform complex queries. Throughout
     this chapter, instead of attempting to index the entire chain, we will choose
     a specific dataset and build a solution tailored for it.
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将从区块链数据的索引问题开始讨论。在这个上下文中，*索引*指的是从网络中收集某些信息（如代币余额、发送的交易或创建的合约）并将其存储在可查询的数据存储中，如关系型数据库或像ElasticSearch这样的分析引擎，以执行复杂的查询。在本章中，我们将选择一个特定的数据集，并为其构建一个量身定制的解决方案，而不是尝试索引整个链。
 - en: Indexing is necessary whenever you need to perform any kind of *aggregation*
     over logged data, such as a sum or an average, since the Ethereum events API is
     not fit for doing so. For instance, it is not possible to easily obtain the number
     of unique addresses that hold more than a certain balance of an ERC20 asset –
     a query that is trivial to run on a relational database.
+  id: totrans-6
   prefs: []
   type: TYPE_NORMAL
+  zh: 需要在记录数据时执行任何类型的*聚合*操作时，例如求和或平均值时，都需要进行索引，因为以太坊事件 API 并不适合执行此类操作。例如，很难轻松地获取持有一定余额的某种
+    ERC20 资产的唯一地址数量——这是在关系型数据库上运行的一个简单查询。
 - en: Indexing can also be used to improve performance when querying large numbers
     of events, by acting just as a query cache. A dedicated database can answer event
     queries much faster than a regular Ethereum node.
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 当查询大量事件时，索引也可用于提高性能，充当查询缓存。与常规以太坊节点相比，专用数据库可以更快地回答事件查询。
 - en: Note
+  id: totrans-8
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 注意
 - en: Certain public node providers, such as Infura, actually include an events query
     layer,^([1](#Fn1)) separate from their nodes, in order to greatly reduce their
     infrastructure footprint for serving logs.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 某些公共节点提供商，如 Infura，实际上包括一个事件查询层，^([1](#Fn1)) 与它们的节点分开，以极大地减少它们为服务日志所需的基础设施的占用。
 - en: We will now focus on a specific indexing use case and design a solution for
     collecting the information to index.
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们现在将专注于一个特定的索引使用案例，并设计一个收集索引信息的解决方案。
 - en: Tracking ERC20 Token Holders
+  id: totrans-11
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 跟踪 ERC20 代币持有者
 - en: We will track the token holders of a specific ERC20 coin. Remember that ERC20
     non-fungible tokens can act as a coin, where each address has a certain balance.
     However, the contract offers no methods to actually list them. Even if it did,
     some tokens have a user base that would vastly exceed the capabilities of a client-side-only
     application querying an Ethereum node. For example, at the time of this writing,
     the OmiseGO (OMG) token has over 650,000 unique holders.^([2](#Fn2))
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将跟踪特定 ERC20 代币的持有者。请记住，ERC20 非同质化代币可以充当代币，其中每个地址都有一定的余额。然而，合约没有提供实际列出它们的方法。即使有，一些代币的用户群体远远超出了仅查询以太坊节点的客户端应用程序的能力。例如，在撰写本文时，OmiseGO（OMG）代币拥有超过
+    650,000 个唯一持有者。^([2](#Fn2))
 - en: Revisiting the ERC20 Interface
+  id: totrans-13
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 重新审视 ERC20 接口
 - en: We will review the ERC20 contract interface to identify the building blocks
     we will be using. Leaving aside functionality related to allowances, the ERC20
     standard includes these methods and events.function **transfer**(address to, uint256
     value) returns (bool);function **totalSupply**() view returns (uint256);function
     **balanceOf**(address who) view returns (uint256);event **Transfer**(  address
     indexed from, address indexed to, uint256 value);
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将回顾 ERC20 合约接口，以确定我们将使用的基本组件。暂时不考虑与授权相关的功能，ERC20 标准包括这些方法和事件。函数**transfer**(address
+    to, uint256 value) 返回（bool）；函数**totalSupply**() view 返回（uint256）；函数**balanceOf**(address
+    who) view 返回（uint256）；事件**Transfer**（  address indexed from, address indexed to,
+    uint256 value）；
 - en: As mentioned, unlike the extended ERC721 standard, ERC20 does not provide a
     method to list all token holders. The only way to build such a list is by going
     through every *Transfer* event and collect all recipient addresses.
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: 正如提到的，与扩展的 ERC721 标准不同，ERC20 并不提供列出所有代币持有者的方法。构建这样一个列表的唯一方法是通过每个 *Transfer*
+    事件并收集所有接收者地址。
 - en: Caution
+  id: totrans-16
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 注意
 - en: Certain ERC20 contracts do not emit a Transfer event when minting new tokens,
     but rather emit a non-standard Mint event. In such cases, we would need to track
     both events in order to build the complete set of holders.
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 某些 ERC20 合约在铸造新令牌时不会发出转账事件，而是发出一个非标准的铸币事件。在这种情况下，我们需要跟踪这两种事件，以便构建完整的持有者集合。
 - en: Querying Transfer Events
+  id: totrans-18
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 查询转账事件
 - en: 'We will begin by querying all transfer events from a given contract. We will
     build an ERC20Indexer class, relying on a web3 connection provider, an ERC20 token
     address, and a block number to start querying from (Listing [6-1](#PC2)). This
@@ -113,14 +157,20 @@
     new Set();    this.**startBlock** = startBlock;    this.**lastBlock** = this.startBlock;    this.**web3**
     = new Web3(provider);    this.**contract** = new this.web3.eth.Contract(      ERC20.abi,
     address    );  }}Listing 6-1'
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将从给定合约查询所有转账事件开始。我们将构建一个 ERC20Indexer 类，依赖于 web3 连接提供程序、一个 ERC20 令牌地址和一个开始查询的区块号（见列表[6-1](#PC2)）。这最后一个参数仅出于性能原因添加：在令牌合约部署之前查询任何区块是没有意义的。//
+    01-indexing/simple-indexer.js
 - en: Constructor for the ERC20Indexer class we will be working on. We are once again
     depending on openzeppelin-solidity@2.2.0 to get the ERC20 contract ABI. We will
     store the list of all token holder addresses on the holders set, and the lastBlock
     field will keep track of the last block we have processed
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: 构造 ERC20Indexer 类的构造函数，我们将在其中工作。我们再次依赖 openzeppelin-solidity@2.2.0 来获取 ERC20
+    合约 ABI。我们将所有令牌持有者地址的列表存储在持有者集合中，并且 lastBlock 字段将跟踪我们已处理的最后一个区块。
 - en: We can now add a first method to this class to get the list of transfer events
     from a given contract (Listing [6-2](#PC3)). Since that list is potentially larger
     than what we can fit in a single request (OMG has over 2 million transfers up
@@ -131,61 +181,88 @@
     endBlock    );    const events = await this.contract      .getPastEvents('Transfer',
     { fromBlock, toBlock });    events.forEach((e) => this.reduceEvent(e));  }}Listing
     6-2
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们可以向这个类添加一个方法来获取给定合约的转账事件列表（见[6-2](#PC3)）。由于该列表的长度可能大于我们可以容纳在单个请求中的长度（OMG
+    目前已经超过 200 万次转账），所以我们需要将其拆分为多个请求，因此我们将从一个处理区块范围内的所有事件的方法开始。async processBlocks(startBlock,
+    endBlock) {  for (let fromBlock = startBlock;       fromBlock <= endBlock;       fromBlock
+    += BATCH_SIZE) {    const toBlock = Math.min(      fromBlock + BATCH_SIZE - 1,
+    endBlock    );    const events = await this.contract      .getPastEvents('Transfer',
+    { fromBlock, toBlock });    events.forEach((e) => this.reduceEvent(e));  }}Listing
+    6-2
 - en: Querying all transfer events from a range of blocks in batches. Here BATCH_SIZE
     should depend on the volume of transactions per block of the contract
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 批量从一系列区块中查询所有转账事件。在这里 BATCH_SIZE 应该取决于合约每个区块的交易量。
 - en: This method will get all transfer events in a block range from a contract and
     send them to a reduceEvent function (Listing [6-3](#PC4)). This reducing function
     should receive an event and use it to update the current list of token holders.const
     ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';async reduceEvent(event)
     {  const { to } = event.returnValues;  if (to !== ZERO_ADDRESS) {    this.holders.add(to);  }}Listing
     6-3
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 此方法将获取合约中一个区块范围内的所有转账事件，并将它们发送到一个 reduceEvent 函数（见[6-3](#PC4)）。此减少函数应接收一个事件并使用它来更新令牌持有者列表。const
+    ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';async reduceEvent(event)
+    {  const { to } = event.returnValues;  if (to !== ZERO_ADDRESS) {    this.holders.add(to);  }}Listing
+    6-3
 - en: Retrieving the recipient of a token transfer to add it to the list of token
     holders. Transfers to the zero address are usually tokens being burnt, so we will
     keep it out of our list
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: 检索令牌转移的接收者以将其添加到令牌持有者列表中。转移到零地址的转账通常是令牌被销毁，因此我们将其排除在我们的列表之外。
 - en: Note
+  id: totrans-25
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 注意
 - en: In a production implementation, you will not want to store the list of holders
     in a javascript data structure in memory that is wiped out whenever the process
     is stopped. You should rather use a database for storing all data and serving
     your clients’ queries. The choice of the database engine is out of the scope of
     this book, and depends heavily on your use case.
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: 在生产实现中，您不希望将持有者列表存储在一个在进程停止时被清除的 JavaScript 数据结构中的内存中。您应该使用数据库来存储所有数据并为客户端的查询提供服务。数据库引擎的选择不在本书的范围之内，它严重依赖于您的用例。
 - en: 'However, this method may yield some false positives. If an address ever held
     some balance but then transferred it all, it will be added to our list of holders
     but never removed. This means that we need to check that an address balance is
     non-zero for listing it. Since we are at it, we will go an extra mile and track
     the current balance for each holder. We have two options to do this, each with
     their own pros and cons:'
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，这种方法可能会产生一些误报。如果某个地址曾经持有一些余额，但后来将其全部转移，那么它将被添加到我们的持有者列表中，但永远不会被移除。这意味着我们需要检查一个地址的余额是否为非零才能列出它。既然如此，我们将额外努力追踪每个持有者的当前余额。我们有两种选项来做到这一点，每种选项都有其自身的利弊：
 - en: We can rely on the ERC20 balanceOf method to check the balance of each address
     we add to our list. We can do this as soon as we find a new address to add to
     our set, and have a holder with its balance ready. However, this means that we
     are making an additional request for each token holder and that we also need to
     re-run this query whenever we see a new block with new transfers.
+  id: totrans-28
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我们可以依靠 ERC20 的 `balanceOf` 方法来检查我们添加到列表中的每个地址的余额。我们可以在找到新地址并将其添加到集合中后立即这样做，并且具有其余额的持有者已经准备好。然而，这意味着我们为每个令牌持有者进行了额外的请求，并且每当我们看到一个新的区块有新的转账时，我们也需要重新运行此查询。
 - en: We can use the fact that the balance of any address in an ERC20 contract can
     be determined by just looking at the transfer events. Since we are already querying
     them, we can track all movements to and from each address and update them accordingly.
     This will require a bit more logic on our end, but does not need any extra requests
     to the Ethereum network. Its downside is that we cannot rely on the balance of
     an address until we have finished scanning until the latest block in the chain.
+  id: totrans-29
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我们可以利用 ERC20 合约中任何地址的余额只需查看转账事件这一事实。由于我们已经在查询它们，我们可以跟踪每个地址的所有收入和支出，并相应地更新它们。这将需要我们端的一些逻辑，但不需要额外向以太坊网络发送请求。其缺点是，我们无法在扫描到链中最新区块之前依赖于一个地址的余额。
 - en: 'To prioritize reducing the number of requests, we will go with the second strategy
     (Listing [6-4](#PC5)). This means that our function to reduce an event will also
     need to account for the *value* of each transfer.async reduceEvent(event) {  const
@@ -193,14 +270,23 @@
     = this.balances[from]      ? this.balances[from].minus(value)      : BigNumber(value).negated();  }  if
     (to !== ZERO_ADDRESS) {    this.balances[to] = this.balances[to]      ? this.balances[to].plus(value)      :
     BigNumber(value);  }}Listing 6-4'
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: '为了优先减少请求数量，我们将采用第二种策略（见[6-4](#PC5)）。这意味着我们用于减少事件的函数还需要考虑每个转账的 *value*。async
+    reduceEvent(event) {  const { from, to, value } = event.returnValues;  if (from
+    !== ZERO_ADDRESS) {    this.balances[from] = this.balances[from]      ? this.balances[from].minus(value)      :
+    BigNumber(value).negated();  }  if (to !== ZERO_ADDRESS) {    this.balances[to]
+    = this.balances[to]      ? this.balances[to].plus(value)      : BigNumber(value);  }}Listing
+    6-4'
 - en: Reducing an event to update the balances of each holder. Here balances is an
     object that replaces the former set of holders. Note that we are excluding the
     zero address both as sender and recipient, since transfers from it represent minting
     events and transfers to it represent burns
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 将事件简化为更新每个持有人的余额。这里的balances是一个替换了原来持有人集合的对象。请注意，我们排除了零地址作为发送方和接收方，因为从零地址的转账代表铸币事件，而向零地址的转账代表销毁。
 - en: Armed with a class that can generate the list of holders and their balances
     for a given range of blocks, we now need to keep this list up to date as new blocks
     are mined (Listing [6-5](#PC6)). We will use polling for getting new blocks, though
@@ -211,25 +297,39 @@
     confirmedBlock);    this.lastBlock= confirmedBlock + 1;  }}start() {  this.timeout
     = setTimeout(async () => {    await this.processNewBlocks()    this.start();  },
     INTERVAL);}Listing 6-5
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: 拥有一个可以为给定区块范围生成持有人及其余额列表的类后，我们现在需要在新区块被挖掘时保持此列表更新。我们将使用轮询来获取新区块，虽然订阅也是一个可行的替代方案。CONFIRMATIONS
+    = 12; INTERVAL = 1000;async processNewBlocks() { const lastBlock = this.lastBlock;
+    const currentBlock = await this.web3.eth.getBlockNumber(); const confirmedBlock
+    = currentBlock - CONFIRMATIONS; if (!lastBlock || confirmedBlock >= lastBlock)
+    { await this.processBlocks(lastBlock, confirmedBlock); this.lastBlock= confirmedBlock
+    + 1; }}start() { this.timeout = setTimeout(async () => { await this.processNewBlocks()
+    this.start(); }, INTERVAL);}Listing 6-5
 - en: Polling for new blocks and retrieving any new transfer events. The processNewBlocks
     function will query the latest block and call into processBlocks with the new
     blocks range, while the start function kicks off an infinite loop that constantly
     polls and then sleeps for 1 second
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 轮询新区块并检索任何新的转账事件。processNewBlocks函数将查询最新的区块并调用processBlocks处理新区块范围，而start函数则启动一个无限循环，不断轮询然后休眠1秒。
 - en: An important detail of our implementation is that we will not process up to
     the latest block, but only until a certain number of blocks ago. This ensures
     that any transfer events we have processed are confirmed and will not be rolled
     back as part of a reorganization. We will later look into strategies for querying
     up to the most recent block and handling reorgs as we detect them.
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们实现的一个重要细节是，我们不会处理直到最新的区块，而只会处理到一定数量的区块之前。这确保我们已经处理的任何转账事件都已经确认，并且不会作为重组的一部分被回滚。随后，我们将研究查询最新区块并在检测到重组时处理的策略。
 - en: Sharing Our Data
+  id: totrans-35
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 分享我们的数据
 - en: 'The last step is to actually provide access to the data we have gathered (Listing
     [6-6](#PC7)). We will set up a simple express server that exposes the set of balances
     in JSON format upon an HTTP GET request.const express = require(''express'')const
@@ -241,26 +341,45 @@
     PROVIDER});// Register route for querying balancesapp.get(''/balances.json'',
     (_req, res) => {  res.send(    mapValues(indexer.balances, b => b.toString(10))  );});//
     Start!app.listen(3000);indexer.start();Listing 6-6'
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: '最后一步是实际提供我们收集到的数据的访问权限（见[6-6](#PC7)）。 我们将建立一个简单的表达服务器，在 HTTP GET 请求时以 JSON
+    格式暴露余额集合。const express = require(''express'')const mapValues = require(''lodash.mapvalues'');//
+    用于测试主网代币的示例值const API_TOKEN = ''YOUR_INFURA_API_TOKEN'';const PROVIDER = ''https://mainnet.infura.io/v3/''
+    + API_TOKEN;const ADDRESS = ''0x00fdae9174357424a78afaad98da36fd66dd9e03'';const
+    START_BLOCK = 6563800;// 初始化表达应用程序和索引器const app = express()const indexer = new
+    Indexer({  address: ADDRESS,  startBlock: START_BLOCK,  provider: PROVIDER});//
+    注册用于查询余额的路由app.get(''/balances.json'', (_req, res) => {  res.send(    mapValues(indexer.balances,
+    b => b.toString(10))  );});// 开始！app.listen(3000);indexer.start();Listing 6-6'
 - en: Simple express server that exposes the balances from the indexer in an HTTP
     endpoint. The mapValues lodash helper is used to format the BigNumber values before
     serializing them in JSON. Make sure to get an Infura token to set the API_TOKEN
     variable
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个简单的表达服务器，通过 HTTP 端点暴露索引器中的余额。 在将它们序列化为 JSON 之前，使用 mapValues lodash 助手来格式化
+    BigNumber 值。 确保获取 Infura 令牌以设置 API_TOKEN 变量。
 - en: 'We can test this script by running it using node and in a different console
     use curl to query the balances (Listing [6-7](#PC8)). Make sure to wait a few
     seconds so the script can process some blocks to gather transfer data.$ curl -s
     "localhost:3000/balances.json" | jq .{  "0xB048...": "26000000000000000000000",  "0x58b2...":
     "77997707535390983471493397",  "0x352B...": "4666667000000000000000000",  "0xBC96...":
     "3000000000000000000000000",  ...}Listing 6-7'
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: '我们可以通过在节点上运行它并在不同的控制台中使用 curl 查询余额来测试这个脚本（见[6-7](#PC8)）。 确保等待几秒钟，以便脚本可以处理一些块以收集转账数据。$
+    curl -s "localhost:3000/balances.json" | jq .{  "0xB048...": "26000000000000000000000",  "0x58b2...":
+    "77997707535390983471493397",  "0x352B...": "4666667000000000000000000",  "0xBC96...":
+    "3000000000000000000000000",  ...}Listing 6-7'
 - en: Querying the express endpoint to retrieve the token balances. We are using the
     jq^([3](#Fn3)) utility just to pretty-print the JSON output
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: 查询表达端点以检索令牌余额。 我们只是使用 jq^([3](#Fn3)) 实用程序来漂亮地打印 JSON 输出
 - en: 'This naive implementation makes use of the fact that all indexed data is stored
     in the indexer instance. Keep in mind that for actual deployments you will want
     to store all data in a separate datastore, such as a relational database. This
@@ -268,23 +387,33 @@
     and indexer processes so they run separately. It will also allow you to add aggregations,
     filters, sorting, and paging from the client as needed: returning a list of half
     a million token holders in a single request may not fare well in some scenarios.'
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: 这种简单的实现利用了所有索引数据都存储在索引器实例中的事实。 请记住，对于实际部署，您将希望将所有数据存储在单独的数据存储中，例如关系数据库。 这将允许您直接向数据库运行查询，并将
+    Web 服务器和索引器进程解耦，使它们分开运行。 它还将允许您根据需要从客户端添加聚合、过滤器、排序和分页：在单个请求中返回五十万个代币持有者的列表在某些情况下可能不太好。
 - en: Handling Chain Reorganizations
+  id: totrans-41
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 处理链重组
 - en: Up to this point, we have avoided the issue of chain reorganizations by only
     processing transfers that can be considered to be finalized, in other words, transfers
     that occurred enough blocks ago that the chance of those blocks being removed
     from the chain is negligible. We will now remove this restriction and see how
     we can safely process the latest events by reacting properly to a reorg.
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 到目前为止，我们通过仅处理可以被视为已完成的转账来避免链重组的问题，换句话说，那些发生在足够多区块之前的转账，以至于这些区块被从链上移除的机会可以忽略不计。
+    现在我们将取消此限制，并查看如何通过正确地对重组做出反应来安全处理最新的事件。
 - en: Using Subscriptions
+  id: totrans-43
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 使用订阅
 - en: The easiest way to detect and react to a reorg is through subscriptions. A subscription
     on an event, such as on the ERC20 Transfer, will not only push new events to our
     process in real time but will also notify on any events *removed* due to a reorganization.
@@ -294,12 +423,21 @@
     to, value } = event.returnValues;  if (from !== ZERO_ADDRESS) {    this.balances[from]
     = this.balances[from].plus(value);  }  if (to !== ZERO_ADDRESS) {    this.balances[to]
     = this.balances[to].minus(value);  }}Listing 6-8
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: 检测和对抗链重组的最简单方法是通过订阅。 对事件的订阅，例如 ERC20 转账，不仅会实时推送新事件到我们的流程中，还会通知任何因重组而*移除*的事件。
+    这意味着我们可以编写我们的 reduceEvent 函数的对应部分以撤销一个事件，并在以太坊节点推送事件移除时运行它（见列表 [6-8](#PC9)）。//
+    01-indexing/subs-indexer.jsundoTransfer(event) {  const { from, to, value } =
+    event.returnValues;  if (from !== ZERO_ADDRESS) {    this.balances[from] = this.balances[from].plus(value);  }  if
+    (to !== ZERO_ADDRESS) {    this.balances[to] = this.balances[to].minus(value);  }}列表
+    6-8
 - en: Reverting a transfer event in our list of balances. The logic here is the reverse
     of that in the reduceEvent method
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: 在我们的余额列表中撤销转账事件。 这里的逻辑与 reduceEvent 方法相反
 - en: 'This way, instead of polling for new blocks relying on the getPastEvents method,
     we can simply open a subscription and listen for events additions and removals
     (Listing [6-9](#PC10)).async function start() {  // Process all past blocks  const
@@ -308,13 +446,22 @@
     fromBlock: currentBlock + 1 })      .on(''data'', e => this.reduceEvent(e))      .on(''changed'',
     e => this.undoTransfer(e.returnValues))      .on(''error'', err => console.error("Error",
     err));}Listing 6-9'
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: '这种方式，不再依赖`getPastEvents`方法轮询新区块，而是可以简单地打开一个订阅并监听事件的添加和移除（见[6-9](#PC10)）。async
+    function start() {  // 处理所有过去的区块  const currentBlock = await this.web3.eth.getBlockNumber();  await
+    this.processBlocks(this.startBlock, currentBlock);  // 订阅新的区块  this.subscription
+    = this.contract.events    .Transfer({ fromBlock: currentBlock + 1 })      .on(''data'',
+    e => this.reduceEvent(e))      .on(''changed'', e => this.undoTransfer(e.returnValues))      .on(''error'',
+    err => console.error("Error", err));}Listing 6-9'
 - en: Using subscriptions for monitoring new events and tracking removed ones due
     to reorganizations. The data handler fires whenever there is a new event and the
     changed one when the event is removed from the chain due to a reorganization
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用订阅来监视新事件并跟踪由于重组而删除的事件。数据处理程序在有新事件时触发，而更改处理程序在由于重组而从链中删除事件时触发
 - en: However, this approach has a major downside. If the websocket connection to
     the node is lost when a reorg occurs, our script will never be notified of the
     removed events. This means that we will not roll back the reverted transfers and
@@ -323,38 +470,51 @@
     time the subscription is installed, we may miss some events. Let’s try a different,
     simpler approach then. We will first need to manually detect when a reorg has
     happened.
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: 但是，这种方法有一个主要缺点。如果在重新组织发生时与节点的websocket连接丢失，则我们的脚本将永远不会被通知已删除的事件。这意味着我们不会回滚已撤消的转账，并最终导致无效状态。另一个问题是，订阅仅返回新事件，因此如果在`processBlocks`调用和安装订阅之间铸造任何区块，我们可能会错过一些事件。那么我们就尝试一个不同的、更简单的方法吧。我们首先需要手动检测何时发生了重组。
 - en: Detecting a Reorganization
+  id: totrans-49
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 检测重组
 - en: A reorganization occurs when a chain fork gathers more accumulated hash power
     than the current head, and that fork becomes the official chain. This can happen
     if different sets of miners work on different forks.
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: 当链分叉聚集的累积哈希功率超过当前头部时，就会发生重组，并且该分叉将成为官方链。如果不同的矿工组在不同的分叉上工作，则可能发生这种情况。
 - en: This means that in a reorganization, one or more blocks (starting backward from
     the current head) will be replaced by others. These new blocks may or may not
     contain the same transactions as the previous ones and may also be ordered differently,^([4](#Fn4))
     yielding different results.
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: 这意味着在重组中，一个或多个区块（从当前头部开始向后）将被其他区块替换。这些新区块可能包含与以前的区块不同的交易，也可能按不同的顺序排列，^([4](#Fn4))
+    从而产生不同的结果。
 - en: 'We can detect a reorganization by checking the block identifiers. Recall from
     Chapter [3](476252_1_En_3_Chapter.xhtml) that each block is identified by its
     hash. This hash is calculated from the block’s data and the hash of the previous
     block. This is what constitutes a blockchain in its essence: the fact that each
     block is tied to the previous one. And this means that an old block cannot be
     changed without forcing a change in the identifiers of all subsequent blocks.'
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过检查区块标识符，我们可以检测到一次重组。回想一下第[3](476252_1_En_3_Chapter.xhtml)章，每个区块都由其哈希标识。此哈希是从区块的数据和前一个区块的哈希计算得出的。这就是区块链的本质：每个区块都与前一个区块相连。这意味着旧区块不能更改而不强制更改所有后续区块的标识符。
 - en: This is exactly what allows us to easily detect a reorganization. When the hash
     of a block at a given height changes, it means that that block and potentially
     other blocks before it have changed as well. We can then just monitor the latest
     block we have processed, and if its hash changes at any point, we then scan backward
     for other changed hashes, until we detect a common ancestor (Listing [6-10](#PC11)).
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: 这正是我们可以轻松检测到重组的原因。当给定高度的区块的哈希值发生变化时，这意味着该区块以及可能在它之前的其他区块也发生了变化。然后我们只需监视我们已处理的最新区块，如果其哈希在任何时候发生变化，我们就会向后扫描其他更改的哈希，直到我们检测到一个共同的祖先（清单[6-10](#PC11)）。
 - en: Let’s modify our script to add a check for reorgs using this strategy, which
     will require us to keep track of the block hashes we have processed.// 01-indexing/reorgs-indexer.jsasync
     processNewBlocks() {  // Track current block number and its hash  const currentBlockNumber
@@ -369,28 +529,47 @@
     Update this.lastBlockNumber and this.lastBlockHash  // ...}async getBlockHash(number)
     {  const { hash } = await this.web3.eth.getBlock(number);  return hash;}Listing
     6-10
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们修改我们的脚本，使用这种策略添加对重组的检查，这将要求我们跟踪我们已处理的块哈希。 // 01-indexing/reorgs-indexer.jsasync
+    processNewBlocks() {  // 跟踪当前块号和其哈希  const currentBlockNumber =   await this.web3.eth.getBlockNumber()
+    - CONFIRMATIONS;  const currentBlockHash =   await this.getBlockHash(currentBlockNumber);  //
+    检查可能的重组  if (this.lastBlockNumber && this.lastBlockHash) {    const newLastBlockHash     =
+    await this.getBlockHash(this.lastBlockNumber);    if (this.lastBlockHash !== newLastBlockHash)
+    {     // 发生了重组！ 撤销所有受影响的块，     // 并从未从主链中移除的最近一个重新处理块     const lastBlock = await
+    this.undoBlocks();     this.lastBlockHash = lastBlock.hash;     this.lastBlockNumber
+    = lastBlock.number;    }  }  // 从 lastBlockNumber 处理块直到 currentBlock  // 更新 this.lastBlockNumber
+    和 this.lastBlockHash  // ...}async getBlockHash(number) {  const { hash } = await
+    this.web3.eth.getBlock(number);  return hash;}6-10
 - en: Updated processNewBlocks function that checks for reorgs on every iteration.
     The function undoBlocks (Listing [6-12](#PC13)) should undo all transfers related
     to removed blocks, returning the most recent block not affected by the reorganization
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
+  zh: 更新了 `processNewBlocks` 函数，该函数在每次迭代中检查重组。 函数 `undoBlocks`（见 [6-12](#PC13)）应撤消所有与已移除块相关的转账，并返回未受重组影响的最新块。
 - en: Note that we are now keeping track of not just the latest block number but also
     its hash. Whenever we start a new iteration, we check if the hash for the block
     at that same height changed. If it did, then we have stumbled upon a reorganization
     and must revert all changes from the removed blocks.
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: 请注意，我们现在不仅跟踪最新的块号，还跟踪其哈希。 每当开始新的迭代时，我们都会检查该高度处块的哈希是否更改。 如果是，则我们遇到了重组，必须撤消所有已删除块的更改。
 - en: Reverting Changes
+  id: totrans-57
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 恢复更改
 - en: When the reorganization is detected, we need to revert any transfers we have
     processed from the blocks removed. To do that, we first need to keep track of
     which transfers we processed on each block (Listing [6-11](#PC12)).
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: 当检测到重组时，我们需要撤消我们从已删除块中处理的任何转账。 为此，我们首先需要跟踪在每个块上我们处理的哪些转账（见 [6-11](#PC12)）。
 - en: 'We will add a new field to our Indexer class: a stack containing one item per
     each block we have seen when processing a transfer event. Each item will hold
     the block number, hash, and the list of transfers it included. We will add new
@@ -400,14 +579,18 @@
     {    this.eventsBlocks.push({      number: event.blockNumber,      hash: event.blockHash,      transfers:
     []    });  }  // Include the transfer event on the latest block  last(this.eventsBlocks)    .transfers.push(event.returnValues);}Listing
     6-11'
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将向我们的 Indexer 类添加一个新字段：一个堆栈，每个块我们在处理转账事件时都会看到一个项目。每个项目将保存块编号、哈希和它包含的转账列表。我们将在每次减少新事件时向其中添加新项目。
 - en: Keeping track of transfer events per block. This function is called from reduceEvent.
     Note that this function must be invoked in order as new events are being processed
     to ensure the list of blocks remains sorted with the most recent block at its
     end
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: 跟踪每个块的转账事件。此函数从 reduceEvent 中调用。请注意，必须按顺序调用此函数，因为正在处理新事件，以确保块列表保持排序，最新的块位于其末尾。
 - en: 'Now that we have a list of the blocks we have processed, we can iterate it
     starting from the end and undo all the transfer events we have aggregated on our
     list of balances (Listing [6-12](#PC13)).async undoBlocks() {  while (this.eventsBlocks.length
@@ -418,93 +601,130 @@
     transfers for that block,    // and iterate    this.eventsBlocks.pop();    lastBlock.transfers.forEach((t)
     =>      this.undoTransfer(t)    );  }  // We return an empty block if there are
     no more  return { hash: null, number: null };}Listing 6-12'
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们有了我们处理过的块列表，我们可以从末尾开始迭代它，并撤消我们在余额列表上聚合的所有转账事件。
 - en: Walk backward the list of processed events and undo all transfers. This function
     must return the most recent block that was not removed in the reorganization,
     so the script can reprocess the chain from it. The function undoTransfer is analogous
     to the one presented in the subscriptions subsection earlier in this chapter
+  id: totrans-62
   prefs: []
   type: TYPE_NORMAL
+  zh: 向后遍历已处理事件的列表并撤消所有转账。该函数必须返回未在重新组织中移除的最近的区块，以便脚本可以从中重新处理链。函数undoTransfer类似于本章前面的订阅子节中提到的函数。
 - en: 'To recap, the changes we have implemented to make our script robust against
     reorganizations are the following:'
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: 总结一下，我们已经实施的变化，使我们的脚本能够抵御重新组织的变化如下：
 - en: '1.'
+  id: totrans-64
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '1.'
 - en: When processing a transfer event, save its block number and hash on a list,
     appending the most recent ones at the end.
+  id: totrans-65
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 处理转账事件时，将其区块号和哈希保存在列表中，将最近的一次添加到末尾。
 - en: '2.'
+  id: totrans-66
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '2.'
 - en: When checking for new blocks, verify if the hash of the latest block we have
     processed has changed.
+  id: totrans-67
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 在检查新区块时，验证我们已处理的最新区块的哈希是否已更改。
 - en: '3.'
+  id: totrans-68
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '3.'
 - en: If it did change, undo each transfer event that happened on each changed block,
     starting from the most recent one. When we reach an unchanged block, stop.
+  id: totrans-69
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 如果已更改，则撤消发生在每个更改的区块上的每个转账事件，从最近的一个开始。当我们到达一个未更改的区块时，停止。
 - en: '4.'
+  id: totrans-70
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '4.'
 - en: Reset the latest block to the unchanged block, and resume processing from there.
+  id: totrans-71
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 将最新的区块重置为未更改的区块，并从那里恢复处理。
 - en: 'While these changes have introduced much complexity to our solution, they ensure
     that its state does not fall out of sync because of reorganizations. It will depend
     on your use case how you choose to handle them: ignoring the most recent blocks
     until they become confirmed, using subscriptions to let the node track removed
     events assuming a stable connection, or implementing a client-based design similar
     to this one.'
+  id: totrans-72
   prefs: []
   type: TYPE_NORMAL
+  zh: 虽然这些变化给我们的解决方案引入了很多复杂性，但它们确保其状态不会因重新组织而失去同步。根据您的用例，您可以选择如何处理它们：忽略最新的区块直到它们被确认，使用订阅来让节点跟踪已移除的事件，假设连接稳定，或者实施类似于这个的基于客户端的设计。
 - en: Unit Testing
+  id: totrans-73
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 单元测试
 - en: 'Up until now, we have overlooked a critical aspect of software development:
     tests. While testing is not substantially different in Ethereum than in other
     applications, we will use our indexer example to introduce some useful techniques
     specific to blockchain testing.'
+  id: totrans-74
   prefs: []
   type: TYPE_NORMAL
+  zh: 到目前为止，我们忽略了软件开发的一个关键方面：测试。虽然以太坊中的测试与其他应用程序并没有实质性的不同，但我们将利用我们的索引器示例来介绍一些特定于区块链测试的有用技术。
 - en: Choosing a Node
+  id: totrans-75
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 选择一个节点
 - en: The first decision lies in choosing which node to use for our tests. Recall
     from earlier chapters that we can work with ganache, a blockchain simulator, or
     on an actual node, such as Geth or Parity, running on development mode. The former
     is lighter and provides additional methods for manipulating the blockchain state
     which are useful in unit tests. On the other hand, using an actual node will be
     more representative of the actual production setup for your application.
+  id: totrans-76
   prefs: []
   type: TYPE_NORMAL
+  zh: 第一个决定在于选择在测试中使用哪个节点。回想前面章节提到的，我们可以使用 ganache，一个区块链模拟器，或者在开发模式下运行的实际节点，比如 Geth
+    或 Parity。前者更轻量，并提供了额外的方法来操作区块链状态，这些方法在单元测试中非常有用。另一方面，使用实际节点将更具代表性，适合你的应用的实际生产设置。
 - en: A good compromise is to use ganache with instant seal for unit tests, while
     a Geth or Parity development node can be used for end-to-end integration tests,
     running with a fixed block time. This allows more fine-grained control in the
     unit tests and a more representative environment on integration.
+  id: totrans-77
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个很好的折衷方案是在单元测试中使用具有即时封存功能的 ganache，而在端到端集成测试中可以使用一个 Geth 或 Parity 开发节点，以固定的区块时间运行。这样可以在单元测试中获得更精细的控制，并在集成测试中提供更具代表性的环境。
 - en: Note
+  id: totrans-78
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 注意
 - en: Whether unit tests should be allowed to call external services is typically
     a contentious issue in software development. In traditional applications, some
     developers prefer to set up a testing database to back their unit tests, while
@@ -513,17 +733,25 @@
     with the former group and will connect to a ganache instance in our unit tests.
     Either way, this is only a matter of semantics on what we understand for a unit
     test.
+  id: totrans-79
   prefs: []
   type: TYPE_NORMAL
+  zh: 在软件开发中，单元测试是否允许调用外部服务通常是一个有争议的问题。在传统应用中，一些开发者倾向于建立一个用于支持他们的单元测试的测试数据库，而其他人则对它的所有调用进行存根处理，以便在隔离状态下测试他们的代码，他们认为单元测试必须只测试单个代码片段。在这里，我们将支持前一组，并将在我们的单元测试中连接到一个
+    ganache 实例。无论如何，这只是关于我们如何理解单元测试的语义问题。
 - en: Testing Our Indexer
+  id: totrans-80
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 测试我们的索引器
 - en: We will now write some unit tests for our indexer. We will use ganache as a
     back end, mocha^([5](#Fn5)) as a test runner, and chai^([6](#Fn6)) with the bignumber
     plugin^([7](#Fn7)) for writing assertions.
+  id: totrans-81
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们现在将为我们的索引器编写一些单元测试。我们将使用 ganache 作为后端，mocha^([5](#Fn5)) 作为测试运行器，并使用 chai^([6](#Fn6))
+    以及 bignumber 插件^([7](#Fn7)) 来编写断言。
 - en: The first step is to deploy an ERC20 token for our indexer to monitor (Listing
     [6-13](#PC14)). We will extend the default ERC20 implementation from OpenZeppelin
     with a public minting method, so we can easily mint tokens for any addresses we
@@ -531,12 +759,17 @@
     "openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";contract MockERC20 is
     ERC20 {  constructor () public { }  function mint(address account, uint256 amount)
     public {    _mint(account, amount);  }}Listing 6-13
+  id: totrans-82
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，我们需要为我们的索引器部署一个 ERC20 代币以进行监视（见[6-13](#PC14)）。我们将使用 OpenZeppelin 的默认 ERC20
+    实现来扩展，增加一个公共铸币方法，这样我们就可以轻松地为任何我们想要测试的地址铸造代币。
 - en: ERC20 token contract with a public minting method, which allows anyone to create
     new tokens. Do not use in production!
+  id: totrans-83
   prefs: []
   type: TYPE_NORMAL
+  zh: 具有公共铸币方法的 ERC20 代币合约，允许任何人创建新的代币。请勿在生产中使用！
 - en: 'Let’s create the boilerplate for our test file (Listing [6-14](#PC15)). We
     will need to import all the relevant components, create a new instance of web3
     for interacting with our ganache instance, and deploy the new contract.// 01-indexing/test/indexer.test.jsconst
@@ -547,13 +780,19 @@
     () {  before(''setup'', async function () {    this.accounts = await web3.eth.getAccounts();    this.erc20
     = await ERC20.deploy().send({      from: this.accounts[0], gas: 1e6    });  });});Listing
     6-14'
+  id: totrans-84
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们为我们的测试文件创建样板代码（见[6-14](#PC15)）。我们需要导入所有相关组件，为与我们的 ganache 实例进行交互创建一个新的 web3
+    实例，并部署新的合约。
 - en: Boilerplate code for a test suite for the Indexer. It initializes a new web3
     instance and deploys an instance of the ERC20 token contract. Note that some require
     statements were removed for brevity
+  id: totrans-85
   prefs: []
   type: TYPE_NORMAL
+  zh: 用于 Indexer 的测试套件的样板代码。它初始化一个新的 web3 实例并部署一个 ERC20 代币合约的实例。注意，为了简洁起见，一些 require
+    语句已被删除。
 - en: 'Using this template, we can now write our first test within our *describe*
     block, to check that any balances minted in our contract are correctly picked
     up by the indexer (Listing [6-15](#PC16)).it(''records balances from minting'',
@@ -561,28 +800,43 @@
     ''http://localhost:9545''  });  const [from, holder] = this.accounts;  await this.erc20.methods.mint(holder,
     1000).send({ from });  await indexer.processNewBlocks();  expect(indexer.getBalances()[holder])    .to.be.bignumber.eq("1000");});Listing
     6-15'
+  id: totrans-86
   prefs: []
   type: TYPE_NORMAL
+  zh: '使用此模板，我们现在可以在我们的 *describe* 块内编写我们的第一个测试，以检查我们合约中铸造的任何余额是否被索引器正确拾取（见 [6-15](#PC16)）。it(''记录铸造的余额'',
+    async function () {  const indexer = new Indexer({    address: this.erc20.options.address    provider:
+    ''http://localhost:9545''  });  const [from, holder] = this.accounts;  await this.erc20.methods.mint(holder,
+    1000).send({ from });  await indexer.processNewBlocks();  expect(indexer.getBalances()[holder])    .to.be.bignumber.eq("1000");});列表
+    6-15'
 - en: Test for checking that transfers from minting are correctly processed. We initialize
     a new Indexer instance for the newly deployed token contract, mint some tokens
     for an address, and execute the indexer to check the result
+  id: totrans-87
   prefs: []
   type: TYPE_NORMAL
+  zh: 用于检查从铸造中转账是否被正确处理的测试。我们为新部署的代币合约初始化一个新的 Indexer 实例，为一个地址铸造一些代币，并执行索引器以检查结果。
 - en: We can run this test with mocha. Make sure to have a ganache instance running
     in another terminal and listening on port 9545 (Listing [6-16](#PC17)).$ ganache-cli
     -p 9545$ npx mochaListing 6-16
+  id: totrans-88
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以使用 mocha 运行此测试。确保在另一个终端上运行 ganache 实例，并监听端口 9545（见 [6-16](#PC17)）。$ ganache-cli
+    -p 9545$ npx mocha列表 6-16
 - en: Starting a ganache instance and running the test suite respectively. Each command
     should be run on a different terminal
+  id: totrans-89
   prefs: []
   type: TYPE_NORMAL
+  zh: 分别启动 ganache 实例并运行测试套件。每个命令应在不同的终端上运行。
 - en: However, if we run our test, it will fail – the indexer will not pick up any
     balance for the holder address. This is because we built our indexer to ignore
     any information from the latest blocks and only consider transfers after a certain
     number of confirmations.
+  id: totrans-90
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，如果我们运行我们的测试，它会失败 - 索引器不会为持有人地址拾取任何余额。这是因为我们构建索引器忽略了最新区块的任何信息，并且仅在一定数量的确认后考虑转账。
 - en: 'We will fix this using the *mine* method from ganache (Listing [6-17](#PC18)).
     This method, not available in Geth or Parity, tells ganache to simulate a new
     block being mined. It is sent as any other message via the low-level JSON-RPC
@@ -590,28 +844,44 @@
     {      jsonrpc: "2.0", method, params    });}function mineBlocks(web3, number)
     {  return Promise.all(    Array.from({ length: number }, () => (      rpcSend(web3,
     "evm_mine")    ))  );}Listing 6-17'
+  id: totrans-91
   prefs: []
   type: TYPE_NORMAL
+  zh: '我们将使用 ganache 的 *mine* 方法（见 [6-17](#PC18)）来修复此问题。这个方法在 Geth 或 Parity 中不可用，它告诉
+    ganache 模拟一个新的区块被挖掘出来。它像任何其他消息一样通过低级 JSON-RPC 接口发送。function rpcSend(web3, method,
+    ... params) {  return require(''util'')    .promisify(web3.currentProvider.send)    .call(web3.currentProvider,
+    {      jsonrpc: "2.0", method, params    });}function mineBlocks(web3, number)
+    {  return Promise.all(    Array.from({ length: number }, () => (      rpcSend(web3,
+    "evm_mine")    ))  );}列表 6-17'
 - en: Helper method to instruct ganache to mine a certain number of blocks. The code
     in mineBlocks fires a chosen number requests in parallel and returns when all
     of them have succeeded
+  id: totrans-92
   prefs: []
   type: TYPE_NORMAL
+  zh: 辅助方法指示 ganache 开采一定数量的区块。 `mineBlocks` 中的代码并行触发了一定数量的请求，当所有请求都成功时返回。
 - en: We can now add a call to mineBlocks  right before instructing our indexer to
     process new blocks in our test, run it again, and see it pass.
+  id: totrans-93
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们现在可以在我们的测试中，在指示索引器处理新区块之前，添加一次调用 `mineBlocks`，再次运行它，并看到它通过。
 - en: Using Snapshots
+  id: totrans-94
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 使用快照
 - en: We can now write more tests that exercise other scenarios of our indexer. However,
     in any good test suite, all tests should be independent from each other, which
     is not the case here since we are deploying a single instance of our ERC20 contract.
     This means that any minting or transfers that occur in a test will be carried
     on to the following ones.
+  id: totrans-95
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们现在可以编写更多测试来测试我们索引器的其他场景。然而，在任何良好的测试套件中，所有测试都应该相互独立，但这里并非如此，因为我们部署了我们 ERC20
+    合约的单个实例。这意味着测试中发生的任何铸币或转账都将传递到后续的测试中。
 - en: 'While the obvious solution is to just replace our before step with a beforeEach
     step,^([8](#Fn8)) so a new ERC20 is deployed for each test, we will use this opportunity
     to introduce a new concept specific to ganache: snapshots (Listing [6-18](#PC19)).
@@ -619,12 +889,19 @@
     a set of operations, and then roll back to the saved state.function takeSnapshot(web3)
     {  return rpcSend(web3, "evm_snapshot").then(r => r.result);}function revertToSnapshot(web3,
     id) {  return rpcSend(web3, "evm_revert", id);}Listing 6-18'
+  id: totrans-96
   prefs: []
   type: TYPE_NORMAL
+  zh: 显而易见的解决方案是将我们的 `before` 步骤替换为 `beforeEach` 步骤，^([8](#Fn8)) 这样每个测试都会部署一个新的 ERC20，但我们将利用这个机会引入
+    ganache 特有的一个新概念：快照（见清单 [6-18](#PC19)）。快照允许我们保存模拟区块链的当前状态，运行一组操作，然后回滚到保存的状态。函数
+    `takeSnapshot(web3)` {  return rpcSend(web3, "evm_snapshot").then(r => r.result);}函数
+    `revertToSnapshot(web3, id)` {  return rpcSend(web3, "evm_revert", id);}清单 6-18
 - en: Helper functions for taking a new snapshot, which returns the snapshot id, and
     for reverting to a specific snapshot given its id
+  id: totrans-97
   prefs: []
   type: TYPE_NORMAL
+  zh: 用于获取新快照的辅助函数，返回快照 id，并用于根据快照 id 回滚到特定快照的辅助函数
 - en: A good use case for snapshots is to save time by removing the need to re-create
     a new state for each test (Listing [6-19](#PC20)). Instead of deploying a new
     ERC20 contract on each test, we just deploy it once, save a snapshot, execute
@@ -634,30 +911,41 @@
     from it.beforeEach('take snapshot', async function () {  this.snapshotId = await
     takeSnapshot(web3);});afterEach('revert to snapshot', async function () {  await
     revertToSnapshot(web3, this.snapshotId);});Listing 6-19
+  id: totrans-98
   prefs: []
   type: TYPE_NORMAL
+  zh: 快照的一个很好的用例是通过消除为每个测试重新创建新状态的需求来节省时间（见[6-19](#PC20)）。我们不需要在每个测试中部署新的 ERC20 合约，而是只需部署一次，保存一个快照，执行一个测试，然后在运行下一个测试之前恢复快照以清除任何更改。虽然这不会在我们的测试中提供任何性能改进，但是对于需要创建多个合约的更复杂设置的测试套件来说，将受益匪浅。
 - en: Taking a new snapshot before each test, and reverting back to it once the test
     has ended. Note that we cannot revert to the same snapshot more than once, so
     we need to create a new one for each test
+  id: totrans-99
   prefs: []
   type: TYPE_NORMAL
+  zh: 在每次测试之前都会创建一个新的快照，并在测试结束后恢复到该快照。请注意，我们不能多次恢复到同一个快照，因此我们需要为每个测试创建一个新的快照。
 - en: 'Another interesting use case of snapshots is for testing *reorganizations*.
     Triggering a reorganization on a regular Geth or Parity node is complex, as it
     involves setting up our own private node network, and disconnecting and reconnecting
     nodes to simulate the chain split. On the other hand, testing a reorganization
     on ganache is much simpler: we can take a snapshot, mine a few blocks, and then
     roll back and mine another set of blocks with a different set of transactions.'
+  id: totrans-100
   prefs: []
   type: TYPE_NORMAL
+  zh: 快照的另一个有趣的用例是测试*重组*。在常规的 Geth 或 Parity 节点上触发重组是复杂的，因为它涉及设置我们自己的私有节点网络，并断开和重新连接节点以模拟链分裂。另一方面，在
+    ganache 上测试重组要简单得多：我们可以拍摄一个快照，挖掘几个区块，然后回滚并挖掘另一组带有不同交易集的区块。
 - en: Caution
+  id: totrans-101
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 注意
 - en: This will not be equivalent to an actual chain reorganization, since subscriptions
     will not report any *removed* events. Nevertheless, since our indexer relies on
     plain polling for detecting any changes, using snapshots will do in this case.
+  id: totrans-102
   prefs: []
   type: TYPE_NORMAL
+  zh: 这不等同于实际的链重组，因为订阅不会报告任何*移除*事件。尽管如此，由于我们的索引器依赖于普通轮询来检测任何更改，因此在这种情况下使用快照就足够了。
 - en: 'Let’s write a test for checking that our indexer properly handles chain reorganizations
     by undoing any balance changes from removed blocks and processing new ones.it(''handles
     reorganizations'', async function () {  // Set up a new indexer  const indexer
@@ -673,54 +961,84 @@
     snapshotId);  await methods.transfer(r1, 300).send({ from: sender });  await mineBlocks(web3,
     15);  // Check that the old state was discarded  await this.indexer.processNewBlocks();  const
     newBalances = this.indexer.getBalances();  expect(newBalances[sender]).to.be.bignumber.eq("700");  expect(newBalances[r1]).to.be.bignumber.eq("300");  expect(newBalances[r2]).to.be.bignumber.eq("0");});'
+  id: totrans-103
   prefs: []
   type: TYPE_NORMAL
+  zh: '让我们编写一个测试，检查我们的索引器是否正确处理链重组，通过撤消删除的块的任何余额更改并处理新块。it(''handles reorganizations'',
+    async function () {  // 设置一个新的索引器  const indexer = new Indexer({    address: this.erc20.options.address,    provider:
+    ''http://localhost:9545''  });  // 为发送者帐户铸造余额并拍摄快照  const [from, sender, r1, r2]
+    = this.accounts;  await this.erc20.methods.mint(sender, 1000).send({ from });  const
+    snapshotId = await takeSnapshot(web3);  // 将 200 个代币转移到 r1 和 r2，然后确认挖掘  const
+    transfer = this.erc20.methods.transfer;  await transfer(r1, 200).send({ from:
+    sender });  await transfer(r2, 200).send({ from: sender });  await mineBlocks(web3,
+    12);  // 运行索引器并断言它们被拾取  await this.indexer.processNewBlocks();  const balances
+    = this.indexer.getBalances();  expect(balances[sender]).to.be.bignumber.eq("600");  expect(balances[r1]).to.be.bignumber.eq("200");  expect(balances[r2]).to.be.bignumber.eq("200");  //
+    回滚以模拟重组并发送新的转账  await revertToSnapshot(web3, snapshotId);  await transfer(r1,
+    300).send({ from: sender });  await mineBlocks(web3, 15);  // 检查旧状态是否被丢弃  await
+    this.indexer.processNewBlocks();  const newBalances = this.indexer.getBalances();  expect(newBalances[sender]).to.be.bignumber.eq("700");  expect(newBalances[r1]).to.be.bignumber.eq("300");  expect(newBalances[r2]).to.be.bignumber.eq("0");});'
 - en: Note
+  id: totrans-104
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 注意
 - en: These testing techniques can be used to test not only components that interact
     with smart contracts but the smart contracts themselves. It is a good practice
     to have a good test coverage in any code you deploy to the network, especially
     considering you will not be able to modify it later (in most cases^([9](#Fn9)))
     to fix any bugs.
+  id: totrans-105
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些测试技术不仅可用于测试与智能合约交互的组件，还可用于测试智能合约本身。在部署到网络的任何代码中都保持良好的测试覆盖率是一个良好的实践，特别是考虑到您以后可能无法修改它（在大多数情况下^([9](#Fn9))）以修复任何错误。
 - en: A Note on Centralization
+  id: totrans-106
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 关于中心化的说明
 - en: For the first time in this book, we have introduced a server-side component
     to our applications. Instead of just building a client-side-only app that connects
     directly to the blockchain, we now have a new centralized dependency that is required
     for our application to run. It can be argued that our application thus no longer
     qualifies as a decentralized app, as it blindly trusts data returned by a server
     run by a single team.
+  id: totrans-107
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本书中，我们首次为我们的应用引入了一个服务器端组件。我们不仅构建了一个仅客户端的应用，直接连接到区块链，现在我们还有一个新的中心化依赖项，必须使我们的应用程序运行。可以认为我们的应用程序因此不再符合去中心化应用程序的条件，因为它盲目地信任由单个团队运行的服务器返回的数据。
 - en: Depending on the kind of data being queried, this can be alleviated by having
     the client *verify* part of the data supplied by the server. Following with the
     ERC20 balance example, a client could request the top 10 holders of a token from
     the indexing server and then verify against the blockchain that their balances
     are correct. They may still not be the top 10 – but at least the client has a
     guarantee that the balances have not been tampered with.
+  id: totrans-108
   prefs: []
   type: TYPE_NORMAL
+  zh: 根据查询的数据类型不同，这个问题可以通过让客户端 *验证* 服务器提供的部分数据来缓解。以 ERC20 余额示例为例，客户端可以从索引服务器请求一个代币的前
+    10 个持有者，然后对比区块链以确认他们的余额是否正确。它们可能仍然不是前 10 个持有者 - 但至少客户端可以保证余额没有被篡改。
 - en: However, this is not a solution to the problem, as not all data can be verified
     against the blockchain without having to re-query all events. Furthermore, our
     application now depends on a component that could go down at any time, rendering
     it unusable.
+  id: totrans-109
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，这并不是解决问题的方法，因为并非所有数据都可以针对区块链进行验证而无需重新查询所有事件。此外，我们的应用程序现在依赖于一个随时可能关闭的组件，使其无法使用。
 - en: Let’s discuss two different approaches to this problem. The upcoming discussion
     applies not just to indexing but also to any other off-chain service, such as
     storage or intensive computation.
+  id: totrans-110
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们讨论两种不同的解决方案。即将进行的讨论不仅适用于索引，还适用于任何其他链下服务，如存储或密集计算。
 - en: Decentralized Services
+  id: totrans-111
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 去中心化服务
 - en: One approach to this problem is to look for *decentralized* off-chain solutions.
     For instance, at the time of this writing, a GraphQL interface to blockchain data
     named *EthQL*^([10](#Fn10)) is under review. This could be added as part of the
@@ -729,25 +1047,34 @@
     offers customized GraphQL schemas for different protocols. They rely on a token-incentivized
     decentralized network of nodes that keep such schemas up to date and answer any
     queries from users.
+  id: totrans-112
   prefs: []
   type: TYPE_NORMAL
+  zh: 解决这个问题的一种方法是寻找 *去中心化* 的链下解决方案。例如，在撰写本文时，一种名为 *EthQL* 的区块链数据 GraphQL 接口正在审核中。这可以作为所有以太坊节点的标准接口的一部分添加，从而允许任何客户端更轻松地查询事件。另一个例子是
+    thegraph，这是一个为不同协议提供定制的 GraphQL 模式的项目。他们依赖于一个令牌激励的去中心化节点网络，这些节点保持这些模式的最新状态并回答用户的任何查询。
 - en: While elegant, these decentralized solutions may not yet be ready for all use
     cases. Decentralized indexing or computing solutions are still being designed.
     And even when ready, a generic decentralized solution may not always cater for
     the specific needs of your application. With this in mind, we will discuss a second
     approach.
+  id: totrans-113
   prefs: []
   type: TYPE_NORMAL
+  zh: 尽管优雅，这些分散化解决方案可能还没有为所有用例做好准备。分散化的索引或计算解决方案仍在设计中。即使准备就绪，通用的分散解决方案也可能不总是满足你的应用程序的特定需求。考虑到这一点，我们将讨论第二种方法。
 - en: Centralized Applications
+  id: totrans-114
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 中心化应用程序
 - en: An apparent non-solution to the problem is to just accept that applications
     *can be centralized*. This may come as a controversial statement, having focused
     strongly on decentralized applications throughout the book, but it does not need
     to be.
+  id: totrans-115
   prefs: []
   type: TYPE_NORMAL
+  zh: 解决这个问题的一个明显的非解决方案是接受应用程序*可以是中心化的*。这可能是一个有争议的声明，因为在整本书中都强调了分散式应用程序，但实际上并非如此。
 - en: It can be argued that the strength of a blockchain-based system lies not in
     the application but in the protocol layer. By relying on the chain as the ultimate
     source of truth and building open protocols that run on it, any developer can
@@ -756,26 +1083,34 @@
     data in a common decentralized protocol layer. Decentralization is then understood
     as the freedom of being able to pack up and leave at any time while preserving
     all data and network effects that arise from the shared decentralized layers.
+  id: totrans-116
   prefs: []
   type: TYPE_NORMAL
+  zh: 可以说，基于区块链的系统的强大之处不在于应用程序，而在于协议层。通过依赖链作为最终真相的来源，并构建在其上运行的开放协议，任何开发者都可以自由地构建一个与这些协议进行交互的应用程序。这使得用户可以在共同的分散式协议层中移动不同的充当其数据*入口*的应用程序之间。分散化随之被理解为能够随时收拾起来离开，同时保留所有数据和网络效应的自由，这些效应来自共享的分散化层。
 - en: This rationale gives us as developers the freedom to build solutions as powerful
     as we want in the application level by leveraging any number of centralized components
     for querying, storage, computing, or any other service we could need. These solutions
     have the potential to deliver a much richer user experience than fully decentralized
     ones.
+  id: totrans-117
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个理由赋予我们作为开发者在应用层构建尽可能强大的解决方案的自由，通过利用任意数量的中心化组件进行查询、存储、计算或任何其他可能需要的服务。这些解决方案有可能提供比完全分散的解决方案更丰富的用户体验。
 - en: As you can imagine, centralization is a contentious issue in the Ethereum development
     community. There is no right or wrong answer to this topic, and the discussion
     will probably keep evolving over time. Regardless of the approach you take, be
     sure to understand the pros and cons of it and weigh them against the requirements
     of the solution you are looking to build.
+  id: totrans-118
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可以想象，中心化是以太坊开发社区中一个有争议的问题。对于这个话题，没有对与错的答案，讨论可能会随着时间不断发展。无论你采取什么样的方法，一定要理解其利弊，并将其与你要构建的解决方案的需求进行权衡。
 - en: Storage
+  id: totrans-119
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 存储
 - en: 'We will now focus on another problem in Ethereum: storage. Storing data on
     the Ethereum blockchain is very expensive, costing 625 gas per byte (rounded up
     to 32-byte slots), plus a base 68 per non-zero byte just for sending that data
@@ -785,37 +1120,52 @@
     data (this amounts to 1/10th of the cost for our sample image), but is still expensive
     as we start scaling up. This means we need to look into alternative solutions
     for storing large application data.'
+  id: totrans-120
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们将关注以太坊的另一个问题：存储。在以太坊区块链上存储数据非常昂贵，每字节消耗625 gas（四舍五入到32字节槽位），再加上每个非零字节的基础68
+    gas，仅用于将数据发送到区块链。以1GWei的gas价格计算，这意味着存储一个100kb的PNG将花费约0.07 ETH。另一方面，为了链下访问而将数据保存在日志中要便宜得多，每字节消耗8
+    gas单位，再加上发送数据的基础68 gas（这相当于我们样本图像成本的十分之一），但随着规模扩大，这仍然昂贵。这意味着我们需要寻找存储大型应用数据的替代解决方案。
 - en: Off-chain Storage
+  id: totrans-121
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 链下存储
 - en: Following a similar approach to the one we used for indexing, we can set up
     a separate centralized server that provides storage capabilities. Instead of storing
     the actual data on the blockchain, we can store the URL from which we can retrieve
     that data off-chain. Of course, this approach is only useful for data that is
     not needed for contract execution logic, but rather for off chain purposes - such
     as displaying an image associated to an asset.
+  id: totrans-122
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将采用类似于我们用于索引的方法，建立一个提供存储能力的单独的集中式服务器。我们不会将实际数据存储在区块链上，而是存储可以从中检索数据的URL。当然，这种方法仅适用于不需要用于合约执行逻辑的数据，而是用于链下目的的数据
+    - 例如显示与资产关联的图像。
 - en: Along with the URL, we should also store the hash of the data stored. This allows
     any client that retrieves that information to verify that the storage server has
     not tampered with it. Even though data may be rendered inaccessible due to the
     storage server going down, the hash guarantees that any client can check that
     provided the data is correct. In other words, **we may be sacrificing the availability
     of our data by moving it off-chain, but not its integrity**.
+  id: totrans-123
   prefs: []
   type: TYPE_NORMAL
+  zh: 除了URL之外，我们还应该存储存储数据的哈希值。这使得检索该信息的任何客户端都能够验证存储服务器没有篡改数据。尽管由于存储服务器崩溃而导致数据无法访问，但哈希值保证了任何客户端可以检查提供的数据是否正确。换句话说，**通过将数据移到链下，我们可能会牺牲数据的可用性，但不会牺牲数据的完整性**。
 - en: We will pick up our ERC721 minting application from the previous chapter as
     a sample use case to illustrate how this may be implemented and store metadata
     associated to each token (such as a name and description) in an off-chain site.
+  id: totrans-124
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将从上一章节中的ERC721铸币应用程序继续作为一个示例用例，以说明如何实现此功能，并在链下站点存储与每个代币相关的元数据（如名称和描述）。
 - en: ERC721 Metadata Extension
+  id: totrans-125
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: ERC721元数据扩展
 - en: 'Before we go into the implementation, we will briefly review one of the extensions
     of the ERC721 standard: the metadata extension (Listing [6-20](#PC22)). This extension
     specifies that every token has an associated *token URI* that holds its metadata.
@@ -824,11 +1174,17 @@
     tags, authoring information, images, or any other fields specific to the domain
     of the collectible.function tokenURI(uint256 tokenId)  external view returns (string
     memory);Listing 6-20'
+  id: totrans-126
   prefs: []
   type: TYPE_NORMAL
+  zh: 在我们进入实现之前，我们将简要回顾 ERC721 标准的一个扩展：元数据扩展（见列表 [6-20](#PC22)）。这个扩展规定每个代币都有一个相关的
+    *token URI*，其中包含其元数据。这个 URI 可以是一个 HTTP URL，其中包含一个 JSON 文档，其中包含每个代币的信息。这些元数据可以是规范名称、一些描述文本、标签、作者信息、图像或与可收藏品领域特定的任何其他字段。函数
+    tokenURI(uint256 tokenId)  外部视图返回（字符串记忆）；列表 6-20
 - en: Specification of the tokenURI method required by the ERC721 metadata extension
+  id: totrans-127
   prefs: []
   type: TYPE_NORMAL
+  zh: ERC721 元数据扩展所需的 tokenURI 方法规范
 - en: We will extend our ERC721 contract (Listing [6-21](#PC23)) to include the ERC721Metadata
     base contract provided by the openzeppelin-solidity@2.2.0 package, which tracks
     a URI per token.// 02-storage/contracts/ERC721PayPerMint.solpragma solidity ^0.5.0;//
@@ -839,21 +1195,36 @@
     uint256 tokenId, **string memory tokenURI**  ) public payable returns (bool) {    require(msg.value
     >= tokenId.mul(1e12));    _mint(to, tokenId);    **_setTokenURI**(tokenId, tokenURI);    return
     true;  }}Listing 6-21
+  id: totrans-128
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将扩展我们的 ERC721 合约（见列表 [6-21](#PC23)），包括 openzeppelin-solidity@2.2.0 包提供的 ERC721Metadata
+    基础合约，它跟踪每个代币的 URI。// 02-storage/contracts/ERC721PayPerMint.solpragma solidity
+    ^0.5.0;// 导入 SafeMath、ERC721、ERC721Enumerable、ERC721Metadatacontract ERC721PayPerMint  是
+    ERC721、ERC721Enumerable、**ERC721Metadata** 使用 SafeMath for uint256;  构造函数() 公共
+    ERC721Metadata("PayPerMint", "PPM") { }  function exists(uint256 id) 公共视图返回（布尔值）
+    {    返回 _exists(id);  }  function mint(    地址 到, uint256 tokenId, **字符串内存 tokenURI**  )
+    公共付费返回（布尔值） {    要求(msg.value >= tokenId.mul(1e12));    _mint(to, tokenId);    **_setTokenURI**(tokenId,
+    tokenURI);    返回 true;  }}列表 6-21
 - en: Updated ERC721 contract that accepts an associated tokenURI when minting a token.
     Recall that this contract required an amount of ETH proportional to the ID of
     the token for fun and profit
+  id: totrans-129
   prefs: []
   type: TYPE_NORMAL
+  zh: 更新的 ERC721 合约，在铸造代币时接受一个相关的 tokenURI。回顾一下，这个合约要求支付与代币 ID 成比例的 ETH 金额，以供娱乐和盈利之用
 - en: Let’s modify our application to save metadata in a storage server and add the
     URL with the data to the token contract, along with the content hash.
+  id: totrans-130
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们修改我们的应用程序，将元数据保存在存储服务器中，并将包含数据的 URL 添加到代币合约中，以及内容哈希。
 - en: Saving Token Metadata
+  id: totrans-131
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 保存代币元数据
 - en: 'We will modify our main mint method in the ERC721 component so that it accepts
     not just an ID but also a title and description string fields (Listing [6-22](#PC24)).
     We will save this data off-chain, obtain an URL, and pass it along to the following
@@ -865,11 +1236,13 @@
     from: owner });  contract.methods.mint(owner, id, **url**)    .send({ value, gas,
     gasPrice, from: owner })    .on(''transactionHash'', () => {      this.addToken(id,
     **{ title, description }**);    })}Listing 6-22'
+  id: totrans-132
   prefs: []
   type: TYPE_NORMAL
 - en: Updated mint method to handle token metadata. Note that this also requires modifying
     the Mint component by adding the title and description inputs, so the user can
     provide these values
+  id: totrans-133
   prefs: []
   type: TYPE_NORMAL
 - en: 'The save function will calculate the hash of the data, use it as an identifier,
@@ -881,17 +1254,22 @@
     url = `${server}/${hash}`;  await fetch(url, {    method: ''POST'', mode: ''cors'',
     body: data,    headers: { "Content-Type": "application/json" }  });  return url;}Listing
     6-23'
+  id: totrans-134
   prefs: []
   type: TYPE_NORMAL
 - en: Saving data to a local storage server, using the data hash as an identifier
+  id: totrans-135
   prefs: []
   type: TYPE_NORMAL
 - en: In this example, the server that receives the POST request is a NodeJS process
     that will accept arbitrary JSON data at an URL path, save it locally in a file,
     and then serve it upon a GET request. In an actual application, you may want to
     rely on real storage services.
+  id: totrans-136
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这个例子中，接收 POST 请求的服务器是一个 NodeJS 进程，它将在 URL 路径接受任意 JSON 数据，将其保存在本地文件中，然后在收到 GET
+    请求时提供服务。在实际应用中，您可能希望依赖真实的存储服务。
 - en: We can now load the tokens’ metadata on the initial load (Listing [6-24](#PC26)).
     We will add a call to a new loadTokensData function when the main component loads
     and after the list of existing tokens has been retrieved.// 02-storage/src/components/ERC721.jsloadTokensData(tokens)
@@ -902,114 +1280,167 @@
     hash = createHash('sha256')      .update(JSON.stringify(data)).digest('hex');    const
     path = new URL(url).pathname.slice(1);    if (path === hash) this.setTokenData(id,
     data);  });}Listing 6-24
+  id: totrans-137
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们可以在初始加载时加载令牌的元数据（见清单 [6-24](#PC26)）。当主要组件加载并且已检索到现有令牌列表后，我们将调用一个新的 loadTokensData
+    函数。// 02-storage/src/components/ERC721.jsloadTokensData(tokens) {  const { contract
+    } = this.props;  tokens.forEach(async ({ id }) => {    // 从合同中检索元数据 URL    const
+    url = await contract.methods.tokenURI(id).call();    // 从 URL 检索数据    const data
+    = await fetch(url)      .then(res => res.json()).catch(() => "");    // 验证数据完整性并更新状态    const
+    hash = createHash('sha256')      .update(JSON.stringify(data)).digest('hex');    const
+    path = new URL(url).pathname.slice(1);    if (path === hash) this.setTokenData(id,
+    data);  });}清单 6-24
 - en: Loop through all current tokens and load their metadata by querying the contract
     to retrieve the URL where it is stored and then the URL to retrieve the actual
     metadata.
+  id: totrans-138
   prefs: []
   type: TYPE_NORMAL
+  zh: 循环遍历所有当前代币，并通过查询合同来检索存储它的 URL，然后检索实际元数据的 URL，加载它们的元数据。
 - en: Note that the metadata integrity is verified by calculating its hash before
     accepting it. You can test it by modifying the saved metadata in your local filesystem
     (look in the server/data folder of the project) and checking that no metadata
     is displayed for the modified token.
+  id: totrans-139
   prefs: []
   type: TYPE_NORMAL
+  zh: 请注意，在接受元数据之前，会通过计算其哈希来验证其完整性。您可以通过修改本地文件系统中保存的元数据（查看项目中的 server/data 文件夹）来进行测试，并检查是否未显示修改后的令牌的任何元数据。
 - en: This allows us to associate additional data to each non-fungible token when
     we mint it, which can be actually leveraged by any application that displays token
     information. In that regard, you can think of token metadata as the equivalent
     of opengraph metadata^([13](#Fn13)) for a regular HTML page.
+  id: totrans-140
   prefs: []
   type: TYPE_NORMAL
+  zh: 这使我们能够在铸造每个非同质化代币时关联附加数据，该数据实际上可以被显示代币信息的任何应用程序所利用。在这方面，您可以将代币元数据视为常规 HTML 页面的
+    opengraph 元数据^([13](#Fn13)) 的等价物。
 - en: Interplanetary Storage
+  id: totrans-141
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 行星间存储
 - en: As an alternative to centralized storage solutions, we can store our data in
     the *InterPlanetary File System* (IPFS). IPFS is “a distributed system for storing
     and accessing files, web sites, applications, and data.”^([14](#Fn14)) In other
     words, it acts as a decentralized storage system.
+  id: totrans-142
   prefs: []
   type: TYPE_NORMAL
+  zh: 作为集中式存储解决方案的替代，我们可以将数据存储在*星际文件系统*（IPFS）中。IPFS 是“用于存储和访问文件、网站、应用程序和数据的分布式系统。”^([14](#Fn14))
+    换句话说，它充当了分散式存储系统。
 - en: What is IPFS?
+  id: totrans-143
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: IPFS 是什么？
 - en: IPFS  acts as a peer-to-peer content distribution system. Any node can join
     the network, from a dedicated IPFS server to a regular user in their home computer.
     Whenever a user requests a file from the network, that file is downloaded from
     the nearest node that has the file and is made available for other users to download
     from this new location. Availability of a piece of content depends on having enough
     users willing to store the relevant files.
+  id: totrans-144
   prefs: []
   type: TYPE_NORMAL
+  zh: IPFS 作为一种点对点内容分发系统。任何节点都可以加入网络，从专用的 IPFS 服务器到家用电脑上的普通用户。每当用户从网络请求文件时，该文件将从最近的具有文件的节点下载，并且可以从这个新位置供其他用户下载。一段内容的可用性取决于是否有足够的用户愿意存储相关文件。
 - en: Any data unit in IPFS is not identified by its location, as it is in most traditional
     file systems, but by its content. When requesting a file from the IPFS network,
     you address it by its identifier, which is nothing else than a hash of the content.
     This guarantees integrity of all content, since a client will validate all content
     received against its identifier. It also allows a client to request a file without
     needing to know *where* it is stored in the network.
+  id: totrans-145
   prefs: []
   type: TYPE_NORMAL
+  zh: 在 IPFS 中，任何数据单元都不是通过其位置来识别，正如大多数传统文件系统那样，而是通过其内容来识别。当从 IPFS 网络请求文件时，您通过其标识符来寻址，这不过就是内容的哈希。这确保了所有内容的完整性，因为客户端将根据其标识符验证接收到的所有内容。这也允许客户端请求文件而无需知道它在网络中的*位置*。
 - en: This implies that content in IPFS is immutable. Any changes to it require storing
     a new copy entirely under a new identifier. The previous file will be retained
     by the network as long as someone keeps a copy of it.
+  id: totrans-146
   prefs: []
   type: TYPE_NORMAL
+  zh: 这意味着 IPFS 中的内容是不可变的。对其进行的任何更改都需要将其完全存储为新标识符下的新副本。只要有人保留其副本，先前的文件将被网络保留。
 - en: All these properties make IPFS a good match for blockchain applications. The
     content hash verification we manually built in the previous section is already
     provided by the protocol itself. And by indexing the content identifier in the
     smart contract instead of its location, we can decouple the blockchain data from
     any centralized content provider.
+  id: totrans-147
   prefs: []
   type: TYPE_NORMAL
+  zh: 所有这些特性使得 IPFS 与区块链应用程序非常匹配。我们在前一节手动构建的内容哈希验证已经被协议本身提供。通过在智能合约中索引内容标识符而不是其位置，我们可以将区块链数据与任何集中式内容提供者解耦。
 - en: Note
+  id: totrans-148
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 注意
 - en: IPFS relies on users willing to save and share content for availability, which
     may make it look like a poor choice for building critical applications. Nevertheless,
     data availability for your application can be provided by relying on an IPFS pinning
     service. These are services that act as traditional storage servers, but they
     take part on the IPFS network by making *your* content available to all users –
     for a fee, that is.
+  id: totrans-149
   prefs: []
   type: TYPE_NORMAL
+  zh: IPFS 依赖于愿意保存和共享内容的用户的可用性，这可能使其看起来不适合构建关键应用程序。尽管如此，您的应用程序的数据可用性可以通过依赖 IPFS 固定服务来提供。这些服务充当传统存储服务器，但通过使
+    *您的* 内容对所有用户可用来参与 IPFS 网络 - 当然需要付费。
 - en: Using IPFS in Our Application
+  id: totrans-150
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 在我们的应用程序中使用 IPFS
 - en: To enable IPFS support in our application, we first need to connect to an IPFS
     node. This is similar to connecting to an Ethereum node in order to access the
     Ethereum network, with the difference that we do not need a private key or a currency
     to write any data to IPFS.
+  id: totrans-151
   prefs: []
   type: TYPE_NORMAL
+  zh: 要在我们的应用程序中启用 IPFS 支持，我们首先需要连接到一个 IPFS 节点。这类似于连接到以太坊节点以访问以太坊网络，不同之处在于我们不需要私钥或货币来将任何数据写入
+    IPFS。
 - en: We can either host our own IPFS public node as part of our application or rely
     on a third-party provider. As an example, Infura provides not only Ethereum public
     nodes but also IPFS nodes, meaning we can use their IPFS gateway directly.
+  id: totrans-152
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以将我们自己的 IPFS 公共节点作为应用程序的一部分进行托管，也可以依赖第三方提供商。例如，Infura 不仅提供以太坊公共节点，还提供 IPFS
+    节点，这意味着我们可以直接使用它们的 IPFS 网关。
 - en: However, it is also possible that a user is running their own IPFS node in their
     computer. IPFS provides a browser extension, the IPFS companion,^([15](#Fn15))
     that connects to a local node and makes the browser IPFS-enabled. This includes
     adding support for ipfs links and injecting an ipfs object to the global window
     object in all sites – much like Metamask adds an ethereum provider object to all
     sites.
+  id: totrans-153
   prefs: []
   type: TYPE_NORMAL
+  zh: 但是，也有可能用户在他们的计算机上运行自己的 IPFS 节点。IPFS 提供了一个浏览器扩展程序，即 IPFS companion，连接到本地节点并使浏览器启用了
+    IPFS。这包括添加对 ipfs 链接的支持，并在所有站点的全局窗口对象中注入一个 ipfs 对象 - 就像 Metamask 在所有站点上添加了一个以太坊提供者对象一样。
 - en: Note
+  id: totrans-154
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 注意
 - en: There is also the option of running an IPFS node *within your own web site*.
     The js-ipfs library provides a browser-compatible implementation of the entire
     IPFS protocol, so you can start an IPFS daemon as a user accesses your app. However,
     this can make your application much heavier, and the in-app IPFS process is not
     as stable as a dedicated one. Because of this, the suggested method for interacting
     with the network is to use the IPFS HTTP API to connect to a separate node.
+  id: totrans-155
   prefs: []
   type: TYPE_NORMAL
+  zh: 还有一个选项，就是在 *您自己的网站* 中运行 IPFS 节点。js-ipfs 库提供了整个 IPFS 协议的浏览器兼容实现，因此您可以在用户访问您的应用程序时启动一个
+    IPFS 守护程序。然而，这可能会使您的应用程序变得更加沉重，并且应用内的 IPFS 进程不像专用进程稳定。因此，与网络交互的建议方法是使用 IPFS HTTP
+    API 连接到单独的节点。
 - en: 'Opening an IPFS connection in our app is very similar to opening an Ethereum
     connection: we first check if there is a global connection object available and,
     if not, fall back to a well-known public node (Listing [6-25](#PC27)). We will
@@ -1020,11 +1451,13 @@
     ''get'']    });  } else {    return ipfsClient({      host: ''ipfs.infura.io'',
     port: ''5001'',      protocol: ''https'', ''api-path'': ''/api/v0/''    });  }}Listing
     6-25'
+  id: totrans-156
   prefs: []
   type: TYPE_NORMAL
 - en: Creating a new ipfs client instance. We first check whether the global object,
     injected by the companion extension, is available. If not, we fall back to a connection
     to the Infura IPFS gateway
+  id: totrans-157
   prefs: []
   type: TYPE_NORMAL
 - en: Using this new IPFS client, we can now easily save our token metadata to the
@@ -1035,9 +1468,11 @@
     since the protocol takes care of that automatically.export async function load(url)
     {  const ipfs = await getClient();  const [result] = await ipfs.get(url);  return
     JSON.parse(result.content.toString());}
+  id: totrans-158
   prefs: []
   type: TYPE_NORMAL
 - en: Hosting Our Application on IPFS
+  id: totrans-159
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
@@ -1045,6 +1480,7 @@
     itself, for maximum decentralization. All our application’s client-side code can
     be uploaded to IPFS and served from there. But how can our users access it from
     a regular browser? Or address it without having to specify a hash?
+  id: totrans-160
   prefs: []
   type: TYPE_NORMAL
 - en: The first problem can be solved via IPFS gateways (see Listing [6-26](#PC30)
@@ -1052,98 +1488,135 @@
     the IPFS network. It allows you to access any IPFS item at the path /ipfs/CID,
     where CID is the content hash that identifies each object on the network.https://**gateway.ipfs.io**/ipfs/QmeYYwD4y4DgVVdAzhT7wW5vrvmbKPQj8wcV2pAzjbj886/https://**ipfs.infura.io**/ipfs/QmeYYwD4y4DgVVdAzhT7wW5vrvmbKPQj8wcV2pAzjbj886/https://**cloudflare-ipfs.com**/ipfs/QmeYYwD4y4DgVVdAzhT7wW5vrvmbKPQj8wcV2pAzjbj886/Listing
     6-26
+  id: totrans-161
   prefs: []
   type: TYPE_NORMAL
+  zh: 第一个问题可以通过IPFS网关解决（参见列表[6-26](#PC30)中的示例）。IPFS网关是一个普通的网站，用于从IPFS网络提供内容。它允许您访问任何IPFS项目的路径`/ipfs/CID`，其中CID是在网络上标识每个对象的内容哈希。https://**gateway.ipfs.io**/ipfs/QmeYYwD4y4DgVVdAzhT7wW5vrvmbKPQj8wcV2pAzjbj886/https://**ipfs.infura.io**/ipfs/QmeYYwD4y4DgVVdAzhT7wW5vrvmbKPQj8wcV2pAzjbj886/https://**cloudflare-ipfs.com**/ipfs/QmeYYwD4y4DgVVdAzhT7wW5vrvmbKPQj8wcV2pAzjbj886/列表
+    6-26
 - en: You can access an older version of the ipfs.io web site at the following addresses
     directly on your browser via any of the public gateways listed. Since the ID of
     the content is its hash, you can be certain that all gateways will serve exactly
     the same object
+  id: totrans-162
   prefs: []
   type: TYPE_NORMAL
+  zh: 您可以直接通过列出的任何公共网关在浏览器中访问以下地址的ipfs.io网站的旧版本。由于内容的ID是其哈希值，您可以确信所有网关将提供完全相同的对象。
 - en: The second problem, having user-friendly names for IPFS sites, can be solved
     using *DNSLink*. DNSLink is a process for mapping DNS names to IPFS content using
     DNS TXT records.
+  id: totrans-163
   prefs: []
   type: TYPE_NORMAL
+  zh: 第二个问题，为IPFS站点提供用户友好的名称，可以使用*DNSLink*解决。DNSLink是一种通过DNS TXT记录将DNS名称映射到IPFS内容的过程。
 - en: Let’s say we want to map our site in IPFS to the domain example.com. By adding
     a TXT record to _dnslink.example.com with the value dnslink=/ipfs/CID, any IPFS
     gateway will automatically map any requests to /ipfs/example.com to the specified
     content.
+  id: totrans-164
   prefs: []
   type: TYPE_NORMAL
+  zh: 假设我们想将我们的站点在IPFS中映射到`example.com`域。通过在`_dnslink.example.com`添加一个TXT记录，并将值设置为`dnslink=/ipfs/CID`，任何IPFS网关都将自动将任何请求映射到`/ipfs/example.com`到指定的内容。
 - en: Not only that, but we can also specify a CNAME DNS record for our domain, pointing
     to a gateway. This allows us to automatically serve our page at example.com directly
     from the IPFS-specified gateway.^([16](#Fn16)) To sum up, the full process for
     accessing our site would be
+  id: totrans-165
   prefs: []
   type: TYPE_NORMAL
+  zh: 不仅如此，我们还可以为我们的域指定一个CNAME DNS记录，指向一个网关。这使我们可以自动在`example.com`直接从IPFS指定的网关中提供我们的页面。^([16](#Fn16))
+    总之，访问我们站点的完整过程将是
 - en: A user makes a request to example.com.
+  id: totrans-166
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 用户向`example.com`发出请求。
 - en: The DNS query answers with a CNAME to gateway.ipfs.io.
+  id: totrans-167
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: DNS查询回答带有指向`gateway.ipfs.io`的CNAME。
 - en: The user sends a request to the IP of gateway.ipfs.io using example.com as a
     Host header.
+  id: totrans-168
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 用户使用`example.com`作为主机头向`gateway.ipfs.io`的IP发出请求。
 - en: The gateway makes a DNS TXT query for both example.com and _dnslink.example.com
     and obtains an IPFS CID as response.
+  id: totrans-169
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 网关对`example.com`和`_dnslink.example.com`进行DNS TXT查询，并获取IPFS CID作为响应。
 - en: The gateway transparently serves the content from IPFS to the end user.
+  id: totrans-170
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 网关透明地向终端用户提供来自IPFS的内容。
 - en: Another level of indirection can be introduced by relying on *IPNS*, the InterPlanetary
     Name System. This system allows you to have mutable links that refer to IPFS content,
     though IPNS links are also hashes. You can then have your DNSLink point to your
     IPNS name, instead of the IPFS ID, and update your site by just updating the IPNS
     link to a new version of your content. This saves you from having to modify your
     DNS TXT records whenever you deploy a new version of your site.
+  id: totrans-171
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过依赖*IPNS*（InterPlanetary Name System），可以引入另一级间接性。该系统允许您拥有可变链接，这些链接指向IPFS内容，尽管IPNS链接也是哈希值。然后，您可以让您的DNSLink指向您的IPNS名称，而不是IPFS
+    ID，并通过仅更新IPNS链接到内容的新版本来更新您的站点。这样一来，您就无需在部署站点的新版本时修改DNS TXT记录。
 - en: Summary
+  id: totrans-172
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 摘要
 - en: 'We have gone through two problems that arise when building non-trivial Ethereum
     applications: how to perform complex queries on chain data and how to store large
     amounts of data. Both of these problems require looking outside Ethereum itself
     and relying on other services – either centralized or decentralized. We also looked
     into how to write unit tests that interact with the Ethereum network, and some
     strategies for handling chain reorganizations.'
+  id: totrans-173
   prefs: []
   type: TYPE_NORMAL
+  zh: 在构建非平凡的以太坊应用程序时，我们遇到了两个问题：如何在链上数据上执行复杂查询，以及如何存储大量数据。这两个问题都需要查看以太坊之外的内容，并依赖其他服务，无论是集中式的还是去中心化的。我们还研究了如何编写与以太坊网络交互的单元测试，并处理链的重新组织的一些策略。
 - en: Besides the specific problems or strategies detailed in this chapter, perhaps
     the most important takeaway is that of defining the *decentralization* demands
     of your application. While we are used to traditional non-functional requirements
     such as performance, security, or usability, blockchain apps need to take decentralization
     into account as well. Decentralization is the core reason of why a blockchain
     is used in the first place, so it makes sense to pay special attention to it.
+  id: totrans-174
   prefs: []
   type: TYPE_NORMAL
+  zh: 除了本章详细介绍的特定问题或策略之外，或许最重要的要点是定义您的应用程序对*去中心化*的需求。虽然我们习惯于传统的非功能性需求，如性能、安全性或可用性，但区块链应用程序也需要考虑去中心化。去中心化是区块链首先被使用的核心原因，因此特别重视它是有意义的。
 - en: Like other non-functional requirements, decentralization is not binary. Our
     application can have different degrees of decentralization, depending on which
     components of the stack are centralized, how much trust we place on commercial
     third parties as opposed to peer-to-peer networks, or how much control our users
     have over their own data.
+  id: totrans-175
   prefs: []
   type: TYPE_NORMAL
+  zh: 像其他非功能性需求一样，去中心化不是二元的。我们的应用程序可以具有不同程度的去中心化，这取决于堆栈中的哪些组件是集中化的，我们对商业第三方和点对点网络之间的信任程度有多少，或者我们的用户对自己的数据有多少控制权。
 - en: For instance, a financial application can be purely centralized except for the
     underlying protocol that manages the users’ assets, allowing high performance
     and good user experience, and at the same time ensuring its users’ that they can
     part with their assets at any point in time. On the other hand, an application
     focused on bypassing censorship may need to be purely decentralized to not risk
     being shut down by its hosting provider.
+  id: totrans-176
   prefs: []
   type: TYPE_NORMAL
+  zh: 例如，一个金融应用程序可以是纯粹的集中式，除了管理用户资产的基础协议之外，允许高性能和良好的用户体验，同时确保其用户随时都可以与他们的资产分开。另一方面，一个专注于绕过审查的应用程序可能需要是纯粹的去中心化，以免因其托管提供商而面临被关闭的风险。
 - en: Different applications will have different requirements. It is important that
     you define yours, so you know which solutions you have access to, and build the
     architecture of your application accordingly.
+  id: totrans-177
   prefs: []
   type: TYPE_NORMAL
+  zh: 不同的应用程序会有不同的需求。重要的是你明确自己的需求，这样你就知道你可以访问哪些解决方案，并相应地构建你的应用程序架构。

@@ -1736,6 +1736,26 @@
   id: totrans-186
   prefs: []
   type: TYPE_NORMAL
+  zh: '现在我们可以尝试使用 sol-compiler 编译我们的合约。$ npx sol-compiler*ERC721PayPerMint 的构件不存在**使用
+    Solidity v0.5.2 编译 1 个合约（ERC721PayPerMint.sol）...**ERC721PayPerMint 构件已保存！*现在应该在构件文件夹中有一个
+    ERC721PayPerMint.json 文件。让我们添加一个简短的脚本 scripts/deploy.js，用于检索编译后的字节码并将合约部署到本地网络，使用我们在本章前面编写的部署代码的修改版本（见清单
+    [5-22](#PC47)）。我们还将部署地址存储在 Deploys.json 文件中，然后从应用程序中检索出来。// scripts/deploy.jsconst
+    Web3 = require(''web3'');const fs = require(''fs'');const path = require(''path'');//
+    从默认帐户部署任何构件async function deploy(artifact, arguments, opts) {  const providerUrl
+    = process.env.PROVIDER_URL                      || ''http://localhost:8545'';  const
+    web3 = new Web3(providerUrl);  const from = (await web3.eth.getAccounts())[0];  const
+    data = artifact.compilerOutput.evm.bytecode.object;  const abi = artifact.compilerOutput.abi;  const
+    Contract = new web3.eth.Contract(abi, null, { data });  const gasPrice = 1e9;  const
+    instance = await Contract.deploy({ arguments })                         .send({
+    from, gasPrice, ...opts });  const address = instance.options.address;  const
+    network = await web3.eth.net.getId();  save(network, address);  console.log(address);}//
+    将部署地址保存到 Deploys.json 文件中function save(network, address) {  const file = path.join(    __dirname,
+    ''..'', ''artifacts'', ''Deploys.json''  );  const deployments = fs.existsSync(file)    ?
+    JSON.parse(fs.readFileSync(file)) : {};  deployments[network] = address;  const
+    content = JSON.stringify(deployments, null, 2);  fs.writeFileSync(file, content);}//
+    部署我们的 ERC721PayPerMint 合约function main() {  const artifactPath = ''../artifacts/ERC721PayPerMint.json'';  const
+    artifact = require(artifactPath);  return deploy(artifact, [], { gas: 5e6, gasPrice:
+    1e9 });}main();清单 5-22'
 - en: Script for deploying the ERC721PayPerMint contract to a network specified by
     the PROVIDER_URL environment variable, and storing the deployment address indexed
     by network ID. Note that the main function can be modified to easily deploy other
@@ -2146,11 +2166,13 @@
   id: totrans-217
   prefs: []
   type: TYPE_NORMAL
+  zh: 在您自己的应用程序中，您可能希望使用其他视觉提示来报告每个令牌的状态，例如颜色代码 – 辅以工具提示来向用户解释确认概念。
 - en: Confirmations for Existing Tokens
   id: totrans-218
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 现有令牌的确认
 - en: When loading the initial list of tokens in this component, we assumed that all
     of those tokens were already *confirmed*, that is, they were already mined several
     blocks ago. However, this may not be the case. You can easily test this yourself
@@ -2159,12 +2181,14 @@
   id: totrans-219
   prefs: []
   type: TYPE_NORMAL
+  zh: 在此组件中加载初始令牌列表时，我们假设所有这些令牌都已经 *确认*，也就是说，它们已经在几个区块之前被挖出。然而，情况可能并非如此。您可以通过在发送交易后立即重新加载页面，然后查看等待确认的令牌如何错误地进入确认状态来轻松测试此问题。
 - en: There are many techniques for dealing with these situation, some of which we
     will see in the next chapter. We will go with a simple approach in this case,
     and favor simplicity over efficiency.
   id: totrans-220
   prefs: []
   type: TYPE_NORMAL
+  zh: 处理这些情况的技术有很多种，其中一些我们将在下一章中看到。在这种情况下，我们将采用简单的方法，并且偏向简单而不是效率。
 - en: 'First of all, instead of loading all tokens from the current block on page
     load, we will load two sets of tokens: one from the current block and one from
     six blocks ago. We will consider all tokens from six blocks ago as confirmed,
@@ -2182,6 +2206,16 @@
   id: totrans-221
   prefs: []
   type: TYPE_NORMAL
+  zh: '首先，我们不再在页面加载时从当前区块加载所有令牌，而是加载两组令牌：一组来自当前区块，另一组来自六个区块之前。我们将六个区块之前的所有令牌视为已确认，而当前区块的所有新令牌将标记为未确认。让我们更新
+    ERC721 主组件的 didMount 处理程序（代码清单 [5-28](#PC70)）以实现此更改。// src/components/ERC721.jsconst
+    CONFIRMATIONS = 6;class ERC721 extends Component {  async componentDidMount()
+    {    const currentBlock = await getBlockNumber();    const confirmedBlock = currentBlock –
+    CONFIRMATIONS;    const confirmedTokenIds = await this      .getTokensAtBlock(confirmedBlock)      .catch(()
+    => []);    const latestTokenIds = await this      .getTokensAtBlock(currentBlock);    const
+    unconfirmedTokenIds = latestTokenIds      .filter(id => !confirmedTokenIds.includes(id));    const
+    tokens = confirmedTokenIds      .map(id => ({ id, confirmed: true }))      .concat(unconfirmedTokenIds        .map(id
+    => ({ id, confirmed: false })      ));    this.setState({ tokens, loading: false
+    });  }}代码清单 5-28'
 - en: Get confirmed and unconfirmed token lists, and set the confirmed flag accordingly
     on the token collection. Note the catch block when querying the confirmedTokenIds,
     as the call will throw if the contract had not been created at confirmedBlock,
@@ -2189,6 +2223,8 @@
   id: totrans-222
   prefs: []
   type: TYPE_NORMAL
+  zh: 获取确认和未确认的代币列表，并据此在代币集合上相应地设置确认标志。在查询 confirmedTokenIds 时注意 catch 块，因为如果合同在 confirmedBlock
+    之前尚未创建，调用将会抛出异常，在这种情况下所有代币应该是未确认的。
 - en: This will allow us to properly display the status of each token when the page
     loads. However, any tokens listed as unconfirmed will remain on that state until
     a full page reload. We need to update their status once they reach the required
@@ -2196,6 +2232,7 @@
   id: totrans-223
   prefs: []
   type: TYPE_NORMAL
+  zh: 这将允许我们在页面加载时正确显示每个代币的状态。但是，任何被列为未确认的代币将保持在该状态，直到进行完整页面重新加载。我们需要在它们达到所需的确认数目后更新它们的状态。
 - en: We will do that by subscribing to new blocks and re-checking the ownership of
     each of the unconfirmed tokens *six blocks ago*. Once enough new blocks are mined,
     we will be able to move these new tokens to a confirmed state. Let’s add a new
@@ -2212,6 +2249,17 @@
   id: totrans-224
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将通过订阅新区块并重新检查每个未确认代币*六个区块之前*的所有权来做到这一点。一旦有足够的新区块被挖出，我们将能够将这些新代币转移到确认状态。让我们添加一个新方法（列表
+    [5-29](#PC71)）来在 didMount 处理程序中调用。// src/components/ERC721.jsclass ERC721 extends
+    Component {  subscribeUnconfirmedTokens(unconfirmedIds) {    if (unconfirmedIds.length
+    === 0) return;    const { contract, owner } = this.props;    this.newBlocksSub
+    = getWeb3().eth      .subscribe('newBlockHeaders', (err, { number }) => {      unconfirmedIds.forEach(async
+    (id) => {        const confirmedOwner = await contract.methods          .ownerOf(id).call({},
+    (number – CONFIRMATIONS))          .catch(() => null);        if (areAddressesEqual(confirmedOwner,
+    owner)) {          this.confirmToken(id, CONFIRMATIONS);          unconfirmedIds
+    = unconfirmedIds.filter(i => id!==i);          if (unconfirmedIds.length === 0)
+    {            this.newBlocksSub.unsubscribe();          }        }      });    });  }}Listing
+    5-29
 - en: Subscribe to new blocks, and re-check the ownership of each token six blocks
     before the current one. If a token belongs to the current user six blocks ago,
     we consider it to be confirmed. Once all pending tokens have been processed, we
@@ -2219,6 +2267,7 @@
   id: totrans-225
   prefs: []
   type: TYPE_NORMAL
+  zh: 订阅新区块，并在当前区块之前的六个区块内重新检查每个代币的所有权。如果一个代币在六个区块之前属于当前用户，我们认为它是确认的。一旦所有待处理的代币都被处理完，我们关闭订阅。
 - en: Keep in mind that in this example, we are only tracking new tokens created by
     minting, and any new tokens *transferred* to the user will not be shown until
     the page is reloaded. We are also assuming that the user does not transfer out
