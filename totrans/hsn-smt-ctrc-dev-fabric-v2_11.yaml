@@ -1,7 +1,9 @@
 - en: Chapter 7\. Building Supply Chain DApps with Hyperledger Fabric
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 第 7 章。使用 Hyperledger Fabric 构建供应链 DApps
 - en: In [Part III](part03.xhtml#developing_smart_contracts_with_hyperle), you learned
     how to develop, deploy, and test chaincode in Hyperledger Fabric. In this chapter,
     we will put all this information together to design and build a simple supply
@@ -11,35 +13,53 @@
     and a secure environment. Specifically, the PLN project illustrates how blockchain
     can help manufacturers, wholesalers, and other supply chain members like pharmacies
     deliver medical supplies.
+  id: totrans-1
   prefs: []
   type: TYPE_NORMAL
+  zh: 在[第 III 部分](part03.xhtml#developing_smart_contracts_with_hyperle)中，您学习了如何在 Hyperledger
+    Fabric 中开发、部署和测试链码。在本章中，我们将把所有这些信息整合起来，设计并构建一个名为 Pharma Ledger Network（PLN）的简单供应链区块链应用程序。这个项目将让您了解区块链如何通过提供更大的透明度、简化供应商入驻、更好地应对中断以及提供安全环境来促进全球业务交易。具体来说，PLN
+    项目说明了区块链如何帮助制造商、批发商和其他供应链成员如药房提供医疗用品。
 - en: 'This chapter will help you achieve the following practical goals:'
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: 本章将帮助您实现以下实际目标：
 - en: Designing a blockchain supply chain
+  id: totrans-3
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 设计区块链供应链
 - en: Writing chaincode as a smart contract
+  id: totrans-4
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 编写智能合约的链码
 - en: Compiling and deploying Fabric chaincode
+  id: totrans-5
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 编译和部署 Fabric 链码
 - en: Running and testing the smart contract
+  id: totrans-6
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 运行和测试智能合约
 - en: Developing an application with Hyperledger Fabric through the SDK
+  id: totrans-7
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 通过 SDK 开发 Hyperledger Fabric 应用程序
 - en: Designing a Blockchain Supply Chain
+  id: totrans-8
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 设计区块链供应链
 - en: The traditional supply chain usually lacks transparency and reliable reporting.
     Large organizations have built their own systems to enable global control of their
     daily operations while recording transactions between suppliers and distributors
@@ -48,15 +68,19 @@
     supply chain product process flow (from production to consumption), the transparency
     from upstream to downstream is very limited. This could lead to inaccurate reports
     and a lack of interoperability.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 传统供应链通常缺乏透明度和可靠的报告。大型组织已建立了自己的系统，以实现对其日常运营的全球控制，同时实时记录供应商和分销商之间的交易。然而，许多小公司缺乏这些信息，并且在任何给定时刻都无法追踪其产品。这意味着，在他们的整个供应链产品流程中（从生产到消费），从上游到下游的透明度非常有限。这可能导致不准确的报告和缺乏互操作性。
 - en: By design, the blockchain is a shared-ledger, transparent, immutable, and secure
     decentralized system. It is considered a good solution for traditional supply
     chain industries at registering, controlling, and transferring assets. Indeed,
     the popularity of blockchain and its adoption, in part, stems from its use in
     supply chain systems around the world.
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 根据设计，区块链是一个共享账本、透明、不可变和安全的去中心化系统。它被认为是传统供应链行业在资产登记、控制和转移方面的良好解决方案。事实上，区块链的流行及其部分采用源于其在全球供应链系统中的应用。
 - en: A smart contract, which defines a business function, can be deployed in blockchain
     and then accessed by multiple parties in the blockchain network. Each member in
     the blockchain will be assigned unique identifiers to sign and verify the blocks
@@ -68,198 +92,292 @@
     in the ledger can be tracked, shared, and queried by all supply chain participants
     in real time. It provides organizations with new opportunities to correct problems
     within their supply chain system as it revolves around a single source of truth.
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 智能合约定义了一个业务功能，可以部署在区块链上，然后由区块链网络中的多个方访问。区块链中的每个成员将被分配唯一的标识符来签署和验证他们添加到区块链的区块。在供应链的生命周期内，当财团网络中的授权成员调用智能合约函数时，状态数据将被更新，此后当前资产的状态和交易数据将成为账本中的永久记录。同样，与资产相关的流程可以轻松快速地从一步转移到另一步。账本中的数字交易可以由所有供应链参与者实时跟踪、共享和查询。它为组织提供了纠正供应链系统中问题的新机会，因为它围绕着一个真实的信息源展开。
 - en: In this section, we discuss a simple supply chain system and build our PLN use
     case. It will provide a good foundation for analyzing and implementing an application
     based on Hyperledger Fabric. We will analyze the business process workflow, identify
     the organizations in the network, and then design the consortium network. We’ll
     also define a smart contract function that each organization will perform.
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本节中，我们讨论了一个简单的供应链系统，并构建了我们的 PLN 案例。这将为分析和实施基于 Hyperledger Fabric 的应用程序提供良好的基础。我们将分析业务流程工作流程，识别网络中的组织，然后设计财团网络。我们还将定义每个组织将执行的智能合约函数。
 - en: Understanding the Supply Chain Workflow
+  id: totrans-13
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 了解供应链工作流程
 - en: Let’s take a look at organizations in the PLN business scenario, as shown in
     [Figure 7-1](#organizations_in_the_pln). For demonstration purposes, we simplified
     the pharma ledger process, as it can be much more complex in the real world
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们来看看 PLN 业务场景中的组织，如 [图 7-1](#organizations_in_the_pln) 所示。为了演示目的，我们简化了制药分类账流程，因为在现实世界中它可能会更加复杂。
 - en: '![Organizations in the PLN](Images/HLF_0701.png)'
+  id: totrans-15
   prefs: []
   type: TYPE_IMG
+  zh: '![PLN 中的组织](Images/HLF_0701.png)'
 - en: Figure 7-1\. Organizations in the PLN
+  id: totrans-16
   prefs:
   - PREF_H6
   type: TYPE_NORMAL
+  zh: 图 7-1\. PLN 中的组织
 - en: 'Our PLN process is divided into the following three steps:'
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们的 PLN 流程分为以下三个步骤：
 - en: A manufacturer makes equipment and ships it to the wholesaler.
+  id: totrans-18
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 制造商制造设备并将其运送给批发商。
 - en: A wholesaler distributes the equipment to the pharmacy.
+  id: totrans-19
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 批发商向药房分发设备。
 - en: The pharmacy, as a consumer, receives the equipment, and the supply chain workflow
     is completed.
+  id: totrans-20
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 药房作为消费者接收设备，供应链工作流程完成。
 - en: Defining a Consortium
+  id: totrans-21
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 定义一个联盟
 - en: 'As we can see from the process workflow, our PLN involves three organizations:
     manufacturer, wholesaler, and pharmacy. These three entities will join together
     to build a consortium network to carry out the supply chain business. The consortium
     members can create users, invoke smart contracts, and query blockchain data. [Table 7-1](#the_pln_consortium)
     depicts the organizations and users in the PLN consortium.'
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 从流程工作流程中我们可以看到，我们的 PLN 包括三个组织：制造商、批发商和药房。这三个实体将联合建立一个联盟网络来开展供应链业务。联盟成员可以创建用户，调用智能合约和查询区块链数据。[表 7-1](#the_pln_consortium)
+    描述了 PLN 联盟中的组织和用户。
 - en: Table 7-1\. The PLN consortium
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 表 7-1\. PLN 联盟
 - en: '| Organization name | User | MSP | Peer |'
+  id: totrans-24
   prefs: []
   type: TYPE_TB
+  zh: '| 组织名称 | 用户 | MSP | Peer |'
 - en: '| --- | --- | --- | --- |'
+  id: totrans-25
   prefs: []
   type: TYPE_TB
+  zh: '| --- | --- | --- | --- |'
 - en: '| Manufacturer | Bob | Org1MSP | *peer0.org1.example.com* |'
+  id: totrans-26
   prefs: []
   type: TYPE_TB
+  zh: '| 制造商 | 鲍勃 | Org1MSP | *peer0.org1.example.com* |'
 - en: '| Wholesaler | Alice | Org2MSP | *peer0.org2.example.com* |'
+  id: totrans-27
   prefs: []
   type: TYPE_TB
+  zh: '| 批发商 | 爱丽丝 | Org2MSP | *peer0.org2.example.com* |'
 - en: '| Pharmacy | Eve | Org3MSP | *peer0.org3.example.com* |'
+  id: totrans-28
   prefs: []
   type: TYPE_TB
+  zh: '| 药房 | 伊娃 | Org3MSP | *peer0.org3.example.com* |'
 - en: In our PLN consortium, each of the three organizations has a user, an MSP, and
     a peer. For the manufacturer organization, we have a user called Bob as an application
     user. Org1MSP is an MSP ID to load the MSP definition. We define AnchorPeers with
     the hostname peer0.org1.example.com to gossip communication across. Similarly,
     the wholesaler is the second organization, Alice is its application user, and
     its MSP ID is Org2MSP. Finally, Eve is the pharmacy organization user with Org3MSP.
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 在我们的 PLN 联盟中，每个三个组织都有一个用户、一个 MSP 和一个对等体。对于制造商组织，我们有一个名为鲍勃的用户作为应用用户。Org1MSP 是一个
+    MSP ID，用于加载 MSP 定义。我们定义 AnchorPeers，其主机名为 peer0.org1.example.com 以跨节点进行通信。同样，批发商是第二个组织，爱丽丝是其应用程序用户，其
+    MSP ID 为 Org2MSP。最后，伊娃是药房组织的用户，其 MSP 为 Org3MSP。
 - en: With the organizations identified, we can define our Hyperledger Fabric network
     topology, as shown in [Figure 7-2](#fabric_network_topology_for_the_pln_con).
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过确定组织，我们可以定义我们的 Hyperledger Fabric 网络拓扑，如[图 7-2](#fabric_network_topology_for_the_pln_con)所示。
 - en: '![Fabric network topology for the PLN consortium](Images/HLF_0702.png)'
+  id: totrans-31
   prefs: []
   type: TYPE_IMG
+  zh: '![PLN 联盟的 Fabric 网络拓扑](Images/HLF_0702.png)'
 - en: Figure 7-2\. Fabric network topology for the PLN consortium
+  id: totrans-32
   prefs:
   - PREF_H6
   type: TYPE_NORMAL
+  zh: 图 7-2\. PLN 联盟的 Fabric 网络拓扑
 - en: Since installing and deploying PLN in multiple physical nodes may not be within
     the scope of this chapter, we define one peer with four organizations, representing
     the manufacturer, wholesaler, pharmacy, and orderer nodes.
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于在多个物理节点上安装和部署PLN可能不在本章的范围之内，我们将一个对等体定义为四个组织，代表制造商、批发商、药房和订购者节点。
 - en: The channel *plnchannel* provides a private communications mechanism used by
     the orderer and the other three organizations to execute and validate the transactions.
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: 通道*plnchannel*提供了一个由订购者和其他三个组织使用的私有通信机制，用于执行和验证交易。
 - en: Reviewing the PLN Life Cycle
+  id: totrans-35
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 回顾PLN生命周期
 - en: 'As we mentioned in the previous section, the PLN life cycle has three steps:
     the manufacturer makes equipment and ships to the wholesaler; the wholesaler distributes
     the equipment to the pharmacy; and finally, the pharmacy receives the equipment.
     The entire process can be traced by equipment ID. Let’s look at this in more detail.'
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: 正如我们在前一节中提到的，PLN的生命周期有三个步骤：制造商制造设备并运送给批发商；批发商将设备分配给药房；最后，药房接收设备。整个过程可以通过设备编号进行跟踪。让我们更详细地看一下这一点。
 - en: A piece of equipment with equipment ID 2000.001 was made by a manufacturer on
     Jan 1, with equipment and other attributes and values, as shown in [Figure 7-3](#equipment_attributes_and_their_values_f).
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 设备编号为2000.001的一件设备于1月1日由制造商制造，具有设备和其他属性及其值，如[图 7-3](#equipment_attributes_and_their_values_f)所示。
 - en: '![Equipment attributes and their values for the manufacturer](Images/HLF_0703.png)'
+  id: totrans-38
   prefs: []
   type: TYPE_IMG
+  zh: '![制造商的设备属性及其值](Images/HLF_0703.png)'
 - en: Figure 7-3\. Equipment attributes and their values for the manufacturer
+  id: totrans-39
   prefs:
   - PREF_H6
   type: TYPE_NORMAL
+  zh: 图7-3. 制造商的设备属性及其值
 - en: Equipment attributes and values
+  id: totrans-40
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 设备属性及其值
 - en: 'Here we define a unique identification equipment number to represent equipment.
     Each equipment item is owned by an equipment owner at a certain period of time.
     In our case, we define three owner types: manufacturer, wholesaler, and pharmacy.'
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这里，我们定义了一个唯一的标识设备的设备编号来代表设备。每个设备项目在某一时期由设备所有者拥有。在我们的案例中，我们定义了三种所有者类型：制造商、批发商和药房。
 - en: When a manufacturer makes a piece of equipment and records it in the PLN, the
     transaction result shows the equipment with a unique identification number of
     2000.001 in the ledger. The current owner is GlobalEquipmentCorp. The current
     owner type and previous one are the same—manufacturer. The equipment was made
     on Jan 1, 2021\. The `lastUpdated` entry is the date when the transaction was
     recorded in the PLN.
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 当制造商制造一件设备并在PLN中记录时，交易结果显示账本中具有唯一标识编号为2000.001的设备。当前所有者是GlobalEquipmentCorp。当前所有者类型和上一个类型相同——制造商。设备于2021年1月1日制造。`lastUpdated`条目是记录交易在PLN中的日期。
 - en: After a few weeks, the manufacturer ships the equipment to the wholesaler, and
     the equipment state will change, including ownership, previous and current owner
     type, and last update. Let’s take a look at which equipment states change, as
     shown in [Figure 7-4](#equipment_state_changes_for_the_wholesa).
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: 几周后，制造商将设备运送到批发商，设备状态将发生变化，包括所有权、前一个和当前所有者类型以及最后更新。让我们看看哪些设备状态发生了变化，如[图 7-4](#equipment_state_changes_for_the_wholesa)所示。
 - en: '![Equipment state changes for the wholesaler](Images/HLF_0704.png)'
+  id: totrans-44
   prefs: []
   type: TYPE_IMG
+  zh: '![批发商设备状态变化](Images/HLF_0704.png)'
 - en: Figure 7-4\. Equipment state changes for the wholesaler
+  id: totrans-45
   prefs:
   - PREF_H6
   type: TYPE_NORMAL
+  zh: 图 7-4\. 批发商设备状态变化
 - en: Equipment state changes
+  id: totrans-46
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 设备状态变化
 - en: One of the most significant changes is that the equipment is now owned by GlobalWholesalerCorp.
     The previous owner type is the manufacturer. The last updated date has also changed.
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: 最显著的变化之一是设备现在归 GlobalWholesalerCorp 所有。先前的所有者类型是制造商。最后更新日期也已更改。
 - en: After one month, the pharmacy finally receives this equipment order. The ownership
     is now transferred from the wholesaler to the pharmacy, as shown in [Figure 7-5](#updated_equipment_values_for_the_pharma).
     The supply chain flow can be considered closed.
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个月后，药房终于收到了这个设备订单。所有权现在从批发商转移到了药房，如[图 7-5](#updated_equipment_values_for_the_pharma)所示。供应链流程可以被视为关闭。
 - en: '![Updated equipment values for the pharmacy](Images/HLF_0705.png)'
+  id: totrans-49
   prefs: []
   type: TYPE_IMG
+  zh: '![药房更新设备价值](Images/HLF_0705.png)'
 - en: Figure 7-5\. Updated equipment values for the pharmacy
+  id: totrans-50
   prefs:
   - PREF_H6
   type: TYPE_NORMAL
+  zh: 图 7-5\. 药房更新设备价值
 - en: Equipment at the hand of the pharmacy
+  id: totrans-51
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 药房手中的设备
 - en: With the same equipment identity, the peer organization can trace the equipment’s
     entire history of transaction records by looking up the equipment number.
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用相同的设备标识，对等组织可以通过查找设备编号追溯设备的全部交易记录历史。
 - en: Understanding Transactions
+  id: totrans-53
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 了解交易
 - en: As you’ve seen, the entire life cycle has three steps. Originating from the
     manufacturer, the equipment moves from wholesaler to pharmacy. As such, as a result
     of making a piece of equipment, the wholesaler distributes and the pharmacy receives
     the transaction. With all of this design and analysis, we can now start to write
     our PLN smart contract.
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: 正如你所见，整个生命周期有三个步骤。从制造商开始，设备从批发商移至药房。因此，由于制造了一件设备，批发商分配并且药房接收了交易。有了所有这些设计和分析，我们现在可以开始编写我们的
+    PLN 智能合约。
 - en: Writing Chaincode as a Smart Contract
+  id: totrans-55
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 编写智能合约作为链码
 - en: We have discussed how equipment state and attributes change during the life
     cycle of a transaction, as the equipment moves among parties in our Pharma Ledger
     Network. As discussed in [Part III](part03.xhtml#developing_smart_contracts_with_hyperle),
@@ -268,107 +386,157 @@
     During deployment, this contract will be packaged into the chaincode and installed
     on each endorsing peer that runs in a secured Docker container. The Hyperledger
     Fabric smart contract can be programmed in Go, JavaScript, Java, and Python.
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们已经讨论了在交易的生命周期中设备状态和属性如何发生变化，在我们的Pharma Ledger Network中设备如何在各方之间移动。如[第三部分](part03.xhtml#developing_smart_contracts_with_hyperle)所述，在Hyperledger
+    Fabric中，智能合约是一个在其生命周期内实现业务逻辑并管理业务对象的世界状态的程序。在部署过程中，此合约将打包成链码并安装在每个运行在安全Docker容器中的背书节点上。Hyperledger
+    Fabric智能合约可以使用Go、JavaScript、Java和Python编程。
 - en: In this section, we will write a smart contract implementation for our PLN by
     using JavaScript. All of the PLN code for this chapter is available in the book’s
     GitHub repository. Also, we use Fabric v2.1.0 and Fabric CA v1.4.7 throughout
     the entire project.
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本节中，我们将使用JavaScript编写一个我们PLN的智能合约实现。本章的所有PLN代码都可以在书的GitHub存储库中找到。此外，我们在整个项目中使用Fabric
+    v2.1.0和Fabric CA v1.4.7。
 - en: Project Structure
+  id: totrans-58
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 项目结构
 - en: 'To start our PLN smart contract development, first we need to create our smart
     contract project. Since we have three organizations, all peers must agree and
     approve of the new version of the smart contract that will be installed and deployed
     to the network. For our PLN, we will assume they are all the same:'
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: 要开始我们的PLN智能合约开发，首先我们需要创建我们的智能合约项目。由于我们有三个组织，所有节点都必须同意并批准将要安装和部署到网络上的新版本智能合约。对于我们的PLN，我们将假设它们都是一样的：
 - en: '[PRE0]'
+  id: totrans-60
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: 'The *package.json* file defines the two most important fabric libraries:'
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: '*package.json*文件定义了两个最重要的fabric库：'
 - en: '[PRE1]'
+  id: totrans-62
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: 'The *fabric-contract-api* provides the contract interface. It has two critical
     classes that every smart contract needs to use, `Contract` and `Context`:'
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: '*fabric-contract-api*提供了合约接口。它有两个每个智能合约都需要使用的关键类，`Contract`和`Context`：'
 - en: '[PRE2]'
+  id: totrans-64
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: '`Contract` has `beforeTransaction`, `afterTransaction`, `unknownTransaction`,
     and `createContext` methods that are optional and overridable in the subclass.
     You can specify the JavaScript explicit contract class name by using its superclass
     to initialize itself.'
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
+  zh: '`Contract`有`beforeTransaction`、`afterTransaction`、`unknownTransaction`和`createContext`方法，这些方法在子类中是可选的并且可以被覆盖。您可以使用其超类来初始化JavaScript显式合约类名称。'
 - en: The `Context` class provides the transactional context for every transactional
     invocation. It can be overridden for additional application behavior to support
     smart contract execution.
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
+  zh: '`Context`类为每个事务调用提供了事务上下文。它可以被覆盖以支持智能合约执行的其他应用程序行为。'
 - en: Contract Class
+  id: totrans-67
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 合约类
 - en: 'Our pharma ledger contract implementation will extend from the default built-in
     contract class from the *fabric-contract-api* library. Let’s first define `PharmaLedgerContract`
     with a constructor: `org.pln.PharmaLedgerContract` gives a very descriptive name
     with a unique namespace for our contract. The unique contract namespace is important
     to avoid conflict when a shared system has many contracts from different users
     and operations:'
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们的药品账本合约实现将从*fabric-contract-api*库的默认内置合约类扩展。让我们首先用构造函数定义`PharmaLedgerContract`：`org.pln.PharmaLedgerContract`给出了一个非常描述性的名称，具有我们合约的唯一命名空间。唯一的合约命名空间在共享系统中避免了当一个共享系统有来自不同用户和操作的许多合约时的冲突是很重要的：
 - en: '[PRE3]'
+  id: totrans-69
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: Transaction Logic
+  id: totrans-70
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 交易逻辑
 - en: 'As we discussed, `PharmaLedgerContract` will need three business functions
     to move the equipment owner from the manufacturer to the wholesaler, and finally
     pharmacy:'
+  id: totrans-71
   prefs: []
   type: TYPE_NORMAL
+  zh: 正如我们讨论的那样，`PharmaLedgerContract`将需要三个业务功能，将设备所有者从制造商转移到批发商，最后到药房：
 - en: '[PRE4]'
+  id: totrans-72
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: 'The manufacturer will be initialized, and an equipment entry is created. As
     you will notice, these functions accept a context as the default first parameter
     with equipment-related arguments (`manufacturer`, `equipmentNumber`, `equipmentName`,
     `ownerName`) from client input. When `makeEquipment` is called, the function expects
     four equipment attributes from the client and assigns it to new equipment:'
+  id: totrans-73
   prefs: []
   type: TYPE_NORMAL
+  zh: 制造商将被初始化，并创建一个设备条目。正如您将注意到的那样，这些函数接受上下文作为默认的第一个参数，并从客户端输入获取与设备相关的参数（`manufacturer`、`equipmentNumber`、`equipmentName`、`ownerName`）。当调用`makeEquipment`时，函数期望从客户端获取四个设备属性，并将其分配给新设备：
 - en: '[PRE5]'
+  id: totrans-74
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: At the end of `makeEquipment`, `ctx.stub.putState` will store the equipment’s
     initial state value with the equipment number key on the ledger. The equipment
     JSON data will be stringified using `JSON.stringify`, then converted to a buffer.
     The buffer conversion is required by the shim API to communicate with the peer.
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
+  zh: 在`makeEquipment`结束时，`ctx.stub.putState`将使用设备编号键在账本上存储设备的初始状态值。设备的JSON数据将使用`JSON.stringify`转换为字符串，然后转换为缓冲区。缓冲区转换是由shim
+    API与对等方通信所需的。
 - en: The function uses the JavaScript new `Date` to get the current date time and
     assign it to the `lastUpdated` date time. When transaction data is submitted,
     each peer will validate and commit a transaction.
+  id: totrans-76
   prefs: []
   type: TYPE_NORMAL
+  zh: 该函数使用JavaScript的新`Date`来获取当前日期时间，并将其分配给`lastUpdated`日期时间。当提交交易数据时，每个对等方都将验证并提交交易。
 - en: 'After the equipment record is created by the manufacturer, the wholesaler and
     pharmacy will just need to update ownership to track the current owner. Both functions
     are similar:'
+  id: totrans-77
   prefs: []
   type: TYPE_NORMAL
+  zh: 在制造商创建设备记录后，批发商和药房只需要更新所有权以跟踪当前所有者。这两个功能都很相似：
 - en: '[PRE6]'
+  id: totrans-78
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: In the `wholesalerDistribute` function, we query current equipment ledger data
     by calling `ctx.stub.getState(equipmentNumber)`. Once data returns, we need to
     make sure `equipmentAsBytes` is not empty and `equipmentNumber` is a valid number.
@@ -376,151 +544,228 @@
     data to a readable JSON format by using `Buffer.from().toString('utf8')`. We then
     verify that the current equipment owner type is the manufacturer by using the
     returned data.
+  id: totrans-79
   prefs: []
   type: TYPE_NORMAL
+  zh: 在 `wholesalerDistribute` 函数中，我们通过调用 `ctx.stub.getState(equipmentNumber)` 查询当前设备账本数据。一旦数据返回，我们需要确保
+    `equipmentAsBytes` 不为空，并且 `equipmentNumber` 是一个有效的数字。由于账本数据以 JSON 字符串字节格式存在，所以需要使用
+    `Buffer.from().toString('utf8')` 将编码数据转换为可读的 JSON 格式。然后，我们通过使用返回的数据验证当前设备所有者类型是否为制造商。
 - en: Once all these conditions are met, `ctx.stub.putState` is called again. The
     equipment owner state would be updated to the wholesaler with the current timestamp.
     But as an immutable transaction log, all historical changes of the world state
     will permanently store in the ledger. We will define the `queryHistoryByKey` function
     to query all this data in the next step.
+  id: totrans-80
   prefs: []
   type: TYPE_NORMAL
+  zh: 一旦满足所有这些条件，就会再次调用 `ctx.stub.putState`。设备所有者状态将会更新为批发商，并带有当前时间戳。但是作为一个不可变的交易日志，所有世界状态的历史更改都将永久存储在账本中。我们将在下一步中定义
+    `queryHistoryByKey` 函数来查询所有这些数据。
 - en: 'The `pharmacyReceived` function is similar to `wholesalerDistribute`, so it
     needs to validate that the current owner is the wholesaler and then transfer ownership
     to the pharmacy before updating the equipment record:'
+  id: totrans-81
   prefs: []
   type: TYPE_NORMAL
+  zh: '`pharmacyReceived` 函数与 `wholesalerDistribute` 类似，因此需要验证当前所有者是否为批发商，然后在更新设备记录之前将所有权转移给药房：'
 - en: '[PRE7]'
+  id: totrans-82
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: After we implement all three equipment business functions, the ledger still
     needs a query function to search current equipment data, and a query history function
     to get all of the historical records.
+  id: totrans-83
   prefs: []
   type: TYPE_NORMAL
+  zh: 当我们实现了所有三个设备业务函数后，账本仍然需要一个查询函数来搜索当前设备数据，以及一个查询历史函数来获取所有的历史记录。
 - en: '`ChaincodeStub` is implemented by the *fabric-shim* library and provides `GetState`
     and `GetHistoryForKey` functions. In our case, the query definition is straightforward:
     we just need to call `ctx.stub.getState` to get the corresponding result.'
+  id: totrans-84
   prefs: []
   type: TYPE_NORMAL
+  zh: '`ChaincodeStub` 由 *fabric-shim* 库实现，并提供 `GetState` 和 `GetHistoryForKey` 函数。在我们的情况下，查询定义很简单：我们只需要调用
+    `ctx.stub.getState` 来获取相应的结果。'
 - en: '`GetHistoryForKey` returns all historical transaction key values across time.
     We can iterate through these records and convert them to a JSON byte array and
     send the data back as a response. The timestamp tells us when the equipment state
     was updated. Each record contains a related transaction ID and a timestamp:'
+  id: totrans-85
   prefs: []
   type: TYPE_NORMAL
+  zh: '`GetHistoryForKey` 函数返回跨时间的所有历史交易键值。我们可以遍历这些记录，并将它们转换为 JSON 字节数组，然后将数据作为响应发送回去。时间戳告诉我们设备状态何时被更新。每个记录包含相关的交易
+    ID 和时间戳：'
 - en: '[PRE8]'
+  id: totrans-86
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: That is all for the smart contract function we will implement for our PLN. Next,
     we will compile and deploy the Fabric chaincode.
+  id: totrans-87
   prefs: []
   type: TYPE_NORMAL
+  zh: 这就是我们将为我们的 PLN 实现的智能合约函数。接下来，我们将编译并部署 Fabric 链码。
 - en: Compiling and Deploying Fabric Chaincode
+  id: totrans-88
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 编译和部署 Fabric 链码
 - en: We have now successfully written our PLN chaincode using JavaScript. Before
     deploying our contract, we need to set up the Fabric network.
+  id: totrans-89
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们已经成功用 JavaScript 编写了我们的 PLN 链码。在部署合约之前，我们需要设置 Fabric 网络。
 - en: To get started with Hyperledger Fabric, we first need to meet some prerequisites.
     We assume you have already installed the software covered in [Part II](part02.xhtml#introduction_to_hyperledger_projects).
     If you haven’t already done so, please install that first.
+  id: totrans-90
   prefs: []
   type: TYPE_NORMAL
+  zh: 要开始使用 Hyperledger Fabric，我们首先需要满足一些前提条件。我们假设您已经安装了 [第 II 部分](part02.xhtml#introduction_to_hyperledger_projects)
+    中涵盖的软件。如果还没有，请先安装那些软件。
 - en: Install Prerequisites
+  id: totrans-91
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 安装前提条件
 - en: 'Before advancing any further, we need to install the following third-party
     tools:'
+  id: totrans-92
   prefs: []
   type: TYPE_NORMAL
+  zh: 在进一步进行之前，我们需要安装以下第三方工具：
 - en: Linux (Ubuntu)
+  id: totrans-93
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Linux（Ubuntu）
 - en: Python
+  id: totrans-94
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Python
 - en: '[Git](https://git-scm.com)'
+  id: totrans-95
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[Git](https://git-scm.com)'
 - en: '[cURL](https://curl.haxx.se/)'
+  id: totrans-96
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[cURL](https://curl.haxx.se/)'
 - en: 'Docker and Docker Compose: Docker version 17.06.2-ce or greater is required.'
+  id: totrans-97
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Docker 和 Docker Compose：需要 Docker 版本 17.06.2-ce 或更高版本。
 - en: Go version 1.14.*x*
+  id: totrans-98
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Go 版本 1.14.*x*
 - en: 'Node.js runtime and npm: Node.js version 8 is supported (from 8.9.4 and higher).
     Node.js version 10 is supported (from 10.15.3 and higher).'
+  id: totrans-99
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Node.js 运行时和 npm：支持 Node.js 版本 8（从 8.9.4 开始）和 Node.js 版本 10（从 10.15.3 开始）。
 - en: To set up a network, we generate crypto material for an organization by using
     Cryptogen, create a consortium, and then bring up PLN with Docker Compose. Let’s
     first set up our project.
+  id: totrans-100
   prefs: []
   type: TYPE_NORMAL
+  zh: 要设置一个网络，我们使用 Cryptogen 为一个组织生成加密材料，创建一个联合体，然后通过 Docker Compose 启动 PLN。让我们首先设置我们的项目。
 - en: Review the Project Structure
+  id: totrans-101
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 检查项目结构
 - en: 'We have defined all setup scripts and configuration files for our PLN project;
     the source code can be found on the book’s GitHub page. The project structure
     is organized as follows:'
+  id: totrans-102
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们已经为我们的 PLN 项目定义了所有的设置脚本和配置文件；源代码可以在书籍的 GitHub 页面找到。项目结构如下所示：
 - en: '[PRE9]'
+  id: totrans-103
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: Let’s take a look at important configurations.
+  id: totrans-104
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们来看看重要的配置。
 - en: Cryptogen
+  id: totrans-105
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: Cryptogen
 - en: Four crypto configurations are in the *cryptogen* folder for orderer and the
     other three peer organizations. `OrdererOrgs` defines ordering nodes and creates
     an organization definition. `PeerOrgs` defines peers, organization, and managing
     peer nodes.
+  id: totrans-106
   prefs: []
   type: TYPE_NORMAL
+  zh: 四个加密配置位于 *cryptogen* 文件夹中，分别用于排序器和其他三个对等组织。`OrdererOrgs` 定义排序节点并创建组织定义。`PeerOrgs`
+    定义对等节点、组织和管理对等节点。
 - en: As we know, running components in the network requires a CA. The Fabric Cryptogen
     tool will use those four crypto configuration files to generate the required X.509
     certificates for all organizations.
+  id: totrans-107
   prefs: []
   type: TYPE_NORMAL
+  zh: 正如我们所知，网络中运行的组件需要 CA。Fabric Cryptogen 工具将使用这四个加密配置文件为所有组织生成所需的 X.509 证书。
 - en: 'For `OrdererOrgs`, we define the following crypto configuration:'
+  id: totrans-108
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于 `OrdererOrgs`，我们定义以下加密配置：
 - en: '[PRE10]'
+  id: totrans-109
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: 'For `PeerOrgs`, we define the following crypto configuration for `Org1` (manufacturer).
     The other two orgs are similar:'
+  id: totrans-110
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于 `PeerOrgs`，我们为 `Org1`（制造商）定义以下加密配置。其他两个组织类似：
 - en: '[PRE11]'
+  id: totrans-111
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: We set `EnableNodeOUs` to `true`, which enables the identity classification.
+  id: totrans-112
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将 `EnableNodeOUs` 设置为 `true`，这将启用身份分类。
 - en: Configtx
+  id: totrans-113
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: Configtx
 - en: 'The *configtx.yaml* file will generate `OrdererSystemChannelGenesis` and related
     artifacts by *configtx.yaml* configuration. In the *configtx.yaml* `Organizations`
     section, we define `OrdererOrg` and the other three peer organizations—`Org1`,
@@ -530,37 +775,58 @@
     the peer node’s host and port. It updates transactions based on peer policy for
     communication between network organizations and finds all active participants
     of the channel:'
+  id: totrans-114
   prefs: []
   type: TYPE_NORMAL
+  zh: '*configtx.yaml* 文件将根据 *configtx.yaml* 配置生成 `OrdererSystemChannelGenesis` 和相关工件。在
+    *configtx.yaml* 的 `Organizations` 部分，我们定义了 `OrdererOrg` 和另外三个对等组织 — `Org1`、`Org2`
+    和 `Org3`，分别代表制造商、批发商和药房。每个组织都将定义其 `Name`、`ID`、`MSPDir` 和 `AnchorPeers`。`MSPDir`
+    描述了由 Cryptogen 生成的输出 MSP 目录。`AnchorPeers` 指定了对等节点的主机和端口。它基于对等节点之间的通信策略更新交易，并查找通道的所有活动参与者：'
 - en: '[PRE12]'
+  id: totrans-115
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE12]'
 - en: The `Organization Policies` section defines who needs to approve the organization
     resource. In PLN, we use signature policies. For example, we define the `Org2
     Readers` policy next, which allows `Org2` admin, peer, and client to access the
     resource in this node and allows peers to do only transaction endorsement. You
     can define your own policy per your application’s needs.
+  id: totrans-116
   prefs: []
   type: TYPE_NORMAL
+  zh: '`Organization Policies` 部分定义了谁需要批准组织资源。在 PLN 中，我们使用签名策略。例如，我们在下一步定义了 `Org2
+    Readers` 策略，允许 `Org2` 的管理员、对等节点和客户端访问此节点的资源，并且只允许对等节点进行交易背书。您可以根据您的应用需求定义自己的策略。'
 - en: '[PRE13]'
+  id: totrans-117
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE13]'
 - en: 'The `Profiles` section defines how to generate `PharmaLedgerOrdererGenesis`,
     including order configuration and organizations in the PLN consortiums:'
+  id: totrans-118
   prefs: []
   type: TYPE_NORMAL
+  zh: '`Profiles` 部分定义了如何生成 `PharmaLedgerOrdererGenesis`，包括 PLN 联盟中的排序配置和组织：'
 - en: '[PRE14]'
+  id: totrans-119
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE14]'
 - en: Docker
+  id: totrans-120
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: Docker
 - en: The *docker* folder contains the Docker Compose configuration file, *docker-compose-pln-net.yaml*.
     The Docker Compose tool uses this configuration file to initialize the Fabric
     runtime environment. It defines volumes, networks, and services.
+  id: totrans-121
   prefs: []
   type: TYPE_NORMAL
+  zh: '*docker* 文件夹包含 Docker Compose 配置文件，*docker-compose-pln-net.yaml*。Docker Compose
+    工具使用此配置文件初始化 Fabric 运行时环境。它定义了卷（volumes）、网络（networks）和服务（services）。'
 - en: 'In our PLN project, we define our network name as `pln`. We first need to specify
     the Docker runtime environment variable for each organization service. For example,
     we define our blockchain network name as `${COMPOSE_PROJECT_NAME}_pln`. When we
@@ -569,239 +835,355 @@
     The volume configuration maps the directories where MSP, TLS, and other organization
     Fabric parts are used in the environment settings. Finally, `working_dir` sets
     the working directory for the peer:'
+  id: totrans-122
   prefs: []
   type: TYPE_NORMAL
+  zh: 在我们的 PLN 项目中，我们将网络名称定义为 `pln`。我们首先需要为每个组织服务指定 Docker 运行时环境变量。例如，我们将我们的区块链网络名称定义为
+    `${COMPOSE_PROJECT_NAME}_pln`。当我们为环境变量 `COMPOSE_PROJECT_NAME` 分配一个 `net` 值时，网络名称将是
+    `net_pln`。容器还从 *hyperledger/fabric-peer** 拉取 orderer 镜像。卷配置映射了在环境设置中使用的 MSP、TLS
+    和其他组织 Fabric 部分的目录。最后，`working_dir` 设置对等体的工作目录：
 - en: '[PRE15]'
+  id: totrans-123
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE15]'
 - en: Install Binaries and Docker Images
+  id: totrans-124
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 安装二进制文件和 Docker 镜像
 - en: 'We have reviewed important configurations in order to run the PLN network.
     The *net-pln.sh* script will bring up the PLN network, but we first need to download
     and install Fabric binaries to your system. Under the root project folder is a
     file called *loadFabric.sh*, run the following command to load Fabric binaries
     and configs:'
+  id: totrans-125
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们已经审查了运行 PLN 网络所需的重要配置。*net-pln.sh* 脚本将启动 PLN 网络，但我们首先需要下载并安装 Fabric 二进制文件到您的系统中。在根项目文件夹下有一个名为
+    *loadFabric.sh* 的文件，请运行以下命令来加载 Fabric 二进制文件和配置：
 - en: '[PRE16]'
+  id: totrans-126
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE16]'
 - en: 'This will install the Hyperledger Fabric platform-specific binaries and config
     files into the */bin* and */config* directories under the project. For this project,
     we use the current latest production releases: Fabric v2.1.0 and Fabric CA v1.4.7\.
     Run `docker images -a` to check installed Fabric images.'
+  id: totrans-127
   prefs: []
   type: TYPE_NORMAL
+  zh: 这将把 Hyperledger Fabric 平台特定的二进制文件和配置文件安装到项目的 */bin* 和 */config* 目录下。对于该项目，我们使用当前最新的生产版本：Fabric
+    v2.1.0 和 Fabric CA v1.4.7。运行 `docker images -a` 来检查已安装的 Fabric 镜像。
 - en: Note
+  id: totrans-128
   prefs:
   - PREF_H6
   type: TYPE_NORMAL
+  zh: 注意
 - en: Make sure all of the scripts in the project are executable. For example, you
     can run `chmod +x loadFabric.sh` to make it executable.
+  id: totrans-129
   prefs: []
   type: TYPE_NORMAL
+  zh: 确保项目中的所有脚本都是可执行的。例如，您可以运行 `chmod +x loadFabric.sh` 使其可执行。
 - en: It is now time to start our PLN network.
+  id: totrans-130
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在是启动我们的 PLN 网络的时候了。
 - en: Start the PLN Network
+  id: totrans-131
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 启动 PLN 网络
 - en: 'As we mentioned before, to start the PLN network, we need to complete the following
     steps:'
+  id: totrans-132
   prefs: []
   type: TYPE_NORMAL
+  zh: 正如我们之前提到的，要启动 PLN 网络，我们需要完成以下步骤：
 - en: 'Generate peer organization certificates by using the Cryptogen tool. Here is
     the command for `Org1`:'
+  id: totrans-133
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 使用 Cryptogen 工具为对等组织生成证书。以下是为 `Org1` 执行的命令：
 - en: '[PRE17]'
+  id: totrans-134
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE17]'
 - en: The generated output is stored in the *organizations* folder.
+  id: totrans-135
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 生成的输出存储在 *organizations* 文件夹中。
 - en: 'Create orderer organization identities by using Cryptogen:'
+  id: totrans-136
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 使用 Cryptogen 创建 orderer 组织身份：
 - en: '[PRE18]'
+  id: totrans-137
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE18]'
 - en: 'Generate a common connection profile (CCP) for `Org1`, `Org2`, and `Org3`:'
+  id: totrans-138
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 为 `Org1`、`Org2` 和 `Org3` 生成一个公共连接配置文件（CCP）：
 - en: '[PRE19]'
+  id: totrans-139
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE19]'
 - en: '*ccp-generate.sh* is under the *organizations* folder. It uses *ccp-template.json*
     and *ccp-template.yaml* files as templates; it defines placeholder variables for
     the org name, peer port, CA port, and CA PEM certificates. By passing these defined
     variables, we can generate org connection files when running *ccp-generate.sh*.
     And *ccp-generate.sh* will also copy generated connection files to the *peer orgs*
     folder:'
+  id: totrans-140
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '*ccp-generate.sh*位于*organizations*文件夹下。它使用*ccp-template.json*和*ccp-template.yaml*文件作为模板；它为组织名称、对等端口、CA端口和CA
+    PEM证书定义了占位符变量。通过传递这些定义的变量，我们可以在运行*ccp-generate.sh*时生成组织连接文件。而*ccp-generate.sh*还将生成的连接文件复制到*peer
+    orgs*文件夹下：'
 - en: '[PRE20]'
+  id: totrans-141
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE20]'
 - en: Each peer web client will use these connection files to connect to the Fabric
     network.
+  id: totrans-142
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 每个对等网络客户端都将使用这些连接文件连接到Fabric网络。
 - en: 'Create the consortium and generate an orderer system channel genesis block:'
+  id: totrans-143
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 创建财团并生成订购者系统通道创世块：
 - en: '[PRE21]'
+  id: totrans-144
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE21]'
 - en: '`configtxgen` reads the *configtx.yaml* profile and generates the *genesis.block*
     file under the *system-genesis-block* folder.'
+  id: totrans-145
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`configtxgen`读取*configtx.yaml*配置文件，并在*system-genesis-block*文件夹下生成*genesis.block*文件。'
 - en: Bring up the peer and orderer nodes.
+  id: totrans-146
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 启动对等节点和订购方节点。
 - en: 'The *docker-compose* file is defined under *docker/docker-compose-pln-net.yaml*.
     The command will pull the latest Fabric orderer and peer images, build the orderer
     and peer images, and start the services we defined in the *.yaml* file. Run the
     following `docker-compose` command to bring up the peer and orderer nodes:'
+  id: totrans-147
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '*docker-compose*文件定义在*docker/docker-compose-pln-net.yaml*下。该命令将拉取最新的Fabric订购者和对等方镜像，构建订购者和对等方镜像，并启动我们在*.yaml*文件中定义的服务。运行以下`docker-compose`命令来启动对等节点和订购方节点：'
 - en: '[PRE22]'
+  id: totrans-148
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE22]'
 - en: 'Now, let’s bring up the PLN network. Open a terminal window and run *net-pln.sh*
     under the *pharma-ledger-network* folder:'
+  id: totrans-149
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 现在，让我们启动PLN网络。打开一个终端窗口，然后在*pharma-ledger-network*文件夹下运行*net-pln.sh*：
 - en: '[PRE23]'
+  id: totrans-150
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE23]'
 - en: 'You should see the following success log:'
+  id: totrans-151
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 你应该看到以下成功日志：
 - en: '[PRE24]'
+  id: totrans-152
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE24]'
 - en: We have four organizations, including three peers and one orderer, that are
     running in the *net_pln* network. In the next step, we will use the script to
     create a PLN channel for all orgs.
+  id: totrans-153
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们有四个组织，在*net_pln*网络中运行着包括三个对等方和一个订购方。在下一步中，我们将使用脚本为所有组织创建一个PLN通道。
 - en: Monitor the PLN Network
+  id: totrans-154
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 监控PLN网络
 - en: The Fabric images in the PLN network are Docker based. During project development
     or the production life cycle, you may encounter many errors. Log monitoring is
     one of the most important things to do from a DevOps standpoint for troubleshooting
     the code. It will help troubleshoot and find the root cause much easier and faster.
+  id: totrans-155
   prefs: []
   type: TYPE_NORMAL
+  zh: PLN网络中的Fabric镜像是基于Docker的。在项目开发或生产生命周期中，您可能会遇到许多错误。从DevOps的角度来看，日志监控是故障排除代码中最重要的事情之一。它将有助于更轻松、更快速地排查故障并找到根本原因。
 - en: 'Logspout is an open source container log tool for monitoring Docker logs. It
     collects Docker’s logs from all nodes in your cluster to be aggregated into one
     place. In our PLN project, we will use Logspout to monitor channel creation, smart
     contract installation, and other actions. Navigate to the *pharma-ledger-network*
     folder and open a new terminal window:'
+  id: totrans-156
   prefs: []
   type: TYPE_NORMAL
+  zh: Logspout 是一个用于监视 Docker 日志的开源容器日志工具。它收集集群中所有节点的 Docker 日志，汇总到一个地方。在我们的 PLN 项目中，我们将使用
+    Logspout 监视频道创建、智能合约安装以及其他操作。转到 *pharma-ledger-network* 文件夹并打开一个新的终端窗口：
 - en: '[PRE25]'
+  id: totrans-157
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE25]'
 - en: Run the following command from the *net-pln.sh* script and start the Logspout
     tool for the containers running on the PLN network *net_pln*:\
+  id: totrans-158
   prefs: []
   type: TYPE_NORMAL
+  zh: 从 *net-pln.sh* 脚本运行以下命令，并启动 Logspout 工具以监视运行在 PLN 网络 *net_pln* 上的容器：
 - en: '[PRE26]'
+  id: totrans-159
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE26]'
 - en: 'Here is the script logic to bring up the Logspout tool; it pulls *gliderlabs/logspout*
     images by passing the PLN network name:'
+  id: totrans-160
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里是启动 Logspout 工具的脚本逻辑；通过传递 PLN 网络名称，它拉取 *gliderlabs/logspout* 镜像：
 - en: '[PRE27]'
+  id: totrans-161
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE27]'
 - en: This terminal window will now show the PLN network container output for the
     remainder of the project development.
+  id: totrans-162
   prefs: []
   type: TYPE_NORMAL
+  zh: 此终端窗口现在将显示项目开发剩余时间的 PLN 网络容器输出。
 - en: Tip
+  id: totrans-163
   prefs:
   - PREF_H6
   type: TYPE_NORMAL
+  zh: 提示
 - en: If you run into trouble during this process, check the Logspout terminal window
     to see errors.
+  id: totrans-164
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果在此过程中遇到问题，请检查 Logspout 终端窗口以查看错误。
 - en: Create a PLN Channel
+  id: totrans-165
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 创建一个 PLN 频道。
 - en: 'To create the channel, we will use the `configtxgen` CLI tool to generate a
     genesis block, and then we’ll use peer channel commands to join a channel with
     other peers. Creating a PLN channel requires several steps. All this script logic
     can be found in *scripts/createChannel.sh*:'
+  id: totrans-166
   prefs: []
   type: TYPE_NORMAL
+  zh: 要创建该频道，我们将使用 `configtxgen` CLI 工具生成创世区块，然后使用 peer channel 命令与其他对等节点加入频道。创建一个
+    PLN 频道需要多个步骤。所有这些脚本逻辑都可以在 *scripts/createChannel.sh* 中找到：
 - en: 'Generate a channel configuration transaction file. In the *createChannel.sh*
     script, we define the `createChannelTxn` function. The critical command in this
     function is as follows:'
+  id: totrans-167
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 生成一个频道配置交易文件。在 *createChannel.sh* 脚本中，我们定义了 `createChannelTxn` 函数。此函数中的关键命令如下：
 - en: '[PRE28]'
+  id: totrans-168
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE28]'
 - en: The `configtxgen` tool reads the profile `PharmaLedgerChannel` section from
     *configtx.yaml*, which defines channel-related configuration to generate the transaction
     and genesis block. It then generates the *plnchannel.tx* file.
+  id: totrans-169
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`configtxgen` 工具从 *configtx.yaml* 中读取 `PharmaLedgerChannel` 部分的配置文件，定义了生成交易和创世区块所需的频道相关配置。然后生成
+    *plnchannel.tx* 文件。'
 - en: Create an `AnchorPeer` configuration transaction file.
+  id: totrans-170
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 创建一个 `AnchorPeer` 配置交易文件。
 - en: 'Next, we define the `createAncorPeerTxn` function. Similar to the previous
     step, we have defined the different organizational identities in *configtx.yaml*.
     The `configtxgen` tool reads the `PharmaLedgerChannel` organizational configuration
     and generates peer configuration transaction files:'
+  id: totrans-171
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 接下来，我们定义 `createAncorPeerTxn` 函数。与前面的步骤类似，我们在 *configtx.yaml* 中定义了不同的组织身份。`configtxgen`
+    工具读取 `PharmaLedgerChannel` 组织配置，并生成对等节点配置交易文件：
 - en: '[PRE29]'
+  id: totrans-172
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE29]'
 - en: After `createAncorPeerTxn` runs, we should see the *Org1MSPanchors.tx*, *Org2MSPanchors.tx*,
     and *Org3MSPanchors.tx* transaction files generated.
+  id: totrans-173
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 运行 `createAncorPeerTxn` 后，我们应该看到生成的 *Org1MSPanchors.tx*、*Org2MSPanchors.tx*
+    和 *Org3MSPanchors.tx* 事务文件。
 - en: Create a channel by using the `peer channel` command. The `createChannel` function
     uses the `peer channel create` command to create our PLN channel. When the command
     is issued, it will submit the channel creation transaction to the ordering service.
@@ -809,639 +1191,931 @@
     *configtx.yaml*. Only admin users can create a channel. The `setGlobalVars` function
     *scripts/utils.sh* will allow us to set the peer organization as the admin user.
     We use `Org1` as an admin to create our channel.
+  id: totrans-174
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 使用 `peer channel` 命令创建一个通道。`createChannel` 函数使用 `peer channel create` 命令来创建我们的
+    PLN 通道。当发出命令时，它将向订购服务提交通道创建事务。订购服务将检查在 *configtx.yaml* 中定义的通道创建策略权限。只有管理员用户才能创建通道。`setGlobalVars`
+    函数 *scripts/utils.sh* 将允许我们将对等组织设置为管理员用户。我们使用 `Org1` 作为管理员来创建我们的通道。
 - en: 'The commands are as follows:'
+  id: totrans-175
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 命令如下：
 - en: '[PRE30]'
+  id: totrans-176
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE30]'
 - en: '`setGlobalVars` in *scripts/utils.sh* has the following logic for setting `Org1`
     as an admin user. We can also use this function to set other peer organizations
     as admin users:'
+  id: totrans-177
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`setGlobalVars` 在 *scripts/utils.sh* 中有以下逻辑，用于将 `Org1` 设置为管理员用户。我们也可以使用此函数将其他对等组织设置为管理员用户：'
 - en: '[PRE31]'
+  id: totrans-178
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE31]'
 - en: 'After our PLN channel has been created, we can join all peers into this channel.
     `joinMultiPeersToChannel` in the *createChannel.sh* script will join all three
     peer orgs into our PLN channel by running the `peer channel join` command:'
+  id: totrans-179
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 在我们的 PLN 通道创建完成后，我们可以将所有对等方加入到此通道中。`createChannel.sh` 脚本中的 `joinMultiPeersToChannel`
+    将通过运行 `peer channel join` 命令将所有三个对等组织加入到我们的 PLN 通道中：
 - en: '[PRE32]'
+  id: totrans-180
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE32]'
 - en: When peer organizations join a channel, they need to be assigned as admin users
     by calling the `setGlobalVars` function and passing the `$ORG` parameter to it.
     The `peer channel join` command will use *genesis.block* to join peer orgs to
     the channel. Once the peer is joined to the channel, it can attend channel ledger
     block creation when receiving ordering service transaction submission.
+  id: totrans-181
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 当对等组织加入到通道时，它们需要通过调用 `setGlobalVars` 函数并将 `$ORG` 参数传递给它来被分配为管理员用户。`peer channel
+    join` 命令将使用 *genesis.block* 将对等组织加入到通道中。一旦对等方加入到通道中，它就可以在接收到订购服务事务提交时参加通道分类帐块的创建。
 - en: 'As the last step in the channel creation process, we need to select at least
     one peer as an anchor peer. An anchor peer’s main role is private data and service
     discovery. The endpoints of the anchor peer are fixed. Other peer nodes belonging
     to different members can communicate with the anchor peers to discover all existing
     peers on a channel. To update an anchor peer, we set a selected peer as an admin
     user and issue a `peer channel update` command:'
+  id: totrans-182
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 在通道创建过程的最后一步，我们需要选择至少一个对等方作为锚定对等方。锚定对等方的主要角色是私有数据和服务发现。锚定对等方的端点是固定的。属于不同成员的其他对等节点可以与锚定对等方通信，以发现通道上的所有现有对等方。要更新锚定对等方，我们将选定的对等方设置为管理员用户，并发出
+    `peer channel update` 命令：
 - en: '[PRE33]'
+  id: totrans-183
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE33]'
 - en: 'You can use *net-pln.sh* to create the PLN channel by running the following
     command:'
+  id: totrans-184
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 你可以通过运行以下命令使用*net-pln.sh*来创建PLN通道：
 - en: '[PRE34]'
+  id: totrans-185
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE34]'
 - en: 'Once channel creation is completed, you should see the following log:'
+  id: totrans-186
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 一旦通道创建完成，你应该看到以下日志：
 - en: '[PRE35]'
+  id: totrans-187
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE35]'
 - en: To see the related container information, you can check the Logspout terminal
     window that we opened earlier.
+  id: totrans-188
   prefs: []
   type: TYPE_NORMAL
+  zh: 要查看相关的容器信息，你可以检查我们之前打开的Logspout终端窗口。
 - en: Running and Testing the Smart Contract
+  id: totrans-189
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 运行和测试智能合约
 - en: 'We need to package a smart contract before we can install it to the channel.
     Navigate to the manufacturer contract folder directory and run the `npm install`
     command:'
+  id: totrans-190
   prefs: []
   type: TYPE_NORMAL
+  zh: 在安装通道前，我们需要打包一个智能合约。进入制造商合同文件夹目录并运行`npm install`命令：
 - en: '[PRE36]'
+  id: totrans-191
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE36]'
 - en: This will install the *pharmaledgercontract* node dependency under *node_modules*.
+  id: totrans-192
   prefs: []
   type: TYPE_NORMAL
+  zh: 这将在*node_modules*下安装*pharmaledgercontract*节点依赖。
 - en: Install the Smart Contract
+  id: totrans-193
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 安装智能合约
 - en: 'Now we can start installing our smart contract by running the following *deploySmartContract.sh*
     script:'
+  id: totrans-194
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们可以通过运行以下*deploySmartContract.sh*脚本开始安装我们的智能合约：
 - en: 'The `peer lifecycle chaincode package` command will package our smart contract.
     We assign the manufacturer as an administrator user to run the package command:'
+  id: totrans-195
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '`peer lifecycle chaincode package`命令将打包我们的智能合约。我们将制造商指定为管理员用户来运行该打包命令：'
 - en: '[PRE37]'
+  id: totrans-196
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE37]'
 - en: 'Install the chaincode on all peer orgs as an admin with the `peer lifecycle
     chaincode install` command:'
+  id: totrans-197
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 使用`peer lifecycle chaincode install`命令在所有对等方组织上安装链码作为管理员：
 - en: '[PRE38]'
+  id: totrans-198
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE38]'
 - en: 'When the chaincode package is installed, you will see messages similar to the
     following printed in your terminal:'
+  id: totrans-199
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 当链码包安装完成时，你会在终端上看到类似以下的消息：
 - en: '[PRE39]'
+  id: totrans-200
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE39]'
 - en: 'After we install the smart contract, we need to query whether the chaincode
     is installed. We can query the `packageID` by using the `peer lifecycle chaincode
     queryinstalled` command:'
+  id: totrans-201
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 在安装智能合约后，我们需要查询链码是否已安装。我们可以使用`peer lifecycle chaincode queryinstalled`命令来查询`packageID`：
 - en: '[PRE40]'
+  id: totrans-202
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE40]'
 - en: 'If the command completes successfully, you will see logs similar to the following:'
+  id: totrans-203
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 如果命令成功完成，你将看到类似以下的日志：
 - en: '[PRE41]'
+  id: totrans-204
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE41]'
 - en: 'With the returned package ID, we can now approve the chaincode definition for
     the manufacturer by using `approveForMyOrg`, which calls the `peer lifecycle chaincode
     approveformyorg` command:'
+  id: totrans-205
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 使用返回的包ID，我们现在可以通过`approveForMyOrg`为制造商批准链码定义，这调用了`peer lifecycle chaincode approveformyorg`命令：
 - en: '[PRE42]'
+  id: totrans-206
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE42]'
 - en: 'We can check whether channel members have approved the same chaincode definition
     by using `checkOrgsCommitReadiness`, which runs the `peer lifecycle chaincode
     checkcommitreadiness` command:'
+  id: totrans-207
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 我们可以使用`checkOrgsCommitReadiness`来检查通道成员是否已经批准了相同的链码定义，这将运行`peer lifecycle chaincode
+    checkcommitreadiness`命令：
 - en: '[PRE43]'
+  id: totrans-208
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE43]'
 - en: 'As expected, we should see approvals for `Org1MSP` as `true`; the other two
     orgs are `false`:'
+  id: totrans-209
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 如预期，我们应该看到`Org1MSP`的批准为`true`；另外两个组织为`false`：
 - en: '[PRE44]'
+  id: totrans-210
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE44]'
 - en: 'The endorsement policy requires a set of majority organizations to endorse
     a transaction before it can commit the chaincode. We continue to run the `peer
     lifecycle chaincode approveformyorg` command for `Org2` and `Org3`:'
+  id: totrans-211
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 批准策略要求一组多数组织在提交链码之前对交易进行背书。我们继续运行`peer lifecycle chaincode approveformyorg`命令对`Org2`和`Org3`进行批准：
 - en: '[PRE45]'
+  id: totrans-212
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE45]'
 - en: 'If all commands execute successfully, all three orgs will approve the chaincode
     installation:'
+  id: totrans-213
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 如果所有命令都成功执行，所有三个组织都将批准链码安装：
 - en: '[PRE46]'
+  id: totrans-214
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE46]'
 - en: 'Now that we know for sure that the manufacturer, wholesaler, and pharmacy have
     all approved the *pharmaledgercontract* chaincode, we commit the definition. We
     have the required majority of organizations (three out of three) to commit the
     chaincode definition to the channel. Any of the three organizations can commit
     the chaincode to the channel by using the `peer lifecycle chaincode commit` command:'
+  id: totrans-215
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 现在，我们可以确定制造商、批发商和药店都已经批准了*pharmaledgercontract*链码，我们将提交该定义。我们拥有所需的大多数组织（三个中的三个）来提交链码定义到通道。任何三个组织都可以使用`peer
+    lifecycle chaincode commit`命令将链码提交到通道中：
 - en: '[PRE47]'
+  id: totrans-216
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE47]'
 - en: 'We will use `peer lifecycle chaincode querycommitted` to check the chaincode
     commit status:'
+  id: totrans-217
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 我们将使用`peer lifecycle chaincode querycommitted`来检查链码提交状态：
 - en: '[PRE48]'
+  id: totrans-218
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE48]'
 - en: 'Now that we’ve completed the chaincode deployment steps, let’s deploy the *pharmaledgercontract*
     chaincode in our PLN network by running the following command:'
+  id: totrans-219
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 现在我们已经完成了链码部署步骤，让我们通过运行以下命令在我们的PLN网络中部署*pharmaledgercontract*链码：
 - en: '[PRE49]'
+  id: totrans-220
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE49]'
 - en: 'If the command is successful, you should see the following response in the
     last few lines:'
+  id: totrans-221
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 如果命令成功，你应该在最后几行看到以下响应：
 - en: '[PRE50]'
+  id: totrans-222
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE50]'
 - en: After the chaincode is installed, we can start to invoke and test the chaincode
     methods for *pharmaledgercontract*.
+  id: totrans-223
   prefs: []
   type: TYPE_NORMAL
+  zh: 链码安装后，我们可以开始调用和测试*pharmaledgercontract*的链码方法。
 - en: Test the Smart Contract
+  id: totrans-224
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 测试智能合约
 - en: 'We have created *invokeContract.sh* for this project. It defines an invocation
     method for `makeEquipment`, `wholesalerDistribute`, `pharmacyReceived`*,* and
     a query function. Now we can start testing our smart contract for these functions:'
+  id: totrans-225
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们为这个项目创建了*invokeContract.sh*。它定义了一个`makeEquipment`、`wholesalerDistribute`、`pharmacyReceived`*和一个查询函数的调用方法。现在我们可以开始测试这些函数的智能合约：
 - en: 'Call the `makeEquipment` chaincode method:'
+  id: totrans-226
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 调用`makeEquipment`链码方法：
 - en: '[PRE51]'
+  id: totrans-227
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE51]'
 - en: 'We pass `manufacturer`, `equipmentNumber`, `equipmentName`, and `ownerName`
     as arguments. The script basically calls `peer chaincode invoke` commands by passing
     related function arguments:'
+  id: totrans-228
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 我们传递`manufacturer`、`equipmentNumber`、`equipmentName`和`ownerName`作为参数。该脚本基本上通过传递相关的函数参数来调用`peer
+    chaincode invoke`命令：
 - en: '[PRE52]'
+  id: totrans-229
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE52]'
 - en: 'You will see logs similar to the following:'
+  id: totrans-230
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 你将看到类似以下的日志：
 - en: '[PRE53]'
+  id: totrans-231
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE53]'
 - en: 'After invoking `makeEquipment`, we can run a query function to verify the ledger
     result. The query function uses the `peer chaincode query` command:'
+  id: totrans-232
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 在调用`makeEquipment`之后，我们可以运行一个查询函数来验证账本结果。查询函数使用`peer chaincode query`命令：
 - en: '[PRE54]'
+  id: totrans-233
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE54]'
 - en: 'Issue the following script command to query equipment:'
+  id: totrans-234
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 发出以下脚本命令来查询设备：
 - en: '[PRE55]'
+  id: totrans-235
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE55]'
 - en: 'The query should return current equipment state data:'
+  id: totrans-236
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 查询应该返回当前设备状态数据：
 - en: '[PRE56]'
+  id: totrans-237
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE56]'
 - en: 'Continue to invoke the remaining equipment functions for the wholesaler and
     pharmacy:'
+  id: totrans-238
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 继续为批发商和药房调用剩余的设备功能：
 - en: '[PRE57]'
+  id: totrans-239
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE57]'
 - en: 'Once equipment ownership is moved to the pharmacy, the supply chain reaches
     its final state. We can issue `queryHistoryByKey` from the `peer chaincode query`
     command. Let’s check equipment historical data:'
+  id: totrans-240
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 一旦设备所有权转移到药房，供应链就达到了最终状态。我们可以从`peer chaincode query`命令中发出`queryHistoryByKey`。让我们来检查设备的历史数据：
 - en: '[PRE58]'
+  id: totrans-241
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE58]'
 - en: 'We can see the following output in the terminal:'
+  id: totrans-242
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 我们可以在终端看到以下输出：
 - en: '[PRE59]'
+  id: totrans-243
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE59]'
 - en: All of the transaction history records are displayed as output. We have tested
     our smart contract, and it works as expected.
+  id: totrans-244
   prefs: []
   type: TYPE_NORMAL
+  zh: 所有的交易历史记录都显示为输出。我们已经测试了我们的智能合约，它按预期工作。
 - en: Developing an Application with Hyperledger Fabric Through the SDK
+  id: totrans-245
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 通过 SDK 开发 Hyperledger Fabric 应用程序
 - en: We just deployed our Pharma Ledger Network in the Fabric network. The next step
     is to build a Pharma Ledger client application to interact with the smart contract
     function in the network. Let’s take a moment to examine the application architecture.
+  id: totrans-246
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们刚刚在 Fabric 网络中部署了我们的 Pharma Ledger Network。下一步是构建一个 Pharma Ledger 客户端应用程序，以与网络中的智能合约函数进行交互。让我们花点时间来审查一下应用程序架构。
 - en: At the beginning of our PLN network section, we generated a CCP for `Org1`,
     `Org2`, and `Org3`. We will use these connection files to connect to our PLN network
     for each peer org. When the manufacturer application’s user Bob submits a `makeEquipment`
     transaction to the ledger, the pharma-ledger process flow starts. Let’s quickly
     examine how our application works ([Figure 7-6](#how_the_pln_application_works)).
+  id: totrans-247
   prefs: []
   type: TYPE_NORMAL
+  zh: 在我们的 PLN 网络部分开始时，我们为`Org1`、`Org2`和`Org3`生成了一个 CCP。我们将使用这些连接文件来连接每个对等机组织到我们的
+    PLN 网络。当制造商应用程序的用户 Bob 提交一个`makeEquipment`交易到分类账时，药物分类账的流程开始。让我们快速地检查一下我们的应用是如何工作的（[图
+    7-6](#how_the_pln_application_works)）。
 - en: '![How the PLN application works](Images/HLF_0706.png)'
+  id: totrans-248
   prefs: []
   type: TYPE_IMG
+  zh: '![PLN 应用工作原理](Images/HLF_0706.png)'
 - en: Figure 7-6\. How the PLN application works
+  id: totrans-249
   prefs:
   - PREF_H6
   type: TYPE_NORMAL
+  zh: 图 7-6\. PLN 应用工作原理
 - en: The manufacturer web user Alice connects to the Fabric network through a wallet.
     A wallet provides users an authorized identity that will be verified by the blockchain
     network to ensure access security. The Fabric SDK then submits a `makeEquipment`
     transaction proposal to *peer0.org1.example.com*. Endorsing peers verify the signature,
     simulate the proposal, and invoke the `makeEquipment` chaincode function with
     required arguments.
+  id: totrans-250
   prefs: []
   type: TYPE_NORMAL
+  zh: 制造商 Web 用户 Alice 通过钱包连接到 Fabric 网络。钱包为用户提供了一个经过授权的身份，该身份将被区块链网络验证以确保访问安全性。然后
+    Fabric SDK 将一个`makeEquipment`交易提案提交给 *peer0.org1.example.com*。认可对等体验证签名，模拟提案，并使用所需的参数调用`makeEquipment`链码函数。
 - en: The transaction is initiated after the proposal response is sent back to the
     SDK. The application collects and verifies the endorsements until the endorsement
     policy of the chaincode is satisfied with producing the same result. The client
     then broadcasts the transaction proposal and proposal response to the ordering
     service.
+  id: totrans-251
   prefs: []
   type: TYPE_NORMAL
+  zh: 在提案响应发送回 SDK 后启动交易。 应用程序收集和验证背书，直到链码的背书策略满足产生相同结果。 然后，客户端将交易提案和提案响应广播到订购服务。
 - en: The ordering service orders them chronologically by channel, creates blocks,
     and delivers the blocks of transactions to all peers on the channel. The peers
     validate transactions to ensure that the endorsement policy is satisfied and to
     ensure that no changes have occurred to the ledger state since the proposal response
     was generated by the transaction execution. After successful validation, the block
     is committed to the ledger, and world states are updated for each valid transaction.
+  id: totrans-252
   prefs: []
   type: TYPE_NORMAL
+  zh: 订单服务按通道按时间顺序对它们进行排序，创建区块，并将事务块传递给通道上的所有对等节点。 对等方验证交易，以确保背书策略得到满足，并确保自交易执行生成提案响应以来分类帐状态未发生更改。
+    验证成功后，将区块提交到分类帐，并为每个有效交易更新世界状态。
 - en: You now understand the transaction end-to-end workflow. It is time to start
     building our pharma-ledger client application. [Figure 7-7](#the_application_client_project_structur)
     shows the application client project structure. The same folder structure is available
     for the wholesaler and pharmacy.
+  id: totrans-253
   prefs: []
   type: TYPE_NORMAL
+  zh: 您现在理解了交易的端到端工作流程。 是时候开始构建我们的药品分类帐客户端应用程序了。 [图 7-7](#the_application_client_project_structur)
+    显示了应用客户端项目结构。 对于批发商和药房，都有相同的文件夹结构可用。
 - en: '![The application client project structure](Images/HLF_0707.png)'
+  id: totrans-254
   prefs: []
   type: TYPE_IMG
+  zh: '![应用客户端项目结构](Images/HLF_0707.png)'
 - en: Figure 7-7\. The application client project structure
+  id: totrans-255
   prefs:
   - PREF_H6
   type: TYPE_NORMAL
+  zh: 图 7-7. 应用客户端项目结构
 - en: We use *express.js* to build our node application. Let’s review some important
     files.
+  id: totrans-256
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们使用 *express.js* 来构建我们的 node 应用程序。让我们回顾一些重要的文件。
 - en: 'The *package.json* file defines two Fabric-related dependencies:'
+  id: totrans-257
   prefs: []
   type: TYPE_NORMAL
+  zh: '*package.json* 文件定义了两个与 Fabric 相关的依赖项：'
 - en: '[PRE60]'
+  id: totrans-258
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE60]'
 - en: '*app.js* defines all entry points for the manufacturer, and `addUser` will
     add a client user for the manufacturer, which in our case is Bob. `makeEquipment`
     will create equipment records when the manufacturer is an owner. `queryByKey`
     and `queryHistoryByKey` are common functions for all three orgs. The wholesaler
     and pharmacy will have similar functions:'
+  id: totrans-259
   prefs: []
   type: TYPE_NORMAL
+  zh: '*app.js* 定义了制造商的所有入口点，而 `addUser` 将为制造商添加一个客户用户，我们的情况下是 Bob。 当制造商是所有者时，`makeEquipment`
+    将创建设备记录。 `queryByKey` 和 `queryHistoryByKey` 是所有三个组织的常见函数。 批发商和药房将拥有类似的功能：'
 - en: '[PRE61]'
+  id: totrans-260
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE61]'
 - en: '`addUser` will call `walletsService` to add a user. Let’s take a look at `addToWallet(user)`
     in `walletsService`:'
+  id: totrans-261
   prefs: []
   type: TYPE_NORMAL
+  zh: '`addUser` 将调用 `walletsService` 来添加用户。让我们来看看 `walletsService` 中的 `addToWallet(user)`：'
 - en: '[PRE62]'
+  id: totrans-262
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE62]'
 - en: '`newFileSystemWallet` will create a wallet for an input user (Bob) under the
     provided filesystem directory. Next, we find the user certificate and `privateKey`
     and generate an X.509 certificate to be stored in the wallet:'
+  id: totrans-263
   prefs: []
   type: TYPE_NORMAL
+  zh: '`newFileSystemWallet`将为提供的文件系统目录下的输入用户（Bob）创建一个钱包。 接下来，我们找到用户证书和`privateKey`，并生成一个要存储在钱包中的X.509证书：'
 - en: '[PRE63]'
+  id: totrans-264
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE63]'
 - en: 'The wallet calls key class methods to manage the `X509WalletMixin.createIdentity`*,*
     which is used to create an Org1MSP identity using X.509 credentials. The function
     needs three inputs: `mspid`, the certificate, and the private key:'
+  id: totrans-265
   prefs: []
   type: TYPE_NORMAL
+  zh: 钱包调用关键类方法来管理`X509WalletMixin.createIdentity`*，*该方法用于使用X.509凭据创建Org1MSP身份。 该函数需要三个输入：`mspid`，证书和私钥：
 - en: '[PRE64]'
+  id: totrans-266
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE64]'
 - en: 'Users from the manufacturer will call the `equipmentService makeEquipment`
     function. Before any user can call any of the smart contract functions, it needs
     to be authorized. To authorize user access to the blockchain, we need to follow
     these steps:'
+  id: totrans-267
   prefs: []
   type: TYPE_NORMAL
+  zh: 制造商的用户将调用`equipmentService makeEquipment`函数。 在任何用户可以调用智能合同函数之前，需要进行授权。 要授权用户访问区块链，我们需要按照以下步骤操作：
 - en: 'Find the user wallet created by adding a user function:'
+  id: totrans-268
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 找到通过添加用户功能创建的用户钱包：
 - en: '[PRE65]'
+  id: totrans-269
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE65]'
 - en: 'Load the connection profile associated with the user. Then the wallet will
     be used to locate and connect to a gateway:'
+  id: totrans-270
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 加载与用户关联的连接配置文件。 然后，钱包将用于定位并连接到网关：
 - en: '[PRE66]'
+  id: totrans-271
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE66]'
 - en: 'Once a gateway is connected to a channel, we can find our *pharmaLedgerContract*
     with a unique namespace when creating a contract:'
+  id: totrans-272
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 一旦网关连接到通道，我们就可以在创建合同时找到我们的*pharmaLedgerContract*，该合同具有唯一的命名空间：
 - en: '[PRE67]'
+  id: totrans-273
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE67]'
 - en: 'Submit the `makeEquipment` chain code invocation:'
+  id: totrans-274
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 提交`makeEquipment`链代码调用：
 - en: '[PRE68]'
+  id: totrans-275
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE68]'
 - en: 'To verify that equipment records are stored in the blockchain, we can use Fabric
     query functions to retrieve the result. The following code shows how we can submit
     a `query` or `queryHistory` function to get equipment results:'
+  id: totrans-276
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 要验证设备记录是否存储在区块链中，我们可以使用Fabric查询函数来检索结果。 以下代码显示了如何提交`query`或`queryHistory`函数以获取设备结果：
 - en: '[PRE69]'
+  id: totrans-277
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE69]'
 - en: 'Let’s bring up a manufacturer, create the user Bob, and then submit a transaction
     to our PLN blockchain. Navigate to the *pharma-ledger-network/organizations/manufacturer/application*
     folder and run `npm install`. When we start the application, we also make sure
     to update the client IP address in *plnClient.js* under *public/js*:'
+  id: totrans-278
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 让我们启动一个制造商，创建用户Bob，然后向我们的PLN区块链提交交易。 转到*pharma-ledger-network/organizations/manufacturer/application*文件夹并运行`npm
+    install`。 当我们启动应用程序时，我们还确保在*public/js*下的*plnClient.js*中更新客户端IP地址：
 - en: '[PRE70]'
+  id: totrans-279
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE70]'
 - en: '[PRE71]'
+  id: totrans-280
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE71]'
 - en: 'In the manufacturer, we define the application port as 30000:'
+  id: totrans-281
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 在制造商中，我们将应用程序端口定义为30000：
 - en: Note
+  id: totrans-282
   prefs:
   - PREF_IND
   - PREF_H6
   type: TYPE_NORMAL
+  zh: 注意
 - en: Make sure this port is open, or you can change it to another available port
     number under the `app.js` line.
+  id: totrans-283
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 确保此端口已打开，或者您可以将其更改为`app.js`行下的另一个可用端口号。
 - en: '[PRE72]'
+  id: totrans-284
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE72]'
 - en: 'Open a browser and enter `**http://your-machine-public-ip:30000**`:'
+  id: totrans-285
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 打开浏览器并输入`**http://your-machine-public-ip:30000**`：
 - en: We will see the screen shown in [Figure 7-8](#adding_a_user_to_the_wallet_for_the_man).
+  id: totrans-286
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 我们将在[图7-8](#adding_a_user_to_the_wallet_for_the_man)中看到显示屏。
 - en: '![Adding a user to the wallet for the manufacturer](Images/HLF_0708.png)'
+  id: totrans-287
   prefs:
   - PREF_IND
   type: TYPE_IMG
+  zh: '![为制造商向钱包添加用户](Images/HLF_0708.png)'
 - en: Figure 7-8\. Adding a user to the wallet for the manufacturer
+  id: totrans-288
   prefs:
   - PREF_IND
   - PREF_H6
   type: TYPE_NORMAL
+  zh: 图 7-8\. 为制造商向钱包添加用户
 - en: The default page is *addToWallet*. Since we have added any user to the wallet
     so far, you can’t submit `makeEquipment` and query history transactions at this
     moment. You have to add a user to the wallet. Let’s add Bob as a manufacturer
     user, as shown in [Figure 7-9](#new_user_left_parenthesisbobright_paren).
+  id: totrans-289
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 默认页面是*addToWallet*。因为到目前为止我们还没有向钱包添加任何用户，所以你目前无法提交`makeEquipment`并查询历史事务。你必须向钱包添加一个用户。让我们将Bob添加为制造商用户，如[图 7-9](#new_user_left_parenthesisbobright_paren)所示。
 - en: '![New user (Bob) is added](Images/HLF_0709.png)'
+  id: totrans-290
   prefs:
   - PREF_IND
   type: TYPE_IMG
+  zh: '![新增用户（Bob）被添加](Images/HLF_0709.png)'
 - en: Figure 7-9\. New user (Bob) is added
+  id: totrans-291
   prefs:
   - PREF_IND
   - PREF_H6
   type: TYPE_NORMAL
+  zh: 图 7-9\. 新用户（Bob）被添加
 - en: With the user wallet set up, the application can now connect to our PLN and
     interact with the chaincode. Click MakeEquipment on the left menu, enter all required
     equipment information, and submit the request ([Figure 7-10](#adding_equipment_to_the_pln_network)).
     The success response will be returned from the blockchain.
+  id: totrans-292
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 当用户钱包设置完成后，应用现在可以连接到我们的PLN并与链码进行交互。点击左侧菜单的MakeEquipment，输入所有必需的设备信息，并提交请求 ([图 7-10](#adding_equipment_to_the_pln_network))。成功的响应将从区块链返回。
 - en: '![Adding equipment to the PLN network](Images/HLF_0710.png)'
+  id: totrans-293
   prefs:
   - PREF_IND
   type: TYPE_IMG
+  zh: '![向PLN网络添加设备](Images/HLF_0710.png)'
 - en: Figure 7-10\. Adding equipment to the PLN network
+  id: totrans-294
   prefs:
   - PREF_IND
   - PREF_H6
   type: TYPE_NORMAL
+  zh: 图 7-10\. 向PLN网络添加设备
 - en: We can now query equipment data in the PLN network by equipment number. [Figure 7-11](#query_equipment_on_pln_network)
     shows the result.
+  id: totrans-295
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 我们现在可以通过设备编号在PLN网络中查询设备数据。[图 7-11](#query_equipment_on_pln_network)展示了结果。
 - en: '![Query equipment on PLN network](Images/HLF_0711.png)'
+  id: totrans-296
   prefs:
   - PREF_IND
   type: TYPE_IMG
+  zh: '![在PLN网络上查询设备](Images/HLF_0711.png)'
 - en: Figure 7-11\. Query equipment on PLN network
+  id: totrans-297
   prefs:
   - PREF_IND
   - PREF_H6
   type: TYPE_NORMAL
+  zh: 图 7-11\. 在PLN网络上查询设备
 - en: Now open two other terminal windows, which will bring up node servers for the
     wholesaler and pharmacy, respectively. Navigate *to /pharma-ledger-network/organizations/wholesaler/contract**.*
     Run `npm install` to install the smart contract dependency first.
+  id: totrans-298
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 现在打开另外两个终端窗口，分别将批发商和药房的节点服务器启动。导航至/pharma-ledger-network/organizations/wholesaler/contract**.*
+    运行`npm install`先安装智能合约依赖。
 - en: 'Make sure to update the base URL to [*http://your-machine-public-ip:30001*](http://your-machine-public-ip:30001)
     in *plnClient.js*. Then navigate back to the *pharma-ledger-network/organizations/wholesaler/application*
     folder and run the following:'
+  id: totrans-299
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 确保将基本URL更新为[*http://your-machine-public-ip:30001*](http://your-machine-public-ip:30001)在*plnClient.js*中。然后导航回*pharma-ledger-network/organizations/wholesaler/application*文件夹并运行以下命令：
 - en: '[PRE73]'
+  id: totrans-300
   prefs:
   - PREF_IND
   type: TYPE_PRE
+  zh: '[PRE73]'
 - en: 'Add Alice as a wholesaler user ([Figure 7-12](#adding_a_user_left_parenthesisalicerigh))
     and submit a `wholesalerDistribute` request:'
+  id: totrans-301
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 将Alice添加为批发商用户（[图 7-12](#adding_a_user_left_parenthesisalicerigh)）并提交`wholesalerDistribute`请求：
 - en: '![Adding a user (Alice) to the wholesaler](Images/HLF_0712.png)'
+  id: totrans-302
   prefs:
   - PREF_IND
   type: TYPE_IMG
+  zh: '![将用户（Alice）添加到批发商](Images/HLF_0712.png)'
 - en: Figure 7-12\. Adding a user (Alice) to the wholesaler
+  id: totrans-303
   prefs:
   - PREF_IND
   - PREF_H6
   type: TYPE_NORMAL
+  zh: 图 7-12\. 将用户（Alice）添加到批发商
 - en: 'Follow the same steps by bringing up the pharmacy node server and add Eve as
     a pharmacy user ([Figure 7-13](#adding_a_user_left_parenthesiseveright)). Submit
     a `pharmacyReceived` request:'
+  id: totrans-304
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 通过启动药房节点服务器并将 Eve 添加为药房用户（[图 7-13](#adding_a_user_left_parenthesiseveright)），按照相同步骤进行。提交
+    `pharmacyReceived` 请求：
 - en: '![Adding a user (Eve) to the pharmacy](Images/HLF_0713.png)'
+  id: totrans-305
   prefs:
   - PREF_IND
   type: TYPE_IMG
+  zh: '![将用户（Eve）添加到药房](Images/HLF_0713.png)'
 - en: Figure 7-13\. Adding a user (Eve) to the pharmacy
+  id: totrans-306
   prefs:
   - PREF_IND
   - PREF_H6
   type: TYPE_NORMAL
+  zh: 图 7-13\. 将用户（Eve）添加到药房
 - en: Now the pharma ledger supply chain flow ends. Bob, Alice, and Eve can query
     equipment data and trace the entire supply chain process by querying historical
     data. Simply go to any user, and on the Query History page, search equipment `**2000.002**`,
     and you should see all query history results, as shown in [Figure 7-14](#querying_equipment_historical_data).
+  id: totrans-307
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，制药分类账供应链流程结束。Bob、Alice 和 Eve 可以查询设备数据并通过查询历史数据追溯整个供应链流程。只需进入任何用户，在查询历史页面搜索设备
+    `**2000.002**`，你应该能看到所有查询历史结果，如[图 7-14](#querying_equipment_historical_data)所示。
 - en: '![Querying equipment historical data](Images/HLF_0714.png)'
+  id: totrans-308
   prefs: []
   type: TYPE_IMG
+  zh: '![查询设备历史数据](Images/HLF_0714.png)'
 - en: Figure 7-14\. Querying equipment historical data
+  id: totrans-309
   prefs:
   - PREF_H6
   type: TYPE_NORMAL
+  zh: 图 7-14\. 查询设备历史数据
 - en: Summary
+  id: totrans-310
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 概要
 - en: In this chapter, you learned how to build supply chain DApps with Hyperledger
     Fabric. We have introduced, among other things, how to define a consortium, analyze
     the Pharma Ledger Network life cycle, and trace the equipment’s entire transaction
@@ -1449,18 +2123,28 @@
     the logic for the manufacturer, wholesaler, and pharmacy. After setting up a pharma
     ledger Fabric network environment, we installed and deployed our smart contract
     to blockchain step by step.
+  id: totrans-311
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本章中，你学会了如何使用 Hyperledger Fabric 构建供应链 DApps。我们介绍了如何定义一个贸易联盟，分析 Pharma Ledger
+    Network 的生命周期，并追溯设备的整个交易历史。我们花了大量时间编写链码作为智能合约，其中包括制造商、批发商和药房的逻辑。在设置了药房分类账 Fabric
+    网络环境后，我们逐步安装和部署了我们的智能合约到区块链。
 - en: We tested a smart contract function through a command-line script to make sure
     that all functions we defined work as expected. With this work completed, we started
     to work on a UI page, where you learned how to add users into a wallet and connect
     to the Fabric blockchain through SDK. We also built UI pages for the manufacturer,
     wholesaler, and pharmacy, allowing users in these organizations to submit related
     requests to invoke the smart contract in the PLN blockchain.
+  id: totrans-312
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们通过命令行脚本测试了智能合约功能，以确保我们定义的所有函数都按预期工作。完成这项工作后，我们开始在 UI 页面上工作，你学会了如何将用户添加到钱包并通过
+    SDK 连接到 Fabric 区块链。我们还为制造商、批发商和药房构建了 UI 页面，允许这些组织中的用户提交相关请求以调用 PLN 区块链中的智能合约。
 - en: 'You can see that it is quite a lot of work to build the end-to-end Hyperledger
     Fabric application. So we hope you are not tired because in the next chapter we
     will explore another exciting topic: deploying Hyperledger Fabric on the cloud.'
+  id: totrans-313
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可以看到构建端到端 Hyperledger Fabric 应用程序需要相当多的工作。所以我们希望你不会感到疲倦，因为在下一章中，我们将探讨另一个令人兴奋的主题：在云上部署
+    Hyperledger Fabric。

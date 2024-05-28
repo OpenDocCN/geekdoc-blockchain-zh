@@ -625,159 +625,197 @@
   id: totrans-94
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于我们知道区块头长度为80字节，我们可以使用区块哈希获取区块头。以下是通过读取区块内容的前80字节得到的区块头：
 - en: '![](images/Figure-6.9.jpg)'
   id: totrans-95
   prefs: []
   type: TYPE_IMG
+  zh: '![](images/Figure-6.9.jpg)'
 - en: '**Figure 6.9:** Block header content from block hash using Bitcoin Core CLI'
   id: totrans-96
   prefs: []
   type: TYPE_NORMAL
+  zh: '**图 6.9：** 使用比特币核心 CLI 从区块哈希获取的区块头内容'
 - en: 'If we take hash of the content of Block header by applying the sha256 algorithm
     twice, we get block hash. The following program does this:'
   id: totrans-97
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果我们对区块头的内容应用两次sha256算法进行哈希，我们会得到区块哈希。以下程序执行此操作：
 - en: '`import hashlib`'
   id: totrans-98
   prefs: []
   type: TYPE_NORMAL
+  zh: '`import hashlib`'
 - en: '`**blk_b = bytes.fromhex(‘040020200a377a6ce7bfbd5efdbe087801fbef9a8a7b6815c3eb08000000000000000000ead1c751f9b4fedd1ff1ab37f7dccec13fc4cdfd6df4406fdd72cd44655fd2fa9389286273370a1739264fbc’)**`'
   id: totrans-99
   prefs: []
   type: TYPE_NORMAL
+  zh: '`**blk_b = bytes.fromhex(‘040020200a377a6ce7bfbd5efdbe087801fbef9a8a7b6815c3eb08000000000000000000ead1c751f9b4fedd1ff1ab37f7dccec13fc4cdfd6df4406fdd72cd44655fd2fa9389286273370a1739264fbc’)**`'
 - en: '`**h1 = hashlib.sha256(blk_b).digest()**`'
   id: totrans-100
   prefs: []
   type: TYPE_NORMAL
+  zh: '`**h1 = hashlib.sha256(blk_b).digest()**`'
 - en: '`**h2 = hashlib.sha256(h1).digest()**`'
   id: totrans-101
   prefs: []
   type: TYPE_NORMAL
+  zh: '`**h2 = hashlib.sha256(h1).digest()**`'
 - en: '`print(h2[::-1].hex())`'
   id: totrans-102
   prefs: []
   type: TYPE_NORMAL
+  zh: '`print(h2[::-1].hex())`'
 - en: '**Program 6.1:** Program to get block hash from the block header'
   id: totrans-103
   prefs: []
   type: TYPE_NORMAL
+  zh: '**程序 6.1：** 从区块头获取区块哈希的程序'
 - en: 'Running this gets us the following hash value, which, as we saw, is the same
     as the block hash that gave us the block header:'
   id: totrans-104
   prefs: []
   type: TYPE_NORMAL
+  zh: 运行这个程序会得到以下哈希值，正如我们看到的，它与给我们区块头的区块哈希相同：
 - en: '![](images/Figure-6.10.jpg)'
   id: totrans-105
   prefs: []
   type: TYPE_IMG
+  zh: '![](images/Figure-6.10.jpg)'
 - en: '**Figure 6.10:** Shows calculated block hash'
   id: totrans-106
   prefs: []
   type: TYPE_NORMAL
+  zh: '**图 6.10：** 显示计算得到的区块哈希'
 - en: 'Block elements are stored in little-endian, so to be able to use the values,
     we need to reverse byte-order. The following is the small program that takes the
     hex code of block header and annotates header elements:'
   id: totrans-107
   prefs: []
   type: TYPE_NORMAL
+  zh: 区块元素以小端方式存储，因此为了能够使用这些值，我们需要反转字节顺序。以下是获取区块头结构的小程序，它接受区块头的十六进制代码并对头部元素进行注释：
 - en: '`*def getBlockHeader**(blk:* *bytes**):*`'
   id: totrans-108
   prefs: []
   type: TYPE_NORMAL
+  zh: '`*def getBlockHeader**(blk:* *bytes**):*`'
 - en: '`*block = {}*`'
   id: totrans-109
   prefs: []
   type: TYPE_NORMAL
+  zh: '`*block = {}*`'
 - en: '`*block[**‘version’**] = blk[**0**:**4**][::-**1**].hex()*`'
   id: totrans-110
   prefs: []
   type: TYPE_NORMAL
+  zh: '`*block[**‘version’**] = blk[**0**:**4**][::-**1**].hex()*`'
 - en: '`*blk =* *blk[**4**:]*`'
   id: totrans-111
   prefs: []
   type: TYPE_NORMAL
+  zh: '`*blk =* *blk[**4**:]*`'
 - en: '`*block[**‘prev_blockhash’**] = blk[**0**:**32**][::-**1**].hex()*`'
   id: totrans-112
   prefs: []
   type: TYPE_NORMAL
+  zh: '`*block[**‘prev_blockhash’**] = blk[**0**:**32**][::-**1**].hex()*`'
 - en: '`*blk =* *blk[**32**:]*`'
   id: totrans-113
   prefs: []
   type: TYPE_NORMAL
+  zh: '`*blk =* *blk[**32**:]*`'
 - en: '`*block[**‘merkle_root’**] = blk[**0**:**32**][::-**1**].hex()*`'
   id: totrans-114
   prefs: []
   type: TYPE_NORMAL
+  zh: '`*block[**‘merkle_root’**] = blk[**0**:**32**][::-**1**].hex()*`'
 - en: '`*blk =* *blk[**32**:]*`'
   id: totrans-115
   prefs: []
   type: TYPE_NORMAL
+  zh: '`*blk =* *blk[**32**:]*`'
 - en: '`*block[**‘time’**] =**int**.from_bytes(blk[**0**:**4**], byteorder=**’little’**)*`'
   id: totrans-116
   prefs: []
   type: TYPE_NORMAL
+  zh: '`*block[**‘time’**] =**int**.from_bytes(blk[**0**:**4**], byteorder=**’little’**)*`'
 - en: '`*blk =* *blk[**4**:]*`'
   id: totrans-117
   prefs: []
   type: TYPE_NORMAL
+  zh: '`*blk =* *blk[**4**:]*`'
 - en: '`*block[**‘bits’**] = blk[**0**:**4**][::-**1**].hex()*`'
   id: totrans-118
   prefs: []
   type: TYPE_NORMAL
+  zh: '`*block[**‘bits’**] = blk[**0**:**4**][::-**1**].hex()*`'
 - en: '`*blk =* *blk[**4**:]*`'
   id: totrans-119
   prefs: []
   type: TYPE_NORMAL
+  zh: '`*blk =* *blk[**4**:]*`'
 - en: '`*block[**‘nonce’**] = blk[**0**:**4**][::-**1**].hex()*`'
   id: totrans-120
   prefs: []
   type: TYPE_NORMAL
+  zh: '`*block[**‘nonce’**] = blk[**0**:**4**][::-**1**].hex()*`'
 - en: '`*return* *block*`'
   id: totrans-121
   prefs: []
   type: TYPE_NORMAL
+  zh: '`*return* *block*`'
 - en: '**Program 6.2:** Program to get block header structure from block header bytes'
   id: totrans-122
   prefs: []
   type: TYPE_NORMAL
+  zh: '**程序 6.2：** 从区块头字节获取区块头结构的程序'
 - en: 'We call the method as follows:'
   id: totrans-123
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们调用方法如下：
 - en: '`*blkhdr = bytes.fromhex(“*040020200a377a6ce7bfbd5efdbe087801fbef9a8a7b6815c3eb08000000000000000000ead1c751f9b4fedd1ff1ab37f7dccec13fc4cdfd6df4406fdd72cd44655fd2fa9389286273370a1739264fbc”*)*`'
   id: totrans-124
   prefs: []
   type: TYPE_NORMAL
+  zh: '`*blkhdr = bytes.fromhex(“*040020200a377a6ce7bfbd5efdbe087801fbef9a8a7b6815c3eb08000000000000000000ead1c751f9b4fedd1ff1ab37f7dccec13fc4cdfd6df4406fdd72cd44655fd2fa9389286273370a1739264fbc”*)*`'
 - en: '`jsonobj = getBlockHeader(blkhdr)`'
   id: totrans-125
   prefs: []
   type: TYPE_NORMAL
+  zh: '`jsonobj = getBlockHeader(blkhdr)`'
 - en: '`print(json.dumps(jsonobj, indent = 4))`'
   id: totrans-126
   prefs: []
   type: TYPE_NORMAL
+  zh: '`print(json.dumps(jsonobj, indent = 4))`'
 - en: 'This gives the following result:'
   id: totrans-127
   prefs: []
   type: TYPE_NORMAL
+  zh: 这给出了以下结果：
 - en: '![](images/Figure-6.11.jpg)'
   id: totrans-128
   prefs: []
   type: TYPE_IMG
+  zh: '![](images/Figure-6.11.jpg)'
 - en: '**Figure 6.11:** Shows block header structure from executed program'
   id: totrans-129
   prefs: []
   type: TYPE_NORMAL
+  zh: '**图 6.11：** 从执行程序显示的区块头结构'
 - en: We can use the collected information for further analysis.
   id: totrans-130
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以利用收集到的信息进行进一步的分析。
 - en: '[Block version](toc.xhtml#s108a)'
   id: totrans-131
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: '[区块版本](toc.xhtml#s108a)'
 - en: The *version* field indicates miner support for an enhancement. In Bitcoin,
     protocol enhancements that affect consensus rules of verification of blocks or
     transactions and are backward compatible (does not cause chain split) are called
@@ -786,12 +824,14 @@
   id: totrans-132
   prefs: []
   type: TYPE_NORMAL
+  zh: '*version*字段表示矿工对增强功能的支持。在比特币中，影响区块或交易验证共识规则且向后兼容（不会导致链分裂）的协议增强称为软分叉。比特币区块共识机制已从`**IsSuperMajority()**`或ISM更改为版本位。'
 - en: Version 1 to 4 was called `**IsSuperMajority()**` softfork. In this consensus
     system, a new version is activated for 950 out of 1,000 consecutive blocks. Once
     this activation has happened, blocks with older versions are rejected.
   id: totrans-133
   prefs: []
   type: TYPE_NORMAL
+  zh: 版本1到4被称为`**IsSuperMajority()**`软分叉。在这个共识系统中，新版本在连续的1,000个区块中的950个被激活。一旦发生此激活，将拒绝旧版本的区块。
 - en: The introduction of Segregated witness Bitcoin network has upgraded to a newer
     consensus mechanism that uses version bits. This mechanism was proposed in Bitcoin
     Improvement Proposal BIP-9\. A list of all the Bitcoin Improvement Proposals can
@@ -909,216 +949,269 @@
   id: totrans-150
   prefs: []
   type: TYPE_NORMAL
+  zh: 要计算 Merkle Root，我们需要一个区块中交易的列表。我们使用以下CLI命令从区块的区块结构中获取交易列表：
 - en: '![](images/Figure-6.15.jpg)'
   id: totrans-151
   prefs: []
   type: TYPE_IMG
+  zh: '![](images/Figure-6.15.jpg)'
 - en: '**Figure 6.15:** Block structure as shown by Bitcoin Core CLI command'
   id: totrans-152
   prefs: []
   type: TYPE_NORMAL
+  zh: '**图 6.15：** 由比特币核心CLI命令显示的区块结构'
 - en: 'As you learned in *[Chapter 5, The Whitepaper](c05.xhtml), [figure 5.22](c05.xhtml#fig5_22)*,
     Hash of Merkle Root is calculated by repeatedly hashing and concatenating consecutive
     pairs of transactions. The following Python program does the same:'
   id: totrans-153
   prefs: []
   type: TYPE_NORMAL
+  zh: 正如你在 *[第5章，白皮书](c05.xhtml)，[图5.22](c05.xhtml#fig5_22)* 中学到的，Merkle Root 的哈希是通过重复哈希和连接连续的交易对来计算的。以下
+    Python 程序执行相同的操作：
 - en: '`def hashOfJoinedStr(a:str, b:str):`'
   id: totrans-154
   prefs: []
   type: TYPE_NORMAL
+  zh: '`def hashOfJoinedStr(a:str, b:str):`'
 - en: '`# Reverse inputs before and after hashing due to big-endian / little-endian
     nonsense`'
   id: totrans-155
   prefs: []
   type: TYPE_NORMAL
+  zh: '`# 反转输入，因为哈希前后的大小端问题`'
 - en: '`a١ = bytes.fromhex(a)[::-1]`'
   id: totrans-156
   prefs: []
   type: TYPE_NORMAL
+  zh: '`a١ = bytes.fromhex(a)[::-1]`'
 - en: '`b١ = bytes.fromhex(b)[::-1]`'
   id: totrans-157
   prefs: []
   type: TYPE_NORMAL
+  zh: '`b١ = bytes.fromhex(b)[::-1]`'
 - en: '`h = hashlib.sha256(hashlib.sha256(a1 + b1).digest()).digest()`'
   id: totrans-158
   prefs: []
   type: TYPE_NORMAL
+  zh: '`h = hashlib.sha256(hashlib.sha256(a1 + b1).digest()).digest()`'
 - en: '`return h`'
   id: totrans-159
   prefs: []
   type: TYPE_NORMAL
+  zh: '`return h`'
 - en: '`def buildMerkleRoot(hash_list: list):`'
   id: totrans-160
   prefs: []
   type: TYPE_NORMAL
+  zh: '`def buildMerkleRoot(hash_list: list):`'
 - en: '`if len(hash_list) < 2:`'
   id: totrans-161
   prefs: []
   type: TYPE_NORMAL
+  zh: '`if len(hash_list) < 2:`'
 - en: '`return hash_list[0]`'
   id: totrans-162
   prefs: []
   type: TYPE_NORMAL
+  zh: '`return hash_list[0]`'
 - en: '`new_hash_list = []`'
   id: totrans-163
   prefs: []
   type: TYPE_NORMAL
+  zh: '`new_hash_list = []`'
 - en: '`# Process pairs. For odd length, the last is skipped`'
   id: totrans-164
   prefs: []
   type: TYPE_NORMAL
+  zh: '`# 处理成对的哈希。对于奇数长度，最后一个会被跳过`'
 - en: '`for i in range(0, len(hash_list) - 1, 2):`'
   id: totrans-165
   prefs: []
   type: TYPE_NORMAL
+  zh: '`for i in range(0, len(hash_list) - 1, 2):`'
 - en: '`new_hash_list.append(hashOfJoinedStr(hash_list[i], hash_list[i + 1])[::-1].hex())`'
   id: totrans-166
   prefs: []
   type: TYPE_NORMAL
+  zh: '`new_hash_list.append(hashOfJoinedStr(hash_list[i], hash_list[i + 1])[::-1].hex())`'
 - en: '``# odd, hash last item twice`'
   id: totrans-167
   prefs: []
   type: TYPE_NORMAL
+  zh: '``# 奇数长度，对最后一个哈希再哈希一次`'
 - en: '`if len(hash_list) % 2 == 1:`'
   id: totrans-168
   prefs: []
   type: TYPE_NORMAL
+  zh: '`if len(hash_list) % 2 == 1:`'
 - en: '`new_hash_list.append(hashOfJoinedStr(hash_list[-1], hash_list[-1])[::-1].hex())`'
   id: totrans-169
   prefs: []
   type: TYPE_NORMAL
+  zh: '`new_hash_list.append(hashOfJoinedStr(hash_list[-1], hash_list[-1])[::-1].hex())`'
 - en: '``return buildMerkleRoot(new_hash_list)`'
   id: totrans-170
   prefs: []
   type: TYPE_NORMAL
+  zh: '``return buildMerkleRoot(new_hash_list)`'
 - en: '**Program 6.3:** Program to build Merkle Root from Transaction hashes'
   id: totrans-171
   prefs: []
   type: TYPE_NORMAL
+  zh: '**程序 6.3：** 从交易哈希构建 Merkle Root 的程序'
 - en: 'We include the following lines in the code to make RPC calls to Bitcoin Core
     Server:'
   id: totrans-172
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们在代码中包含以下行以对比特币核心服务器进行 RPC 调用：
 - en: '`from bitcoinrpc.authproxy import AuthServiceProxy, JSONRPCException`'
   id: totrans-173
   prefs: []
   type: TYPE_NORMAL
+  zh: '`from bitcoinrpc.authproxy import AuthServiceProxy, JSONRPCException`'
 - en: '`rpc_connection = AuthServiceProxy(“http://%s:%s@127.0.0.1:8332”%(<username>,
     <password>))We call the above-mentioned method as follows:`'
   id: totrans-174
   prefs: []
   type: TYPE_NORMAL
+  zh: '`rpc_connection = AuthServiceProxy(“http://%s:%s@127.0.0.1:8332”%(<username>,
+    <password>))我们如下调用上述方法：`'
 - en: '`if __name__ == ‘__main__’:`'
   id: totrans-175
   prefs: []
   type: TYPE_NORMAL
+  zh: '`if __name__ == ‘__main__’:`'
 - en: '`block_hash = rpc_connection.getblockhash(715735)`'
   id: totrans-176
   prefs: []
   type: TYPE_NORMAL
+  zh: '`block_hash = rpc_connection.getblockhash(715735)`'
 - en: '`block = rpc_connection.getblock(block_hash)`'
   id: totrans-177
   prefs: []
   type: TYPE_NORMAL
+  zh: '`block = rpc_connection.getblock(block_hash)`'
 - en: '`print(‘Merkle Root from RPC call\t = %s’ % block[‘merkleroot’])`'
   id: totrans-178
   prefs: []
   type: TYPE_NORMAL
+  zh: '`print(‘从RPC调用获取的梅克尔根\t = %s’ % block[‘merkleroot’])`'
 - en: '`hash_merkle_root = buildMerkleRoot(block[‘tx’])`'
   id: totrans-179
   prefs: []
   type: TYPE_NORMAL
+  zh: '`hash_merkle_root = buildMerkleRoot(block[‘tx’])`'
 - en: '`print(‘Calculated Merkle Root\t = %s’ % hash_merkle_root)`'
   id: totrans-180
   prefs: []
   type: TYPE_NORMAL
+  zh: '`print(‘计算得到的 Merkle Root\t = %s’ % hash_merkle_root)`'
 - en: 'This gives us the following result:'
   id: totrans-181
   prefs: []
   type: TYPE_NORMAL
+  zh: 这给我们带来以下结果：
 - en: '![](images/Figure-6.16.jpg)'
   id: totrans-182
   prefs: []
   type: TYPE_IMG
+  zh: '![](images/Figure-6.16.jpg)'
 - en: '**Figure 6.16:** Program execution showing the calculated value of Merkle Root
     as equal to the value in the header'
   id: totrans-183
   prefs: []
   type: TYPE_NORMAL
+  zh: '**图 6.16：** 展示了计算出的 Merkle Root 值与头部值相等的程序执行结果'
 - en: '[Bits and nonce](toc.xhtml#s112a)'
   id: totrans-184
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: '[Bits 和 nonce](toc.xhtml#s112a)'
 - en: The next field to understand is Bits. Bits are a compressed representation of
     the Target Threshold. Block hash needs to be less than Target Threshold to be
     accepted as a valid block.
   id: totrans-185
   prefs: []
   type: TYPE_NORMAL
+  zh: 接下来要了解的字段是 Bits。Bits 是目标阈值的压缩表示。区块哈希需要小于目标阈值才能被接受为有效区块。
 - en: 'The following is the un-compression equation:'
   id: totrans-186
   prefs: []
   type: TYPE_NORMAL
+  zh: 下面是未压缩方程式：
 - en: '*b[1] b[2] b[3] b[4]: Four bytes of Bits*'
   id: totrans-187
   prefs: []
   type: TYPE_NORMAL
+  zh: '*b[1] b[2] b[3] b[4]: Bits的四个字节*'
 - en: '*Target Threshold T= b[2] b[3] b[4].256^(b1-3))*'
   id: totrans-188
   prefs: []
   type: TYPE_NORMAL
+  zh: '*目标阈值 T= b[2] b[3] b[4].256^(b1-3))*'
 - en: Let us see if the next Block, which has a block height of `**715735**`, has
     a block hash less than the target threshold.
   id: totrans-189
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们看看下一个区块，其区块高度为`**715735**`，其区块哈希是否小于目标阈值。
 - en: '*h: Block Hash*'
   id: totrans-190
   prefs: []
   type: TYPE_NORMAL
+  zh: '*h: 区块哈希*'
 - en: '*T: Target Threshold*'
   id: totrans-191
   prefs: []
   type: TYPE_NORMAL
+  zh: '*T: 目标阈值*'
 - en: '*h= 0000000000000000004db407202aff54e9ace0efb72588bb73a2beebb248c28*'
   id: totrans-192
   prefs: []
   type: TYPE_NORMAL
+  zh: '*h= 0000000000000000004db407202aff54e9ace0efb72588bb73a2beebb248c28*'
 - en: '*b[1] b[2] b[3] b[4] = 170b98ab*'
   id: totrans-193
   prefs: []
   type: TYPE_NORMAL
+  zh: '*b[1] b[2] b[3] b[4] = 170b98ab*'
 - en: '*b[1]=0x17,b[2] = 0x0b,b[3] = 0x98,b[4] = 0xab*'
   id: totrans-194
   prefs: []
   type: TYPE_NORMAL
+  zh: '*b[1]=0x17,b[2] = 0x0b,b[3] = 0x98,b[4] = 0xab*'
 - en: '*T=0x0b98ab.256^(0x17-0x03)*'
   id: totrans-195
   prefs: []
   type: TYPE_NORMAL
+  zh: '*T=0x0b98ab.256^(0x17-0x03)*'
 - en: ⇒*T=0x0b98ab.256^(0x14)*
   id: totrans-196
   prefs: []
   type: TYPE_NORMAL
+  zh: ⇒*T=0x0b98ab.256^(0x14)*
 - en: Block is valid if *T* `>` *h*
   id: totrans-197
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果 *T* `>` *h* 则区块有效
 - en: 'The following program converts bits to get the target threshold:'
   id: totrans-198
   prefs: []
   type: TYPE_NORMAL
+  zh: 下面的程序将位转换为获取目标阈值：
 - en: '`def getTargetThreshold(bits: bytes):`'
   id: totrans-199
   prefs: []
   type: TYPE_NORMAL
+  zh: '`def getTargetThreshold(bits: bytes):`'
 - en: '`shift = bits[3]`'
   id: totrans-200
   prefs: []
   type: TYPE_NORMAL
+  zh: '`shift = bits[3]`'
 - en: '`value = int.from_bytes(bits[0:3], byteorder=’little’)`'
   id: totrans-201
   prefs: []
@@ -1314,260 +1407,322 @@
   id: totrans-233
   prefs: []
   type: TYPE_NORMAL
+  zh: 要进行编码，将7位存储在字节数组中，从数字中删除，然后减1。 重复此过程直到位变为零。 所有字节的最高有效位都设置为除最后一个字节外的所有字节。
 - en: '![](images/Figure-6.20.jpg)'
   id: totrans-234
   prefs: []
   type: TYPE_IMG
+  zh: '![](images/Figure-6.20.jpg)'
 - en: '**Figure 6.20:** Illustration showing b128 varint encoding mechanism'
   id: totrans-235
   prefs: []
   type: TYPE_NORMAL
+  zh: '**图6.20：**显示b128变长整数编码机制的插图'
 - en: 'The following is the implementation of the encoder:'
   id: totrans-236
   prefs: []
   type: TYPE_NORMAL
+  zh: 下面是编码器的实现：
 - en: '`def b128_varint_encode(n: int):`'
   id: totrans-237
   prefs: []
   type: TYPE_NORMAL
+  zh: '`def b128_varint_encode(n: int):`'
 - en: '`l = 0`'
   id: totrans-238
   prefs: []
   type: TYPE_NORMAL
+  zh: '`l = 0`'
 - en: '`b = []`'
   id: totrans-239
   prefs: []
   type: TYPE_NORMAL
+  zh: '`b = []`'
 - en: '`while True:`'
   id: totrans-240
   prefs: []
   type: TYPE_NORMAL
+  zh: '`while True:`'
 - en: '`# Take 7 bits and set MSB if not last byte`'
   id: totrans-241
   prefs: []
   type: TYPE_NORMAL
+  zh: '`# 取7位并在不是最后一个字节时设置MSB`'
 - en: '`b.append((n & 0x7F)| (0x80 if l != 0 else 0x00))`'
   id: totrans-242
   prefs: []
   type: TYPE_NORMAL
+  zh: '`b.append((n & 0x7F)| (0x80 if l != 0 else 0x00))`'
 - en: '`if n <= 0x7F:`'
   id: totrans-243
   prefs: []
   type: TYPE_NORMAL
+  zh: '`if n <= 0x7F:`'
 - en: '`break`'
   id: totrans-244
   prefs: []
   type: TYPE_NORMAL
+  zh: '`break`'
 - en: '`n = (n >> 7) - 1`'
   id: totrans-245
   prefs: []
   type: TYPE_NORMAL
+  zh: '`n = (n >> 7) - 1`'
 - en: '`l += 1`'
   id: totrans-246
   prefs: []
   type: TYPE_NORMAL
+  zh: '`l += 1`'
 - en: '`return bytes(bytearray(b[::-1]))`'
   id: totrans-247
   prefs: []
   type: TYPE_NORMAL
+  zh: '`return bytes(bytearray(b[::-1]))`'
 - en: '**Program 6.5:** Program to encode a number into b128 varint'
   id: totrans-248
   prefs: []
   type: TYPE_NORMAL
+  zh: '**程序6.5：**将数字编码为b128变长整数的程序'
 - en: 'The following code decodes variable length integer:'
   id: totrans-249
   prefs: []
   type: TYPE_NORMAL
+  zh: 下面的代码解码可变长度整数：
 - en: '`def b128_varint_decode(b: bytes, pos = 0):`'
   id: totrans-250
   prefs: []
   type: TYPE_NORMAL
+  zh: '`def b128_varint_decode(b: bytes, pos = 0):`'
 - en: '`n = 0`'
   id: totrans-251
   prefs: []
   type: TYPE_NORMAL
+  zh: '`n = 0`'
 - en: '`while True:`'
   id: totrans-252
   prefs: []
   type: TYPE_NORMAL
+  zh: '`while True:`'
 - en: '`data = b[pos]`'
   id: totrans-253
   prefs: []
   type: TYPE_NORMAL
+  zh: '`data = b[pos]`'
 - en: '`pos += 1`'
   id: totrans-254
   prefs: []
   type: TYPE_NORMAL
+  zh: '`pos += 1`'
 - en: '`# unset MSB bit`'
   id: totrans-255
   prefs: []
   type: TYPE_NORMAL
+  zh: '`# 取消设置MSB位`'
 - en: '`n = (n << 7) | (data & 0x7f)`'
   id: totrans-256
   prefs: []
   type: TYPE_NORMAL
+  zh: '`n = (n << 7) | (data & 0x7f)`'
 - en: '`if data & 0x80 == 0:`'
   id: totrans-257
   prefs: []
   type: TYPE_NORMAL
+  zh: '`if data & 0x80 == 0:`'
 - en: '`return (n, pos)`'
   id: totrans-258
   prefs: []
   type: TYPE_NORMAL
+  zh: '`return (n, pos)`'
 - en: '`n += 1`'
   id: totrans-259
   prefs: []
   type: TYPE_NORMAL
+  zh: '`n += 1`'
 - en: '**Program 6.6:** Program to decode b128 varint into an integer'
   id: totrans-260
   prefs: []
   type: TYPE_NORMAL
+  zh: '**程序6.6：**将b128变长整数解码为整数的程序'
 - en: 'By running the preceding code, we get the following encoded and decoded integer
     pairs:'
   id: totrans-261
   prefs: []
   type: TYPE_NORMAL
+  zh: 运行上述代码，我们得到以下编码和解码整数对：
 - en: '![](images/136.jpg)![](images/137.jpg)'
   id: totrans-262
   prefs: []
   type: TYPE_IMG
+  zh: '![](images/136.jpg)![](images/137.jpg)'
 - en: '**Table 6.4:** Sample b128 varint encoded numbers'
   id: totrans-263
   prefs: []
   type: TYPE_NORMAL
+  zh: '**表6.4：**样本b128变长整数编码数字'
 - en: 'To parse blocks in block files, we need to get block file information from
     the block index. Block file index contains the following information:'
   id: totrans-264
   prefs: []
   type: TYPE_NORMAL
+  zh: 要解析块文件中的块，我们需要从块索引中获取块文件信息。 块文件索引包含以下信息：
 - en: '`**count**`: Number of blocks stored in the block file'
   id: totrans-265
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`**count**`：块文件中存储的块数'
 - en: '`**filesize**`: Size of block file in bytes'
   id: totrans-266
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`**filesize**`：块文件大小（以字节为单位）'
 - en: '`**undofilesize**`: Size of undo file in bytes'
   id: totrans-267
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`**undofilesize**`：撤销文件大小（以字节为单位）'
 - en: '`**lowest**`: Contains blocks from this block height'
   id: totrans-268
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`**lowest**`：包含从此块高度开始的块'
 - en: '`**highest**`: Contains blocks till this block height'
   id: totrans-269
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`**highest**`：包含直到此块高度的块'
 - en: '`**Lowest_timestamp**`: Contains blocks from this block timestamp'
   id: totrans-270
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`**Lowest_timestamp**`：包含从此块时间戳开始的块'
 - en: '`**highest_timestamp**`: Contains blocks till this block timestamp'
   id: totrans-271
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`**highest_timestamp**`：包含直到此块时间戳的块'
 - en: 'The following code gets block-file information from block index:'
   id: totrans-272
   prefs: []
   type: TYPE_NORMAL
+  zh: 下面的代码从块索引中获取块文件信息：
 - en: '`block_db_g = plyvel.DB(os.getenv(‘BLOCK_INDEX_DB’), compression=None)`'
   id: totrans-273
   prefs: []
   type: TYPE_NORMAL
+  zh: '`block_db_g = plyvel.DB(os.getenv(‘BLOCK_INDEX_DB’), compression=None)`'
 - en: '`blocks_path_g = os.getenv(‘BLOCKS_PATH’)`'
   id: totrans-274
   prefs: []
   type: TYPE_NORMAL
+  zh: '`blocks_path_g = os.getenv(‘BLOCKS_PATH’)`'
 - en: '`def getBlockFileIndex(n_file: int, block_db):`'
   id: totrans-275
   prefs: []
   type: TYPE_NORMAL
+  zh: '`def getBlockFileIndex(n_file: int, block_db):`'
 - en: '`key = b’f’ + (n_file).to_bytes(4, byteorder=’little’)`'
   id: totrans-276
   prefs: []
   type: TYPE_NORMAL
+  zh: '`key = b’f’ + (n_file).to_bytes(4, byteorder=’little’)`'
 - en: '`value = block_db.get(key)`'
   id: totrans-277
   prefs: []
   type: TYPE_NORMAL
+  zh: '`value = block_db.get(key)`'
 - en: '`jsonobj = {}`'
   id: totrans-278
   prefs: []
   type: TYPE_NORMAL
+  zh: '`jsonobj = {}`'
 - en: '`jsonobj[‘count’], pos = b128_varint_decode(value)`'
   id: totrans-279
   prefs: []
   type: TYPE_NORMAL
+  zh: '`jsonobj[‘count’], pos = b128_varint_decode(value)`'
 - en: '`jsonobj[‘filesize’], pos = b128_varint_decode(value, pos)`'
   id: totrans-280
   prefs: []
   type: TYPE_NORMAL
+  zh: '`jsonobj[‘filesize’], pos = b128_varint_decode(value, pos)`'
 - en: '`jsonobj[‘undofilesize’], pos = b128_varint_decode(value, pos)`'
   id: totrans-281
   prefs: []
   type: TYPE_NORMAL
+  zh: '`jsonobj[‘undofilesize’], pos = b128_varint_decode(value, pos)`'
 - en: '`jsonobj[‘lowest’], pos = b128_varint_decode(value, pos)`'
   id: totrans-282
   prefs: []
   type: TYPE_NORMAL
+  zh: '`jsonobj[‘lowest’], pos = b128_varint_decode(value, pos)`'
 - en: '`jsonobj[‘highest’], pos = b128_varint_decode(value, pos)`'
   id: totrans-283
   prefs: []
   type: TYPE_NORMAL
+  zh: '`jsonobj[‘highest’], pos = b128_varint_decode(value, pos)`'
 - en: '`jsonobj[‘lowest_timestamp’], pos = b128_varint_decode(value, pos)`'
   id: totrans-284
   prefs: []
   type: TYPE_NORMAL
+  zh: '`jsonobj[‘lowest_timestamp’], pos = b128_varint_decode(value, pos)`'
 - en: '`jsonobj[‘highest_timestamp’], pos = b128_varint_decode(value, pos)`'
   id: totrans-285
   prefs: []
   type: TYPE_NORMAL
+  zh: '`jsonobj[‘highest_timestamp’], pos = b128_varint_decode(value, pos)`'
 - en: '`return jsonobj`'
   id: totrans-286
   prefs: []
   type: TYPE_NORMAL
+  zh: '`return jsonobj`'
 - en: '**Program 6.7:** Program to query Block DB to get block file index'
   id: totrans-287
   prefs: []
   type: TYPE_NORMAL
+  zh: '**程序 6.7：** 查询区块数据库以获取区块文件索引的程序'
 - en: 'We call this method with the following parameters:'
   id: totrans-288
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们使用以下参数调用此方法：
 - en: '`blk_index = getBlockFileIndex(138, block_db_g)`'
   id: totrans-289
   prefs: []
   type: TYPE_NORMAL
+  zh: '`blk_index = getBlockFileIndex(138, block_db_g)`'
 - en: 'Before executing the preceding program, we need to setup following environment
     variables:'
   id: totrans-290
   prefs: []
   type: TYPE_NORMAL
+  zh: 在执行上述程序之前，我们需要设置以下环境变量：
 - en: '`BITCOIN_HOME: Path of Bitcoin working directory.`'
   id: totrans-291
   prefs: []
   type: TYPE_NORMAL
+  zh: '`BITCOIN_HOME：比特币工作目录的路径。`'
 - en: '`BLOCK_INDEX_DB: This by default is $BITCOIN_HOME/blocks/index`'
   id: totrans-292
   prefs: []
   type: TYPE_NORMAL
+  zh: '`BLOCK_INDEX_DB：默认为 $BITCOIN_HOME/blocks/index`'
 - en: '`BLOCKS_PATH: This by default is $BITCOIN_HOME/blocks/`'
   id: totrans-293
   prefs: []
   type: TYPE_NORMAL
+  zh: '`BLOCKS_PATH：默认为 $BITCOIN_HOME/blocks/`'
 - en: '``CHAINSTATE_DB: This by default is $BITCOIN_HOME/chainstate``'
   id: totrans-294
   prefs: []
   type: TYPE_NORMAL
+  zh: '``CHAINSTATE_DB：默认为 $BITCOIN_HOME/chainstate``'
 - en: '``TX_INDEX_DB: This by default is $BITCOIN_HOME/indexes/txindex``'
   id: totrans-295
   prefs: []
@@ -2012,428 +2167,521 @@
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '**程序 6.10：** 从链状态数据库获取最近的区块的程序'
 - en: 'Get block index from Block index database:'
   id: totrans-374
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 从区块索引数据库获取区块索引：
 - en: '`BLOCK_HAVE_DATA = 8`'
   id: totrans-375
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`BLOCK_HAVE_DATA = 8`'
 - en: '`BLOCK_HAVE_UNDO = 16`'
   id: totrans-376
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`BLOCK_HAVE_UNDO = 16`'
 - en: '`def getBlockIndex(block_hash_b: bytes, block_db):`'
   id: totrans-377
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`def getBlockIndex(block_hash_b: bytes, block_db):`'
 - en: '`key = b’b’ + block_hash_b`'
   id: totrans-378
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`key = b’b’ + block_hash_b`'
 - en: '`value = block_db.get(key)`'
   id: totrans-379
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`value = block_db.get(key)`'
 - en: '`jsonobj = {}`'
   id: totrans-380
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`jsonobj = {}`'
 - en: '`jsonobj[‘version’], pos = b128_varint_decode(value)`'
   id: totrans-381
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`jsonobj[‘version’], pos = b128_varint_decode(value)`'
 - en: '`jsonobj[‘height’], pos = b128_varint_decode(value, pos)`'
   id: totrans-382
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`jsonobj[‘height’], pos = b128_varint_decode(value, pos)`'
 - en: '`jsonobj[‘status’], pos = b128_varint_decode(value, pos)`'
   id: totrans-383
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`jsonobj[‘status’], pos = b128_varint_decode(value, pos)`'
 - en: '`jsonobj[‘tx_count’], pos = b128_varint_decode(value, pos)`'
   id: totrans-384
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`jsonobj[‘tx_count’], pos = b128_varint_decode(value, pos)`'
 - en: '`if jsonobj[‘status’] & (BLOCK_HAVE_DATA | BLOCK_HAVE_UNDO):`'
   id: totrans-385
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`if jsonobj[‘status’] & (BLOCK_HAVE_DATA | BLOCK_HAVE_UNDO):`'
 - en: '`jsonobj[‘n_file’], pos = b128_varint_decode(value, pos)`'
   id: totrans-386
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`jsonobj[‘n_file’], pos = b128_varint_decode(value, pos)`'
 - en: '`if jsonobj[‘status’] & BLOCK_HAVE_DATA:`'
   id: totrans-387
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`if jsonobj[‘status’] & BLOCK_HAVE_DATA:`'
 - en: '`jsonobj[‘data_pos’], pos = b128_varint_decode(value, pos)`'
   id: totrans-388
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`jsonobj[‘data_pos’], pos = b128_varint_decode(value, pos)`'
 - en: '`if jsonobj[‘status’] & BLOCK_HAVE_UNDO:`'
   id: totrans-389
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`if jsonobj[‘status’] & BLOCK_HAVE_UNDO:`'
 - en: '`jsonobj[‘undo_pos’], pos = b128_varint_decode(value, pos)`'
   id: totrans-390
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`jsonobj[‘undo_pos’], pos = b128_varint_decode(value, pos)`'
 - en: '`jsonobj[‘header’] = {}`'
   id: totrans-391
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`jsonobj[‘header’] = {}`'
 - en: '`jsonobj[‘header’][‘version’] = value[pos:pos+4][::-1].hex()`'
   id: totrans-392
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`jsonobj[‘header’][‘version’] = value[pos:pos+4][::-1].hex()`'
 - en: '`jsonobj[‘header’][‘prevblockhash’] = value[pos+4:pos+36][::-1].hex()`'
   id: totrans-393
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`jsonobj[‘header’][‘prevblockhash’] = value[pos+4:pos+36][::-1].hex()`'
 - en: '`jsonobj[‘header’][‘merkleroot’] = value[pos+36:pos+68][::-1].hex()`'
   id: totrans-394
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`jsonobj[‘header’][‘merkleroot’] = value[pos+36:pos+68][::-1].hex()`'
 - en: '`jsonobj[‘header’][‘time’] = value[pos+68:pos+72][::-1].hex()`'
   id: totrans-395
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`jsonobj[‘header’][‘time’] = value[pos+68:pos+72][::-1].hex()`'
 - en: '`jsonobj[‘header’][‘bits’] = value[pos+72:pos+76][::-1].hex()`'
   id: totrans-396
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`jsonobj[‘header’][‘bits’] = value[pos+72:pos+76][::-1].hex()`'
 - en: '`jsonobj[‘header’][‘nonce’] = value[pos+76:pos+80][::-1].hex()`'
   id: totrans-397
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`jsonobj[‘header’][‘nonce’] = value[pos+76:pos+80][::-1].hex()`'
 - en: '`return jsonobj`'
   id: totrans-398
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`return jsonobj`'
 - en: '**Program 6.11:** Program to get block index structure from Block DB'
   id: totrans-399
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '**程序 6.11：** 从区块数据库获取区块索引结构的程序'
 - en: 'The following program parses block bytes to get block header information:'
   id: totrans-400
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 以下程序解析区块字节以获取区块头信息：
 - en: '`def getTransactionCount(mptr: mmap):`'
   id: totrans-401
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`def getTransactionCount(mptr: mmap):`'
 - en: '`prefix = int.from_bytes(mptr.read(1), byteorder=’little’)`'
   id: totrans-402
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`prefix = int.from_bytes(mptr.read(1), byteorder=’little’)`'
 - en: '`b_cnt_m = {‘fd’: 2, ‘fe’: 4, ‘ff’: 8}`'
   id: totrans-403
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`b_cnt_m = {‘fd’: 2, ‘fe’: 4, ‘ff’: 8}`'
 - en: '`if prefix < 0xFD:`'
   id: totrans-404
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`if prefix < 0xFD:`'
 - en: '`tx_cnt = prefix`'
   id: totrans-405
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`tx_cnt = prefix`'
 - en: '`else:`'
   id: totrans-406
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`else:`'
 - en: '`b_cnt = b_cnt_m[‘%x’ % prefix]`'
   id: totrans-407
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`b_cnt = b_cnt_m[‘%x’ % prefix]`'
 - en: '`tx_cnt = int.from_bytes(mptr.read(b_cnt), byteorder=’little’)`'
   id: totrans-408
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`tx_cnt = int.from_bytes(mptr.read(b_cnt), byteorder=’little’)`'
 - en: '`return tx_cnt`'
   id: totrans-409
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`return tx_cnt`'
 - en: '`def parseBlockHeader(mptr: mmap, start: int, height: int):`'
   id: totrans-410
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`def parseBlockHeader(mptr: mmap, start: int, height: int):`'
 - en: '`seek = start-8`'
   id: totrans-411
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`seek = start-8`'
 - en: '`mptr.seek(seek)`'
   id: totrans-412
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`mptr.seek(seek)`'
 - en: '``block_header = {}``'
   id: totrans-413
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '``block_header = {}``'
 - en: '`block_header[‘magic_number’] = int.from_bytes(mptr.read(4), byteorder=’little’)`'
   id: totrans-414
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`block_header[‘magic_number’] = int.from_bytes(mptr.read(4), byteorder=’little’)`'
 - en: '`block_header[‘block_size’] = int.from_bytes(mptr.read(4), byteorder=’little’)`'
   id: totrans-415
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`block_header[‘block_size’] = int.from_bytes(mptr.read(4), byteorder=’little’)`'
 - en: '`block_header[‘version’] = int.from_bytes(mptr.read(4), byteorder=’little’)`'
   id: totrans-416
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`block_header[‘version’] = int.from_bytes(mptr.read(4), byteorder=’little’)`'
 - en: '`prev_block_header_hash = mptr.read(32)`'
   id: totrans-417
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`prev_block_header_hash = mptr.read(32)`'
 - en: '`block_header[‘prev_block_hash’] = prev_block_header_hash[::-1].hex()`'
   id: totrans-418
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`block_header[‘prev_block_hash’] = prev_block_header_hash[::-1].hex()`'
 - en: '`block_header[‘merkle_tree_root’] = mptr.read(32)[::-1].hex()`'
   id: totrans-419
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`block_header[‘merkle_tree_root’] = mptr.read(32)[::-1].hex()`'
 - en: '`block_header[‘timestamp’] = int.from_bytes(mptr.read(4), byteorder=’little’)`'
   id: totrans-420
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`block_header[‘timestamp’] = int.from_bytes(mptr.read(4), byteorder=’little’)`'
 - en: '`block_header[‘date_time’] = datetime.datetime.fromtimestamp(block_header[‘timestamp’]).strftime(‘%Y-%m-%d
     %H:%M:%S’)`'
   id: totrans-421
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`block_header[‘date_time’] = datetime.datetime.fromtimestamp(block_header[‘timestamp’]).strftime(‘%Y-%m-%d
+    %H:%M:%S’)`'
 - en: '`block_header[‘bits’] = int.from_bytes(mptr.read(4), byteorder=’little’)`'
   id: totrans-422
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`block_header[‘bits’] = int.from_bytes(mptr.read(4), byteorder=’little’)`'
 - en: '`block_header[‘nonce’] = int.from_bytes(mptr.read(4), byteorder=’little’)`'
   id: totrans-423
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`block_header[‘nonce’] = int.from_bytes(mptr.read(4), byteorder=’little’)`'
 - en: '`txcount = getTransactionCount(mptr)`'
   id: totrans-424
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`txcount = getTransactionCount(mptr)`'
 - en: '`return block_header, prev_block_header_hash`'
   id: totrans-425
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`return block_header, prev_block_header_hash`'
 - en: '**Program 6.12:** Program to get block header information'
   id: totrans-426
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '**程序 6.12：** 获取区块头信息的程序'
 - en: 'The following program uses the block index information to get block content
     and then finds the previous block using its block hash and the block index:'
   id: totrans-427
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下程序使用区块索引信息获取区块内容，然后使用其区块哈希和区块索引找到前一个区块：
 - en: '`def traverseBlockChain():`'
   id: totrans-428
   prefs: []
   type: TYPE_NORMAL
+  zh: '`def traverseBlockChain():`'
 - en: '`df = pd.DataFrame()`'
   id: totrans-429
   prefs: []
   type: TYPE_NORMAL
+  zh: '`df = pd.DataFrame()`'
 - en: '`prev_blockhash_bigendian_b = getRecentBlockHash(chainstate_db_g)`'
   id: totrans-430
   prefs: []
   type: TYPE_NORMAL
+  zh: '`prev_blockhash_bigendian_b = getRecentBlockHash(chainstate_db_g)`'
 - en: '`blockheader_list = []`'
   id: totrans-431
   prefs: []
   type: TYPE_NORMAL
+  zh: '`blockheader_list = []`'
 - en: '`while True:`'
   id: totrans-432
   prefs: []
   type: TYPE_NORMAL
+  zh: '`while True:`'
 - en: '`jsonobj = getBlockIndex(prev_blockhash_bigendian_b, block_db_g)`'
   id: totrans-433
   prefs: []
   type: TYPE_NORMAL
+  zh: '`jsonobj = getBlockIndex(prev_blockhash_bigendian_b, block_db_g)`'
 - en: '`print(jsonobj[‘n_file’])`'
   id: totrans-434
   prefs: []
   type: TYPE_NORMAL
+  zh: '`print(jsonobj[‘n_file’])`'
 - en: '`if ‘data_pos’ in jsonobj:`'
   id: totrans-435
   prefs: []
   type: TYPE_NORMAL
+  zh: '`if ‘data_pos’ in jsonobj:`'
 - en: '`block_filepath = os.path.join(blocks_path_g, ‘blk%05d.dat’ % jsonobj[‘n_file’])`'
   id: totrans-436
   prefs: []
   type: TYPE_NORMAL
+  zh: '`block_filepath = os.path.join(blocks_path_g, ‘blk%05d.dat’ % jsonobj[‘n_file’])`'
 - en: '`start = jsonobj[‘data_pos’]`'
   id: totrans-437
   prefs: []
   type: TYPE_NORMAL
+  zh: '`start = jsonobj[‘data_pos’]`'
 - en: '`print(‘height = %d’ % jsonobj[‘height’])`'
   id: totrans-438
   prefs: []
   type: TYPE_NORMAL
+  zh: '`print(‘height = %d’ % jsonobj[‘height’])`'
 - en: '`elif ‘undo_pos’ in jsonobj:`'
   id: totrans-439
   prefs: []
   type: TYPE_NORMAL
+  zh: '`elif ‘undo_pos’ in jsonobj:`'
 - en: '`block_filepath = os.path.join(blocks_path_g, ‘rev%05d.dat’ % jsonobj[‘n_file’])`'
   id: totrans-440
   prefs: []
   type: TYPE_NORMAL
+  zh: '`block_filepath = os.path.join(blocks_path_g, ‘rev%05d.dat’ % jsonobj[‘n_file’])`'
 - en: '`start = jsonobj[‘undo_pos’]`'
   id: totrans-441
   prefs: []
   type: TYPE_NORMAL
+  zh: '`start = jsonobj[‘undo_pos’]`'
 - en: '`# load file to memory`'
   id: totrans-442
   prefs: []
   type: TYPE_NORMAL
+  zh: '`# load file to memory`'
 - en: '`with open(block_filepath, ‘rb’) as block_file:`'
   id: totrans-443
   prefs: []
   type: TYPE_NORMAL
+  zh: '`with open(block_filepath, ‘rb’) as block_file:`'
 - en: '`with mmap.mmap(block_file.fileno(), 0, prot = mmap.PROT_READ, flags = mmap.MAP_PRIVATE)
     as mptr: #File is open read-only`'
   id: totrans-444
   prefs: []
   type: TYPE_NORMAL
+  zh: '`with mmap.mmap(block_file.fileno(), 0, prot = mmap.PROT_READ, flags = mmap.MAP_PRIVATE)
+    as mptr: #File is open read-only`'
 - en: '`blockheader, prev_blockhash_bigendian_b = parseBlockHeader(mptr, start, jsonobj[‘height’])`'
   id: totrans-445
   prefs: []
   type: TYPE_NORMAL
+  zh: '`blockheader, prev_blockhash_bigendian_b = parseBlockHeader(mptr, start, jsonobj[‘height’])`'
 - en: '`blockheader[‘height’] = jsonobj[‘height’]`'
   id: totrans-446
   prefs: []
   type: TYPE_NORMAL
+  zh: '`blockheader[‘height’] = jsonobj[‘height’]`'
 - en: '`blockheader[‘tx_count’] = jsonobj[‘tx_count’]`'
   id: totrans-447
   prefs: []
   type: TYPE_NORMAL
+  zh: '`blockheader[‘tx_count’] = jsonobj[‘tx_count’]`'
 - en: '`blockheader_list.append(blockheader)`'
   id: totrans-448
   prefs: []
   type: TYPE_NORMAL
+  zh: '`blockheader_list.append(blockheader)`'
 - en: '`if jsonobj[‘height’] == 1:`'
   id: totrans-449
   prefs: []
   type: TYPE_NORMAL
+  zh: '`if jsonobj[‘height’] == 1:`'
 - en: '`break`'
   id: totrans-450
   prefs: []
   type: TYPE_NORMAL
+  zh: '`break`'
 - en: '`df = pd.DataFrame(blockheader_list)`'
   id: totrans-451
   prefs: []
   type: TYPE_NORMAL
+  zh: '`df = pd.DataFrame(blockheader_list)`'
 - en: '`df.to_csv(‘out.csv’, index=False)`'
   id: totrans-452
   prefs: []
   type: TYPE_NORMAL
+  zh: '`df.to_csv(‘out.csv’, index=False)`'
 - en: '**Program 6.13:** Program to traverse Bitcoin blockchain'
   id: totrans-453
   prefs: []
   type: TYPE_NORMAL
+  zh: '**程序 6.13：** 遍历比特币区块链的程序'
 - en: 'We call the preceding program as follows:'
   id: totrans-454
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将上述程序称为：
 - en: '`if __name__ == ‘__main__’:`'
   id: totrans-455
   prefs: []
   type: TYPE_NORMAL
+  zh: '`if __name__ == ‘__main__’:`'
 - en: '`traverseBlockChain()`'
   id: totrans-456
   prefs: []
   type: TYPE_NORMAL
+  zh: '`遍历区块链()`'
 - en: 'We get `**out.csv**`, which contains a portion of the following few rows:'
   id: totrans-457
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们得到了 `**out.csv**`，其中包含以下几行的一部分：
 - en: '![](images/Figure-6.24.jpg)'
   id: totrans-458
   prefs: []
   type: TYPE_IMG
+  zh: '![](images/Figure-6.24.jpg)'
 - en: '**Figure 6.24:** Shows the first few traversed block information'
   id: totrans-459
   prefs: []
   type: TYPE_NORMAL
+  zh: '**图 6.24：** 显示了前几个遍历的块信息'
 - en: This completes the blockchain section. You understood the structure of blockchain,
     how these blocks are stored and how these blocks can be read, traversed, and parsed
     to get header and preheader fields.
   id: totrans-460
   prefs: []
   type: TYPE_NORMAL
+  zh: 这完成了区块链部分。您理解了区块链的结构，这些块如何存储以及如何读取、遍历和解析这些块以获取头部和前头字段。
 - en: '[Transactions](toc.xhtml#s117a)'
   id: totrans-461
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: '[交易](toc.xhtml#s117a)'
 - en: When one party pays another in bitcoin, the sender creates a transaction and
     publishes it to the Bitcoin network. We discussed this in *[Chapter 5, The Whitepaper](c05.xhtml),*
     in detail.
   id: totrans-462
   prefs: []
   type: TYPE_NORMAL
+  zh: 当一方用比特币支付另一方时，发送者创建一个交易并将其发布到比特币网络。我们在 *[第五章，白皮书](c05.xhtml)* 中详细讨论了这个问题。
 - en: In this section, we will look at how transactions are stored, their format,
     how they are verified, and other related information.
   id: totrans-463
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本节中，我们将看看交易是如何存储的，它们的格式，如何进行验证以及其他相关信息。
 - en: Transactions are stored one after the other in the block after transaction count.
     Block has its own variable length integer format. This is different from the LevelDB
     variable integer format we learned about in the previous section. This is a bit
@@ -2441,64 +2689,79 @@
   id: totrans-464
   prefs: []
   type: TYPE_NORMAL
+  zh: 交易在块中一个接着一个地存储在交易计数之后的块中。块有其自己的变长整数格式。这与我们在前一节学到的 LevelDB 变长整数格式不同。这个要简单一些。一个前缀表示整数的长度。
 - en: '![](images/Figure-6.25.jpg)'
   id: totrans-465
   prefs: []
   type: TYPE_IMG
+  zh: '![](images/Figure-6.25.jpg)'
 - en: '**Figure 6.25:** Variable integer format used by LevelDB index value structure'
   id: totrans-466
   prefs: []
   type: TYPE_NORMAL
+  zh: '**Figure 6.25:** LevelDB 索引值结构使用的变长整数格式'
 - en: In the preceding subtopic ***Block traversal using block indexes*** we used
     a method name `**getTransactionCount**`.
   id: totrans-467
   prefs: []
   type: TYPE_NORMAL
+  zh: 在前面的小节 ***使用块索引遍历块*** 中，我们使用了一个名为 `**getTransactionCount**` 的方法。
 - en: 'To call `**getTransactionCount**`, we pass bytes of trimmed block with block
     hash. The following is the calling code:'
   id: totrans-468
   prefs: []
   type: TYPE_NORMAL
+  zh: 调用 `**getTransactionCount**`，我们传递了带有块哈希的修剪块的字节。以下是调用代码：
 - en: '`blk_h = ‘00e0ff376a2079af63073c47184cd091819d506f12cb6b68887c040000000000000000001036e0b1059b1ec79cb36897ccf8bc5aef4c7996897b83754ab590bb2774bc2726c0475fea0710178ffaf153fda4090100000000010100000000000000000000’`'
   id: totrans-469
   prefs: []
   type: TYPE_NORMAL
+  zh: '`blk_h = ‘00e0ff376a2079af63073c47184cd091819d506f12cb6b68887c040000000000000000001036e0b1059b1ec79cb36897ccf8bc5aef4c7996897b83754ab590bb2774bc2726c0475fea0710178ffaf153fda4090100000000010100000000000000000000’`'
 - en: '`blk_b = bytes.fromhex(blk_h)`'
   id: totrans-470
   prefs: []
   type: TYPE_NORMAL
+  zh: '`blk_b = bytes.fromhex(blk_h)`'
 - en: '`blk_m = mmap.mmap(-1, len(blk_b) + 1)`'
   id: totrans-471
   prefs: []
   type: TYPE_NORMAL
+  zh: '`blk_m = mmap.mmap(-1, len(blk_b) + 1)`'
 - en: '`blk_m.write(blk_b)`'
   id: totrans-472
   prefs: []
   type: TYPE_NORMAL
+  zh: '`blk_m.write(blk_b)`'
 - en: '`blk_m.seek(80)`'
   id: totrans-473
   prefs: []
   type: TYPE_NORMAL
+  zh: '`blk_m.seek(80)`'
 - en: '`tx_count = getTransactionCount(blk_m)`'
   id: totrans-474
   prefs: []
   type: TYPE_NORMAL
+  zh: '`tx_count = getTransactionCount(blk_m)`'
 - en: '`print(‘Transaction Count = %d’ % tx_count)`'
   id: totrans-475
   prefs: []
   type: TYPE_NORMAL
+  zh: '`print(‘Transaction Count = %d’ % tx_count)`'
 - en: 'On running this, we get the following result:'
   id: totrans-476
   prefs: []
   type: TYPE_NORMAL
+  zh: 运行后，我们得到以下结果：
 - en: '![](images/Figure-6.26.jpg)'
   id: totrans-477
   prefs: []
   type: TYPE_IMG
+  zh: '![](images/Figure-6.26.jpg)'
 - en: '**Figure 6.26:** Shows transaction count in a block from the preceding program'
   id: totrans-478
   prefs: []
   type: TYPE_NORMAL
+  zh: '**Figure 6.26:** 显示了前面程序中块中的交易计数'
 - en: In the list of transactions, the first transaction is the coinbase transaction.
     This is a special transaction because it is created by a miner to pay itself block
     reward and transaction fees collected from transactions in the block. This transaction
@@ -2506,208 +2769,260 @@
   id: totrans-479
   prefs: []
   type: TYPE_NORMAL
+  zh: 在交易列表中，第一个交易是 coinbase 交易。这是一个特殊的交易，因为它是由矿工创建的，用来支付自己从块中收集的区块奖励和交易费用。这个交易还会将比特币添加到硬币的供应中。这个交易没有输入
+    txouts。
 - en: 'The structure of this transaction is as follows:'
   id: totrans-480
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个交易的结构如下：
 - en: '![](images/Figure-6.27.jpg)'
   id: totrans-481
   prefs: []
   type: TYPE_IMG
+  zh: '![](images/Figure-6.27.jpg)'
 - en: '**Figure 6.27:** Coinbase transaction structure'
   id: totrans-482
   prefs: []
   type: TYPE_NORMAL
+  zh: '**Figure 6.27:** Coinbase 交易结构'
 - en: 'The following program parses coinbase transaction:'
   id: totrans-483
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下程序解析 coinbase 交易：
 - en: '`import mmap`'
   id: totrans-484
   prefs: []
   type: TYPE_NORMAL
+  zh: '`import mmap`'
 - en: '`import json`'
   id: totrans-485
   prefs: []
   type: TYPE_NORMAL
+  zh: '`import json`'
 - en: '`def getVarInt(blk_m: mmap):`'
   id: totrans-486
   prefs: []
   type: TYPE_NORMAL
+  zh: '`def getVarInt(blk_m: mmap):`'
 - en: '`b_cnt_d = {‘fd’: 2, ‘fe’: 4, ‘ff’: 8}`'
   id: totrans-487
   prefs: []
   type: TYPE_NORMAL
+  zh: '`b_cnt_d = {‘fd’: 2, ‘fe’: 4, ‘ff’: 8}`'
 - en: '`prefix = int.from_bytes(blk_m.read(1), byteorder=’little’)`'
   id: totrans-488
   prefs: []
   type: TYPE_NORMAL
+  zh: '`prefix = int.from_bytes(blk_m.read(1), byteorder=’little’)`'
 - en: '`if prefix < 0xFD:`'
   id: totrans-489
   prefs: []
   type: TYPE_NORMAL
+  zh: '`if prefix < 0xFD:`'
 - en: '`return prefix`'
   id: totrans-490
   prefs: []
   type: TYPE_NORMAL
+  zh: '`return prefix`'
 - en: '`else:`'
   id: totrans-491
   prefs: []
   type: TYPE_NORMAL
+  zh: '`else:`'
 - en: '`b_cnt = b_cnt_d[‘%x’ % prefix]`'
   id: totrans-492
   prefs: []
   type: TYPE_NORMAL
+  zh: '`b_cnt = b_cnt_d[‘%x’ % prefix]`'
 - en: '`size = int.from_bytes(blk_m.read(b_cnt), byteorder=’little’)`'
   id: totrans-493
   prefs: []
   type: TYPE_NORMAL
+  zh: '`size = int.from_bytes(blk_m.read(b_cnt), byteorder=''little'')`'
 - en: '`return size`'
   id: totrans-494
   prefs: []
   type: TYPE_NORMAL
+  zh: '`return size`'
 - en: '`def getCoinbaseTransactionInfo(blk_m: mmap):`'
   id: totrans-495
   prefs: []
   type: TYPE_NORMAL
+  zh: '`def getCoinbaseTransactionInfo(blk_m: mmap):`'
 - en: '`tx = {}`'
   id: totrans-496
   prefs: []
   type: TYPE_NORMAL
+  zh: '`tx = {}`'
 - en: '`tx[‘version’] = blk_m.read(4)[::-1].hex()`'
   id: totrans-497
   prefs: []
   type: TYPE_NORMAL
+  zh: '`tx[''version''] = blk_m.read(4)[::-1].hex()`'
 - en: '`tx[‘inp_cnt’] = getVarInt(blk_m)`'
   id: totrans-498
   prefs: []
   type: TYPE_NORMAL
+  zh: '`tx[''inp_cnt''] = getVarInt(blk_m)`'
 - en: '`inp_l = []`'
   id: totrans-499
   prefs: []
   type: TYPE_NORMAL
+  zh: '`inp_l = []`'
 - en: '`for i in range(tx[‘inp_cnt’]):`'
   id: totrans-500
   prefs: []
   type: TYPE_NORMAL
+  zh: '`for i in range(tx[''inp_cnt'']):`'
 - en: '`inp = {}`'
   id: totrans-501
   prefs: []
   type: TYPE_NORMAL
+  zh: '`inp = {}`'
 - en: '`inp[‘prev_tx_hash’] = blk_m.read(32)[::-1].hex()`'
   id: totrans-502
   prefs: []
   type: TYPE_NORMAL
+  zh: '`inp[''prev_tx_hash''] = blk_m.read(32)[::-1].hex()`'
 - en: '`inp[‘prev_tx_out_index’] = int.from_bytes(blk_m.read(4), byteorder = ‘little’)`'
   id: totrans-503
   prefs: []
   type: TYPE_NORMAL
+  zh: '`inp[''prev_tx_out_index''] = int.from_bytes(blk_m.read(4), byteorder = ''little'')`'
 - en: '`inp[‘bytes_coinbase_data’] = getVarInt(blk_m)`'
   id: totrans-504
   prefs: []
   type: TYPE_NORMAL
+  zh: '`inp[''bytes_coinbase_data''] = getVarInt(blk_m)`'
 - en: '`pos = blk_m.tell()`'
   id: totrans-505
   prefs: []
   type: TYPE_NORMAL
+  zh: '`pos = blk_m.tell()`'
 - en: '`inp[‘bytes_height’] = getVarInt(blk_m)`'
   id: totrans-506
   prefs: []
   type: TYPE_NORMAL
+  zh: '`inp[''bytes_height''] = getVarInt(blk_m)`'
 - en: '`inp[‘height’] = int.from_bytes(blk_m.read(inp[‘bytes_height’]), byteorder=’little’)`'
   id: totrans-507
   prefs: []
   type: TYPE_NORMAL
+  zh: '`inp[''height''] = int.from_bytes(blk_m.read(inp[''bytes_height'']), byteorder=''little'')`'
 - en: '`size = blk_m.tell() - pos`'
   id: totrans-508
   prefs: []
   type: TYPE_NORMAL
+  zh: '`size = blk_m.tell() - pos`'
 - en: '`coinbase_arb_data_size = inp[‘bytes_coinbase_data’] - size`'
   id: totrans-509
   prefs: []
   type: TYPE_NORMAL
+  zh: '`coinbase_arb_data_size = inp[''bytes_coinbase_data''] - size`'
 - en: '`inp[‘coinbase_arb_data’] = blk_m.read(coinbase_arb_data_size).hex()`'
   id: totrans-510
   prefs: []
   type: TYPE_NORMAL
+  zh: '`inp[''coinbase_arb_data''] = blk_m.read(coinbase_arb_data_size).hex()`'
 - en: '`inp[‘sequence’] = int.from_bytes(blk_m.read(4), byteorder = ‘little’)`'
   id: totrans-511
   prefs: []
   type: TYPE_NORMAL
+  zh: '`inp[''sequence''] = int.from_bytes(blk_m.read(4), byteorder = ''little'')`'
 - en: '`inp_l.append(inp)`'
   id: totrans-512
   prefs: []
   type: TYPE_NORMAL
+  zh: '`inp_l.append(inp)`'
 - en: '`tx[‘inputs’] = inp_l`'
   id: totrans-513
   prefs: []
   type: TYPE_NORMAL
+  zh: '`tx[''inputs''] = inp_l`'
 - en: '`tx[‘out_cnt’] = getVarInt(blk_m)`'
   id: totrans-514
   prefs: []
   type: TYPE_NORMAL
+  zh: '`tx[''out_cnt''] = getVarInt(blk_m)`'
 - en: '`out_l = []`'
   id: totrans-515
   prefs: []
   type: TYPE_NORMAL
+  zh: '`out_l = []`'
 - en: '`for i in range(tx[‘out_cnt’]):`'
   id: totrans-516
   prefs: []
   type: TYPE_NORMAL
+  zh: '`for i in range(tx[''out_cnt'']):`'
 - en: '`out = {}`'
   id: totrans-517
   prefs: []
   type: TYPE_NORMAL
+  zh: '`out = {}`'
 - en: '`out[‘satoshis’] = int.from_bytes(blk_m.read(8), byteorder=’little’)`'
   id: totrans-518
   prefs: []
   type: TYPE_NORMAL
+  zh: '`out[''satoshis''] = int.from_bytes(blk_m.read(8), byteorder=''little'')`'
 - en: '`out[‘bytes_scriptpubkey’] = getVarInt(blk_m)`'
   id: totrans-519
   prefs: []
   type: TYPE_NORMAL
+  zh: '`out[''bytes_scriptpubkey''] = getVarInt(blk_m)`'
 - en: '`out[‘scriptpubkey’] = blk_m.read(out[‘bytes_scriptpubkey’]).hex()`'
   id: totrans-520
   prefs: []
   type: TYPE_NORMAL
+  zh: '`out[''scriptpubkey''] = blk_m.read(out[''bytes_scriptpubkey'']).hex()`'
 - en: '`out_l.append(out)`'
   id: totrans-521
   prefs: []
   type: TYPE_NORMAL
+  zh: '`out_l.append(out)`'
 - en: '`tx[‘outs’] = out_l`'
   id: totrans-522
   prefs: []
   type: TYPE_NORMAL
+  zh: '`tx[''outs''] = out_l`'
 - en: '`tx[‘locktime’] = int.from_bytes(blk_m.read(4), byteorder=’little’)`'
   id: totrans-523
   prefs: []
   type: TYPE_NORMAL
+  zh: '`tx[''locktime''] = int.from_bytes(blk_m.read(4), byteorder=''little'')`'
 - en: '`return tx`'
   id: totrans-524
   prefs: []
   type: TYPE_NORMAL
+  zh: '`return tx`'
 - en: '**Program 6.14:** Program to get transaction structure from block bytes'
   id: totrans-525
   prefs: []
   type: TYPE_NORMAL
+  zh: '**程序 6.14：** 从区块字节获取交易结构的程序'
 - en: 'To get the transaction information, we use a trimmed block byte, create a memory-mapped
     file object, and pass the object to `**getCoinbaseTransactionInfo**` as a parameter.
     Here’s the calling code:'
   id: totrans-526
   prefs: []
   type: TYPE_NORMAL
+  zh: 要获取交易信息，我们使用被截取的区块字节，创建一个内存映射文件对象，并将该对象作为参数传递给 `**getCoinbaseTransactionInfo**`。以下是调用代码：
 - en: '`if __name__ == ‘__main__’:`'
   id: totrans-527
   prefs: []
   type: TYPE_NORMAL
+  zh: '`if __name__ == ''__main__'':`'
 - en: '`# trimmed block for block hash 000000000000000004ec466ce4732fe6f1ed1cddc2ed4b328fff5224276e3f6f`'
   id: totrans-528
   prefs: []
   type: TYPE_NORMAL
+  zh: '`# 被截取的区块哈希 000000000000000004ec466ce4732fe6f1ed1cddc2ed4b328fff5224276e3f6f`'
 - en: '`blk_b = bytes.fromhex(‘0400000039fa821848781f027a2e6dfabbf6bda920d9ae61b63400030000000000000000ecae536a304042e3154be0e3e9a8220e5568c3433a9ab49ac4cbb74f8df8e8b0cc2acf569fb9061806652c27fd7c0601000000010000000000000000000000000000000000000000000000000000000000000000ffffffff3f03801a060004cc2acf560433c30f37085d4a39ad543b0c000a425720537570706f727420384d200a666973686572206a696e78696e092f425720506f6f6c2fffffffff012fd8ff96000000001976a914721afdf638d570285d02d3076d8be6a03ee0794d88ac00000000’)`'
   id: totrans-529
   prefs: []
   type: TYPE_NORMAL
+  zh: '`blk_b` = bytes.fromhex(‘0400000039fa821848781f027a2e6dfabbf6bda920d9ae61b63400030000000000000000ecae536a304042e3154be0e3e9a8220e5568c3433a9ab49ac4cbb74f8df8e8b0cc2acf569fb9061806652c27fd7c0601000000010000000000000000000000000000000000000000000000000000000000000000ffffffff3f03801a060004cc2acf560433c30f37085d4a39ad543b0c000a425720537570706f727420384d200a666973686572206a696e78696e092f425720506f6f6c2fffffffff012fd8ff96000000001976a914721afdf638d570285d02d3076d8be6a03ee0794d88ac00000000’)'
 - en: '`blk_m = mmap.mmap(-1, len(blk_b) + 1)`'
   id: totrans-530
   prefs: []
@@ -2876,556 +3191,691 @@
   id: totrans-558
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下代码解析了区块的其他交易：
 - en: '`def getTransactionInfo(blk_m: mmap):`'
   id: totrans-559
   prefs: []
   type: TYPE_NORMAL
+  zh: '`def getTransactionInfo(blk_m: mmap):`'
 - en: '`tx = {}`'
   id: totrans-560
   prefs: []
   type: TYPE_NORMAL
+  zh: '`tx = {}`'
 - en: '`tx[‘version’] = blk_m.read(4)[::-1].hex()`'
   id: totrans-561
   prefs: []
   type: TYPE_NORMAL
+  zh: '`tx[‘version’]` = blk_m.read(4)[::-1].hex()'
 - en: '`tx[‘inp_cnt’] = getVarInt(blk_m)`'
   id: totrans-562
   prefs: []
   type: TYPE_NORMAL
+  zh: '`tx[‘inp_cnt’]` = getVarInt(blk_m)'
 - en: '`inp_l = []`'
   id: totrans-563
   prefs: []
   type: TYPE_NORMAL
+  zh: '`inp_l = []`'
 - en: '`for i in range(tx[‘inp_cnt’]):`'
   id: totrans-564
   prefs: []
   type: TYPE_NORMAL
+  zh: '`for i in range(tx[‘inp_cnt’]):`'
 - en: '`inp = {}`'
   id: totrans-565
   prefs: []
   type: TYPE_NORMAL
+  zh: '`inp = {}`'
 - en: '`inp[‘prev_tx_hash’] = blk_m.read(32)[::-1].hex()`'
   id: totrans-566
   prefs: []
   type: TYPE_NORMAL
+  zh: '`inp[‘prev_tx_hash’]` = blk_m.read(32)[::-1].hex()'
 - en: '`inp[‘prev_tx_out_index’] = int.from_bytes(blk_m.read(4), byteorder=’little’)`'
   id: totrans-567
   prefs: []
   type: TYPE_NORMAL
+  zh: '`inp[‘prev_tx_out_index’]` = int.from_bytes(blk_m.read(4), byteorder=’little’)'
 - en: '`inp[‘bytes_scriptsig’] = getVarInt(blk_m)`'
   id: totrans-568
   prefs: []
   type: TYPE_NORMAL
+  zh: '`inp[‘bytes_scriptsig’]` = getVarInt(blk_m)'
 - en: '`inp[‘scriptsig’] = blk_m.read(inp[‘bytes_scriptsig’]).hex()`'
   id: totrans-569
   prefs: []
   type: TYPE_NORMAL
+  zh: '`inp[‘scriptsig’]` = blk_m.read(inp[‘bytes_scriptsig’]).hex()'
 - en: '`inp[‘sequence’] = int.from_bytes(blk_m.read(4), byteorder=’little’)`'
   id: totrans-570
   prefs: []
   type: TYPE_NORMAL
+  zh: '`inp[‘sequence’]` = int.from_bytes(blk_m.read(4), byteorder=’little’)'
 - en: '`inp_l.append(inp)`'
   id: totrans-571
   prefs: []
   type: TYPE_NORMAL
+  zh: '`inp_l.append(inp)`'
 - en: '`tx[‘inputs’] = inp_l`'
   id: totrans-572
   prefs: []
   type: TYPE_NORMAL
+  zh: '`tx[‘inputs’]` = inp_l'
 - en: '`tx[‘out_cnt’] = getVarInt(blk_m)`'
   id: totrans-573
   prefs: []
   type: TYPE_NORMAL
+  zh: '`tx[‘out_cnt’]` = getVarInt(blk_m)'
 - en: '`out_l = []`'
   id: totrans-574
   prefs: []
   type: TYPE_NORMAL
+  zh: '`out_l = []`'
 - en: '`for i in range(tx[‘out_cnt’]):`'
   id: totrans-575
   prefs: []
   type: TYPE_NORMAL
+  zh: '`for i in range(tx[‘out_cnt’]):`'
 - en: '`out = {}`'
   id: totrans-576
   prefs: []
   type: TYPE_NORMAL
+  zh: '`out = {}`'
 - en: '`out[‘satoshis’] = int.from_bytes(blk_m.read(8), byteorder=’little’)`'
   id: totrans-577
   prefs: []
   type: TYPE_NORMAL
+  zh: '`out[‘satoshis’]` = int.from_bytes(blk_m.read(8), byteorder=’little’)'
 - en: '`out[‘bytes_scriptpubkey’] = getVarInt(blk_m)`'
   id: totrans-578
   prefs: []
   type: TYPE_NORMAL
+  zh: '`out[‘bytes_scriptpubkey’]` = getVarInt(blk_m)'
 - en: '`out[‘scriptpubkey’] = blk_m.read(out[‘bytes_scriptpubkey’]).hex()`'
   id: totrans-579
   prefs: []
   type: TYPE_NORMAL
+  zh: '`out[‘scriptpubkey’]` = blk_m.read(out[‘bytes_scriptpubkey’]).hex()'
 - en: '`out_l.append(out)`'
   id: totrans-580
   prefs: []
   type: TYPE_NORMAL
+  zh: '`out_l.append(out)`'
 - en: '`tx[‘outs’] = out_l`'
   id: totrans-581
   prefs: []
   type: TYPE_NORMAL
+  zh: '`tx[‘outs’]` = out_l'
 - en: '`tx[‘locktime’] = int.from_bytes(blk_m.read(4), byteorder=’little’)`'
   id: totrans-582
   prefs: []
   type: TYPE_NORMAL
+  zh: '`tx[‘locktime’]` = int.from_bytes(blk_m.read(4), byteorder=’little’)'
 - en: '`return tx`'
   id: totrans-583
   prefs: []
   type: TYPE_NORMAL
+  zh: '`return tx`'
 - en: '**Program 6.15:** Program to parse transactions'
   id: totrans-584
   prefs: []
   type: TYPE_NORMAL
+  zh: '**程序 6.15：** 解析交易的程序'
 - en: 'To call the method, we need to provide a `**getTransactionInfo**` memory map
     of bytes of `**bblock**`. The following is the code to call the method:'
   id: totrans-585
   prefs: []
   type: TYPE_NORMAL
+  zh: 要调用该方法，我们需要提供`**getTransactionInfo**`的内存映射字节`**bblock**`。以下是调用该方法的代码：
 - en: '`if __name__ == ‘__main__’:`'
   id: totrans-586
   prefs: []
   type: TYPE_NORMAL
+  zh: '`if __name__ == ‘__main__’:` '
 - en: '`# trimmed block for block hash 000000000000000082ccf8f1557c5d40b21edabb18d2d691cfbf87118bac7254`'
   id: totrans-587
   prefs: []
   type: TYPE_NORMAL
+  zh: '`# 修剪后的区块的哈希值为 000000000000000082ccf8f1557c5d40b21edabb18d2d691cfbf87118bac7254`'
 - en: '`blk_b = bytes.fromhex(‘020000007ef055e1674d2e6551dba41cd214debbee34ae b544c7ec670000000000000000d3998963f80c5bab43fe8c26228e98d030edf4dcbe48a666f5c39e2d7a885c9102c86d536c890019593a470ded01000000010000000000000000000000000000000000000000000000000000000000000000ffffffff4803e09304062f503253482f0403c86d53087ceca141295a00002e522cfabe6d6d7561cf262313da1144026c8f7a43e3899c44f6145f39a36507d36679a8b7006104000000000000000000000001c8704095000000001976a91480ad90d403581fa3bf46086a91b2d9d4125db6c188ac0000000001000000014dff4050dcee16672e48d755c6dd25d324492b5ea306f85a3ab23b4df26e16e9000000008c493046022100cb6dc911ef0bae0ab0e6265a45f25e081fc7ea4975517c9f848f82bc2b80a909022100e30fb6bb4fb64f414c351ed3abaed7491b8f0b1b9bcd75286036df8bfabc3ea5014104b70574006425b61867d2cbb8de7c26095fbc00ba4041b061cf75b85699cb2b449c6758741f640adffa356406632610efb267cb1efa0442c207059dd7fd652eeaffffffff020049d971020000001976a91461cf5af7bb84348df3fd695672e53c7d5b3f3db988ac30601c0c060000001976a914fd4ed114ef85d350d6d40ed3f6dc23743f8f99c488ac00000000’)`'
   id: totrans-588
   prefs: []
   type: TYPE_NORMAL
+  zh: '`blk_b = bytes.fromhex(‘020000007ef055e1674d2e6551dba41cd214debbee34ae b544c7ec670000000000000000d3998963f80c5bab43fe8c26228e98d030edf4dcbe48a666f5c39e2d7a885c9102c86d536c890019593a470ded01000000010000000000000000000000000000000000000000000000000000000000000000ffffffff4803e09304062f503253482f0403c86d53087ceca141295a00002e522cfabe6d6d7561cf262313da1144026c8f7a43e3899c44f6145f39a36507d36679a8b7006104000000000000000000000001c8704095000000001976a91480ad90d403581fa3bf46086a91b2d9d4125db6c188ac0000000001000000014dff4050dcee16672e48d755c6dd25d324492b5ea306f85a3ab23b4df26e16e9000000008c493046022100cb6dc911ef0bae0ab0e6265a45f25e081fc7ea4975517c9f848f82bc2b80a909022100e30fb6bb4fb64f414c351ed3abaed7491b8f0b1b9bcd75286036df8bfabc3ea5014104b70574006425b61867d2cbb8de7c26095fbc00ba4041b061cf75b85699cb2b449c6758741f640adffa356406632610efb267cb1efa0442c207059dd7fd652eeaffffffff020049d971020000001976a91461cf5af7bb84348df3fd695672e53c7d5b3f3db988ac30601c0c060000001976a914fd4ed114ef85d350d6d40ed3f6dc23743f8f99c488ac00000000’)`'
 - en: '`blk_m = mmap.mmap(-1, len(blk_b) + 1)`'
   id: totrans-589
   prefs: []
   type: TYPE_NORMAL
+  zh: '`blk_m = mmap.mmap(-1, len(blk_b) + 1)`'
 - en: '`blk_m.write(blk_b)`'
   id: totrans-590
   prefs: []
   type: TYPE_NORMAL
+  zh: '`blk_m.write(blk_b)`'
 - en: '`blk_m.seek(80)`'
   id: totrans-591
   prefs: []
   type: TYPE_NORMAL
+  zh: '`blk_m.seek(80)`'
 - en: '`tx_cnt = getVarInt(blk_m)`'
   id: totrans-592
   prefs: []
   type: TYPE_NORMAL
+  zh: '`tx_cnt = getVarInt(blk_m)`'
 - en: '`coinbase_tx = getCoinbaseTransactionInfo(blk_m)`'
   id: totrans-593
   prefs: []
   type: TYPE_NORMAL
+  zh: '`coinbase_tx = getCoinbaseTransactionInfo(blk_m)`'
 - en: '`tx = getTransactionInfo(blk_m)`'
   id: totrans-594
   prefs: []
   type: TYPE_NORMAL
+  zh: '`tx = getTransactionInfo(blk_m)`'
 - en: '`print(‘Transaction:’)`'
   id: totrans-595
   prefs: []
   type: TYPE_NORMAL
+  zh: '`print(‘Transaction:’)`'
 - en: '`print(json.dumps(tx, indent=4))`'
   id: totrans-596
   prefs: []
   type: TYPE_NORMAL
+  zh: '`print(json.dumps(tx, indent=4))`'
 - en: 'This gives out the following content of the first transaction after coinbase
     transaction:'
   id: totrans-597
   prefs: []
   type: TYPE_NORMAL
+  zh: 这给出了coinbase交易后第一个交易的以下内容：
 - en: '![](images/Figure-6.31.jpg)'
   id: totrans-598
   prefs: []
   type: TYPE_IMG
+  zh: '![](images/Figure-6.31.jpg)'
 - en: '**Figure 6.31:** Shows a transaction structure'
   id: totrans-599
   prefs: []
   type: TYPE_NORMAL
+  zh: '**Figure 6.31:** 显示了一个交易结构'
 - en: 'To calculate transaction hash, we need to get the transaction bytes and hash
     by applying SHA256 twice and reverse byte order. The following method calculates
     transaction hash from transaction bytes:'
   id: totrans-600
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了计算交易哈希，我们需要获取交易字节并应用SHA256两次进行哈希，并且反转字节顺序。以下方法从交易字节计算交易哈希：
 - en: '`def getTransactionHash(start: int, end: int, blk_b: bytes):`'
   id: totrans-601
   prefs: []
   type: TYPE_NORMAL
+  zh: '`def getTransactionHash(start: int, end: int, blk_b: bytes):`'
 - en: '`b = blk_b[start: end]`'
   id: totrans-602
   prefs: []
   type: TYPE_NORMAL
+  zh: '`b = blk_b[start: end]`'
 - en: '`h١ = hashlib.sha256(b).digest()`'
   id: totrans-603
   prefs: []
   type: TYPE_NORMAL
+  zh: '`h١ = hashlib.sha256(b).digest()`'
 - en: '`h٢ = hashlib.sha256(h1).digest()`'
   id: totrans-604
   prefs: []
   type: TYPE_NORMAL
+  zh: '`h٢ = hashlib.sha256(h1).digest()`'
 - en: '`tx_hash = h2[::-1].hex()`'
   id: totrans-605
   prefs: []
   type: TYPE_NORMAL
+  zh: '`tx_hash = h2[::-1].hex()`'
 - en: '`return tx_hash`'
   id: totrans-606
   prefs: []
   type: TYPE_NORMAL
+  zh: '`return tx_hash`'
 - en: '**Program 6.16:** Program to get Transaction ID from transaction bytes'
   id: totrans-607
   prefs: []
   type: TYPE_NORMAL
+  zh: '**Program 6.16:** 从交易字节中获取交易ID的程序'
 - en: 'The following code calls the method:'
   id: totrans-608
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下代码调用了该方法：
 - en: '`if __name__ == ‘__main__’:`'
   id: totrans-609
   prefs: []
   type: TYPE_NORMAL
+  zh: '`if __name__ == ‘__main__’:`'
 - en: '`# trimmed block for block hash 000000000000000082ccf8f1557c5d40b21edabb18d2d691cfbf87118bac7254`'
   id: totrans-610
   prefs: []
   type: TYPE_NORMAL
+  zh: '`# trimmed block for block hash 000000000000000082ccf8f1557c5d40b21edabb18d2d691cfbf87118bac7254`'
 - en: '`blk_b = bytes.fromhex(‘020000007ef055e1674d2e6551dba41cd214debbee34ae b544c7ec670000000000000000d3998963f80c5bab43fe8c26228e98d030edf4dcbe48a666f5c39e2d7a885c9102c86d536c890019593a470ded01000000010000000000000000000000000000000000000000000000000000000000000000ffffffff4803e09304062f503253482f0403c86d53087ceca141295a00002e522cfabe6d6d7561cf262313da1144026c8f7a43e3899c44f6145f39a36507d36679a8b7006104000000000000000000000001c8704095000000001976a91480ad90d403581fa3bf46086a91b2d9d4125db6c188ac0000000001000000014dff4050dcee16672e48d755c6dd25d324492b5ea306f85a3ab23b4df26e16e9000000008c493046022100cb6dc911ef0bae0ab0e6265a45f25e081fc7ea4975517c9f848f82bc2b80a909022100e30fb6bb4fb64f414c351ed3abaed7491b8f0b1b9bcd75286036df8bfabc3ea5014104b70574006425b61867d2cbb8de7c26095fbc00ba4041b061cf75b85699cb2b449c6758741f640adffa356406632610efb267cb1efa0442c207059dd7fd652eeaffffffff020049d971020000001976a91461cf5af7bb84348df3fd695672e53c7d5b3f3db988ac30601c0c060000001976a914fd4ed114ef85d350d6d40ed3f6dc23743f8f99c488ac00000000’)`'
   id: totrans-611
   prefs: []
   type: TYPE_NORMAL
+  zh: '`blk_b = bytes.fromhex(‘020000007ef055e1674d2e6551dba41cd214debbee34ae b544c7ec670000000000000000d3998963f80c5bab43fe8c26228e98d030edf4dcbe48a666f5c39e2d7a885c9102c86d536c890019593a470ded01000000010000000000000000000000000000000000000000000000000000000000000000ffffffff4803e09304062f503253482f0403c86d53087ceca141295a00002e522cfabe6d6d7561cf262313da1144026c8f7a43e3899c44f6145f39a36507d36679a8b7006104000000000000000000000001c8704095000000001976a91480ad90d403581fa3bf46086a91b2d9d4125db6c188ac0000000001000000014dff4050dcee16672e48d755c6dd25d324492b5ea306f85a3ab23b4df26e16e9000000008c493046022100cb6dc911ef0bae0ab0e6265a45f25e081fc7ea4975517c9f848f82bc2b80a909022100e30fb6bb4fb64f414c351ed3abaed7491b8f0b1b9bcd75286036df8bfabc3ea5014104b70574006425b61867d2cbb8de7c26095fbc00ba4041b061cf75b85699cb2b449c6758741f640adffa356406632610efb267cb1efa0442c207059dd7fd652eeaffffffff020049d971020000001976a91461cf5af7bb84348df3fd695672e53c7d5b3f3db988ac30601c0c060000001976a914fd4ed114ef85d350d6d40ed3f6dc23743f8f99c488ac00000000’)`'
 - en: '`blk_m = mmap.mmap(-1, len(blk_b) + 1)`'
   id: totrans-612
   prefs: []
   type: TYPE_NORMAL
+  zh: '`blk_m = mmap.mmap(-1, len(blk_b) + 1)`'
 - en: '`blk_m.write(blk_b)`'
   id: totrans-613
   prefs: []
   type: TYPE_NORMAL
+  zh: '`blk_m.write(blk_b)`'
 - en: '`blk_m.seek(80)`'
   id: totrans-614
   prefs: []
   type: TYPE_NORMAL
+  zh: '`blk_m.seek(80)`'
 - en: '`tx_cnt = getVarInt(blk_m)`'
   id: totrans-615
   prefs: []
   type: TYPE_NORMAL
+  zh: '`tx_cnt = getVarInt(blk_m)`'
 - en: '`coinbase_tx = getCoinbaseTransactionInfo(blk_m)`'
   id: totrans-616
   prefs: []
   type: TYPE_NORMAL
+  zh: '`coinbase_tx = getCoinbaseTransactionInfo(blk_m)`'
 - en: '`stb = blk_m.tell()`'
   id: totrans-617
   prefs: []
   type: TYPE_NORMAL
+  zh: '`stb = blk_m.tell()`'
 - en: '`tx = getTransactionInfo(blk_m)`'
   id: totrans-618
   prefs: []
   type: TYPE_NORMAL
+  zh: '`tx = getTransactionInfo(blk_m)`'
 - en: '``endb = blk_m.tell()``'
   id: totrans-619
   prefs: []
   type: TYPE_NORMAL
+  zh: '``endb = blk_m.tell()``'
 - en: '``tx_hash = getTransactionHash(stb, endb, blk_b)``'
   id: totrans-620
   prefs: []
   type: TYPE_NORMAL
+  zh: '``tx_hash = getTransactionHash(stb, endb, blk_b)``'
 - en: '`print(‘Transaction Hash = %s’ % tx_hash)`'
   id: totrans-621
   prefs: []
   type: TYPE_NORMAL
+  zh: '`print(‘Transaction Hash = %s’ % tx_hash)`'
 - en: 'This gives us the following result:'
   id: totrans-622
   prefs: []
   type: TYPE_NORMAL
+  zh: 这给出了以下结果：
 - en: '![](images/Figure-6.32.jpg)'
   id: totrans-623
   prefs: []
   type: TYPE_IMG
+  zh: '![](images/Figure-6.32.jpg)'
 - en: '**Figure 6.32:** Shows transaction hash obtained from transaction bytes using
     the program'
   id: totrans-624
   prefs: []
   type: TYPE_NORMAL
+  zh: '**Figure 6.32:** 展示了使用程序从交易字节获取的交易哈希'
 - en: 'We can search this transaction in `**txindex**` by using the following code:'
   id: totrans-625
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以使用以下代码在**txindex**中搜索此交易：
 - en: '`txindex_db_g = plyvel.DB(os.getenv(‘TX_INDEX_DB’), compression=None)`'
   id: totrans-626
   prefs: []
   type: TYPE_NORMAL
+  zh: '`txindex_db_g = plyvel.DB(os.getenv(‘TX_INDEX_DB’), compression=None)`'
 - en: '`BLOCK_HEADER_SIZE = 80`'
   id: totrans-627
   prefs: []
   type: TYPE_NORMAL
+  zh: '`BLOCK_HEADER_SIZE = 80`'
 - en: '`def getTransactionIndex(tx_hash: bytes, txindex_db):`'
   id: totrans-628
   prefs: []
   type: TYPE_NORMAL
+  zh: '`def getTransactionIndex(tx_hash: bytes, txindex_db):`'
 - en: '`key = b’t’ + tx_hash`'
   id: totrans-629
   prefs: []
   type: TYPE_NORMAL
+  zh: '`key = b’t’ + tx_hash`'
 - en: '`value = txindex_db.get(key)`'
   id: totrans-630
   prefs: []
   type: TYPE_NORMAL
+  zh: '`value = txindex_db.get(key)`'
 - en: '`jsonobj = {}`'
   id: totrans-631
   prefs: []
   type: TYPE_NORMAL
+  zh: '`jsonobj = {}`'
 - en: '`jsonobj[‘n_file’], pos = b128_varint_decode(value)`'
   id: totrans-632
   prefs: []
   type: TYPE_NORMAL
+  zh: '`jsonobj[‘n_file’], pos = b128_varint_decode(value)`'
 - en: '`jsonobj[‘block_offset’], pos = b128_varint_decode(value, pos)`'
   id: totrans-633
   prefs: []
   type: TYPE_NORMAL
+  zh: '`jsonobj[‘block_offset’], pos = b128_varint_decode(value, pos)`'
 - en: '`jsonobj[‘file_offset’], pos = b128_varint_decode(value, pos)`'
   id: totrans-634
   prefs: []
   type: TYPE_NORMAL
+  zh: '`jsonobj[‘file_offset’], pos = b128_varint_decode(value, pos)`'
 - en: '`print(jsonobj)`'
   id: totrans-635
   prefs: []
   type: TYPE_NORMAL
+  zh: '`print(jsonobj)`'
 - en: '`return jsonobj`'
   id: totrans-636
   prefs: []
   type: TYPE_NORMAL
+  zh: '`return jsonobj`'
 - en: '`def findTransaction(tx_hash: bytes, txindex_db):`'
   id: totrans-637
   prefs: []
   type: TYPE_NORMAL
+  zh: '`def findTransaction(tx_hash: bytes, txindex_db):`'
 - en: '`jsonobj = getTransactionIndex(tx_hash, txindex_db)`'
   id: totrans-638
   prefs: []
   type: TYPE_NORMAL
+  zh: '`jsonobj = getTransactionIndex(tx_hash, txindex_db)`'
 - en: '`print(‘Transaction Index:’)`'
   id: totrans-639
   prefs: []
   type: TYPE_NORMAL
+  zh: '`print(‘交易索引：’)`'
 - en: '`print(json.dumps(jsonobj, indent=4))`'
   id: totrans-640
   prefs: []
   type: TYPE_NORMAL
+  zh: '`print(json.dumps(jsonobj, indent=4))`'
 - en: '`block_filepath = os.path.join(blocks_path_g, ‘blk%05d.dat’ % jsonobj[‘n_file’])`'
   id: totrans-641
   prefs: []
   type: TYPE_NORMAL
+  zh: '`block_filepath = os.path.join(blocks_path_g, ‘blk%05d.dat’ % jsonobj[‘n_file’])`'
 - en: '`with open(block_filepath, ‘r+b’) as blk_f:`'
   id: totrans-642
   prefs: []
   type: TYPE_NORMAL
+  zh: '`with open(block_filepath, ‘r+b’) as blk_f:`'
 - en: '`blk_m = mmap.mmap(blk_f.fileno(), 0) # map whole file`'
   id: totrans-643
   prefs: []
   type: TYPE_NORMAL
+  zh: '`blk_m = mmap.mmap(blk_f.fileno(), 0) # 映射整个文件`'
 - en: '`blk_m.seek(jsonobj[‘block_offset’] + BLOCK_HEADER_SIZE + jsonobj[‘file_offset’])`'
   id: totrans-644
   prefs: []
   type: TYPE_NORMAL
+  zh: '`blk_m.seek(jsonobj[‘block_offset’] + BLOCK_HEADER_SIZE + jsonobj[‘file_offset’])`'
 - en: '`tx = getTransactionInfo(blk_m)`'
   id: totrans-645
   prefs: []
   type: TYPE_NORMAL
+  zh: '`tx = getTransactionInfo(blk_m)`'
 - en: '`blk_m.close()`'
   id: totrans-646
   prefs: []
   type: TYPE_NORMAL
+  zh: '`blk_m.close()`'
 - en: '`return tx`'
   id: totrans-647
   prefs: []
   type: TYPE_NORMAL
+  zh: '`return tx`'
 - en: '**Program 6.17:** Program to find transaction using transaction index in DB'
   id: totrans-648
   prefs: []
   type: TYPE_NORMAL
+  zh: '**程序 6.17：** 用于在数据库中使用交易索引查找交易的程序'
 - en: 'The `**findTransaction**` method takes transaction hash in the little-endian
     format and chainstate database for querying the index. The following is the example
     code:'
   id: totrans-649
   prefs: []
   type: TYPE_NORMAL
+  zh: '`**findTransaction**` 方法以小端格式的交易哈希和链状态数据库作为参数进行查询索引。以下是示例代码：'
 - en: '`if __name__ == ‘__main__’:`'
   id: totrans-650
   prefs: []
   type: TYPE_NORMAL
+  zh: '`if __name__ == ‘__main__’:`'
 - en: '`tx_hash = bytes.fromhex(‘7301b595279ece985f0c415e420e425451fcf7f684fcce087ba14d10ffec1121’)[::-1]`'
   id: totrans-651
   prefs: []
   type: TYPE_NORMAL
+  zh: '`tx_hash = bytes.fromhex(‘7301b595279ece985f0c415e420e425451fcf7f684fcce087ba14d10ffec1121’)[::-1]`'
 - en: '`tx = findTransaction(tx_hash, txindex_db_g)`'
   id: totrans-652
   prefs: []
   type: TYPE_NORMAL
+  zh: '`tx = findTransaction(tx_hash, txindex_db_g)`'
 - en: '`print(“Transaction Info:\n”, json.dumps(tx, indent = 4))`'
   id: totrans-653
   prefs: []
   type: TYPE_NORMAL
+  zh: '`print(“交易信息：\n”, json.dumps(tx, indent = 4))`'
 - en: 'Running this code gives us the following information about the location of
     the transaction in the block file and also a portion of a parsed transaction:'
   id: totrans-654
   prefs: []
   type: TYPE_NORMAL
+  zh: 运行此代码会给我们提供有关交易在块文件中位置的以下信息，以及已解析交易的一部分：
 - en: '![](images/Figure-6.33.jpg)'
   id: totrans-655
   prefs: []
   type: TYPE_IMG
+  zh: '![](images/Figure-6.33.jpg)'
 - en: '**Figure 6.33:** Shows information required to read transaction in a block
     file and shows a portion of a parsed transaction'
   id: totrans-656
   prefs: []
   type: TYPE_NORMAL
+  zh: '**图 6.33：** 显示了在块文件中读取交易所需的信息，并显示了已解析交易的一部分。'
 - en: '[UTXO](toc.xhtml#s118a)'
   id: totrans-657
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: '[未花费的交易输出（UTXO）](toc.xhtml#s118a)'
 - en: UTXO stands for **Unspent Transaction Output**. The primary purpose of the chainstate
     database is to store this information so that a new transaction can be efficiently
     verified.
   id: totrans-658
   prefs: []
   type: TYPE_NORMAL
+  zh: UTXO代表**未花费的交易输出**。链状态数据库的主要目的是存储此信息，以便可以高效地验证新交易。
 - en: 'To parse UTXO information from the chainstate database, we need to understand
     a few more things. Transaction output has an amount field that is encoded to compress
     its value. The following is the compression program:'
   id: totrans-659
   prefs: []
   type: TYPE_NORMAL
+  zh: 从链状态数据库解析UTXO信息，我们需要了解更多的事情。交易输出有一个金额字段，编码以压缩其值。以下是压缩程序：
 - en: '`def amount_compress(n: int):`'
   id: totrans-660
   prefs: []
   type: TYPE_NORMAL
+  zh: '`def amount_compress(n: int):`'
 - en: '`if n == 0:`'
   id: totrans-661
   prefs: []
   type: TYPE_NORMAL
+  zh: '`if n == 0:`'
 - en: '`return 0;`'
   id: totrans-662
   prefs: []
   type: TYPE_NORMAL
+  zh: '`return 0;`'
 - en: '`e = 0`'
   id: totrans-663
   prefs: []
   type: TYPE_NORMAL
+  zh: '`e = 0`'
 - en: '`while ((n % 10) == 0) and e < 9:`'
   id: totrans-664
   prefs: []
   type: TYPE_NORMAL
+  zh: '`while ((n % 10) == 0) and e < 9:`'
 - en: '`n //= 10`'
   id: totrans-665
   prefs: []
   type: TYPE_NORMAL
+  zh: '`n //= 10`'
 - en: '`e += 1`'
   id: totrans-666
   prefs: []
   type: TYPE_NORMAL
+  zh: '`e += 1`'
 - en: '`if e < 9:`'
   id: totrans-667
   prefs: []
   type: TYPE_NORMAL
+  zh: '`if e < 9:`'
 - en: '`d = n ٪ 10`'
   id: totrans-668
   prefs: []
   type: TYPE_NORMAL
+  zh: '`d = n ٪ 10`  '
 - en: '`assert d >= 1 and d <= 9`'
   id: totrans-669
   prefs: []
   type: TYPE_NORMAL
+  zh: '`assert d >= 1 and d <= 9`  '
 - en: '`n //= 10`'
   id: totrans-670
   prefs: []
   type: TYPE_NORMAL
+  zh: '`n //= 10`  '
 - en: '`return 1 + (n*9 + d - 1)*10 + e`'
   id: totrans-671
   prefs: []
   type: TYPE_NORMAL
+  zh: '`return 1 + (n*9 + d - 1)*10 + e`  '
 - en: '`else:`'
   id: totrans-672
   prefs: []
   type: TYPE_NORMAL
+  zh: '`else:`  '
 - en: '`return 1 + (n - 1)*10 + 9`'
   id: totrans-673
   prefs: []
   type: TYPE_NORMAL
+  zh: '`return 1 + (n - 1)*10 + 9`  '
 - en: '**Program 6.18:** Program to compress amount in UTXO'
   id: totrans-674
   prefs: []
   type: TYPE_NORMAL
+  zh: '**程序 6.18：** UTXO 中金额压缩程序  '
 - en: 'And here’s the program to decompress value:'
   id: totrans-675
   prefs: []
   type: TYPE_NORMAL
+  zh: '下面是解压缩值的程序：  '
 - en: '`def amount_decompress(x):`'
   id: totrans-676
   prefs: []
   type: TYPE_NORMAL
+  zh: '`def amount_decompress(x):`  '
 - en: '`if x == 0:`'
   id: totrans-677
   prefs: []
   type: TYPE_NORMAL
+  zh: '`if x == 0:`  '
 - en: '`return 0`'
   id: totrans-678
   prefs: []
   type: TYPE_NORMAL
+  zh: '`return 0`  '
 - en: '`x -= 1`'
   id: totrans-679
   prefs: []
   type: TYPE_NORMAL
+  zh: '`x -= 1`  '
 - en: '`e = x ٪ 10`'
   id: totrans-680
   prefs: []
   type: TYPE_NORMAL
+  zh: '`e = x ٪ 10`  '
 - en: '`x //= 10`'
   id: totrans-681
   prefs: []
   type: TYPE_NORMAL
+  zh: '`x //= 10`  '
 - en: '`if e < 9:`'
   id: totrans-682
   prefs: []
   type: TYPE_NORMAL
+  zh: '`if e < 9:`  '
 - en: '`d = (x ٪ 9) + 1`'
   id: totrans-683
   prefs: []
   type: TYPE_NORMAL
+  zh: '`d = (x ٪ 9) + 1`  '
 - en: '`x //= 9`'
   id: totrans-684
   prefs: []
   type: TYPE_NORMAL
+  zh: '`x //= 9`  '
 - en: '`n = x * 10 + d`'
   id: totrans-685
   prefs: []
   type: TYPE_NORMAL
+  zh: '`n = x * 10 + d`  '
 - en: '`else:`'
   id: totrans-686
   prefs: []
   type: TYPE_NORMAL
+  zh: '`else:`  '
 - en: '`n = x + 1`'
   id: totrans-687
   prefs: []
   type: TYPE_NORMAL
+  zh: '`n = x + 1`  '
 - en: '`while e > 0:`'
   id: totrans-688
   prefs: []
   type: TYPE_NORMAL
+  zh: '`while e > 0:`  '
 - en: '`n *= 10`'
   id: totrans-689
   prefs: []
   type: TYPE_NORMAL
+  zh: '`n *= 10`  '
 - en: '`e -= 1`'
   id: totrans-690
   prefs: []
   type: TYPE_NORMAL
+  zh: '`e -= 1`  '
 - en: '`return n`'
   id: totrans-691
   prefs: []
   type: TYPE_NORMAL
+  zh: '`return n`  '
 - en: '**Program 6.19:** Program to decompress amount in UTXO'
   id: totrans-692
   prefs: []
   type: TYPE_NORMAL
+  zh: '**程序 6.19：** UTXO 中金额解压缩程序  '
 - en: '*[Table 6.1](#tab6_1)* gives information about transaction output available
     in the chainstate database. To concatenate transaction ID without index, we need
     to encode it using b128 encoding. Additionally, the script field is not encoded
@@ -3433,66 +3883,83 @@
   id: totrans-693
   prefs: []
   type: TYPE_NORMAL
+  zh: '*[表 6.1](#tab6_1)* 提供了链状态数据库中可用的交易输出信息。要连接不带索引的交易 ID，我们需要使用 b128 编码对其进行编码。此外，脚本字段不会使用
+    b128 编码，因为它是一个固定大小的字段。  '
 - en: 'The following program gets stored values related to UTXO:'
   id: totrans-694
   prefs: []
   type: TYPE_NORMAL
+  zh: '以下程序获取与 UTXO 相关的存储值：  '
 - en: '`def getUnspentTransactions(tx_hash: bytes, out_index: int,chainstate_db):`'
   id: totrans-695
   prefs: []
   type: TYPE_NORMAL
+  zh: '`def getUnspentTransactions(tx_hash: bytes, out_index: int,chainstate_db):`  '
 - en: '`key = b’C’ + tx_hash + b128_varint_encode(out_index)`'
   id: totrans-696
   prefs: []
   type: TYPE_NORMAL
+  zh: '`key = b’C’ + tx_hash + b128_varint_encode(out_index)`  '
 - en: '`value_obf_b = chainstate_db.get(key)`'
   id: totrans-697
   prefs: []
   type: TYPE_NORMAL
+  zh: '`value_obf_b = chainstate_db.get(key)`  '
 - en: '`value_obf_b = applyObfuscationKey(value_obf_b, chainstate_db)`'
   id: totrans-698
   prefs: []
   type: TYPE_NORMAL
+  zh: '`value_obf_b = applyObfuscationKey(value_obf_b, chainstate_db)`  '
 - en: '`jsonobj = {}`'
   id: totrans-699
   prefs: []
   type: TYPE_NORMAL
+  zh: '`jsonobj = {}`  '
 - en: '`code, pos = b١٢٨_varint_decode(value_obf_b)`'
   id: totrans-700
   prefs: []
   type: TYPE_NORMAL
+  zh: '`code, pos = b١٢٨_varint_decode(value_obf_b)`  '
 - en: '`jsonobj[‘is_coinbase’] = code & 0x01`'
   id: totrans-701
   prefs: []
   type: TYPE_NORMAL
+  zh: '`jsonobj[‘is_coinbase’] = code & 0x01`'
 - en: '`jsonobj[‘block_height’] = code >> 1`'
   id: totrans-702
   prefs: []
   type: TYPE_NORMAL
+  zh: '`jsonobj[‘block_height’] = code >> 1`  '
 - en: '`compressed_amount, pos = b128_varint_decode(value_obf_b, pos)`'
   id: totrans-703
   prefs: []
   type: TYPE_NORMAL
+  zh: '`compressed_amount, pos = b128_varint_decode(value_obf_b, pos)`  '
 - en: '`jsonobj[‘unspent_amount’] = amount_decompress(compressed_amount)`'
   id: totrans-704
   prefs: []
   type: TYPE_NORMAL
+  zh: '`jsonobj[‘unspent_amount’] = amount_decompress(compressed_amount)`  '
 - en: '`jsonobj[‘script_type’], pos = b128_varint_decode(value_obf_b, pos)`'
   id: totrans-705
   prefs: []
   type: TYPE_NORMAL
+  zh: '`jsonobj[‘script_type’], pos = b128_varint_decode(value_obf_b, pos)`  '
 - en: '`jsonobj[‘scriptPubKey’]= value_obf_b[pos:].hex()`'
   id: totrans-706
   prefs: []
   type: TYPE_NORMAL
+  zh: '`jsonobj[‘scriptPubKey’]= value_obf_b[pos:].hex()`  '
 - en: '`return jsonobj`'
   id: totrans-707
   prefs: []
   type: TYPE_NORMAL
+  zh: '`return jsonobj`  '
 - en: '**Program 6.20:** Program to get the structure of UTXO'
   id: totrans-708
   prefs: []
   type: TYPE_NORMAL
+  zh: '**程序 6.20：** 获取 UTXO 结构的程序  '
 - en: 'The preceding method, `**getUnspentTransactions**`, takes transaction hash,
     output index that is unspent, and chainstate database. The following is the example
     of a calling statement:'
@@ -4525,230 +4992,288 @@
   id: totrans-888
   prefs: []
   type: TYPE_NORMAL
+  zh: '`electricity_rates = {“rate_slabs”: [{“min”: 1, “max”: 30, “unit_price”: 4},
+    {“min”: 31, “max”: 100, “unit_price”: 5.45}, {“min”: 101, “max”: 200, “unit_price”:
+    7}, {“min”: 201, “unit_price”: 8.05}]}`'
 - en: '`CURRENT_SELL_PRICE = 3070000`'
   id: totrans-889
   prefs: []
   type: TYPE_NORMAL
+  zh: '`CURRENT_SELL_PRICE = 3070000`  '
 - en: '`def getPriceFromUnit(unit: float):`'
   id: totrans-890
   prefs: []
   type: TYPE_NORMAL
+  zh: '`def getPriceFromUnit(unit: float):`  '
 - en: '`rate_slabs = electricity_rates[‘rate_slabs’]`'
   id: totrans-891
   prefs: []
   type: TYPE_NORMAL
+  zh: '`rate_slabs = electricity_rates[‘rate_slabs’]`  '
 - en: '`price = 0`'
   id: totrans-892
   prefs: []
   type: TYPE_NORMAL
+  zh: '`price = 0`  '
 - en: '`for slab in rate_slabs:`'
   id: totrans-893
   prefs: []
   type: TYPE_NORMAL
+  zh: '`for slab in rate_slabs:`  '
 - en: '`if slab[‘min’] > unit:`'
   id: totrans-894
   prefs: []
   type: TYPE_NORMAL
+  zh: '`if slab[‘min’] > unit:`  '
 - en: '`countinue`'
   id: totrans-895
   prefs: []
   type: TYPE_NORMAL
+  zh: '`countinue`  '
 - en: '`elif (‘max’ in slab and slab[‘max’]) > unit or ‘max’ not in slab:`'
   id: totrans-896
   prefs: []
   type: TYPE_NORMAL
+  zh: '`elif (‘max’ in slab and slab[‘max’]) > unit or ‘max’ not in slab:`  '
 - en: '`price += (unit - slab[‘min’]) * slab[‘unit_price’]`'
   id: totrans-897
   prefs: []
   type: TYPE_NORMAL
+  zh: '`price += (unit - slab[''min'']) * slab[''unit_price'']`'
 - en: '`else:`'
   id: totrans-898
   prefs: []
   type: TYPE_NORMAL
+  zh: '`else:`'
 - en: '`price += (slab[‘max’] - slab[‘min’]) * slab[‘unit_price’]`'
   id: totrans-899
   prefs: []
   type: TYPE_NORMAL
+  zh: '`price += (slab[''max''] - slab[''min'']) * slab[''unit_price'']`'
 - en: '`return price`'
   id: totrans-900
   prefs: []
   type: TYPE_NORMAL
+  zh: '`return price`'
 - en: '**Program 6.26:** Program to define miner hashrate, electricity expense and
     price of bitcoin'
   id: totrans-901
   prefs: []
   type: TYPE_NORMAL
+  zh: '**程序 6.26：** 定义矿工算力、电费和比特币价格的程序'
 - en: 'We also need to calculate network hash rate:'
   id: totrans-902
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们还需要计算网络算力：
 - en: '`def getTargetThreshold(bits: bytes):`'
   id: totrans-903
   prefs: []
   type: TYPE_NORMAL
+  zh: '`def getTargetThreshold(bits: bytes):`'
 - en: '`shift = bits[3]`'
   id: totrans-904
   prefs: []
   type: TYPE_NORMAL
+  zh: '`shift = bits[3]`'
 - en: '`value = int.from_bytes(bits[0:3], byteorder=’little’)`'
   id: totrans-905
   prefs: []
   type: TYPE_NORMAL
+  zh: '`value = int.from_bytes(bits[0:3], byteorder=''little'')`'
 - en: '`target_threshold = value * 2 ** (8 * (shift - 3))`'
   id: totrans-906
   prefs: []
   type: TYPE_NORMAL
+  zh: '`target_threshold = value * 2 ** (8 * (shift - 3))`'
 - en: '`return target_threshold`'
   id: totrans-907
   prefs: []
   type: TYPE_NORMAL
+  zh: '`return target_threshold`'
 - en: '`def getNetworkHashRate(target_threshold: int):`'
   id: totrans-908
   prefs: []
   type: TYPE_NORMAL
+  zh: '`def getNetworkHashRate(target_threshold: int):`'
 - en: '`network_hashrate = (1<<256)/(600*target_threshold)`'
   id: totrans-909
   prefs: []
   type: TYPE_NORMAL
+  zh: '`network_hashrate = (1<<256)/(600*target_threshold)`'
 - en: '`return network_hashrate`'
   id: totrans-910
   prefs: []
   type: TYPE_NORMAL
+  zh: '`return network_hashrate`'
 - en: '**Program 6.27:** Program to calculate network hashrate'
   id: totrans-911
   prefs: []
   type: TYPE_NORMAL
+  zh: '**程序 6.27：** 计算网络算力的程序'
 - en: 'Using hash rate of mining equipment, we can get number of blocks the miner
     mines in 10 minutes:'
   id: totrans-912
   prefs: []
   type: TYPE_NORMAL
+  zh: 利用挖矿设备的算力，我们可以得到矿工在10分钟内挖到的区块数量：
 - en: '`def getBlockMiningRatePer10Min(hashrate: int, target_threshold: int):`'
   id: totrans-913
   prefs: []
   type: TYPE_NORMAL
+  zh: '`def getBlockMiningRatePer10Min(hashrate: int, target_threshold: int):`'
 - en: '`network_hashrate = getNetworkHashRate(target_threshold)`'
   id: totrans-914
   prefs: []
   type: TYPE_NORMAL
+  zh: '`network_hashrate = getNetworkHashRate(target_threshold)`'
 - en: '`block_mining_rate = hashrate/network_hashrate`'
   id: totrans-915
   prefs: []
   type: TYPE_NORMAL
+  zh: '`block_mining_rate = hashrate/network_hashrate`'
 - en: '`return block_mining_rate`'
   id: totrans-916
   prefs: []
   type: TYPE_NORMAL
+  zh: '`return block_mining_rate`'
 - en: '**Program 6.28:** Program to calculate the number of blocks mined per 10 minutes'
   id: totrans-917
   prefs: []
   type: TYPE_NORMAL
+  zh: '**程序 6.28：** 计算每10分钟挖掘的区块数量的程序'
 - en: 'As we know the number of bitcoin created in each block, we can calculate bitcoin
     mined in 10 minutes:'
   id: totrans-918
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于我们知道每个区块中创建的比特币数量，我们可以计算10分钟内挖到的比特币数量：
 - en: '`def getBitcoinMiningRate(hashrate: int, bits: bytes, blk_reward: int):`'
   id: totrans-919
   prefs: []
   type: TYPE_NORMAL
+  zh: '`def getBitcoinMiningRate(hashrate: int, bits: bytes, blk_reward: int):`'
 - en: '`tgt_threshold = getTargetThreshold(bits)`'
   id: totrans-920
   prefs: []
   type: TYPE_NORMAL
+  zh: '`tgt_threshold = getTargetThreshold(bits)`'
 - en: '`block_mining_rate = getBlockMiningRatePer10Min(hashrate, tgt_threshold)`'
   id: totrans-921
   prefs: []
   type: TYPE_NORMAL
+  zh: '`block_mining_rate = getBlockMiningRatePer10Min(hashrate, tgt_threshold)`'
 - en: '`bitcoin_mining_rate = block_mining_rate * blk_reward`'
   id: totrans-922
   prefs: []
   type: TYPE_NORMAL
+  zh: '`bitcoin_mining_rate = block_mining_rate * blk_reward`'
 - en: '`return bitcoin_mining_rate`'
   id: totrans-923
   prefs: []
   type: TYPE_NORMAL
+  zh: '`return bitcoin_mining_rate`'
 - en: '**Program 6.29:** Program to calculate bitcoin mined per 10 minutes by a mining
     equipment'
   id: totrans-924
   prefs: []
   type: TYPE_NORMAL
+  zh: '**程序 6.29：** 计算挖矿设备每10分钟挖到的比特币数量的程序'
 - en: 'This can be used to calculate bitcoin mined in a month:'
   id: totrans-925
   prefs: []
   type: TYPE_NORMAL
+  zh: 这可以用来计算一个月内挖到的比特币数量：
 - en: '`def getBitcoinMinedPerMonth(hashrate: int, bits: bytes, blk_reward: int):`'
   id: totrans-926
   prefs: []
   type: TYPE_NORMAL
+  zh: '`def getBitcoinMinedPerMonth(hashrate: int, bits: bytes, blk_reward: int):`'
 - en: '`btc_mined_per_month = getBitcoinMiningRate(hashrate, bits, blk_reward) * 6
     * 24 * 30`'
   id: totrans-927
   prefs: []
   type: TYPE_NORMAL
+  zh: '`btc_mined_per_month = getBitcoinMiningRate(hashrate, bits, blk_reward) * 6
+    * 24 * 30`'
 - en: '`return btc_mined_per_month`'
   id: totrans-928
   prefs: []
   type: TYPE_NORMAL
+  zh: '`return btc_mined_per_month`'
 - en: '**Program 6.30:** Program to calculate bitcoin mined per month using the mining
     equipment'
   id: totrans-929
   prefs: []
   type: TYPE_NORMAL
+  zh: '**程序 6.30：** 使用挖矿设备计算每月挖到的比特币数量的程序'
 - en: 'Now, to calculate mining expense, we need to know miner’s power consumption
     in Watt:'
   id: totrans-930
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，为了计算挖矿费用，我们需要知道矿工的功耗（单位：瓦特）：
 - en: '`def getUnitFromPower(power: float):`'
   id: totrans-931
   prefs: []
   type: TYPE_NORMAL
+  zh: '`def getUnitFromPower(power: float):`'
 - en: '`unit = power * 24 * 30 / 1000`'
   id: totrans-932
   prefs: []
   type: TYPE_NORMAL
+  zh: '`unit = power * 24 * 30 / 1000`'
 - en: '`return unit`'
   id: totrans-933
   prefs: []
   type: TYPE_NORMAL
+  zh: '`return unit`'
 - en: '`def getMiningPowerExpense(power: float):`'
   id: totrans-934
   prefs: []
   type: TYPE_NORMAL
+  zh: '`def getMiningPowerExpense(power: float):`'
 - en: '`unit = getUnitFromPower(power)`'
   id: totrans-935
   prefs: []
   type: TYPE_NORMAL
+  zh: '`unit = getUnitFromPower(power)`'
 - en: '`expense = getPriceFromUnit(unit)`'
   id: totrans-936
   prefs: []
   type: TYPE_NORMAL
+  zh: '`expense = getPriceFromUnit(unit)`'
 - en: '`return expense`'
   id: totrans-937
   prefs: []
   type: TYPE_NORMAL
+  zh: '`return expense`'
 - en: '**Program 6.31:** Program to calculate expense electric power'
   id: totrans-938
   prefs: []
   type: TYPE_NORMAL
+  zh: '**程序6.31：** 计算电力费用的程序'
 - en: 'Using the number of bitcoin mined in a month and mining expense, we can get
     the profit made by a miner in a month:'
   id: totrans-939
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用每月挖掘的比特币数量和挖掘费用，我们可以得到矿工每月的利润：
 - en: '`def miningReturn(power: float, hashrate: int, bits: bytes, blk_reward: int):`'
   id: totrans-940
   prefs: []
   type: TYPE_NORMAL
+  zh: '`def miningReturn(power: float, hashrate: int, bits: bytes, blk_reward: int):`'
 - en: '`expense = getMiningPowerExpense(power)`'
   id: totrans-941
   prefs: []
   type: TYPE_NORMAL
+  zh: '`expense = getMiningPowerExpense(power)`'
 - en: '`btc_mined_per_month = getBitcoinMinedPerMonth(hashrate, bits, blk_reward)`'
   id: totrans-942
   prefs: []
   type: TYPE_NORMAL
+  zh: '`btc_mined_per_month = getBitcoinMinedPerMonth(hashrate, bits, blk_reward)`'
 - en: '`revenue = btc_mined_per_month * CURRENT_SELL_PRICE`'
   id: totrans-943
   prefs: []
@@ -4962,546 +5487,655 @@
   id: totrans-981
   prefs: []
   type: TYPE_NORMAL
+  zh: 在mempool json中，**ancestorcount**包括当前交易，**descendantcount**也是如此。另外，depends是祖先列表，而**spentby**是后代列表。
 - en: 'To write a program that selects transactions to maximize returns, we can use
     the following algorithm:'
   id: totrans-982
   prefs: []
   type: TYPE_NORMAL
+  zh: 要编写一个选择交易以最大化收益的程序，我们可以使用以下算法：
 - en: Calculate satoshi/byte for all transactions in mempool by including the amount
     and bytes of its ancestors.
   id: totrans-983
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 通过包含其祖先的金额和字节数来计算mempool中所有交易的satoshi/字节。
 - en: Sort them in descending order of satoshi/byte.
   id: totrans-984
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 按字节的satoshi降序排序。
 - en: Exclude transactions if total size becomes more than 1MB, and exclude ancestors
     of transactions that are already included in 1MB.
   id: totrans-985
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 如果总大小超过1MB，则排除交易，并排除已包含在1MB中的交易的祖先。
 - en: Add ancestor transactions to the list.
   id: totrans-986
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 将祖先交易添加到列表中。
 - en: 'The following program lists the transaction hashes that provide the highest
     bitcoin per byte to the miner and whose combined size is less than 1MB:'
   id: totrans-987
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下程序列出了向矿工提供最高比特币每字节的交易哈希，并且其组合大小小于1MB的交易：
 - en: 'We need to import the following packages:'
   id: totrans-988
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 我们需要导入以下软件包：
 - en: '`from bitcoinrpc.authproxy import AuthServiceProxy, JSONRPCException`'
   id: totrans-989
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`from bitcoinrpc.authproxy import AuthServiceProxy, JSONRPCException`'
 - en: '`import json`'
   id: totrans-990
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`import json`'
 - en: '`import pandas as pd`'
   id: totrans-991
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`import pandas as pd`'
 - en: '`from pandas import DataFrame`'
   id: totrans-992
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`from pandas import DataFrame`'
 - en: '`import numpy as np`'
   id: totrans-993
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`import numpy as np`'
 - en: '`import copy`'
   id: totrans-994
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`import copy`'
 - en: '`import hashlib`'
   id: totrans-995
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`import hashlib`'
 - en: 'As a first step, we need to get all transactions from mempool and calculate
     Satoshi/byte:'
   id: totrans-996
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 作为第一步，我们需要从mempool中获取所有交易并计算Satoshi/字节：
 - en: '`def findAllDependentTx(mempool: dict, k: str):`'
   id: totrans-997
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`def findAllDependentTx(mempool: dict, k: str):`'
 - en: '`tx_l = [k]`'
   id: totrans-998
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`tx_l = [k]`'
 - en: '`vsize = mempool[k][‘vsize’]`'
   id: totrans-999
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`vsize = mempool[k][‘vsize’]`'
 - en: '`fee = mempool[k][‘fees’][‘base’]`'
   id: totrans-1000
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`fee = mempool[k][‘fees’][‘base’]`'
 - en: '`if len(mempool[k][‘depends’]) == 0:`'
   id: totrans-1001
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`if len(mempool[k][‘depends’]) == 0:`'
 - en: '`return tx_l, vsize, fee`'
   id: totrans-1002
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`return tx_l, vsize, fee`'
 - en: '`for dependent in mempool[k][‘depends’]:`'
   id: totrans-1003
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`for dependent in mempool[k][‘depends’]:`'
 - en: '`dep_tx_l, dep_vsize, dep_fee = findAllDependentTx(mempool, dependent)`'
   id: totrans-1004
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`dep_tx_l, dep_vsize, dep_fee = findAllDependentTx(mempool, dependent)`'
 - en: '`tx_l.extend(dep_tx_l)`'
   id: totrans-1005
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`tx_l.extend(dep_tx_l)`'
 - en: '`vsize += dep_vsize`'
   id: totrans-1006
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`vsize += dep_vsize`'
 - en: '`fee += dep_fee`'
   id: totrans-1007
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`fee += dep_fee`'
 - en: '`return tx_l, vsize, fee`'
   id: totrans-1008
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`return tx_l, vsize, fee`'
 - en: '`def getMempoolTxList():`'
   id: totrans-1009
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`def getMempoolTxList():`'
 - en: '`mempool = rpc_connection.getrawmempool(True)`'
   id: totrans-1010
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`mempool = rpc_connection.getrawmempool(True)`'
 - en: '`tx_l = []`'
   id: totrans-1011
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`tx_l = []`'
 - en: '`for k, v in mempool.items():`'
   id: totrans-1012
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`for k, v in mempool.items():`'
 - en: '`dep_l, vsize, fee = findAllDependentTx(mempool, k)`'
   id: totrans-1013
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`dep_l, vsize, fee = findAllDependentTx(mempool, k)`'
 - en: '`dep_l.remove(k) # remove itself from list of dependents`'
   id: totrans-1014
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`dep_l.remove(k) # 从依赖列表中删除自身`'
 - en: '`sats_per_byte = fee*10**8/vsize`'
   id: totrans-1015
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`sats_per_byte = fee*10**8/vsize`'
 - en: '`tx_l.append({‘txid’: k, ‘sats_per_byte’: sats_per_byte, ‘vsize’: vsize, ‘depends’:
     dep_l})`'
   id: totrans-1016
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`tx_l.append({''txid'': k, ''sats_per_byte'': sats_per_byte, ''vsize'': vsize,
+    ''depends'': dep_l})`'
 - en: '`return tx_l, mempool`'
   id: totrans-1017
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`return tx_l, mempool`'
 - en: '**Program 6.33:** Program to transaction list with vsize and Satoshi/byte'
   id: totrans-1018
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '**程序 6.33：** 根据 vsize 和 Satoshi/byte 的交易列表程序'
 - en: 'The following is the method sorting them in descending order of satoshi/byte:'
   id: totrans-1019
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 接下来是按 Satoshi/byte 降序排列它们的方法：
 - en: '`def getSortedDF(tx_l: list):`'
   id: totrans-1020
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`def getSortedDF(tx_l: list):`'
 - en: '`df = pd.DataFrame(tx_l)`'
   id: totrans-1021
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`df = pd.DataFrame(tx_l)`'
 - en: '`df = df.sort_values(by=[‘sats_per_byte’], ascending = False)`'
   id: totrans-1022
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`df = df.sort_values(by=[''sats_per_byte''], ascending = False)`'
 - en: '`df = df.reset_index(drop=True)`'
   id: totrans-1023
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`df = df.reset_index(drop=True)`'
 - en: '`return df`'
   id: totrans-1024
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`return df`'
 - en: '**Program 6.34:** Program to sort transaction list based on Satoshi/byte'
   id: totrans-1025
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '**程序 6.34：** 根据 Satoshi/byte 对交易列表进行排序的程序'
 - en: 'Exclude transactions if the total size becomes more than 1MB, and exclude ancestors
     of transactions that are already included in 1MB. The following method does this:'
   id: totrans-1026
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 如果总大小超过 1MB，则排除交易，并排除已经包含在 1MB 中的交易的祖先。以下方法执行此操作：
 - en: '`def pruneDF(df):`'
   id: totrans-1027
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`def pruneDF(df):`'
 - en: '`vsize = 0`'
   id: totrans-1028
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`vsize = 0`'
 - en: '`mb = 1 << 20`'
   id: totrans-1029
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`mb = 1 << 20`'
 - en: '`inc_l = []`'
   id: totrans-1030
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`inc_l = []`'
 - en: '`for index, row in df.iterrows():`'
   id: totrans-1031
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`for index, row in df.iterrows():`'
 - en: '`if row[‘vsize’] + vsize > mb:`'
   id: totrans-1032
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`if row[''vsize''] + vsize > mb:`'
 - en: '`df.drop(index, inplace=True)`'
   id: totrans-1033
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`df.drop(index, inplace=True)`'
 - en: '`else:`'
   id: totrans-1034
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`else:`'
 - en: '`if row[‘txid’] in inc_l:`'
   id: totrans-1035
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`if row[‘txid’] in inc_l:`'
 - en: '`df.drop(index, inplace=True)`'
   id: totrans-1036
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`df.drop(index, inplace=True)`'
 - en: '`continue`'
   id: totrans-1037
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`continue`'
 - en: '`inc_l.extend(row[‘depends’])`'
   id: totrans-1038
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`inc_l.extend(row[''depends''])`'
 - en: '`vsize += row[‘vsize’]`'
   id: totrans-1039
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`vsize += row[''vsize'']`'
 - en: '`return df, inc_l`'
   id: totrans-1040
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`return df, inc_l`'
 - en: '**Program 6.35:** Program to remove transactions from a list based on Satoshi/byte
     and vsize'
   id: totrans-1041
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '**程序 6.35：** 根据 Satoshi/byte 和 vsize 删除列表中的交易的程序'
 - en: 'The following program adds ancestor transactions to the list of transactions
     to be included:'
   id: totrans-1042
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 以下程序将祖先交易添加到要包含的交易列表中：
 - en: '`def updateWithDepends(df, depend_l: list, mempool):`'
   id: totrans-1043
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`def updateWithDepends(df, depend_l: list, mempool):`'
 - en: '`tx_l = []`'
   id: totrans-1044
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`tx_l = []`'
 - en: '`for dep in depend_l:`'
   id: totrans-1045
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`for dep in depend_l:`'
 - en: '`vsize = mempool[dep][‘vsize’]`'
   id: totrans-1046
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`vsize = mempool[dep][''vsize'']`'
 - en: '`fee = mempool[dep][‘fees’][‘base’]`'
   id: totrans-1047
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`fee = mempool[dep][''fees''][''base'']`'
 - en: '`sats_per_byte = fee*10**8/vsize`'
   id: totrans-1048
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`sats_per_byte = fee*10**8/vsize`'
 - en: '`tx_l.append({‘txid’: dep,`'
   id: totrans-1049
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`tx_l.append({''txid'': dep,`'
 - en: '`‘sats_per_byte’: sats_per_byte,`'
   id: totrans-1050
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`''sats_per_byte'': sats_per_byte,`'
 - en: '`‘vsize’: vsize,`'
   id: totrans-1051
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`''vsize'': vsize,`'
 - en: '`‘depends’: []}) # ignore dependents`'
   id: totrans-1052
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`''depends'': []}) # 忽略依赖项`'
 - en: '`df٢ = pd.DataFrame(tx_l)`'
   id: totrans-1053
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`df2 = pd.DataFrame(tx_l)`'
 - en: '`df.append(df2, ignore_index = True)`'
   id: totrans-1054
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`df.append(df2, ignore_index = True)`'
 - en: '`return df`'
   id: totrans-1055
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`return df`'
 - en: '**Program 6.36:** Program to add dependent transactions to the list'
   id: totrans-1056
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '**程序 6.36：** 将依赖交易添加到列表中的程序'
 - en: 'The following program is the main method that joins all the previous steps:'
   id: totrans-1057
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 下面的程序是将所有先前步骤连接起来的主要方法：
 - en: '`def getMempoolTx():`'
   id: totrans-1058
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`def getMempoolTx():`'
 - en: '`tx_l, mempool = getMempoolTxList()`'
   id: totrans-1059
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`tx_l, mempool = getMempoolTxList()`'
 - en: '`df = getSortedDF(tx_l)`'
   id: totrans-1060
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`df = getSortedDF(tx_l)`'
 - en: '`df, depend_l = pruneDF(df)`'
   id: totrans-1061
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`df, depend_l = pruneDF(df)`'
 - en: '`df = updateWithDepends(df, depend_l, mempool)`'
   id: totrans-1062
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`df = updateWithDepends(df, depend_l, mempool)`'
 - en: '`final_tx_l = df[‘txid’].tolist()`'
   id: totrans-1063
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`final_tx_l = df[''txid''].tolist()`'
 - en: '`sum_vsize = 0`'
   id: totrans-1064
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`sum_vsize = 0`'
 - en: '`for tx in final_tx_l:`'
   id: totrans-1065
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`for tx in final_tx_l:`'
 - en: '`sum_vsize += mempool[tx][‘vsize’]`'
   id: totrans-1066
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`sum_vsize += mempool[tx][''vsize'']`'
 - en: '`print(‘sum_vsize = ‘, sum_vsize)`'
   id: totrans-1067
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`print(''sum_vsize = '', sum_vsize)`'
 - en: '`print(‘tx count = ‘, len(final_tx_l))`'
   id: totrans-1068
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`print(''交易计数 = '', len(final_tx_l))`'
 - en: '`return(final_tx_l)`'
   id: totrans-1069
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`return(final_tx_l)`'
 - en: '**Program 6.37:** Program to get final transaction list to be included in a
     new block'
   id: totrans-1070
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '**程序 6.37：** 获取要包含在新块中的最终交易列表的程序'
 - en: 'From the list of transaction hashes, we can get transaction content by using
     the following method:'
   id: totrans-1071
   prefs: []
   type: TYPE_NORMAL
+  zh: 从交易哈希列表中，我们可以使用以下方法获取交易内容：
 - en: '`def getRawTransaction(txid: str):`'
   id: totrans-1072
   prefs: []
   type: TYPE_NORMAL
+  zh: '`def getRawTransaction(txid: str):`'
 - en: '`rawtx = rpc_connection.getrawtransaction(txid)`'
   id: totrans-1073
   prefs: []
   type: TYPE_NORMAL
+  zh: '`rawtx = rpc_connection.getrawtransaction(txid)`'
 - en: '`return rawtx`'
   id: totrans-1074
   prefs: []
   type: TYPE_NORMAL
+  zh: '`return rawtx`'
 - en: '**Program 6.38:** Program to get raw transactions from transaction-id'
   id: totrans-1075
   prefs: []
   type: TYPE_NORMAL
+  zh: '**程序 6.38：** 获取交易 ID 的原始交易程序'
 - en: 'Now, we can use the information to mine bitcoin. This has an infinitesimally
     low probability of success. We need to fill each field in the block header and
     then find nonce. So, let’s do this as follows:'
   id: totrans-1076
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，我们可以使用这些信息来挖掘比特币。这几乎没有成功的可能性。我们需要填写块头中的每个字段，然后找到 nonce。所以，让我们按照以下方式进行：
 - en: 'Version:'
   id: totrans-1077
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 版本：
 - en: '`def getVersionBytes(supported_softfork_bits: int):`'
   id: totrans-1078
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`def getVersionBytes(supported_softfork_bits: int):`'
 - en: '`version = 0x20000000 | supported_softfork_bits`'
   id: totrans-1079
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`version = 0x20000000 | supported_softfork_bits`'
 - en: '`v_bytes = bytes.fromhex(hex(version))[::-1]`'
   id: totrans-1080
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`v_bytes = bytes.fromhex(hex(version))[::-1]`'
 - en: '`return v_bytes`'
   id: totrans-1081
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`return v_bytes`'
 - en: '**Program 6.39:** Program to get version bytes using supported softfork bits'
   id: totrans-1082
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '**程序 6.39：** 使用支持的软分叉位获取版本字节的程序'
 - en: 'Time:'
   id: totrans-1083
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 时间：
 - en: '`def getTimeBytes():`'
   id: totrans-1084
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`def getTimeBytes():`'
 - en: '`t = time.time()`'
   id: totrans-1085
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`t = time.time()`'
 - en: '`time_b = bytes.fromhex(hex(t))[::-1]`'
   id: totrans-1086
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`time_b = bytes.fromhex(hex(t))[::-1]`'
 - en: '`return time_b`'
   id: totrans-1087
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`return time_b`'
 - en: '**Program 6.40:** Program to get time in bytes for block field'
   id: totrans-1088
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '**程序 6.40：** 获取块字段中的时间字节程序'
 - en: Next is `**bits**`. `**Bits**` are updated only when block height is a multiple
     of 2016\. To calculate `**bits**`, we need to calculate the target threshold.
     We take the block time of the last 2016 blocks and then adjust the target threshold.
@@ -5510,88 +6144,106 @@
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 接下来是`**bits**`。只有当区块高度是 2016 的倍数时，`**bits**`才会更新。要计算`**bits**`，我们需要计算目标阈值。我们取最后
+    2016 个块的块时间，然后调整目标阈值。以数学方程式的形式表示：![](images/c06eq-2.jpg)
 - en: 'Using this equation in code:'
   id: totrans-1090
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 在代码中使用这个方程式：
 - en: '`def calculateNextTargetThreshold():`'
   id: totrans-1091
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`def calculateNextTargetThreshold():`'
 - en: '`block_hash = rpc_connection.getblockhash(height)`'
   id: totrans-1092
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`block_hash = rpc_connection.getblockhash(height)`'
 - en: '`block = rpc_connection.getblock(block_hash, 0)`'
   id: totrans-1093
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`block = rpc_connection.getblock(block_hash, 0)`'
 - en: '`blkhdr = getBlockHeader(bytes.fromhex(block))`'
   id: totrans-1094
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`blkhdr = getBlockHeader(bytes.fromhex(block))`'
 - en: '`bits = bytes.fromhex(blkhdr[‘bits’])[::-1]`'
   id: totrans-1095
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`bits = bytes.fromhex(blkhdr[''bits''])[::-1]`'
 - en: '`tt_old = getTargetThreshold(bits)`'
   id: totrans-1096
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`tt_old = getTargetThreshold(bits)`'
 - en: '`block_hash_٢٠١٥ = rpc_connection.getblockhash(height-2015)`'
   id: totrans-1097
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`block_hash_٢٠١٥ = rpc_connection.getblockhash(height-2015)`'
 - en: '`block_٢٠١٥ = rpc_connection.getblock(block_hash_2015, 0)`'
   id: totrans-1098
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`block_٢٠١٥ = rpc_connection.getblock(block_hash_2015, 0)`'
 - en: '`blkhdr_٢٠١٥ = getBlockHeader(bytes.fromhex(block_2015))`'
   id: totrans-1099
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`blkhdr_٢٠١٥ = getBlockHeader(bytes.fromhex(block_2015))`'
 - en: '`delta_t = blkhdr[‘time’] - blkhdr_2015[‘time’]`'
   id: totrans-1100
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`delta_t = blkhdr[‘time’] - blkhdr_2015[‘time’]`'
 - en: '`tt_new = tt_old * (blkhdr[‘time’] - blkhdr_2015[‘time’])//(2016 * 600)`'
   id: totrans-1101
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`tt_new = tt_old * (blkhdr[‘time’] - blkhdr_2015[‘time’])//(2016 * 600)`'
 - en: '`return tt_new`'
   id: totrans-1102
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`return tt_new`'
 - en: '**Program 6.41:** Program to calculate next target threshold'
   id: totrans-1103
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '**程序 6.41：** 计算下一个目标阈值的程序'
 - en: 'To convert the target threshold to bits, we need to use the following compression
     logic:'
   id: totrans-1104
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 要将目标阈值转换为位，我们需要使用以下压缩逻辑：
 - en: Convert Target Threshold to bytes, which is a base 256 number.
   id: totrans-1105
   prefs:
   - PREF_IND
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 将目标阈值转换为字节，这是一个基于256进制的数字。
 - en: If the most significant bit is greater than 0x7F, then prepend the bytes with
     b’\x00’.
   id: totrans-1106
@@ -5599,6 +6251,7 @@
   - PREF_IND
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 如果最高有效位大于0x7F，则在字节前加上b’\x00’。
 - en: The first byte is the length of the bytes.
   id: totrans-1107
   prefs:

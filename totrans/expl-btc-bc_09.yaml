@@ -321,251 +321,313 @@
   id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: 正如你所了解的，比特币没有中心化的服务器，因此找到要连接的节点是一个挑战。为了解决这个问题，比特币核心硬编码了 DNS Seeder 地址。这些被称为种子服务器。这些服务器提供了一系列可能活跃或不活跃的地址。我们需要迭代地找到可以连接的活动地址。种子服务器可能会在未来更新。
 - en: 'Here are the hardcoded DNS seeds:'
   id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里是硬编码的 DNS 种子：
 - en: '![](images/187.jpg)'
   id: totrans-47
   prefs: []
   type: TYPE_IMG
+  zh: '![](images/187.jpg)'
 - en: '**Table 7.1:** List of hardcoded DNS seeds'
   id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: '**表 7.1：** 硬编码的 DNS 种子列表'
 - en: 'We are going to use following package to get the addresses from DNS seed node:'
   id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将使用以下包从 DNS 种子节点获取地址：
 - en: '![](images/Figure-7.3.jpg)'
   id: totrans-50
   prefs: []
   type: TYPE_IMG
+  zh: '![](images/Figure-7.3.jpg)'
 - en: '**Figure 7.3:** Python package to communicate with DNS servers'
   id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: '**图 7.3：** 与 DNS 服务器通信的 Python 包'
 - en: 'The following program generates addresses from DNS seeds:'
   id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下程序生成了来自 DNS 种子的地址：
 - en: '`import dns.name`'
   id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: '`import dns.name`'
 - en: '`import dns.message`'
   id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: '`import dns.message`'
 - en: '`import dns.query`'
   id: totrans-55
   prefs: []
   type: TYPE_NORMAL
+  zh: '`import dns.query`'
 - en: '`import dns.flags`'
   id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: '`import dns.flags`'
 - en: '`import ipaddress`'
   id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: '`import ipaddress`'
 - en: '`def getNodeAddresses(dnsseed: str):`'
   id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: '`def getNodeAddresses(dnsseed: str):`'
 - en: '`dest = ‘8.8.8.8’`'
   id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: '`dest = ‘8.8.8.8’`'
 - en: '`rdclass = 65535`'
   id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: '`rdclass = 65535`'
 - en: '`domain = dns.name.from_text(dnsseed)`'
   id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: '`domain = dns.name.from_text(dnsseed)`'
 - en: '`if not domain.is_absolute():`'
   id: totrans-62
   prefs: []
   type: TYPE_NORMAL
+  zh: '`if not domain.is_absolute():`'
 - en: '`domain = domain.concatenate(dns.name.root)`'
   id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: '`domain = domain.concatenate(dns.name.root)`'
 - en: '`request = dns.message.make_query(`'
   id: totrans-64
   prefs: []
   type: TYPE_NORMAL
+  zh: '`request = dns.message.make_query(`'
 - en: '`domain,`'
   id: totrans-65
   prefs: []
   type: TYPE_NORMAL
+  zh: '`domain,`'
 - en: '`dns.rdatatype.A,`'
   id: totrans-66
   prefs: []
   type: TYPE_NORMAL
+  zh: '`dns.rdatatype.A,`'
 - en: '`dns.rdataclass.IN)`'
   id: totrans-67
   prefs: []
   type: TYPE_NORMAL
+  zh: '`dns.rdataclass.IN)`'
 - en: '`request.flags |= dns.flags.RD|dns.flags.RA|dns.flags.AD`'
   id: totrans-68
   prefs: []
   type: TYPE_NORMAL
+  zh: '`request.flags |= dns.flags.RD|dns.flags.RA|dns.flags.AD`'
 - en: '`request.find_rrset(request.additional, dns.name.root, rdclass, dns.rdatatype.OPT,
     create=True, force_unique=True)`'
   id: totrans-69
   prefs: []
   type: TYPE_NORMAL
+  zh: '`request.find_rrset(request.additional, dns.name.root, rdclass, dns.rdatatype.OPT,
+    create=True, force_unique=True)`'
 - en: '`responseudp = dns.query.udp(request, dest)`'
   id: totrans-70
   prefs: []
   type: TYPE_NORMAL
+  zh: '`responseudp = dns.query.udp(request, dest)`'
 - en: '`rrset = responseudp.answer`'
   id: totrans-71
   prefs: []
   type: TYPE_NORMAL
+  zh: '`rrset = responseudp.answer`'
 - en: '`rrset_l = []`'
   id: totrans-72
   prefs: []
   type: TYPE_NORMAL
+  zh: '`rrset_l = []`'
 - en: '`for rrset_val in rrset:`'
   id: totrans-73
   prefs: []
   type: TYPE_NORMAL
+  zh: '`for rrset_val in rrset:`'
 - en: '`rrset_l.extend(str(rrset_val).split(“\n”))`'
   id: totrans-74
   prefs: []
   type: TYPE_NORMAL
+  zh: '`rrset_l.extend(str(rrset_val).split(“\n”))`'
 - en: '`ipaddr_l = []`'
   id: totrans-75
   prefs: []
   type: TYPE_NORMAL
+  zh: '`ipaddr_l = []`'
 - en: '`for rrset_s in rrset_l:`'
   id: totrans-76
   prefs: []
   type: TYPE_NORMAL
+  zh: '`for rrset_s in rrset_l:`'
 - en: '`ipaddr_l.append(rrset_s.split(“ “)[4])`'
   id: totrans-77
   prefs: []
   type: TYPE_NORMAL
+  zh: '`ipaddr_l.append(rrset_s.split(“ “)[4])`'
 - en: '`return ipaddr_l`'
   id: totrans-78
   prefs: []
   type: TYPE_NORMAL
+  zh: '`return ipaddr_l`'
 - en: '`def getTestnetPeers():`'
   id: totrans-79
   prefs: []
   type: TYPE_NORMAL
+  zh: '`def getTestnetPeers():`'
 - en: '`port = 18333`'
   id: totrans-80
   prefs: []
   type: TYPE_NORMAL
+  zh: '`port = 18333`'
 - en: '`dns_seeds = [`'
   id: totrans-81
   prefs: []
   type: TYPE_NORMAL
+  zh: '`dns_seeds = [`'
 - en: '`“testnet-seed.bitcoin.jonasschnelli.ch”,`'
   id: totrans-82
   prefs: []
   type: TYPE_NORMAL
+  zh: '`“testnet-seed.bitcoin.jonasschnelli.ch”,`'
 - en: '`“seed.tbtc.petertodd.org”,`'
   id: totrans-83
   prefs: []
   type: TYPE_NORMAL
+  zh: '`“seed.tbtc.petertodd.org”,`'
 - en: '`“seed.testnet.bitcoin.sprovoost.nl”,`'
   id: totrans-84
   prefs: []
   type: TYPE_NORMAL
+  zh: '`“seed.testnet.bitcoin.sprovoost.nl”,`'
 - en: '`“testnet-seed.bluematt.me”`'
   id: totrans-85
   prefs: []
   type: TYPE_NORMAL
+  zh: '`“testnet-seed.bluematt.me”`'
 - en: '`]`'
   id: totrans-86
   prefs: []
   type: TYPE_NORMAL
+  zh: '`]`'
 - en: '`ipaddr_l = []`'
   id: totrans-87
   prefs: []
   type: TYPE_NORMAL
+  zh: '`ipaddr_l = []`'
 - en: '`for seed in dns_seeds:`'
   id: totrans-88
   prefs: []
   type: TYPE_NORMAL
+  zh: '`for seed in dns_seeds:`'
 - en: xwi
   id: totrans-89
   prefs: []
   type: TYPE_NORMAL
+  zh: xwi
 - en: '``ipaddr_l.extend(getNodeAddresses(seed))``'
   id: totrans-90
   prefs: []
   type: TYPE_NORMAL
+  zh: '``ipaddr_l.extend(getNodeAddresses(seed))``'
 - en: '``peers = []``'
   id: totrans-91
   prefs: []
   type: TYPE_NORMAL
+  zh: '``peers = []``'
 - en: '`for ipaddr in ipaddr_l:`'
   id: totrans-92
   prefs: []
   type: TYPE_NORMAL
+  zh: '`for ipaddr in ipaddr_l:`'
 - en: '`peers.append((ipaddr, port))`'
   id: totrans-93
   prefs: []
   type: TYPE_NORMAL
+  zh: '`peers.append((ipaddr, port))`'
 - en: '`return peers`'
   id: totrans-94
   prefs: []
   type: TYPE_NORMAL
+  zh: '`return peers`'
 - en: '**Program 7.1:** Program to get list of addresses from DNS seed'
   id: totrans-95
   prefs: []
   type: TYPE_NORMAL
+  zh: '**程序 7.1：** 从 DNS 种子获取地址列表的程序'
 - en: 'We call the preceding method as follows to get the list of the first five address
     and port numbers:'
   id: totrans-96
   prefs: []
   type: TYPE_NORMAL
+  zh: '我们按以下方式调用上述方法以获取前五个地址和端口号的列表： '
 - en: '`if __name__ == ‘__main__’:`'
   id: totrans-97
   prefs: []
   type: TYPE_NORMAL
+  zh: '如果 `__name__ == ‘__main__’:` '
 - en: '`peers = getTestnetPeers()`'
   id: totrans-98
   prefs: []
   type: TYPE_NORMAL
+  zh: '获取测试网络节点 `peers = getTestnetPeers()` '
 - en: '`for index in range(5):`'
   id: totrans-99
   prefs: []
   type: TYPE_NORMAL
+  zh: '对于 `range(5)` 中的每个索引： '
 - en: '`print(peers[index])`'
   id: totrans-100
   prefs: []
   type: TYPE_NORMAL
+  zh: '打印 `print(peers[index])` '
 - en: 'This gives us the following first five IP addresses and port numbers:'
   id: totrans-101
   prefs: []
   type: TYPE_NORMAL
+  zh: '这给出了以下前五个 IP 地址和端口号： '
 - en: '![](images/Figure-7.4.jpg)'
   id: totrans-102
   prefs: []
   type: TYPE_IMG
+  zh: '![图片](images/Figure-7.4.jpg)'
 - en: '**Figure 7.4:** List of a few IP addresses and port numbers generated using
     DNS seed'
   id: totrans-103
   prefs: []
   type: TYPE_NORMAL
+  zh: '**图 7.4：** 使用 DNS 种子生成的一些 IP 地址和端口号列表 '
 - en: 'There are also hardcoded IP Addresses in the Bitcoin Core source, which are
     used only as the last resort if the govt. blocks the connection to the known DNS
     seeds. These addresses are in the following file:'
   id: totrans-104
   prefs: []
   type: TYPE_NORMAL
+  zh: 'Bitcoin Core 源代码中还有一些硬编码的 IP 地址，仅在政府封锁到已知 DNS 种子的连接时作为最后的手段使用。这些地址在以下文件中： '
 - en: '`chainparamsseeds.h`'
   id: totrans-105
   prefs: []
   type: TYPE_NORMAL
+  zh: '`chainparamsseeds.h` '
 - en: Bitcoin Core also maintains the `**peers.dat**` file, which maintains active
     addresses that it is connected to and since when. This helps in reconnecting to
     nodes after the connection is broken. Bitcoin Core daemon also has an `**addnode**`
@@ -574,6 +636,8 @@
   id: totrans-106
   prefs: []
   type: TYPE_NORMAL
+  zh: 'Bitcoin Core 还维护着 `**peers.dat**` 文件，其中包含了它连接到的活动地址以及连接时间。这有助于在连接断开后重新连接到节点。Bitcoin
+    Core 守护程序还具有 `**addnode**` 命令选项，用于指定连接的对等节点。这个节点被视为其他节点的平等。 '
 - en: This information is specific to Bitcoin Core. In addition to utilizing the Bitcoin
     node bootstrapping method, we can connect to addresses available from other websites,
     such as **[https://bitnodes.io/api/v1/snapshots/latest](https://bitnodes.io/api/v1/snapshots/latest)**.
@@ -1116,519 +1180,640 @@
   id: totrans-206
   prefs: []
   type: TYPE_NORMAL
+  zh: '以下是创建 `**version**` 负载的程序： '
 - en: '`from bitcoinrpc.authproxy import AuthServiceProxy, JSONRPCException`'
   id: totrans-207
   prefs: []
   type: TYPE_NORMAL
+  zh: 从 `bitcoinrpc.authproxy` 模块中导入 `AuthServiceProxy` 和 `JSONRPCException`
 - en: '`import struct`'
   id: totrans-208
   prefs: []
   type: TYPE_NORMAL
+  zh: 导入 `struct` 模块
 - en: '`import random`'
   id: totrans-209
   prefs: []
   type: TYPE_NORMAL
+  zh: '导入 `random` 模块 '
 - en: '`rpc_connection = AuthServiceProxy(“http://%s:%s@127.0.0.1:18332”%(‘test’,
     ‘test’))`'
   id: totrans-210
   prefs: []
   type: TYPE_NORMAL
+  zh: '`rpc_connection = AuthServiceProxy(“http://%s:%s@127.0.0.1:18332”%(‘test’,
+    ‘test’))` '
 - en: '`def setVarInt(n: int):`'
   id: totrans-211
   prefs: []
   type: TYPE_NORMAL
+  zh: '定义函数 `setVarInt(n: int):` '
 - en: '`if n < 0xfd:`'
   id: totrans-212
   prefs: []
   type: TYPE_NORMAL
+  zh: '如果 `n < 0xfd:` '
 - en: '`n_h = ‘%02x’ % n`'
   id: totrans-213
   prefs: []
   type: TYPE_NORMAL
+  zh: '`n_h = ‘%02x’ % n` '
 - en: '`elif n > 0xfd and n < 0xffff:`'
   id: totrans-214
   prefs: []
   type: TYPE_NORMAL
+  zh: '或者 `n > 0xfd` 且 `n < 0xffff:` '
 - en: '`n_h = ‘fd%04x’ % n`'
   id: totrans-215
   prefs: []
   type: TYPE_NORMAL
+  zh: '`n_h = ‘fd%04x’ % n` '
 - en: '`elif n > 0xffff and n < 0xFFFFFFFF:`'
   id: totrans-216
   prefs: []
   type: TYPE_NORMAL
+  zh: '`elif n > 0xffff and n < 0xFFFFFFFF:` '
 - en: '`n_h = ‘fe%08x’ % n`'
   id: totrans-217
   prefs: []
   type: TYPE_NORMAL
+  zh: '`n_h = ‘fe%08x’ % n` '
 - en: '`else:`'
   id: totrans-218
   prefs: []
   type: TYPE_NORMAL
+  zh: '否则: '
 - en: '`n_h = ‘ff%016x’ % n`'
   id: totrans-219
   prefs: []
   type: TYPE_NORMAL
+  zh: '`n_h = ‘ff%016x’ % n` '
 - en: '`return bytes.fromhex(n_h)`'
   id: totrans-220
   prefs: []
   type: TYPE_NORMAL
+  zh: '返回 `bytes.fromhex(n_h)` '
 - en: '`def getLastBlockHeight():`'
   id: totrans-221
   prefs: []
   type: TYPE_NORMAL
+  zh: '定义函数 `getLastBlockHeight():` '
 - en: '`height = rpc_connection.getblockcount()`'
   id: totrans-222
   prefs: []
   type: TYPE_NORMAL
+  zh: '获取高度 `height = rpc_connection.getblockcount()` '
 - en: '`return height`'
   id: totrans-223
   prefs: []
   type: TYPE_NORMAL
+  zh: '返回高度 `height` '
 - en: '`def createUserAgent():`'
   id: totrans-224
   prefs: []
   type: TYPE_NORMAL
+  zh: '定义函数 `createUserAgent():` '
 - en: '`sub_version = “/MyTestAgent:0.0.1/”`'
   id: totrans-225
   prefs: []
   type: TYPE_NORMAL
+  zh: '`sub_version = “/MyTestAgent:0.0.1/”` '
 - en: '`sub_version_b = sub_version.encode()`'
   id: totrans-226
   prefs: []
   type: TYPE_NORMAL
+  zh: '`sub_version_b = sub_version.encode()` '
 - en: '`len_b = setVarInt(len(sub_version_b))`'
   id: totrans-227
   prefs: []
   type: TYPE_NORMAL
+  zh: '`len_b = setVarInt(len(sub_version_b))` '
 - en: '`return len_b + sub_version_b`'
   id: totrans-228
   prefs: []
   type: TYPE_NORMAL
+  zh: '返回 `len_b + sub_version_b` '
 - en: '`def createRecvIPAddress(ip, port):`'
   id: totrans-229
   prefs: []
   type: TYPE_NORMAL
+  zh: '定义函数 `createRecvIPAddress(ip, port):` '
 - en: '`service_b = struct.pack(‘<Q’, 1)`'
   id: totrans-230
   prefs: []
   type: TYPE_NORMAL
+  zh: '`service_b = struct.pack(‘<Q’, 1)` '
 - en: '`ip_b = socket.inet_aton(ip)`'
   id: totrans-231
   prefs: []
   type: TYPE_NORMAL
+  zh: '`ip_b = socket.inet_aton(ip)` '
 - en: '`ipv4_to_ipv6 = bytearray.fromhex(“00000000000000000000ffff”) + ip_b`'
   id: totrans-232
   prefs: []
   type: TYPE_NORMAL
+  zh: '`ipv4_to_ipv6 = bytearray.fromhex(“00000000000000000000ffff”) + ip_b` '
 - en: '`ipv6addr_b = struct.pack(‘>16s’, ipv4_to_ipv6)`'
   id: totrans-233
   prefs: []
   type: TYPE_NORMAL
+  zh: '`ipv6addr_b = struct.pack(‘>16s’, ipv4_to_ipv6)` '
 - en: '`port_b = struct.pack(‘>H’, port)`'
   id: totrans-234
   prefs: []
   type: TYPE_NORMAL
+  zh: '`port_b = struct.pack(‘>H’, port)` '
 - en: '`addr_b = service_b + ipv6addr_b + port_b`'
   id: totrans-235
   prefs: []
   type: TYPE_NORMAL
+  zh: '`addr_b = service_b + ipv6addr_b + port_b` '
 - en: '`return(addr_b)`'
   id: totrans-236
   prefs: []
   type: TYPE_NORMAL
+  zh: '`return(addr_b)`'
 - en: '`def createTransIPAddress():`'
   id: totrans-237
   prefs: []
   type: TYPE_NORMAL
+  zh: '`def createTransIPAddress():`'
 - en: '`service_b = struct.pack(‘<Q’, 1)`'
   id: totrans-238
   prefs: []
   type: TYPE_NORMAL
+  zh: '`service_b = struct.pack(‘<Q’, 1)`'
 - en: '`ip_b = socket.inet_aton(“0.0.0.0”)`'
   id: totrans-239
   prefs: []
   type: TYPE_NORMAL
+  zh: '`ip_b = socket.inet_aton(“0.0.0.0”)`'
 - en: '`ipv4_to_ipv6 = bytearray.fromhex(“000000000000000000000000”) + ip_b`'
   id: totrans-240
   prefs: []
   type: TYPE_NORMAL
+  zh: '`ipv4_to_ipv6 = bytearray.fromhex(“000000000000000000000000”) + ip_b`'
 - en: '`ipv6addr_b = struct.pack(‘>16s’, ipv4_to_ipv6)`'
   id: totrans-241
   prefs: []
   type: TYPE_NORMAL
+  zh: '`ipv6addr_b = struct.pack(‘>16s’, ipv4_to_ipv6)`'
 - en: '`port_b = struct.pack(‘>H’, 0)`'
   id: totrans-242
   prefs: []
   type: TYPE_NORMAL
+  zh: '`port_b = struct.pack(‘>H’, 0)`'
 - en: '`addr_b = service_b + ipv6addr_b + port_b`'
   id: totrans-243
   prefs: []
   type: TYPE_NORMAL
+  zh: '`addr_b = service_b + ipv6addr_b + port_b`'
 - en: '`return(addr_b)`'
   id: totrans-244
   prefs: []
   type: TYPE_NORMAL
+  zh: '`return(addr_b)`'
 - en: '`def createVersionPayload(s: socket, version: int):`'
   id: totrans-245
   prefs: []
   type: TYPE_NORMAL
+  zh: '`def createVersionPayload(s: socket, version: int):`'
 - en: '`version_b = struct.pack(‘<L’, version)`'
   id: totrans-246
   prefs: []
   type: TYPE_NORMAL
+  zh: '`version_b = struct.pack(‘<L’, version)`'
 - en: '`services_b = struct.pack(‘<Q’, 1)`'
   id: totrans-247
   prefs: []
   type: TYPE_NORMAL
+  zh: '`services_b = struct.pack(‘<Q’, 1)`'
 - en: '`timestamp_b = struct.pack(‘<Q’, int(time.time()))`'
   id: totrans-248
   prefs: []
   type: TYPE_NORMAL
+  zh: '`timestamp_b = struct.pack(‘<Q’, int(time.time()))`'
 - en: '`myip, myport = s.getsockname()`'
   id: totrans-249
   prefs: []
   type: TYPE_NORMAL
+  zh: '`myip, myport = s.getsockname()`'
 - en: '`addr_recv_b = struct.pack(‘<26s’, createRecvIPAddress(myip, myport))`'
   id: totrans-250
   prefs: []
   type: TYPE_NORMAL
+  zh: '`addr_recv_b = struct.pack(‘<26s’, createRecvIPAddress(myip, myport))`'
 - en: '`addr_trans_b = struct.pack(‘<26s’, createTransIPAddress())`'
   id: totrans-251
   prefs: []
   type: TYPE_NORMAL
+  zh: '`addr_trans_b = struct.pack(‘<26s’, createTransIPAddress())`'
 - en: '`nonce_b = struct.pack(‘<Q’, random.getrandbits(64))`'
   id: totrans-252
   prefs: []
   type: TYPE_NORMAL
+  zh: '`nonce_b = struct.pack(‘<Q’, random.getrandbits(64))`'
 - en: '`user_agent = createUserAgent()`'
   id: totrans-253
   prefs: []
   type: TYPE_NORMAL
+  zh: '`user_agent = createUserAgent()`'
 - en: '`user_agent_b = struct.pack(‘<%ds’ % len(user_agent), user_agent)`'
   id: totrans-254
   prefs: []
   type: TYPE_NORMAL
+  zh: '`user_agent_b = struct.pack(‘<%ds’ % len(user_agent), user_agent)`'
 - en: '`start_height_b = struct.pack(‘<L’, getLastBlockHeight())`'
   id: totrans-255
   prefs: []
   type: TYPE_NORMAL
+  zh: '`start_height_b = struct.pack(‘<L’, getLastBlockHeight())`'
 - en: '`payload = version_b \`'
   id: totrans-256
   prefs: []
   type: TYPE_NORMAL
+  zh: '`payload = version_b \`'
 - en: '`+ services_b \`'
   id: totrans-257
   prefs: []
   type: TYPE_NORMAL
+  zh: '`+ services_b \`'
 - en: '`+ timestamp_b \`'
   id: totrans-258
   prefs: []
   type: TYPE_NORMAL
+  zh: '`+ timestamp_b \`'
 - en: '`+ addr_recv_b \`'
   id: totrans-259
   prefs: []
   type: TYPE_NORMAL
+  zh: '`+ addr_recv_b \`'
 - en: '`+ addr_trans_b \`'
   id: totrans-260
   prefs: []
   type: TYPE_NORMAL
+  zh: '`+ addr_trans_b \`'
 - en: '`+ nonce_b \`'
   id: totrans-261
   prefs: []
   type: TYPE_NORMAL
+  zh: '`+ nonce_b \`'
 - en: '`+ user_agent_b \`'
   id: totrans-262
   prefs: []
   type: TYPE_NORMAL
+  zh: '`+ user_agent_b \`'
 - en: '`+ start_height_b`'
   id: totrans-263
   prefs: []
   type: TYPE_NORMAL
+  zh: '`+ start_height_b`'
 - en: '`return payload`'
   id: totrans-264
   prefs: []
   type: TYPE_NORMAL
+  zh: '`return payload`'
 - en: '**Program 7.4:** Program for creating Version message payload'
   id: totrans-265
   prefs: []
   type: TYPE_NORMAL
+  zh: '**程序 7.4：** 创建版本消息有效载荷的程序'
 - en: 'To create the message payload, we use the Python struct pack. The following
     are the symbols and their meanings:'
   id: totrans-266
   prefs: []
   type: TYPE_NORMAL
+  zh: 创建消息有效载荷时，我们使用 Python struct 包。以下是符号及其含义：
 - en: '| **Symbols** | **Represents** |'
   id: totrans-267
   prefs: []
   type: TYPE_TB
+  zh: '| **符号** | **表示** |'
 - en: '| < | Little Endian |'
   id: totrans-268
   prefs: []
   type: TYPE_TB
+  zh: '| < | 小端序 |'
 - en: '| > | Big Endian |'
   id: totrans-269
   prefs: []
   type: TYPE_TB
+  zh: '| > | 大端序 |'
 - en: '| B | 1-byte Unsigned Integer |'
   id: totrans-270
   prefs: []
   type: TYPE_TB
+  zh: '| B | 1字节无符号整数 |'
 - en: '| H | 2-byte Unsigned Integer |'
   id: totrans-271
   prefs: []
   type: TYPE_TB
+  zh: '| H | 2字节无符号整数 |'
 - en: '| L | 4-byte Unsigned Integer |'
   id: totrans-272
   prefs: []
   type: TYPE_TB
+  zh: '| L | 4字节无符号整数 |'
 - en: '| Q | 8-byte Unsigned Integer |'
   id: totrans-273
   prefs: []
   type: TYPE_TB
+  zh: '| Q | 8字节无符号整数 |'
 - en: '| xs | Byte array of size x |'
   id: totrans-274
   prefs: []
   type: TYPE_TB
+  zh: '| xs | 大小为 x 的字节数组 |'
 - en: '**Table 7.3:** List of Python struct pack symbols and their meanings'
   id: totrans-275
   prefs: []
   type: TYPE_NORMAL
+  zh: '**表 7.3：** Python struct 包符号及其含义列表'
 - en: 'You can check out the Python docs for more details:'
   id: totrans-276
   prefs: []
   type: TYPE_NORMAL
+  zh: 您可以查看 Python 文档以获取更多详情：
 - en: '**[https://docs.python.org/3.8/library/struct.html](https://docs.python.org/3.8/library/struct.html)**'
   id: totrans-277
   prefs: []
   type: TYPE_NORMAL
+  zh: '**[https://docs.python.org/3.8/library/struct.html](https://docs.python.org/3.8/library/struct.html)**'
 - en: IP address and port are in big endian, while the rest of the message is in the
     little-endian format. When we pack an ASCII string, it converts it into a byte
     array and pads it with zeroes.
   id: totrans-278
   prefs: []
   type: TYPE_NORMAL
+  zh: IP 地址和端口位于大端序，而其余消息位于小端序。当我们打包 ASCII 字符串时，它将其转换为字节数组并用零填充。
 - en: 'We call the preceding methods as follows:'
   id: totrans-279
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们称之前的方法如下：
 - en: '`if __name__ == ‘__main__’:`'
   id: totrans-280
   prefs: []
   type: TYPE_NORMAL
+  zh: '`if __name__ == ‘__main__’:`'
 - en: '`peers = getTestnetPeers()`'
   id: totrans-281
   prefs: []
   type: TYPE_NORMAL
+  zh: '`peers = getTestnetPeers()`'
 - en: '`p = random.choice(peers)`'
   id: totrans-282
   prefs: []
   type: TYPE_NORMAL
+  zh: '`p = random.choice(peers)`'
 - en: '`s = None`'
   id: totrans-283
   prefs: []
   type: TYPE_NORMAL
+  zh: '`s = None`'
 - en: '`peerinfo = {}`'
   id: totrans-284
   prefs: []
   type: TYPE_NORMAL
+  zh: '`peerinfo = {}`'
 - en: '`print(“Trying to connect to “, p)`'
   id: totrans-285
   prefs: []
   type: TYPE_NORMAL
+  zh: '`print(“尝试连接到 “, p)`'
 - en: '`s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)`'
   id: totrans-286
   prefs: []
   type: TYPE_NORMAL
+  zh: '`s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)`'
 - en: '`err = s.connect(p)`'
   id: totrans-287
   prefs: []
   type: TYPE_NORMAL
+  zh: '`err = s.connect(p)`'
 - en: '`print(‘TCP Connection Established’)`'
   id: totrans-288
   prefs: []
   type: TYPE_NORMAL
+  zh: '`print(‘TCP 连接已建立’)`'
 - en: '`payload = createVersionPayload(s, 70015)`'
   id: totrans-289
   prefs: []
   type: TYPE_NORMAL
+  zh: '`payload = createVersionPayload(s, 70015)`'
 - en: '`print(‘Version payload: ‘, payload.hex())`'
   id: totrans-290
   prefs: []
   type: TYPE_NORMAL
+  zh: '`print(‘版本有效载荷：‘, payload.hex())`'
 - en: '`s.close()`'
   id: totrans-291
   prefs: []
   type: TYPE_NORMAL
+  zh: '`s.close()`'
 - en: 'This creates the following payload in hex string:'
   id: totrans-292
   prefs: []
   type: TYPE_NORMAL
+  zh: 这会创建以下十六进制字符串的有效载荷：
 - en: '![](images/Figure-7.11.jpg)'
   id: totrans-293
   prefs: []
   type: TYPE_IMG
+  zh: '![](images/Figure-7.11.jpg)'
 - en: '**Figure 7.11:** Shows version payload created by the CreateVersionPayload
     program'
   id: totrans-294
   prefs: []
   type: TYPE_NORMAL
+  zh: '**图 7.11：** CreateVersionPayload 程序创建的版本有效载荷的显示'
 - en: 'When we receive the `***version***` message, we do the following:'
   id: totrans-295
   prefs: []
   type: TYPE_NORMAL
+  zh: 当我们收到`***version***`消息时，我们执行以下操作：
 - en: 'We first receive the message header, verify the magic number and checksum,
     and identify the command:'
   id: totrans-296
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 我们首先接收消息头，验证魔数和校验和，然后识别命令：
 - en: '`flog = open(‘communication.log’, ‘wt+’)`'
   id: totrans-297
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`flog = open(‘communication.log’, ‘wt+’)`'
 - en: '`def calculateChecksum(b: bytes):`'
   id: totrans-298
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`def calculateChecksum(b: bytes):`'
 - en: '`checksum = hashlib.sha256(hashlib.sha256(b).digest()).digest()[0:4]`'
   id: totrans-299
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`checksum = hashlib.sha256(hashlib.sha256(b).digest()).digest()[0:4]`'
 - en: '`return checksum`'
   id: totrans-300
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`return checksum`'
 - en: '`def checkMessage(msghdr: dict, payload_b: bytes):`'
   id: totrans-301
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`def checkMessage(msghdr: dict, payload_b: bytes):`'
 - en: '`if msghdr[‘magic’] == ‘0709110b’:`'
   id: totrans-302
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`if msghdr[‘magic’] == ‘0709110b’:`'
 - en: '`print(‘Magic check passed’, file=flog)`'
   id: totrans-303
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`print(‘魔数检查通过’, file=flog)`'
 - en: '`else:`'
   id: totrans-304
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`else:`'
 - en: '`print(‘Magic check failed’, file=flog)`'
   id: totrans-305
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`print(‘魔数检查失败’, file=flog)`'
 - en: '`print(‘magic = %s’ % msghdr[‘magic’], file=flog)`'
   id: totrans-306
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`print(‘魔数 = %s’ % msghdr[‘magic’], file=flog)`'
 - en: '`raise Exception(‘Invalid Magic’, file=flog)`'
   id: totrans-307
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`raise Exception(‘无效的魔数’, file=flog)`'
 - en: '`checksum_calc = calculateChecksum(payload_b)`'
   id: totrans-308
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`checksum_calc = calculateChecksum(payload_b)`'
 - en: '`if msghdr[‘checksum’] == checksum_calc:`'
   id: totrans-309
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`if msghdr[‘checksum’] == checksum_calc:`'
 - en: '`print(‘checksum check passed’, file=flog)`'
   id: totrans-310
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`print(‘校验和检查通过’, file=flog)`'
 - en: '`else:`'
   id: totrans-311
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`else:`'
 - en: '`print(‘checksum check failed’, file=flog)`'
   id: totrans-312
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`print(‘校验和检查失败’, file=flog)`'
 - en: '`print(‘payload = %s’ % payload_b.hex(), file=flog)`'
   id: totrans-313
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`print(‘有效载荷 = %s’ % payload_b.hex(), file=flog)`'
 - en: '`print(‘expected checksum = %s’ % msghdr[‘checksum’].hex(), file=flog)`'
   id: totrans-314
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`print(‘预期校验和 = %s’ % msghdr[‘checksum’].hex(), file=flog)`'
 - en: '`print(‘received checksum = %s’ % checksum_calc.hex(), file=flog)`'
   id: totrans-315
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`print(‘接收到的校验和 = %s’ % checksum_calc.hex(), file=flog)`'
 - en: '`raise Exception(‘Invalid Checksum’)`'
   id: totrans-316
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`raise Exception(‘无效的校验和’)`'
 - en: '`def parseMsgHdr(msghdr_b: bytes):`'
   id: totrans-317
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`def parseMsgHdr(msghdr_b: bytes):`'
 - en: '`msghdr = {}`'
   id: totrans-318
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`msghdr = {}`'
 - en: '`msghdr[‘magic’] = msghdr_b[0:4][::-1].hex()`'
   id: totrans-319
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`msghdr[‘magic’] = msghdr_b[0:4][::-1].hex()`'
 - en: '`msghdr[‘command’] = msghdr_b[4:16].decode(“ascii”).strip(‘\0’)`'
   id: totrans-320
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`msghdr[‘command’] = msghdr_b[4:16].decode(“ascii”).strip(‘\0’)`'
 - en: '`msghdr[‘length’] = int.from_bytes(msghdr_b[16:20], byteorder=’little’)`'
   id: totrans-321
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`msghdr[‘length’] = int.from_bytes(msghdr_b[16:20], byteorder=’little’)`'
 - en: '`msghdr[‘checksum’] = msghdr_b[20:24]`'
   id: totrans-322
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`msghdr[‘checksum’] = msghdr_b[20:24]`'
 - en: '`return msghdr`'
   id: totrans-323
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`return msghdr`'
 - en: '**Program 7.5:** Program for parsing message header'
   id: totrans-324
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '**程序 7.5：** 用于解析消息头的程序'
 - en: We can see that the program checksum only contains the first 4 bytes of the
     double SHA256 hash; to get the command, we strip it.
   id: totrans-325
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 我们可以看到程序校验和只包含双 SHA256 哈希的前 4 个字节；为了获取命令，我们将其剥离。
 - en: 'Next, we receive a message again from the socket and call the parser of the
     `***version***` payload. To do this, we call the method by name. We will create
     dummy methods for the ones not required by the subsequent programs:'
@@ -1636,497 +1821,597 @@
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 接下来，我们再次从套接字接收消息，并调用`***version***`载荷的解析器。为此，我们通过名称调用该方法。我们将为后续程序不需要的方法创建虚拟方法：
 - en: '`MSGHDR_SIZE = 24`'
   id: totrans-327
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`MSGHDR_SIZE = 24`'
 - en: '`CMD_FN_MAP = {`'
   id: totrans-328
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`CMD_FN_MAP = {`'
 - en: '`‘version’: parseVersionPayload,`'
   id: totrans-329
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`‘version’: parseVersionPayload,`'
 - en: '`‘addr’: parseAddrPayload,`'
   id: totrans-330
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`‘addr’: parseAddrPayload,`'
 - en: '`‘filterload’: parseFilterLoadPayload,`'
   id: totrans-331
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`‘filterload’: parseFilterLoadPayload,`'
 - en: '`‘filteradd’: parseFilterAddPayload,`'
   id: totrans-332
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`‘filteradd’: parseFilterAddPayload,`'
 - en: '`‘merkleblock’: parseMerkleBlockPayload,`'
   id: totrans-333
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`‘merkleblock’: parseMerkleBlockPayload,`'
 - en: '`‘ping’: parsePingPongPayload,`'
   id: totrans-334
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`‘ping’: parsePingPongPayload,`'
 - en: '`‘pong’: parsePingPongPayload,`'
   id: totrans-335
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`‘pong’: parsePingPongPayload,`'
 - en: '`‘feefilter’: parseFeeFilterPayload,`'
   id: totrans-336
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`‘feefilter’: parseFeeFilterPayload,`'
 - en: '`‘inv’: parseInvPayload,`'
   id: totrans-337
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`‘inv’: parseInvPayload,`'
 - en: '`‘getdata’: parseInvPayload,`'
   id: totrans-338
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`‘getdata’: parseInvPayload,`'
 - en: '`‘notfound’: parseInvPayload,`'
   id: totrans-339
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`‘notfound’: parseInvPayload,`'
 - en: '`‘tx’: parseTxPayload,`'
   id: totrans-340
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`‘tx’: parseTxPayload,`'
 - en: '`‘block’: parseBlockPayload,`'
   id: totrans-341
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`‘block’: parseBlockPayload,`'
 - en: '`‘getblocks’: parseGetBlocksGetHeadersPayload,`'
   id: totrans-342
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`‘getblocks’: parseGetBlocksGetHeadersPayload,`'
 - en: '`‘getheaders’: parseGetBlocksGetHeadersPayload,`'
   id: totrans-343
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`‘getheaders’: parseGetBlocksGetHeadersPayload,`'
 - en: '`‘headers’: parseHeadersPayload,`'
   id: totrans-344
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`‘headers’: parseHeadersPayload,`'
 - en: '`‘reject’: parseRejectPayload,`'
   id: totrans-345
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`‘reject’: parseRejectPayload,`'
 - en: '`‘sendcmpct’: parseSendCompactPayload,`'
   id: totrans-346
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`‘sendcmpct’: parseSendCompactPayload,`'
 - en: '`‘cmpctblock’: parseCompactBlockPayload,`'
   id: totrans-347
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`‘cmpctblock’: parseCompactBlockPayload,`'
 - en: '`‘getblocktxn’: parseGetBlockTxnPayload,`'
   id: totrans-348
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`‘getblocktxn’: parseGetBlockTxnPayload,`'
 - en: '`‘blocktxn’: parseBlockTxnPayload`'
   id: totrans-349
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`‘blocktxn’: parseBlockTxnPayload`'
 - en: '`}`'
   id: totrans-350
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`}`'
 - en: '`def recvAll(s: socket, payloadlen: int):`'
   id: totrans-351
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`def recvAll(s: socket, payloadlen: int):`'
 - en: '`payload_b = b’’`'
   id: totrans-352
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`payload_b = b’’`'
 - en: '`length = payloadlen`'
   id: totrans-353
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`length = payloadlen`'
 - en: '`while True:`'
   id: totrans-354
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`while True:`'
 - en: '`recvd_b = s.recv(length)`'
   id: totrans-355
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`recvd_b = s.recv(length)`'
 - en: '`payload_b += recvd_b`'
   id: totrans-356
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`payload_b += recvd_b`'
 - en: '`if len(payload_b) == payloadlen:`'
   id: totrans-357
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`if len(payload_b) == payloadlen:`'
 - en: '`break`'
   id: totrans-358
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`break`'
 - en: '`length = payloadlen - len(payload_b)`'
   id: totrans-359
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`length = payloadlen - len(payload_b)`'
 - en: '`return payload_b`'
   id: totrans-360
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`return payload_b`'
 - en: '`def recvMsg(s: socket):`'
   id: totrans-361
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`def recvMsg(s: socket):`'
 - en: '`msghdr_b = s.recv(MSGHDR_SIZE)`'
   id: totrans-362
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`msghdr_b = s.recv(MSGHDR_SIZE)`'
 - en: '`msg = parseMsgHdr(msghdr_b)`'
   id: totrans-363
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`msg = parseMsgHdr(msghdr_b)`'
 - en: '`payloadlen = msg[‘length’]`'
   id: totrans-364
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`payloadlen = msg[‘length’]`'
 - en: '`payload_b = recvAll(s, payloadlen)`'
   id: totrans-365
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`payload_b = recvAll(s, payloadlen)`'
 - en: '``checkMessage(msg, payload_b)``'
   id: totrans-366
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '``checkMessage(msg, payload_b)``'
 - en: '`payload_m = mmap.mmap(-1, payloadlen + 1)`'
   id: totrans-367
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`payload_m = mmap.mmap(-1, payloadlen + 1)`'
 - en: '`payload_m.write(payload_b)`'
   id: totrans-368
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`payload_m.write(payload_b)`'
 - en: '`payload_m.seek(0)`'
   id: totrans-369
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`payload_m.seek(0)`'
 - en: '`msg[‘payload’] = {}`'
   id: totrans-370
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`msg[‘payload’] = {}`'
 - en: '`if payloadlen > 0:`'
   id: totrans-371
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`if payloadlen > 0:`'
 - en: '`msg[‘payload’] = CMD_FN_MAP[msg[‘command’]](payload_m, payloadlen)`'
   id: totrans-372
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`msg[‘payload’] = CMD_FN_MAP[msg[‘command’]](payload_m, payloadlen)`'
 - en: '`print(‘<== msg = %s’ % msg, file=flog)`'
   id: totrans-373
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`print(‘<== msg = %s’ % msg, file=flog)`'
 - en: '`return msg`'
   id: totrans-374
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`return msg`'
 - en: '**Program 7.6:** Program to receive and process messages based on command'
   id: totrans-375
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '**Program 7.6:** 基于命令接收和处理消息的程序'
 - en: 'The following code parses the `***version***` payload:'
   id: totrans-376
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 以下代码解析`***version***`载荷：
 - en: '`import ipaddress`'
   id: totrans-377
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`import ipaddress`'
 - en: '`import datetime`'
   id: totrans-378
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`import datetime`'
 - en: '`def parseIPAddress(ip_m: mmap):`'
   id: totrans-379
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`def parseIPAddress(ip_m: mmap):`'
 - en: '`addr = {}`'
   id: totrans-380
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`addr = {}`'
 - en: '`addr[‘service’] = int.from_bytes(ip_m.read(8), byteorder=’little’)`'
   id: totrans-381
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`addr[‘service’] = int.from_bytes(ip_m.read(8), byteorder=’little’)`'
 - en: '`parseServices(addr[‘service’])`'
   id: totrans-382
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`parseServices(addr[‘service’])`'
 - en: '`ip = ip_m.read(16)`'
   id: totrans-383
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`ip = ip_m.read(16)`'
 - en: '`if ip[0:12].hex() == “00000000000000000000ffff”:`'
   id: totrans-384
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`if ip[0:12].hex() == “00000000000000000000ffff”:`'
 - en: '`addr[‘version’] = ‘IPv4’`'
   id: totrans-385
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`addr[‘version’] = ‘IPv4’`'
 - en: '`addr[‘address’] = str(ipaddress.IPv4Address(ip[12:16]))`'
   id: totrans-386
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`addr[‘address’] = str(ipaddress.IPv4Address(ip[12:16]))`'
 - en: '`else:`'
   id: totrans-387
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`else:`'
 - en: '`addr[‘version’] = ‘IPv6’`'
   id: totrans-388
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`addr[‘version’] = ‘IPv6’`'
 - en: '`addr[‘address’] = str(ipaddress.IPv6Address(ip[0:16]))`'
   id: totrans-389
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`addr[‘address’] = str(ipaddress.IPv6Address(ip[0:16]))`'
 - en: '`addr[‘port’] = int.from_bytes(ip_m.read(2), byteorder=’big’)`'
   id: totrans-390
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`addr[‘port’] = int.from_bytes(ip_m.read(2), byteorder=’big’)`'
 - en: '`return addr`'
   id: totrans-391
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`return addr`'
 - en: '`def parseServices(services: int):`'
   id: totrans-392
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`def parseServices(services: int):`'
 - en: '`service_l = []`'
   id: totrans-393
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`service_l = []`'
 - en: '`if services == 0x00:`'
   id: totrans-394
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`if services == 0x00:`'
 - en: '`service_l.append(‘Unnamed’)`'
   id: totrans-395
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`service_l.append(‘Unnamed’)`'
 - en: '`if services & 0x01 == 0x01:`'
   id: totrans-396
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`if services & 0x01 == 0x01:`'
 - en: '`service_l.append(‘NODE_NETWORK’)`'
   id: totrans-397
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`service_l.append(‘NODE_NETWORK’)`'
 - en: '`if services & 0x02:`'
   id: totrans-398
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`if services & 0x02:`'
 - en: '`service_l.append(‘NODE_GETUTXO’)`'
   id: totrans-399
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`service_l.append(‘NODE_GETUTXO’)`'
 - en: '`if services & 0x04:`'
   id: totrans-400
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`if services & 0x04:`'
 - en: '`service_l.append(‘NODE_BLOOM’)`'
   id: totrans-401
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`service_l.append(‘NODE_BLOOM’)`'
 - en: '`if services & 0x08:`'
   id: totrans-402
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`if services & 0x08:`'
 - en: '`service_l.append(‘NODE_WITNESS’)`'
   id: totrans-403
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`service_l.append(‘NODE_WITNESS’)`'
 - en: '`if services & 1024:`'
   id: totrans-404
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`if services & 1024:`'
 - en: '`service_l.append(‘NODE_NETWORK_LIMITED’)`'
   id: totrans-405
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`service_l.append(‘NODE_NETWORK_LIMITED’)`'
 - en: '`print(‘Services: %d implies: %s’ % (services, service_l), file=flog)`'
   id: totrans-406
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`print(‘Services: %d implies: %s’ % (services, service_l), file=flog)`'
 - en: '`def parseVersionPayload(payload_m: mmap, payloadlen: int):`'
   id: totrans-407
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`def parseVersionPayload(payload_m: mmap, payloadlen: int):`'
 - en: '`payload = {}`'
   id: totrans-408
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`payload = {}`'
 - en: '`start = payload_m.tell()`'
   id: totrans-409
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`start = payload_m.tell()`'
 - en: '`payload[‘version’] = int.from_bytes(payload_m.read(4), byteorder=’little’)`'
   id: totrans-410
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`payload[‘version’] = int.from_bytes(payload_m.read(4), byteorder=’little’)`'
 - en: '`payload[‘services’] = int.from_bytes(payload_m.read(8), byteorder=’little’)`'
   id: totrans-411
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`payload[‘services’] = int.from_bytes(payload_m.read(8), byteorder=’little’)`'
 - en: '`parseServices(payload[‘services’])`'
   id: totrans-412
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`parseServices(payload[‘services’])`'
 - en: '`payload[‘timestamp’] = int.from_bytes(payload_m.read(8), byteorder=’little’)`'
   id: totrans-413
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`payload[‘timestamp’] = int.from_bytes(payload_m.read(8), byteorder=’little’)`'
 - en: '`payload[‘dt’] = datetime.datetime.fromtimestamp(payload[‘timestamp’]).strftime(‘%Y-%m-%d
     %H:%M:%S’)`'
   id: totrans-414
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`payload[‘dt’] = datetime.datetime.fromtimestamp(payload[‘timestamp’]).strftime(‘%Y-%m-%d
+    %H:%M:%S’)`'
 - en: '`payload[‘addr_recv’] = parseIPAddress(payload_m)`'
   id: totrans-415
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`payload[‘addr_recv’] = parseIPAddress(payload_m)`'
 - en: '`payload[‘addr_trans’] = parseIPAddress(payload_m)`'
   id: totrans-416
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`payload[‘addr_trans’] = parseIPAddress(payload_m)`'
 - en: '`payload[‘nonce’] = int.from_bytes(payload_m.read(8), byteorder=’little’)`'
   id: totrans-417
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`payload[‘nonce’] = int.from_bytes(payload_m.read(8), byteorder=’little’)`'
 - en: '`payload[‘user_agent_size’] = getVarInt(payload_m)`'
   id: totrans-418
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`payload[‘user_agent_size’] = getVarInt(payload_m)`'
 - en: '`payload[‘user_agent’] = payload_m.read(payload[‘user_agent_size’])`'
   id: totrans-419
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`payload[‘user_agent’] = payload_m.read(payload[‘user_agent_size’])`'
 - en: '`payload[‘block_height’] = int.from_bytes(payload_m.read(4), byteorder=’little’)`'
   id: totrans-420
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`payload[‘block_height’] = int.from_bytes(payload_m.read(4), byteorder=’little’)`'
 - en: '`if payload_m.tell() - start != payloadlen:`'
   id: totrans-421
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`if payload_m.tell() - start != payloadlen:`'
 - en: '`payload[‘relay’] = int.from_bytes(payload_m.read(1), byteorder=’little’)`'
   id: totrans-422
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`payload[‘relay’] = int.from_bytes(payload_m.read(1), byteorder=’little’)`'
 - en: '`return payload`'
   id: totrans-423
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`return payload`'
 - en: '**Program 7.7:** Program to parse version payload'
   id: totrans-424
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '**Program 7.7:** Program to parse version payload'
 - en: Bitcoin network messaging uses the same variable integer format as we had discussed
     in *[Chapter 6, Blockchain, Transactions, and Mining](c06.xhtml), [figure 6.25](c06.xhtml#fig6_25)*.
   id: totrans-425
@@ -2962,24 +3247,29 @@
   id: totrans-583
   prefs: []
   type: TYPE_NORMAL
+  zh: 新节点最初只有一个创世区块。它在`**getheaders**`请求中发送此区块的哈希。节点以`headers`消息响应，包含一个区块头哈希列表。比特币核心发送最多2000个区块哈希的列表。在接收到区块哈希后，节点验证区块哈希，然后向其对等方发送包含其收到的部分区块头哈希的`**getdata**`请求。由于节点与多个对等方连接，它可以向所有对等方请求不同的区块哈希集合。请求的对等方一个接一个地响应所有区块。一旦节点收到了请求的区块，它可以再次使用包含接收到的区块哈希列表的`**getdata**`请求。这个过程一直持续，直到节点接收到所有区块，并且节点的区块链完全与网络同步。
 - en: 'The following is the structure of the `**getheaders**`, `**headers**`*,* and
     `**getdata**` messages:'
   id: totrans-584
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下是`**getheaders**`、`**headers**`和`**getdata**`消息的结构：
 - en: '![](images/Figure-7.17.jpg)'
   id: totrans-585
   prefs: []
   type: TYPE_IMG
+  zh: '![](images/Figure-7.17.jpg)'
 - en: '**Figure 7.17:** Payload structure of getheaders and getdata'
   id: totrans-586
   prefs: []
   type: TYPE_NORMAL
+  zh: '**图7.17：** `getheaders`和`getdata`的负载结构'
 - en: The structure of the `**block**` is the same as we discussed in *[Chapter 6,
     Blockchain, Transactions, and Mining](c06.xhtml)* in *[figure 6.6](c06.xhtml#fig6_6)*.
   id: totrans-587
   prefs: []
   type: TYPE_NORMAL
+  zh: '`**block**`的结构与我们在*[第6章，区块链、交易和挖矿](c06.xhtml)*中讨论的*[图6.6](c06.xhtml#fig6_6)*相同。'
 - en: 'In the following code, we are only sending two `**getheaders**` requests: the
     first one is with only the genesis block hash, and the next one has hashes of
     32 received blocks. This means we expect to receive two sets of 2000 blocks. We
@@ -2988,747 +3278,934 @@
   id: totrans-588
   prefs: []
   type: TYPE_NORMAL
+  zh: 在以下代码中，我们仅发送了两个`**getheaders**`请求：第一个仅包含创世区块哈希，下一个包含32个接收到的区块哈希。这意味着我们期望接收两组2000个区块。我们对每个`headers`响应进行多个`**getdata**`请求。在以下代码中，每个`**getdata**`请求包含16个区块头哈希。
 - en: '`def getGenesisBlockHash():`'
   id: totrans-589
   prefs: []
   type: TYPE_NORMAL
+  zh: '`def getGenesisBlockHash():`'
 - en: '`blkhash = rpc_connection.getblockhash(0)`'
   id: totrans-590
   prefs: []
   type: TYPE_NORMAL
+  zh: '`blkhash = rpc_connection.getblockhash(0)`'
 - en: '`return blkhash`'
   id: totrans-591
   prefs: []
   type: TYPE_NORMAL
+  zh: '`return blkhash`'
 - en: '`def parseSendCompactPayload(payload_m: mmap, payloadlen = 0):`'
   id: totrans-592
   prefs: []
   type: TYPE_NORMAL
+  zh: '`def parseSendCompactPayload(payload_m: mmap, payloadlen = 0):`'
 - en: '`payload = {}`'
   id: totrans-593
   prefs: []
   type: TYPE_NORMAL
+  zh: '`payload = {}`'
 - en: '`payload[‘announce’] = int.from_bytes(payload_m.read(1), byteorder=’little’)`'
   id: totrans-594
   prefs: []
   type: TYPE_NORMAL
+  zh: '`payload[‘announce’] = int.from_bytes(payload_m.read(1), byteorder=’little’)`'
 - en: '`payload[‘version’] = int.from_bytes(payload_m.read(8), byteorder=’little’)`'
   id: totrans-595
   prefs: []
   type: TYPE_NORMAL
+  zh: '`payload[‘version’] = int.from_bytes(payload_m.read(8), byteorder=’little’)`'
 - en: '`return payload`'
   id: totrans-596
   prefs: []
   type: TYPE_NORMAL
+  zh: '`return payload`'
 - en: '`def parseFeeFilterPayload(payload_m: mmap, payloadlen = 0):`'
   id: totrans-597
   prefs: []
   type: TYPE_NORMAL
+  zh: '`def parseFeeFilterPayload(payload_m: mmap, payloadlen = 0):`'
 - en: '`payload = {}`'
   id: totrans-598
   prefs: []
   type: TYPE_NORMAL
+  zh: '`payload = {}`'
 - en: '`payload[‘feerate’] = int.from_bytes(payload_m.read(8), byteorder=’little’)`'
   id: totrans-599
   prefs: []
   type: TYPE_NORMAL
+  zh: '`payload[‘feerate’] = int.from_bytes(payload_m.read(8), byteorder=’little’)`'
 - en: '`return payload`'
   id: totrans-600
   prefs: []
   type: TYPE_NORMAL
+  zh: '`return payload`'
 - en: '``mempool_l_g = []``'
   id: totrans-601
   prefs: []
   type: TYPE_NORMAL
+  zh: '``mempool_l_g = []``'
 - en: '`def parseInvPayload(payload_m: mmap, payloadlen = 0):`'
   id: totrans-602
   prefs: []
   type: TYPE_NORMAL
+  zh: '`def parseInvPayload(payload_m: mmap, payloadlen = 0):`'
 - en: '`MSG_TX = 1`'
   id: totrans-603
   prefs: []
   type: TYPE_NORMAL
+  zh: '`MSG_TX = 1`'
 - en: '`payload = {}`'
   id: totrans-604
   prefs: []
   type: TYPE_NORMAL
+  zh: '`payload = {}`'
 - en: '`payload[‘count’] = getVarInt(payload_m)`'
   id: totrans-605
   prefs: []
   type: TYPE_NORMAL
+  zh: '`payload[‘count’] = getVarInt(payload_m)`'
 - en: '`payload[‘inventory’] = []`'
   id: totrans-606
   prefs: []
   type: TYPE_NORMAL
+  zh: '`payload[‘inventory’] = []`'
 - en: '`for i in range(payload[‘count’]):`'
   id: totrans-607
   prefs: []
   type: TYPE_NORMAL
+  zh: '`for i in range(payload[‘count’]):`'
 - en: '`inv = {}`'
   id: totrans-608
   prefs: []
   type: TYPE_NORMAL
+  zh: '`inv = {}`'
 - en: '`inv[‘type’] = int.from_bytes(payload_m.read(4), byteorder=’little’)`'
   id: totrans-609
   prefs: []
   type: TYPE_NORMAL
+  zh: '`inv[‘type’] = int.from_bytes(payload_m.read(4), byteorder=’little’)`'
 - en: '`if inv[‘type’] == MSG_TX:`'
   id: totrans-610
   prefs: []
   type: TYPE_NORMAL
+  zh: '`if inv[‘type’] == MSG_TX:`'
 - en: '`mempool = rpc_connection.getrawmempool(True)`'
   id: totrans-611
   prefs: []
   type: TYPE_NORMAL
+  zh: '`mempool = rpc_connection.getrawmempool(True)`'
 - en: '`if (len(mempool_l_g) > 0):`'
   id: totrans-612
   prefs: []
   type: TYPE_NORMAL
+  zh: '`if (len(mempool_l_g) > 0):`'
 - en: '`new_tx = set(mempool.keys()) ^ set(mempool_l_g[-1].keys())`'
   id: totrans-613
   prefs: []
   type: TYPE_NORMAL
+  zh: '`new_tx = set(mempool.keys()) ^ set(mempool_l_g[-1].keys())`'
 - en: '`if len(new_tx) > 0:`'
   id: totrans-614
   prefs: []
   type: TYPE_NORMAL
+  zh: '`if len(new_tx) > 0:`'
 - en: '``mempool_l_g.append(mempool)``'
   id: totrans-615
   prefs: []
   type: TYPE_NORMAL
+  zh: '``mempool_l_g.append(mempool)``'
 - en: '`print(‘inserted mempool’, file=flog)`'
   id: totrans-616
   prefs: []
   type: TYPE_NORMAL
+  zh: '`print(‘inserted mempool’, file=flog)`'
 - en: '`else:`'
   id: totrans-617
   prefs: []
   type: TYPE_NORMAL
+  zh: '`else:`'
 - en: '`mempool_l_g.append(mempool)`'
   id: totrans-618
   prefs: []
   type: TYPE_NORMAL
+  zh: '`mempool_l_g.append(mempool)`'
 - en: '`print(‘inserted mempool’, file=flog)`'
   id: totrans-619
   prefs: []
   type: TYPE_NORMAL
+  zh: '`print(‘inserted mempool’, file=flog)`'
 - en: '`inv[‘hash’] = payload_m.read(32)[::-1].hex()`'
   id: totrans-620
   prefs: []
   type: TYPE_NORMAL
+  zh: '`inv[‘hash’] = payload_m.read(32)[::-1].hex()`'
 - en: '`payload[‘inventory’].append(inv)`'
   id: totrans-621
   prefs: []
   type: TYPE_NORMAL
+  zh: '`payload[‘inventory’].append(inv)`'
 - en: '`return payload`'
   id: totrans-622
   prefs: []
   type: TYPE_NORMAL
+  zh: '`return payload`'
 - en: '`def parseBlockHeader(payload_m: mmap):`'
   id: totrans-623
   prefs: []
   type: TYPE_NORMAL
+  zh: '`def parseBlockHeader(payload_m: mmap):`'
 - en: '`hdr = {}`'
   id: totrans-624
   prefs: []
   type: TYPE_NORMAL
+  zh: '`hdr = {}`'
 - en: '`hdr[‘version’] = int.from_bytes(payload_m.read(4), byteorder=’little’)`'
   id: totrans-625
   prefs: []
   type: TYPE_NORMAL
+  zh: '`hdr[‘version’] = int.from_bytes(payload_m.read(4), byteorder=’little’)`'
 - en: '`hdr[‘prev_blockhash’] = payload_m.read(32)[::-1].hex()`'
   id: totrans-626
   prefs: []
   type: TYPE_NORMAL
+  zh: '`hdr[‘prev_blockhash’] = payload_m.read(32)[::-1].hex()`'
 - en: '`hdr[‘merkle_root’] = payload_m.read(32)[::-1].hex()`'
   id: totrans-627
   prefs: []
   type: TYPE_NORMAL
+  zh: '`hdr[‘merkle_root’] = payload_m.read(32)[::-1].hex()`'
 - en: '`hdr[‘timestamp’] = int.from_bytes(payload_m.read(4), byteorder=’little’)`'
   id: totrans-628
   prefs: []
   type: TYPE_NORMAL
+  zh: '`hdr[‘timestamp’] = int.from_bytes(payload_m.read(4), byteorder=’little’)`'
 - en: '`hdr[‘bits’] = payload_m.read(4)[::-1].hex()`'
   id: totrans-629
   prefs: []
   type: TYPE_NORMAL
+  zh: '`hdr[‘bits’] = payload_m.read(4)[::-1].hex()`'
 - en: '`hdr[‘nonce’] = payload_m.read(4)[::-1].hex()`'
   id: totrans-630
   prefs: []
   type: TYPE_NORMAL
+  zh: '`hdr[‘nonce’] = payload_m.read(4)[::-1].hex()`'
 - en: '`return hdr`'
   id: totrans-631
   prefs: []
   type: TYPE_NORMAL
+  zh: '`return hdr`'
 - en: '`def parseGetBlocksGetHeadersPayload(payload_m: mmap, payloadlen = 0):`'
   id: totrans-632
   prefs: []
   type: TYPE_NORMAL
+  zh: '`def parseGetBlocksGetHeadersPayload(payload_m: mmap, payloadlen = 0):`'
 - en: '`payload = {}`'
   id: totrans-633
   prefs: []
   type: TYPE_NORMAL
+  zh: '`payload = {}`'
 - en: '`payload[‘version’] = int.from_bytes(payload_m.read(4), byteorder=’little’)`'
   id: totrans-634
   prefs: []
   type: TYPE_NORMAL
+  zh: '`payload[‘version’] = int.from_bytes(payload_m.read(4), byteorder=’little’)`'
 - en: '`payload[‘hash count’] = getVarInt(payload_m)`'
   id: totrans-635
   prefs: []
   type: TYPE_NORMAL
+  zh: '`payload[‘hash count’] = getVarInt(payload_m)`'
 - en: '`payload[‘block locator hashes’] = []`'
   id: totrans-636
   prefs: []
   type: TYPE_NORMAL
+  zh: '`payload[‘block locator hashes’] = []`'
 - en: '`for i in range(payload[‘hash count’]):`'
   id: totrans-637
   prefs: []
   type: TYPE_NORMAL
+  zh: '`for i in range(payload[‘hash count’]):`'
 - en: '`h = payload_m.read(32)[::-1].hex()`'
   id: totrans-638
   prefs: []
   type: TYPE_NORMAL
+  zh: '`h = payload_m.read(32)[::-1].hex()`'
 - en: '`payload[‘block locator hashes’].append(h)`'
   id: totrans-639
   prefs: []
   type: TYPE_NORMAL
+  zh: '`payload[‘block locator hashes’].append(h)`'
 - en: '`payload[‘hash_stop’] = payload_m.read(32)[::-1].hex()`'
   id: totrans-640
   prefs: []
   type: TYPE_NORMAL
+  zh: '`payload[‘hash_stop’] = payload_m.read(32)[::-1].hex()`'
 - en: '`return payload`'
   id: totrans-641
   prefs: []
   type: TYPE_NORMAL
+  zh: '`return payload`'
 - en: '`def parseHeadersPayload(payload_m: mmap, payloadlen = 0):`'
   id: totrans-642
   prefs: []
   type: TYPE_NORMAL
+  zh: '`def parseHeadersPayload(payload_m: mmap, payloadlen = 0):`'
 - en: '`payload = {}`'
   id: totrans-643
   prefs: []
   type: TYPE_NORMAL
+  zh: '`payload = {}`'
 - en: '`payload[‘count’] = getVarInt(payload_m)`'
   id: totrans-644
   prefs: []
   type: TYPE_NORMAL
+  zh: '`payload[‘count’] = getVarInt(payload_m)`'
 - en: '`payload[‘headers’] = []`'
   id: totrans-645
   prefs: []
   type: TYPE_NORMAL
+  zh: '`payload[‘headers’] = []`'
 - en: '`for i in range(payload[‘count’]):`'
   id: totrans-646
   prefs: []
   type: TYPE_NORMAL
+  zh: '`for i in range(payload[‘count’]):`'
 - en: '`hdr = {}`'
   id: totrans-647
   prefs: []
   type: TYPE_NORMAL
+  zh: '`hdr = {}`'
 - en: '``start = payload_m.tell()``'
   id: totrans-648
   prefs: []
   type: TYPE_NORMAL
+  zh: '``start = payload_m.tell()``'
 - en: '`h_b = hashlib.sha256(payload_m.read(80)).digest()`'
   id: totrans-649
   prefs: []
   type: TYPE_NORMAL
+  zh: '`h_b = hashlib.sha256(payload_m.read(80)).digest()`'
 - en: '`hdr[‘blkhash’] = hashlib.sha256(h_b).digest()[::-1].hex()`'
   id: totrans-650
   prefs: []
   type: TYPE_NORMAL
+  zh: '`hdr[‘blkhash’] = hashlib.sha256(h_b).digest()[::-1].hex()`'
 - en: '`payload_m.seek(start)`'
   id: totrans-651
   prefs: []
   type: TYPE_NORMAL
+  zh: '`payload_m.seek(start)`'
 - en: '`hdr[‘header’] = parseBlockHeader(payload_m)`'
   id: totrans-652
   prefs: []
   type: TYPE_NORMAL
+  zh: '`hdr[‘header’] = parseBlockHeader(payload_m)`'
 - en: '`hdr[‘txn_count’] = getVarInt(payload_m)`'
   id: totrans-653
   prefs: []
   type: TYPE_NORMAL
+  zh: '`hdr[‘txn_count’] = getVarInt(payload_m)`'
 - en: '`payload[‘headers’].append(hdr)`'
   id: totrans-654
   prefs: []
   type: TYPE_NORMAL
+  zh: '`payload[‘headers’].append(hdr)`'
 - en: '`return payload`'
   id: totrans-655
   prefs: []
   type: TYPE_NORMAL
+  zh: '`return payload`'
 - en: '`def parseTxPayload(payload_m: mmap, payloadlen = 0):`'
   id: totrans-656
   prefs: []
   type: TYPE_NORMAL
+  zh: '`def parseTxPayload(payload_m: mmap, payloadlen = 0):`'
 - en: '``payload = {}``'
   id: totrans-657
   prefs: []
   type: TYPE_NORMAL
+  zh: '``payload = {}``'
 - en: '`payload[‘version’] = int.from_bytes(payload_m.read(4), byteorder=’little’)`'
   id: totrans-658
   prefs: []
   type: TYPE_NORMAL
+  zh: '`payload[‘version’] = int.from_bytes(payload_m.read(4), byteorder=’little’)`'
 - en: '`payload[‘tx_in count’] = getVarInt(payload_m)`'
   id: totrans-659
   prefs: []
   type: TYPE_NORMAL
+  zh: '`payload[‘tx_in count’] = getVarInt(payload_m)`'
 - en: '`payload[‘tx_in’] = []`'
   id: totrans-660
   prefs: []
   type: TYPE_NORMAL
+  zh: '`payload[‘tx_in’] = []`'
 - en: '`for i in range(payload[‘tx_in count’]):`'
   id: totrans-661
   prefs: []
   type: TYPE_NORMAL
+  zh: '`for i in range(payload[‘tx_in count’]):`'
 - en: '``txin = {}``'
   id: totrans-662
   prefs: []
   type: TYPE_NORMAL
+  zh: '``txin = {}``'
 - en: '`txin[‘prev_tx_hash’] = payload_m.read(32)[::-1].hex()`'
   id: totrans-663
   prefs: []
   type: TYPE_NORMAL
+  zh: '`txin[‘prev_tx_hash’] = payload_m.read(32)[::-1].hex()`'
 - en: '`txin[‘prev_tx_out_index’] = int.from_bytes(payload_m.read(4),`'
   id: totrans-664
   prefs: []
   type: TYPE_NORMAL
+  zh: '`txin[‘prev_tx_out_index’] = int.from_bytes(payload_m.read(4),`'
 - en: '`byteorder=’little’)`'
   id: totrans-665
   prefs: []
   type: TYPE_NORMAL
+  zh: '`byteorder=’little’)`'
 - en: '`txin[‘bytes_scriptsig’] = getVarInt(payload_m)`'
   id: totrans-666
   prefs: []
   type: TYPE_NORMAL
+  zh: '`txin[‘bytes_scriptsig’] = getVarInt(payload_m)`'
 - en: '`txin[‘sriptsig’] = payload_m.read(txin[‘bytes_scriptsig’]).hex()`'
   id: totrans-667
   prefs: []
   type: TYPE_NORMAL
+  zh: '`txin[‘sriptsig’] = payload_m.read(txin[‘bytes_scriptsig’]).hex()`'
 - en: '`txin[‘sequence’] = payload_m.read(4)[::-1].hex()`'
   id: totrans-668
   prefs: []
   type: TYPE_NORMAL
+  zh: '`txin[‘sequence’] = payload_m.read(4)[::-1].hex()`'
 - en: '`payload[‘tx_in’].append(txin)`'
   id: totrans-669
   prefs: []
   type: TYPE_NORMAL
+  zh: '`payload[‘tx_in’].append(txin)`'
 - en: '`payload[‘tx_out count’] = getVarInt(payload_m)`'
   id: totrans-670
   prefs: []
   type: TYPE_NORMAL
+  zh: '`payload[‘tx_out count’] = getVarInt(payload_m)`'
 - en: '`payload[‘tx_out’] = []`'
   id: totrans-671
   prefs: []
   type: TYPE_NORMAL
+  zh: '`payload[‘tx_out’] = []`'
 - en: '`for i in range(payload[‘tx_out count’]):`'
   id: totrans-672
   prefs: []
   type: TYPE_NORMAL
+  zh: '`for i in range(payload[‘tx_out count’]):`'
 - en: '``txout = {}``'
   id: totrans-673
   prefs: []
   type: TYPE_NORMAL
+  zh: '``txout = {}``'
 - en: '`txout[‘satoshis’] = int.from_bytes(payload_m.read(8), byteorder=’little’)`'
   id: totrans-674
   prefs: []
   type: TYPE_NORMAL
+  zh: '`txout[‘satoshis’] = int.from_bytes(payload_m.read(8), byteorder=’little’)`'
 - en: '`txout[‘bytes_scriptpubkey’] = getVarInt(payload_m)`'
   id: totrans-675
   prefs: []
   type: TYPE_NORMAL
+  zh: '`txout[‘bytes_scriptpubkey’] = getVarInt(payload_m)`'
 - en: '`txout[‘scriptpubkey’] = payload_m.read(txout[‘bytes_scriptpubkey’]).hex()`'
   id: totrans-676
   prefs: []
   type: TYPE_NORMAL
+  zh: '`txout[‘scriptpubkey’] = payload_m.read(txout[‘bytes_scriptpubkey’]).hex()`'
 - en: '`payload[‘tx_out’].append(txout)`'
   id: totrans-677
   prefs: []
   type: TYPE_NORMAL
+  zh: '`payload[‘tx_out’].append(txout)`'
 - en: '`payload[‘locktime’] = int.from_bytes(payload_m.read(4), byteorder=’little’)`'
   id: totrans-678
   prefs: []
   type: TYPE_NORMAL
+  zh: '`payload[‘locktime’] = int.from_bytes(payload_m.read(4), byteorder=’little’)`'
 - en: '`return payload`'
   id: totrans-679
   prefs: []
   type: TYPE_NORMAL
+  zh: '`return payload`'
 - en: '`def parseBlockPayload(payload_m: mmap, payloadlen = 0):`'
   id: totrans-680
   prefs: []
   type: TYPE_NORMAL
+  zh: '`def parseBlockPayload(payload_m: mmap, payloadlen = 0):`'
 - en: '``payload = {}``'
   id: totrans-681
   prefs: []
   type: TYPE_NORMAL
+  zh: '``payload = {}``'
 - en: '`payload[‘version’] = int.from_bytes(payload_m.read(4), byteorder=’little’)`'
   id: totrans-682
   prefs: []
   type: TYPE_NORMAL
+  zh: '`payload[‘version’] = int.from_bytes(payload_m.read(4), byteorder=’little’)`'
 - en: '`payload[‘prev_blockhash’] = payload_m.read(32)[::-1].hex()`'
   id: totrans-683
   prefs: []
   type: TYPE_NORMAL
+  zh: '`payload[‘prev_blockhash’] = payload_m.read(32)[::-1].hex()`'
 - en: '`payload[‘merkle_root’] = payload_m.read(32)[::-1].hex()`'
   id: totrans-684
   prefs: []
   type: TYPE_NORMAL
+  zh: '`payload[‘merkle_root’] = payload_m.read(32)[::-1].hex()`'
 - en: '`payload[‘timestamp’] = int.from_bytes(payload_m.read(4), byteorder=’little’)`'
   id: totrans-685
   prefs: []
   type: TYPE_NORMAL
+  zh: '`payload[‘timestamp’] = int.from_bytes(payload_m.read(4), byteorder=’little’)`'
 - en: '`payload[‘bits’] = payload_m.read(4)[::-1].hex()`'
   id: totrans-686
   prefs: []
   type: TYPE_NORMAL
+  zh: '`payload[‘bits’] = payload_m.read(4)[::-1].hex()`'
 - en: '`payload[‘nonce’] = payload_m.read(4)[::-1].hex()`'
   id: totrans-687
   prefs: []
   type: TYPE_NORMAL
+  zh: '`payload[‘nonce’] = payload_m.read(4)[::-1].hex()`'
 - en: '`payload[‘txn_count’] = getVarInt(payload_m)`'
   id: totrans-688
   prefs: []
   type: TYPE_NORMAL
+  zh: '`payload[‘txn_count’] = getVarInt(payload_m)`'
 - en: '`payload[‘txns’] = []`'
   id: totrans-689
   prefs: []
   type: TYPE_NORMAL
+  zh: '`payload[‘txns’] = []`'
 - en: '`for i in range(payload[‘txn_count’]):`'
   id: totrans-690
   prefs: []
   type: TYPE_NORMAL
+  zh: '`for i in range(payload[‘txn_count’]):`'
 - en: '`payload[‘txns’].append(parseTxPayload(payload_m))`'
   id: totrans-691
   prefs: []
   type: TYPE_NORMAL
+  zh: '`payload[‘txns’].append(parseTxPayload(payload_m))`'
 - en: '`return payload`'
   id: totrans-692
   prefs: []
   type: TYPE_NORMAL
+  zh: '`return payload`'
 - en: '`def createGetHeadersPayload(hdr_info_l: list, version: int):`'
   id: totrans-693
   prefs: []
   type: TYPE_NORMAL
+  zh: '`def createGetHeadersPayload(hdr_info_l: list, version: int):`'
 - en: '`version_b = struct.pack(‘<L’, version)`'
   id: totrans-694
   prefs: []
   type: TYPE_NORMAL
+  zh: '`version_b = struct.pack(‘<L’, version)`'
 - en: '`blk_locator_hashes_b = b’’`'
   id: totrans-695
   prefs: []
   type: TYPE_NORMAL
+  zh: '`blk_locator_hashes_b = b’’`'
 - en: '`count = 0`'
   id: totrans-696
   prefs: []
   type: TYPE_NORMAL
+  zh: '`count = 0`'
 - en: '`for i in range(len(hdr_info_l) - 1, len(hdr_info_l) - 32, -1):`'
   id: totrans-697
   prefs: []
   type: TYPE_NORMAL
+  zh: '`for i in range(len(hdr_info_l) - 1, len(hdr_info_l) - 32, -1):`'
 - en: '`if i < 1: # assuming first block is genesis`'
   id: totrans-698
   prefs: []
   type: TYPE_NORMAL
+  zh: '`if i < 1: # assuming first block is genesis`'
 - en: '`break`'
   id: totrans-699
   prefs: []
   type: TYPE_NORMAL
+  zh: '`break`'
 - en: '`blk_locator_hashes_b += bytes.fromhex(hdr_info_l[i][‘blkhash’])[::-1]`'
   id: totrans-700
   prefs: []
   type: TYPE_NORMAL
+  zh: '`blk_locator_hashes_b += bytes.fromhex(hdr_info_l[i][‘blkhash’])[::-1]`'
 - en: '`count += 1`'
   id: totrans-701
   prefs: []
   type: TYPE_NORMAL
+  zh: '`count += 1`'
 - en: '`blk_locator_hashes_b += bytes.fromhex(getGenesisBlockHash())[::-1]`'
   id: totrans-702
   prefs: []
   type: TYPE_NORMAL
+  zh: '`blk_locator_hashes_b += bytes.fromhex(getGenesisBlockHash())[::-1]`'
 - en: '`count += 1`'
   id: totrans-703
   prefs: []
   type: TYPE_NORMAL
+  zh: '`count += 1`'
 - en: '``hash_count_b = setVarInt(count)``'
   id: totrans-704
   prefs: []
   type: TYPE_NORMAL
+  zh: '``hash_count_b = setVarInt(count)``'
 - en: '`stop_hash_b = bytes(32)`'
   id: totrans-705
   prefs: []
   type: TYPE_NORMAL
+  zh: '`stop_hash_b = bytes(32)`'
 - en: '`payload = version_b \`'
   id: totrans-706
   prefs: []
   type: TYPE_NORMAL
+  zh: '`payload = version_b \`'
 - en: '`+ hash_count_b \`'
   id: totrans-707
   prefs: []
   type: TYPE_NORMAL
+  zh: '`+ hash_count_b \`'
 - en: '`+ blk_locator_hashes_b \`'
   id: totrans-708
   prefs: []
   type: TYPE_NORMAL
+  zh: '`+ blk_locator_hashes_b \`'
 - en: '`+ stop_hash_b`'
   id: totrans-709
   prefs: []
   type: TYPE_NORMAL
+  zh: '`+ stop_hash_b`'
 - en: '`return payload`'
   id: totrans-710
   prefs: []
   type: TYPE_NORMAL
+  zh: '`return payload`'
 - en: '`def waitForBlock(s: socket):`'
   id: totrans-711
   prefs: []
   type: TYPE_NORMAL
+  zh: '`def waitForBlock(s: socket):`'
 - en: '`while True:`'
   id: totrans-712
   prefs: []
   type: TYPE_NORMAL
+  zh: '`while True:`'
 - en: '``recvmsg = recvMsg(s)``'
   id: totrans-713
   prefs: []
   type: TYPE_NORMAL
+  zh: '``recvmsg = recvMsg(s)``'
 - en: '`if recvmsg[‘command’] == ‘block’:`'
   id: totrans-714
   prefs: []
   type: TYPE_NORMAL
+  zh: '`if recvmsg[‘command’] == ‘block’:`'
 - en: '`break`'
   id: totrans-715
   prefs: []
   type: TYPE_NORMAL
+  zh: '`break`'
 - en: '`elif recvmsg[‘command’] == ‘ping’:`'
   id: totrans-716
   prefs: []
   type: TYPE_NORMAL
+  zh: '`elif recvmsg[‘command’] == ‘ping’:`'
 - en: '``sendPongMessage(s, recvmsg)``'
   id: totrans-717
   prefs: []
   type: TYPE_NORMAL
+  zh: '``sendPongMessage(s, recvmsg)``'
 - en: '`return recvmsg`'
   id: totrans-718
   prefs: []
   type: TYPE_NORMAL
+  zh: '`return recvmsg`'
 - en: '`def sendGetHeadersMessage(s: socket, hdr_info_l: list, version: int):`'
   id: totrans-719
   prefs: []
   type: TYPE_NORMAL
+  zh: '`def sendGetHeadersMessage(s: socket, hdr_info_l: list, version: int):`'
 - en: '`sndcmd = ‘getheaders’`'
   id: totrans-720
   prefs: []
   type: TYPE_NORMAL
+  zh: '`sndcmd = ‘getheaders’`'
 - en: '``payload = createGetHeadersPayload(hdr_info_l, version)``'
   id: totrans-721
   prefs: []
   type: TYPE_NORMAL
+  zh: '``payload = createGetHeadersPayload(hdr_info_l, version)``'
 - en: '``sndmsg = createMessage(sndcmd, payload)``'
   id: totrans-722
   prefs: []
   type: TYPE_NORMAL
+  zh: '``sndmsg = createMessage(sndcmd, payload)``'
 - en: '``s.send(sndmsg)``'
   id: totrans-723
   prefs: []
   type: TYPE_NORMAL
+  zh: '``s.send(sndmsg)``'
 - en: '`print(‘==> cmd = %s, msg = %s’ % (sndcmd, sndmsg.hex()), file=flog)`'
   id: totrans-724
   prefs: []
   type: TYPE_NORMAL
+  zh: '`print(‘==> cmd = %s, msg = %s’ % (sndcmd, sndmsg.hex()), file=flog)`'
 - en: '`def waitForHeaders(s: socket):`'
   id: totrans-725
   prefs: []
   type: TYPE_NORMAL
+  zh: '`def waitForHeaders(s: socket):`'
 - en: '`while True:`'
   id: totrans-726
   prefs: []
   type: TYPE_NORMAL
+  zh: '`while True:`'
 - en: '``recvmsg = recvMsg(s)``'
   id: totrans-727
   prefs: []
   type: TYPE_NORMAL
+  zh: '``recvmsg = recvMsg(s)``'
 - en: '`if recvmsg[‘command’] == ‘headers’:`'
   id: totrans-728
   prefs: []
   type: TYPE_NORMAL
+  zh: '`if recvmsg[‘command’] == ‘headers’:`'
 - en: '`break`'
   id: totrans-729
   prefs: []
   type: TYPE_NORMAL
+  zh: '`break`'
 - en: '`elif recvmsg[‘command’] == ‘ping’:`'
   id: totrans-730
   prefs: []
   type: TYPE_NORMAL
+  zh: '`elif recvmsg[‘command’] == ‘ping’:`'
 - en: '``sendPongMessage(s, recvmsg)``'
   id: totrans-731
   prefs: []
   type: TYPE_NORMAL
+  zh: '``sendPongMessage(s, recvmsg)``'
 - en: '`return recvmsg`'
   id: totrans-732
   prefs: []
   type: TYPE_NORMAL
+  zh: '`return recvmsg`'
 - en: '`def createGetDataPayload(count: int, hash_l: list):`'
   id: totrans-733
   prefs: []
   type: TYPE_NORMAL
+  zh: '`def createGetDataPayload(count: int, hash_l: list):`'
 - en: '`MSG_BLOCK = 2`'
   id: totrans-734
   prefs: []
   type: TYPE_NORMAL
+  zh: '`MSG_BLOCK = 2`'
 - en: '`hash_count_b = setVarInt(count)`'
   id: totrans-735
   prefs: []
   type: TYPE_NORMAL
+  zh: '`hash_count_b = setVarInt(count)`'
 - en: '`hashes_b = b’’`'
   id: totrans-736
   prefs: []
   type: TYPE_NORMAL
+  zh: '`hashes_b = b’’`'
 - en: '`for i in range(count):`'
   id: totrans-737
   prefs: []
   type: TYPE_NORMAL
+  zh: '`for i in range(count):`'
 - en: '`type_b = struct.pack(‘<L’, MSG_BLOCK)`'
   id: totrans-738
   prefs: []
   type: TYPE_NORMAL
+  zh: '`type_b = struct.pack(‘<L’, MSG_BLOCK)`'
 - en: '`hashes_b += type_b + bytes.fromhex(hash_l[i][‘blkhash’])[::-1]`'
   id: totrans-739
   prefs: []
   type: TYPE_NORMAL
+  zh: '`hashes_b += type_b + bytes.fromhex(hash_l[i][‘blkhash’])[::-1]`'
 - en: '`payload_b = hash_count_b + hashes_b`'
   id: totrans-740
   prefs: []
   type: TYPE_NORMAL
+  zh: '`payload_b = hash_count_b + hashes_b`'
 - en: '`return payload_b`'
   id: totrans-741
   prefs: []
   type: TYPE_NORMAL
+  zh: '`return payload_b`'
 - en: '`def sendGetDataMessage(s: socket, count: int, hash_l: list):`'
   id: totrans-742
   prefs: []
   type: TYPE_NORMAL
+  zh: '`def sendGetDataMessage(s: socket, count: int, hash_l: list):`'
 - en: '`sndcmd = ‘getdata’`'
   id: totrans-743
   prefs: []
   type: TYPE_NORMAL
+  zh: '`sndcmd = ‘getdata’`'
 - en: '``payload = createGetDataPayload(count, hash_l)``'
   id: totrans-744
   prefs: []
   type: TYPE_NORMAL
+  zh: '``payload = createGetDataPayload(count, hash_l)``'
 - en: '``sndmsg = createMessage(sndcmd, payload)``'
   id: totrans-745
   prefs: []
   type: TYPE_NORMAL
+  zh: '``sndmsg = createMessage(sndcmd, payload)``'
 - en: '``s.send(sndmsg)``'
   id: totrans-746
   prefs: []
   type: TYPE_NORMAL
+  zh: '``s.send(sndmsg)``'
 - en: '`print(‘==> cmd = %s, msg = %s’ % (sndcmd, sndmsg.hex()), file=flog)`'
   id: totrans-747
   prefs: []
   type: TYPE_NORMAL
+  zh: '`print(‘==> cmd = %s, msg = %s’ % (sndcmd, sndmsg.hex()), file=flog)`'
 - en: '`def sendAndHandleGetHeaders(s: socket, hdr_info_l: list, version: int):`'
   id: totrans-748
   prefs: []
   type: TYPE_NORMAL
+  zh: '`def sendAndHandleGetHeaders(s: socket, hdr_info_l: list, version: int):`'
 - en: '``sendGetHeadersMessage(s, hdr_info_l, version)``'
   id: totrans-749
   prefs: []
   type: TYPE_NORMAL
+  zh: '``sendGetHeadersMessage(s, hdr_info_l, version)``'
 - en: '``recvmsg = waitForHeaders(s)``'
   id: totrans-750
   prefs: []
   type: TYPE_NORMAL
+  zh: '``recvmsg = waitForHeaders(s)``'
 - en: '`count = recvmsg[‘payload’][‘count’]`'
   id: totrans-751
   prefs: []
   type: TYPE_NORMAL
+  zh: '`count = recvmsg[‘payload’][‘count’]`'
 - en: '`for i in range(0, count, 16):`'
   id: totrans-752
   prefs: []
   type: TYPE_NORMAL
+  zh: '`for i in range(0, count, 16):`  '
 - en: '`lindex = i + 16 if i + 16 < count else count`'
   id: totrans-753
   prefs: []
   type: TYPE_NORMAL
+  zh: '`lindex = i + 16 if i + 16 < count else count`  '
 - en: '`print(i, lindex)`'
   id: totrans-754
   prefs: []
   type: TYPE_NORMAL
+  zh: '`print(i, lindex)`  '
 - en: '`blk_l = recvmsg[‘payload’][‘headers’][i:lindex]`'
   id: totrans-755
   prefs: []
   type: TYPE_NORMAL
+  zh: '`blk_l = recvmsg[‘payload’][‘headers’][i:lindex]`  '
 - en: '`sendGetDataMessage(s, lindex - i, blk_l)`'
   id: totrans-756
   prefs: []
   type: TYPE_NORMAL
+  zh: '`sendGetDataMessage(s, lindex - i, blk_l)`  '
 - en: '`for j in range(i, lindex):`'
   id: totrans-757
   prefs: []
   type: TYPE_NORMAL
+  zh: '`for j in range(i, lindex):`  '
 - en: '``waitForBlock(s)``'
   id: totrans-758
   prefs: []
   type: TYPE_NORMAL
+  zh: '``waitForBlock(s)``  '
 - en: '`return recvmsg`'
   id: totrans-759
   prefs: []
   type: TYPE_NORMAL
+  zh: '`return recvmsg`  '
 - en: '`def sendrecvHeadersData(s: socket, version: int):`'
   id: totrans-760
   prefs: []
   type: TYPE_NORMAL
+  zh: '`def sendrecvHeadersData(s: socket, version: int):`  '
 - en: '``recvmsg = sendAndHandleGetHeaders(s, [], version)``'
   id: totrans-761
   prefs: []
   type: TYPE_NORMAL
+  zh: '``recvmsg = sendAndHandleGetHeaders(s, [], version)``  '
 - en: '`sendAndHandleGetHeaders(s, recvmsg[‘payload’][‘headers’], version)`'
   id: totrans-762
   prefs: []
   type: TYPE_NORMAL
+  zh: '`sendAndHandleGetHeaders(s, recvmsg[‘payload’][‘headers’], version)`  '
 - en: '`def sendrecvHandler(s: socket, version: int):`'
   id: totrans-763
   prefs: []
   type: TYPE_NORMAL
+  zh: '`def sendrecvHandler(s: socket, version: int):`  '
 - en: '`if establishConnection(s, version) == False:`'
   id: totrans-764
   prefs: []
   type: TYPE_NORMAL
+  zh: '`if establishConnection(s, version) == False:`  '
 - en: '`print(‘Establish connection failed’, file=flog)`'
   id: totrans-765
   prefs: []
   type: TYPE_NORMAL
+  zh: '`print(‘Establish connection failed’, file=flog)`  '
 - en: '``return``'
   id: totrans-766
   prefs: []
   type: TYPE_NORMAL
+  zh: '``return``  '
 - en: '``sendrecvHeadersData(s, version)``'
   id: totrans-767
   prefs: []
   type: TYPE_NORMAL
+  zh: '``sendrecvHeadersData(s, version)``  '
 - en: '**Program 7.11:** Program for making IBD request to peer and receiving blocks'
   id: totrans-768
   prefs: []
   type: TYPE_NORMAL
+  zh: '**Program 7.11:** Program for making IBD request to peer and receiving blocks  '
 - en: 'This gives the following output. First, we send the `**getheaders**` request
     with genesis block hash and no hash stop:'
   id: totrans-769
   prefs: []
   type: TYPE_NORMAL
+  zh: 'This gives the following output. First, we send the `**getheaders**` request
+    with genesis block hash and no hash stop:  '
 - en: '![](images/Figure-7.18.jpg)'
   id: totrans-770
   prefs: []
   type: TYPE_IMG
+  zh: '![](images/Figure-7.18.jpg)  '
 - en: '**Figure 7.18:** getheaders request sent to the peer'
   id: totrans-771
   prefs: []
   type: TYPE_NORMAL
+  zh: '**Figure 7.18:** getheaders request sent to the peer  '
 - en: 'The following is the truncated ***headers*** response containing 2,000 headers:'
   id: totrans-772
   prefs: []
   type: TYPE_NORMAL
+  zh: 'The following is the truncated ***headers*** response containing 2,000 headers:  '
 - en: '![](images/Figure-7.19.jpg)'
   id: totrans-773
   prefs: []
   type: TYPE_IMG
+  zh: '![](images/Figure-7.19.jpg)  '
 - en: '**Figure 7.19:** Received headers response from the peer'
   id: totrans-774
   prefs: []
@@ -3869,253 +4346,316 @@
   id: totrans-795
   prefs: []
   type: TYPE_NORMAL
+  zh: '`**inv**` has the same payload structure as `**getdata**`. The `**tx**` message
+    has the same message structure as the Bitcoin transaction we discussed in *[Chapter
+    6, Blockchain, Transactions, and Mining](c06.xhtml), [figure 6.30](c06.xhtml#fig6_30)*.  '
 - en: 'The following code processes the `**inv**` message if it has the option `**MSG_TX**`:'
   id: totrans-796
   prefs: []
   type: TYPE_NORMAL
+  zh: 'The following code processes the `**inv**` message if it has the option `**MSG_TX**`:  '
 - en: '`def createGetDataTxPayload(payload: dict):`'
   id: totrans-797
   prefs: []
   type: TYPE_NORMAL
+  zh: '`def createGetDataTxPayload(payload: dict):`  '
 - en: '`MSG_TX = 1`'
   id: totrans-798
   prefs: []
   type: TYPE_NORMAL
+  zh: '`MSG_TX = 1`  '
 - en: '`data_b = b’’`'
   id: totrans-799
   prefs: []
   type: TYPE_NORMAL
+  zh: '`data_b = b’’`  '
 - en: '`count = 0`'
   id: totrans-800
   prefs: []
   type: TYPE_NORMAL
+  zh: '`count = 0`  '
 - en: '`for i in range(payload[‘count’]):`'
   id: totrans-801
   prefs: []
   type: TYPE_NORMAL
+  zh: '`for i in range(payload[‘count’]):`  '
 - en: '`# we only request data for tx`'
   id: totrans-802
   prefs: []
   type: TYPE_NORMAL
+  zh: '`# we only request data for tx`  '
 - en: '`if payload[‘inventory’][i][‘type’] == MSG_TX:`'
   id: totrans-803
   prefs: []
   type: TYPE_NORMAL
+  zh: '`if payload[‘inventory’][i][‘type’] == MSG_TX:`  '
 - en: '`type_b = struct.pack(‘<L’, payload[‘inventory’][i][‘type’])`'
   id: totrans-804
   prefs: []
   type: TYPE_NORMAL
+  zh: '`type_b = struct.pack(‘<L’, payload[‘inventory’][i][‘type’])`  '
 - en: '`hash_b = bytes.fromhex(payload[‘inventory’][i][‘hash’])[::-1]`'
   id: totrans-805
   prefs: []
   type: TYPE_NORMAL
+  zh: '`hash_b = bytes.fromhex(payload[‘inventory’][i][‘hash’])[::-1]`  '
 - en: '``data_b += type_b + hash_b``'
   id: totrans-806
   prefs: []
   type: TYPE_NORMAL
+  zh: '``data_b += type_b + hash_b``  '
 - en: '`count += 1`'
   id: totrans-807
   prefs: []
   type: TYPE_NORMAL
+  zh: '`count += 1`  '
 - en: '``count_b = setVarInt(count)``'
   id: totrans-808
   prefs: []
   type: TYPE_NORMAL
+  zh: '``count_b = setVarInt(count)``  '
 - en: '``payload_b = count_b + data_b``'
   id: totrans-809
   prefs: []
   type: TYPE_NORMAL
+  zh: '``payload_b = count_b + data_b``  '
 - en: '``return count, payload_b``'
   id: totrans-810
   prefs: []
   type: TYPE_NORMAL
+  zh: '``return count, payload_b``  '
 - en: '`def waitForInvMessage(s: socket):`'
   id: totrans-811
   prefs: []
   type: TYPE_NORMAL
+  zh: '`def waitForInvMessage(s: socket):`  '
 - en: '`while True:`'
   id: totrans-812
   prefs: []
   type: TYPE_NORMAL
+  zh: '`while True:`  '
 - en: '``recvmsg = recvMsg(s)``'
   id: totrans-813
   prefs: []
   type: TYPE_NORMAL
+  zh: '``recvmsg = recvMsg(s)``  '
 - en: '`if recvmsg[‘command’] == ‘inv’:`'
   id: totrans-814
   prefs: []
   type: TYPE_NORMAL
+  zh: '`if recvmsg[‘command’] == ‘inv’:`  '
 - en: '`break`'
   id: totrans-815
   prefs: []
   type: TYPE_NORMAL
+  zh: '`break`  '
 - en: '`elif recvmsg[‘command’] == ‘ping’:`'
   id: totrans-816
   prefs: []
   type: TYPE_NORMAL
+  zh: '`elif recvmsg[‘command’] == ‘ping’:`  '
 - en: '``sendPongMessage(s, recvmsg)``'
   id: totrans-817
   prefs: []
   type: TYPE_NORMAL
+  zh: '``sendPongMessage(s, recvmsg)``  '
 - en: '`print(‘Received INV’, file=flog)`'
   id: totrans-818
   prefs: []
   type: TYPE_NORMAL
+  zh: '`print(‘收到 INV’, file=flog)`'
 - en: '`return recvmsg`'
   id: totrans-819
   prefs: []
   type: TYPE_NORMAL
+  zh: '`return recvmsg`'
 - en: '`def waitForTxMsg(s: socket):`'
   id: totrans-820
   prefs: []
   type: TYPE_NORMAL
+  zh: '`def waitForTxMsg(s: socket):`'
 - en: '`while True:`'
   id: totrans-821
   prefs: []
   type: TYPE_NORMAL
+  zh: '`while True:`'
 - en: '``recvmsg = recvMsg(s)``'
   id: totrans-822
   prefs: []
   type: TYPE_NORMAL
+  zh: '``recvmsg = recvMsg(s)``'
 - en: '`if recvmsg[‘command’] == ‘tx’:`'
   id: totrans-823
   prefs: []
   type: TYPE_NORMAL
+  zh: '`if recvmsg[‘command’] == ‘tx’:`'
 - en: '``break``'
   id: totrans-824
   prefs: []
   type: TYPE_NORMAL
+  zh: '``break``'
 - en: '`elif recvmsg[‘command’] == ‘ping’:`'
   id: totrans-825
   prefs: []
   type: TYPE_NORMAL
+  zh: '`elif recvmsg[‘command’] == ‘ping’:`'
 - en: '`sendPongMessage(s, recvmsg)`'
   id: totrans-826
   prefs: []
   type: TYPE_NORMAL
+  zh: '`sendPongMessage(s, recvmsg)`'
 - en: '`def sendGetDataMessageWithTx(s: socket, recvmsg: dict):`'
   id: totrans-827
   prefs: []
   type: TYPE_NORMAL
+  zh: '`def sendGetDataMessageWithTx(s: socket, recvmsg: dict):`'
 - en: '`sndcmd = ‘getdata’`'
   id: totrans-828
   prefs: []
   type: TYPE_NORMAL
+  zh: '`sndcmd = ‘getdata’`'
 - en: '`count, payload = createGetDataTxPayload(recvmsg[‘payload’])`'
   id: totrans-829
   prefs: []
   type: TYPE_NORMAL
+  zh: '`count, payload = createGetDataTxPayload(recvmsg[‘payload’])`'
 - en: '``sndmsg = createMessage(sndcmd, payload)``'
   id: totrans-830
   prefs: []
   type: TYPE_NORMAL
+  zh: '``sndmsg = createMessage(sndcmd, payload)``'
 - en: '``s.send(sndmsg)``'
   id: totrans-831
   prefs: []
   type: TYPE_NORMAL
+  zh: '``s.send(sndmsg)``'
 - en: '`print(‘==> cmd = %s, msg = %s’ % (sndcmd, sndmsg.hex()), file=flog)`'
   id: totrans-832
   prefs: []
   type: TYPE_NORMAL
+  zh: '`print(‘==> 命令 = %s, 消息 = %s’ % (sndcmd, sndmsg.hex()), file=flog)`'
 - en: '`return count`'
   id: totrans-833
   prefs: []
   type: TYPE_NORMAL
+  zh: '`return count`'
 - en: '`def waitAndHandleInvTxnMessage(s: socket):`'
   id: totrans-834
   prefs: []
   type: TYPE_NORMAL
+  zh: '`def waitAndHandleInvTxnMessage(s: socket):`'
 - en: '``recvmsg = waitForInvMessage(s)``'
   id: totrans-835
   prefs: []
   type: TYPE_NORMAL
+  zh: '``recvmsg = waitForInvMessage(s)``'
 - en: '``count = sendGetDataMessageWithTx(s, recvmsg)``'
   id: totrans-836
   prefs: []
   type: TYPE_NORMAL
+  zh: '``count = sendGetDataMessageWithTx(s, recvmsg)``'
 - en: '`for i in range(count):`'
   id: totrans-837
   prefs: []
   type: TYPE_NORMAL
+  zh: '`for i in range(count):`'
 - en: '``waitForTxMsg(s)``'
   id: totrans-838
   prefs: []
   type: TYPE_NORMAL
+  zh: '``waitForTxMsg(s)``'
 - en: '`def sendrecvHeadersData(s: socket):`'
   id: totrans-839
   prefs: []
   type: TYPE_NORMAL
+  zh: '`def sendrecvHeadersData(s: socket):`'
 - en: '``waitAndHandleInvTxnMessage(s)``'
   id: totrans-840
   prefs: []
   type: TYPE_NORMAL
+  zh: '``waitAndHandleInvTxnMessage(s)``'
 - en: '`def sendrecvHandler(s: socket, version: int):`'
   id: totrans-841
   prefs: []
   type: TYPE_NORMAL
+  zh: '`def sendrecvHandler(s: socket, version: int):`'
 - en: '`if establishConnection(s, version) == False:`'
   id: totrans-842
   prefs: []
   type: TYPE_NORMAL
+  zh: '`if establishConnection(s, version) == False:`'
 - en: '`print(‘Establish connection failed’, file=flog)`'
   id: totrans-843
   prefs: []
   type: TYPE_NORMAL
+  zh: '`print(‘建立连接失败’, file=flog)`'
 - en: '``return``'
   id: totrans-844
   prefs: []
   type: TYPE_NORMAL
+  zh: '``return``'
 - en: '``sendrecvHeadersData(s)``'
   id: totrans-845
   prefs: []
   type: TYPE_NORMAL
+  zh: '``sendrecvHeadersData(s)``'
 - en: '**Program 7.12:** Program for receiving and processing inv messages for transactions'
   id: totrans-846
   prefs: []
   type: TYPE_NORMAL
+  zh: '**程序 7.12：** 用于接收和处理交易的 inv 消息的程序'
 - en: 'The following are the communication logs showing the received `**inv**` message
     and the sent `**getdata**` message with a request for two transactions:'
   id: totrans-847
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下是通信日志，显示了接收的 `**inv**` 消息和发送的带有对两笔交易的请求的 `**getdata**` 消息：
 - en: '![](images/Figure-7.24.jpg)'
   id: totrans-848
   prefs: []
   type: TYPE_IMG
+  zh: '![](images/Figure-7.24.jpg)'
 - en: '**Figure 7.24:** The inv message received from peer and the getdata request
     made to the peer in response'
   id: totrans-849
   prefs: []
   type: TYPE_NORMAL
+  zh: '**图 7.24：** 从节点接收的 `inv` 消息以及作为响应向节点发出的 `getdata` 请求'
 - en: 'We received two transactions as requested by our node:'
   id: totrans-850
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们根据我们的节点的请求收到了两笔交易：
 - en: '![](images/Figure-7.25.jpg)'
   id: totrans-851
   prefs: []
   type: TYPE_IMG
+  zh: '![](images/Figure-7.25.jpg)'
 - en: '**Figure 7.25:** tx messages containing transactions received from the peer
     in response to the getdata request'
   id: totrans-852
   prefs: []
   type: TYPE_NORMAL
+  zh: '**图 7.25：** 包含响应 `getdata` 请求从节点收到的交易的 tx 消息'
 - en: Our node can send a received transaction to other connected nodes by first sending
     an `**inv**` message with the transaction IDs of the received transactions. This
     process continues till all active nodes have received the transaction.
   id: totrans-853
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们的节点可以通过首先发送一个带有收到的交易的交易ID的 `**inv**` 消息来将收到的交易发送到其他连接的节点。这个过程一直持续到所有活动节点都收到了交易。
 - en: In this subtopic, you learned how a transaction is broadcast on the Bitcoin
     network.
   id: totrans-854
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这个子主题中，您学习了在比特币网络上如何广播交易。
 - en: '[Block broadcasting](toc.xhtml#s141a)'
   id: totrans-855
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: '[区块广播](toc.xhtml#s141a)'
 - en: Blocks also need to be propagated on the network as quickly as possible so that
     even the farthest node receives it in a reasonable time and, consequently, does
     not create too many or too long competing branches. Before we can receive recent
@@ -4966,596 +5506,745 @@
   id: totrans-1004
   prefs: []
   type: TYPE_NORMAL
+  zh: 当节点接收到一个新的区块时，它会发送一个包含该区块中所有交易的压缩或短 ID 的 `**cmpctblock**` 消息。为了解析和生成短 ID，我们需要安装以下
+    Python 包：
 - en: '![](images/Figure-7.36.jpg)'
   id: totrans-1005
   prefs: []
   type: TYPE_IMG
+  zh: '![](images/Figure-7.36.jpg)'
 - en: '**Figure 7.36:** pip package to generate and parse short IDs'
   id: totrans-1006
   prefs: []
   type: TYPE_NORMAL
+  zh: '**图 7.36：** 用于生成和解析短 ID 的 pip 包'
 - en: 'The following are the structures of the `**cmpctblock**`, `**getblocktxn**`,
     and `**blocktxn**` messages:'
   id: totrans-1007
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下是 `**cmpctblock**`、`**getblocktxn**` 和 `**blocktxn**` 消息的结构：
 - en: '![](images/Figure-7.37.jpg)'
   id: totrans-1008
   prefs: []
   type: TYPE_IMG
+  zh: '![](images/Figure-7.37.jpg)'
 - en: '**Figure 7.37:** Payload structure of cmpctblock, getblocktxn and blocktxn'
   id: totrans-1009
   prefs: []
   type: TYPE_NORMAL
+  zh: '**图 7.37：** cmpctblock、getblocktxn 和 blocktxn 的载荷结构'
 - en: 'The following are the details of these message payloads:'
   id: totrans-1010
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下是这些消息载荷的详细信息：
 - en: '![](images/233.jpg)'
   id: totrans-1011
   prefs: []
   type: TYPE_IMG
+  zh: '![](images/233.jpg)'
 - en: '**Table 7.4:** List of compact messages and their description'
   id: totrans-1012
   prefs: []
   type: TYPE_NORMAL
+  zh: '**表 7.4：** 紧凑消息列表及其描述'
 - en: 'In the following code, the connection is already established, and now we are
     sending and handling requests required for receiving new blocks:'
   id: totrans-1013
   prefs: []
   type: TYPE_NORMAL
+  zh: 在以下代码中，连接已经建立，现在我们正在发送和处理接收新区块所需的请求：
 - en: '`def parseShortIds(payload_m: mmap, shortids_len: int):`'
   id: totrans-1014
   prefs: []
   type: TYPE_NORMAL
+  zh: '`def parseShortIds(payload_m: mmap, shortids_len: int):`'
 - en: '`shortids = []`'
   id: totrans-1015
   prefs: []
   type: TYPE_NORMAL
+  zh: '`shortids = []`'
 - en: '`for i in range(shortids_len):`'
   id: totrans-1016
   prefs: []
   type: TYPE_NORMAL
+  zh: '`for i in range(shortids_len):`'
 - en: '`shortids.append(payload_m.read(6).hex())`'
   id: totrans-1017
   prefs: []
   type: TYPE_NORMAL
+  zh: '`shortids.append(payload_m.read(6).hex())`'
 - en: '`return shortids`'
   id: totrans-1018
   prefs: []
   type: TYPE_NORMAL
+  zh: '`return shortids`'
 - en: '`def parsePrefilledTxn(payload_m: mmap, prefilledtxn_len: int):`'
   id: totrans-1019
   prefs: []
   type: TYPE_NORMAL
+  zh: '`def parsePrefilledTxn(payload_m: mmap, prefilledtxn_len: int):`'
 - en: '`prefilledtxn_l = []`'
   id: totrans-1020
   prefs: []
   type: TYPE_NORMAL
+  zh: '`prefilledtxn_l = []`'
 - en: '`for i in range(prefilledtxn_len):`'
   id: totrans-1021
   prefs: []
   type: TYPE_NORMAL
+  zh: '`for i in range(prefilledtxn_len):`'
 - en: '`prefilledtxn = {}`'
   id: totrans-1022
   prefs: []
   type: TYPE_NORMAL
+  zh: '`prefilledtxn = {}`'
 - en: '`prefilledtxn[‘index’] = getVarInt(payload_m)`'
   id: totrans-1023
   prefs: []
   type: TYPE_NORMAL
+  zh: '`prefilledtxn[‘index’] = getVarInt(payload_m)`'
 - en: '`prefilledtxn[‘tx’] = parseTxPayload(payload_m)`'
   id: totrans-1024
   prefs: []
   type: TYPE_NORMAL
+  zh: '`prefilledtxn[‘tx’] = parseTxPayload(payload_m)`'
 - en: '`prefilledtxn_l.append(prefilledtxn)`'
   id: totrans-1025
   prefs: []
   type: TYPE_NORMAL
+  zh: '`prefilledtxn_l.append(prefilledtxn)`'
 - en: '`return prefilledtxn_l`'
   id: totrans-1026
   prefs: []
   type: TYPE_NORMAL
+  zh: '`return prefilledtxn_l`'
 - en: '`def parseCmpctBlockPayload(payload_m: mmap, payloadlen = 0):`'
   id: totrans-1027
   prefs: []
   type: TYPE_NORMAL
+  zh: '`def parseCmpctBlockPayload(payload_m: mmap, payloadlen = 0):`'
 - en: '`payload = {}`'
   id: totrans-1028
   prefs: []
   type: TYPE_NORMAL
+  zh: '`payload = {}`'
 - en: '`pos = payload_m.tell()`'
   id: totrans-1029
   prefs: []
   type: TYPE_NORMAL
+  zh: '`pos = payload_m.tell()`'
 - en: '`payload[‘hdr_nonce’] = payload_m.read(88).hex()`'
   id: totrans-1030
   prefs: []
   type: TYPE_NORMAL
+  zh: '`payload[‘hdr_nonce’] = payload_m.read(88).hex()`'
 - en: '`payload_m.seek(pos)`'
   id: totrans-1031
   prefs: []
   type: TYPE_NORMAL
+  zh: '`payload_m.seek(pos)`'
 - en: '`payload[‘header’] = parseBlockHeader(payload_m)`'
   id: totrans-1032
   prefs: []
   type: TYPE_NORMAL
+  zh: '`payload[‘header’] = parseBlockHeader(payload_m)`'
 - en: '`payload[‘nonce’] = payload_m.read(8)[::-1].hex()`'
   id: totrans-1033
   prefs: []
   type: TYPE_NORMAL
+  zh: '`payload[‘nonce’] = payload_m.read(8)[::-1].hex()`'
 - en: '`payload[‘shortids_length’] = getVarInt(payload_m)`'
   id: totrans-1034
   prefs: []
   type: TYPE_NORMAL
+  zh: '`payload[‘shortids_length’] = getVarInt(payload_m)`'
 - en: '`payload[‘shortids’] = parseShortIds(payload_m, payload[‘shortids_length’])`'
   id: totrans-1035
   prefs: []
   type: TYPE_NORMAL
+  zh: '`payload[‘shortids’] = parseShortIds(payload_m, payload[‘shortids_length’])`'
 - en: '`payload[‘prefilledtxn_length’] = getVarInt(payload_m)`'
   id: totrans-1036
   prefs: []
   type: TYPE_NORMAL
+  zh: '`payload[‘prefilledtxn_length’] = getVarInt(payload_m)`'
 - en: '`payload[‘prefilledtxn’] = parsePrefilledTxn(payload_m, payload[‘prefilledtxn_length’])`'
   id: totrans-1037
   prefs: []
   type: TYPE_NORMAL
+  zh: '`payload[‘prefilledtxn’] = parsePrefilledTxn(payload_m, payload[‘prefilledtxn_length’])`'
 - en: '`return payload`'
   id: totrans-1038
   prefs: []
   type: TYPE_NORMAL
+  zh: '`return payload`'
 - en: '`def parseBlockTxnPayload(payload_m: mmap, payloadlen = 0):`'
   id: totrans-1039
   prefs: []
   type: TYPE_NORMAL
+  zh: '`def parseBlockTxnPayload(payload_m: mmap, payloadlen = 0):`'
 - en: '`payload = {}`'
   id: totrans-1040
   prefs: []
   type: TYPE_NORMAL
+  zh: '`payload = {}`'
 - en: '`payload[‘blkhash’] = payload_m.read(32)[::-1].hex()`'
   id: totrans-1041
   prefs: []
   type: TYPE_NORMAL
+  zh: '`payload[‘blkhash’] = payload_m.read(32)[::-1].hex()`'
 - en: '`payload[‘txn_len’] = getVarInt(payload_m)`'
   id: totrans-1042
   prefs: []
   type: TYPE_NORMAL
+  zh: '`payload[‘txn_len’] = getVarInt(payload_m)`'
 - en: '`payload[‘txn’] = []`'
   id: totrans-1043
   prefs: []
   type: TYPE_NORMAL
+  zh: '`payload[‘txn’] = []`'
 - en: '`for i in range(payload[‘txn_len’]):`'
   id: totrans-1044
   prefs: []
   type: TYPE_NORMAL
+  zh: '`for i in range(payload[‘txn_len’]):`'
 - en: '`txn = parseTxPayload(payload_m)`'
   id: totrans-1045
   prefs: []
   type: TYPE_NORMAL
+  zh: '`txn = parseTxPayload(payload_m)`'
 - en: '`payload[‘txn’].append(txn)`'
   id: totrans-1046
   prefs: []
   type: TYPE_NORMAL
+  zh: '`payload[‘txn’].append(txn)`'
 - en: '`return payload`'
   id: totrans-1047
   prefs: []
   type: TYPE_NORMAL
+  zh: '`return payload`'
 - en: '`def createSendCompactPayload(announce: int, version: int):`'
   id: totrans-1048
   prefs: []
   type: TYPE_NORMAL
+  zh: '`def createSendCompactPayload(announce: int, version: int):`'
 - en: '`announce_b = struct.pack(‘<B’, announce)`'
   id: totrans-1049
   prefs: []
   type: TYPE_NORMAL
+  zh: '`announce_b = struct.pack(‘<B’, announce)`'
 - en: '`version_b = struct.pack(‘<Q’, version)`'
   id: totrans-1050
   prefs: []
   type: TYPE_NORMAL
+  zh: '`version_b = struct.pack(‘<Q’, version)`'
 - en: '`payload = announce_b + version_b`'
   id: totrans-1051
   prefs: []
   type: TYPE_NORMAL
+  zh: '`payload = announce_b + version_b`'
 - en: '`return payload`'
   id: totrans-1052
   prefs: []
   type: TYPE_NORMAL
+  zh: '`return payload`'
 - en: '`def createHeadersPayloadNoHeaders():`'
   id: totrans-1053
   prefs: []
   type: TYPE_NORMAL
+  zh: '`def createHeadersPayloadNoHeaders():`'
 - en: '`cnt_b = setVarInt(0)`'
   id: totrans-1054
   prefs: []
   type: TYPE_NORMAL
+  zh: '`cnt_b = setVarInt(0)`'
 - en: '`headers_b = b’’`'
   id: totrans-1055
   prefs: []
   type: TYPE_NORMAL
+  zh: '`headers_b = b’’`'
 - en: '`payload = cnt_b + headers_b`'
   id: totrans-1056
   prefs: []
   type: TYPE_NORMAL
+  zh: '`payload = cnt_b + headers_b`'
 - en: '`return payload`'
   id: totrans-1057
   prefs: []
   type: TYPE_NORMAL
+  zh: '`return payload`'
 - en: '`def createGetBlockTxnPayload(payload: dict, shortIDs_index_l: list):`'
   id: totrans-1058
   prefs: []
   type: TYPE_NORMAL
+  zh: '`def createGetBlockTxnPayload(payload: dict, shortIDs_index_l: list):`'
 - en: '`hdr_b = bytes.fromhex(payload[‘hdr_nonce’])[0:80] #header`'
   id: totrans-1059
   prefs: []
   type: TYPE_NORMAL
+  zh: '`hdr_b = bytes.fromhex(payload[‘hdr_nonce’])[0:80] #header`'
 - en: '`blkhash_b = hashlib.sha256(hashlib.sha256(hdr_b).digest()).digest()`'
   id: totrans-1060
   prefs: []
   type: TYPE_NORMAL
+  zh: '`blkhash_b = hashlib.sha256(hashlib.sha256(hdr_b).digest()).digest()`'
 - en: '`print(‘blkhash = %s’ % blkhash_b[::-1].hex())`'
   id: totrans-1061
   prefs: []
   type: TYPE_NORMAL
+  zh: '`print(‘blkhash = %s’ % blkhash_b[::-1].hex())`'
 - en: '`indexes_len_b = setVarInt(len(shortIDs_index_l))`'
   id: totrans-1062
   prefs: []
   type: TYPE_NORMAL
+  zh: '`indexes_len_b = setVarInt(len(shortIDs_index_l))`'
 - en: '`indexes_b = b’’`'
   id: totrans-1063
   prefs: []
   type: TYPE_NORMAL
+  zh: '`indexes_b = b’’`'
 - en: '`for shortIDs_index in shortIDs_index_l:`'
   id: totrans-1064
   prefs: []
   type: TYPE_NORMAL
+  zh: '`for shortIDs_index in shortIDs_index_l:`'
 - en: '`indexes_b += setVarInt(shortIDs_index)`'
   id: totrans-1065
   prefs: []
   type: TYPE_NORMAL
+  zh: '`indexes_b += setVarInt(shortIDs_index)`'
 - en: '`payload = blkhash_b + indexes_len_b + indexes_b`'
   id: totrans-1066
   prefs: []
   type: TYPE_NORMAL
+  zh: '`payload = blkhash_b + indexes_len_b + indexes_b`'
 - en: '`return payload`'
   id: totrans-1067
   prefs: []
   type: TYPE_NORMAL
+  zh: '`return payload`'
 - en: '`def sendSendCompactMessage(s: socket):`'
   id: totrans-1068
   prefs: []
   type: TYPE_NORMAL
+  zh: '`def sendSendCompactMessage(s: socket):`'
 - en: '`# send sendcmpct message for Segwit`'
   id: totrans-1069
   prefs: []
   type: TYPE_NORMAL
+  zh: '`# send sendcmpct message for Segwit`'
 - en: '`sndcmd = ‘sendcmpct’`'
   id: totrans-1070
   prefs: []
   type: TYPE_NORMAL
+  zh: '`sndcmd = ‘sendcmpct’`'
 - en: '`payload = createSendCompactPayload(1, 2)`'
   id: totrans-1071
   prefs: []
   type: TYPE_NORMAL
+  zh: '`payload = createSendCompactPayload(1, 2)`'
 - en: '`sndmsg = createMessage(sndcmd, payload)`'
   id: totrans-1072
   prefs: []
   type: TYPE_NORMAL
+  zh: '`sndmsg = createMessage(sndcmd, payload)`'
 - en: '`s.send(sndmsg)`'
   id: totrans-1073
   prefs: []
   type: TYPE_NORMAL
+  zh: '`s.send(sndmsg)`'
 - en: '`print(‘==> cmd = %s, msg = %s’ % (sndcmd, sndmsg.hex()), file=flog)`'
   id: totrans-1074
   prefs: []
   type: TYPE_NORMAL
+  zh: '`print(‘==> cmd = %s, msg = %s’ % (sndcmd, sndmsg.hex()), file=flog)`'
 - en: '`# send sendcmpct message for others`'
   id: totrans-1075
   prefs: []
   type: TYPE_NORMAL
+  zh: '`# send sendcmpct message for others`'
 - en: '`sndcmd = ‘sendcmpct’`'
   id: totrans-1076
   prefs: []
   type: TYPE_NORMAL
+  zh: '`sndcmd = ‘sendcmpct’`'
 - en: '`payload = createSendCompactPayload(1, 1)`'
   id: totrans-1077
   prefs: []
   type: TYPE_NORMAL
+  zh: '`payload = createSendCompactPayload(1, 1)`'
 - en: '`sndmsg = createMessage(sndcmd, payload)`'
   id: totrans-1078
   prefs: []
   type: TYPE_NORMAL
+  zh: '`sndmsg = createMessage(sndcmd, payload)`'
 - en: '`s.send(sndmsg)`'
   id: totrans-1079
   prefs: []
   type: TYPE_NORMAL
+  zh: '`s.send(sndmsg)`'
 - en: '`print(‘==> cmd = %s, msg = %s’ % (sndcmd, sndmsg.hex()), file=flog)`'
   id: totrans-1080
   prefs: []
   type: TYPE_NORMAL
+  zh: '`print(‘==> cmd = %s, msg = %s’ % (sndcmd, sndmsg.hex()), file=flog)`'
 - en: '`def sendHeadersMessage(s: socket):`'
   id: totrans-1081
   prefs: []
   type: TYPE_NORMAL
+  zh: '`def sendHeadersMessage(s: socket):`'
 - en: '`# send header message`'
   id: totrans-1082
   prefs: []
   type: TYPE_NORMAL
+  zh: '`# send header message`'
 - en: '`sndcmd = ‘headers’`'
   id: totrans-1083
   prefs: []
   type: TYPE_NORMAL
+  zh: '`sndcmd = ‘headers’`'
 - en: '`payload = createHeadersPayloadNoHeaders()`'
   id: totrans-1084
   prefs: []
   type: TYPE_NORMAL
+  zh: '`payload = createHeadersPayloadNoHeaders()`'
 - en: '`sndmsg = createMessage(sndcmd, payload)`'
   id: totrans-1085
   prefs: []
   type: TYPE_NORMAL
+  zh: '`sndmsg = createMessage(sndcmd, payload)`'
 - en: '`s.send(sndmsg)`'
   id: totrans-1086
   prefs: []
   type: TYPE_NORMAL
+  zh: '`s.send(sndmsg)`'
 - en: '`print(‘==> cmd = %s, msg = %s’ % (sndcmd, sndmsg.hex()), file=flog)`'
   id: totrans-1087
   prefs: []
   type: TYPE_NORMAL
+  zh: '`print(‘==> cmd = %s, msg = %s’ % (sndcmd, sndmsg.hex()), file=flog)`'
 - en: '`def convertTxIDs2ShortIDs(payload: dict, txid_l: list):`'
   id: totrans-1088
   prefs: []
   type: TYPE_NORMAL
+  zh: '`def convertTxIDs2ShortIDs(payload: dict, txid_l: list):`'
 - en: '`hdr_nonce_b = bytes.fromhex(payload[‘hdr_nonce’])`'
   id: totrans-1089
   prefs: []
   type: TYPE_NORMAL
+  zh: '`hdr_nonce_b = bytes.fromhex(payload[‘hdr_nonce’])`'
 - en: '`shortids_l = []`'
   id: totrans-1090
   prefs: []
   type: TYPE_NORMAL
+  zh: '`shortids_l = []`'
 - en: '`for txid in txid_l:`'
   id: totrans-1091
   prefs: []
   type: TYPE_NORMAL
+  zh: '`for txid in txid_l:`'
 - en: '`txid_b = bytes.fromhex(txid)[::-1]`'
   id: totrans-1092
   prefs: []
   type: TYPE_NORMAL
+  zh: '`txid_b = bytes.fromhex(txid)[::-1]`'
 - en: '`h_b = hashlib.sha256(hdr_nonce_b).digest()[0:16]`'
   id: totrans-1093
   prefs: []
   type: TYPE_NORMAL
+  zh: '`h_b = hashlib.sha256(hdr_nonce_b).digest()[0:16]`'
 - en: '`sip = siphash.SipHash_2_4(h_b, txid_b)`'
   id: totrans-1094
   prefs: []
   type: TYPE_NORMAL
+  zh: '`sip = siphash.SipHash_2_4(h_b, txid_b)`'
 - en: '`siphash_b = sip.digest()`'
   id: totrans-1095
   prefs: []
   type: TYPE_NORMAL
+  zh: '`siphash_b = sip.digest()`'
 - en: '`shortid = siphash_b[:-2].hex()`'
   id: totrans-1096
   prefs: []
   type: TYPE_NORMAL
+  zh: '`shortid = siphash_b[:-2].hex()`'
 - en: '`shortid_l = siphash_b[2:].hex()`'
   id: totrans-1097
   prefs: []
   type: TYPE_NORMAL
+  zh: '`shortid_l = siphash_b[2:].hex()`'
 - en: '`shortids_l.append(shortid)`'
   id: totrans-1098
   prefs: []
   type: TYPE_NORMAL
+  zh: '`shortids_l.append(shortid)`'
 - en: '`return shortids_l`'
   id: totrans-1099
   prefs: []
   type: TYPE_NORMAL
+  zh: '`return shortids_l`'
 - en: '`def findMissingShortIDs(payload: dict):`'
   id: totrans-1100
   prefs: []
   type: TYPE_NORMAL
+  zh: '`def findMissingShortIDs(payload: dict):`'
 - en: '`for i in range(len(mempool_l_g)):`'
   id: totrans-1101
   prefs: []
   type: TYPE_NORMAL
+  zh: '`for i in range(len(mempool_l_g)):`'
 - en: '`stored_mempool = mempool_l_g[-1-i]`'
   id: totrans-1102
   prefs: []
   type: TYPE_NORMAL
+  zh: '`stored_mempool = mempool_l_g[-1-i]`'
 - en: '`txid_l = []`'
   id: totrans-1103
   prefs: []
   type: TYPE_NORMAL
+  zh: '`txid_l = []`'
 - en: '`for k, v in stored_mempool.items():`'
   id: totrans-1104
   prefs: []
   type: TYPE_NORMAL
+  zh: '`for k, v in stored_mempool.items():`'
 - en: '``if ‘wtxid’ in v:``'
   id: totrans-1105
   prefs: []
   type: TYPE_NORMAL
+  zh: '``if ‘wtxid’ in v:``'
 - en: '`txid_l.append(v[‘wtxid’])`'
   id: totrans-1106
   prefs: []
   type: TYPE_NORMAL
+  zh: '`txid_l.append(v[‘wtxid’])`'
 - en: '`else:`'
   id: totrans-1107
   prefs: []
   type: TYPE_NORMAL
+  zh: '`else:`'
 - en: '`txid_l.append(k)`'
   id: totrans-1108
   prefs: []
   type: TYPE_NORMAL
+  zh: '`txid_l.append(k)`'
 - en: '`shortIDs = convertTxIDs2ShortIDs(payload, txid_l)`'
   id: totrans-1109
   prefs: []
   type: TYPE_NORMAL
+  zh: '`shortIDs = convertTxIDs2ShortIDs(payload, txid_l)`'
 - en: '`shortIDs_index_l = []`'
   id: totrans-1110
   prefs: []
   type: TYPE_NORMAL
+  zh: '`shortIDs_index_l = []`'
 - en: '`for recvd_shortID in payload[‘shortids’]:`'
   id: totrans-1111
   prefs: []
   type: TYPE_NORMAL
+  zh: '`for recvd_shortID in payload[‘shortids’]:`'
 - en: '`if recvd_shortID not in shortIDs:`'
   id: totrans-1112
   prefs: []
   type: TYPE_NORMAL
+  zh: '`if recvd_shortID not in shortIDs:`'
 - en: '`shortIDs_index_l.append(payload[‘shortids’].index(recvd_shortID) + 1)`'
   id: totrans-1113
   prefs: []
   type: TYPE_NORMAL
+  zh: '`shortIDs_index_l.append(payload[‘shortids’].index(recvd_shortID) + 1)`'
 - en: '`if len(shortIDs_index_l) > 0:`'
   id: totrans-1114
   prefs: []
   type: TYPE_NORMAL
+  zh: '`if len(shortIDs_index_l) > 0:`'
 - en: '`break`'
   id: totrans-1115
   prefs: []
   type: TYPE_NORMAL
+  zh: '`break`'
 - en: '`return shortIDs_index_l`'
   id: totrans-1116
   prefs: []
   type: TYPE_NORMAL
+  zh: '`return shortIDs_index_l`'
 - en: '`def waitForCmpctBlock(s: socket):`'
   id: totrans-1117
   prefs: []
   type: TYPE_NORMAL
+  zh: '`def waitForCmpctBlock(s: socket):`'
 - en: '`while True:`'
   id: totrans-1118
   prefs: []
   type: TYPE_NORMAL
+  zh: '`while True:`'
 - en: '`recvmsg = recvMsg(s)`'
   id: totrans-1119
   prefs: []
   type: TYPE_NORMAL
+  zh: '`recvmsg = recvMsg(s)`'
 - en: '`if recvmsg[‘command’] == ‘cmpctblock’:`'
   id: totrans-1120
   prefs: []
   type: TYPE_NORMAL
+  zh: '`if recvmsg[‘command’] == ‘cmpctblock’:`'
 - en: '`return recvmsg`'
   id: totrans-1121
   prefs: []
   type: TYPE_NORMAL
+  zh: '`return recvmsg`'
 - en: '`elif recvmsg[‘command’] == ‘ping’:`'
   id: totrans-1122
   prefs: []
   type: TYPE_NORMAL
+  zh: '`elif recvmsg[‘command’] == ‘ping’:`'
 - en: '`sendPongMessage(s, recvmsg)`'
   id: totrans-1123
   prefs: []
   type: TYPE_NORMAL
+  zh: '`sendPongMessage(s, recvmsg)`'
 - en: '`return recvmsg`'
   id: totrans-1124
   prefs: []
   type: TYPE_NORMAL
+  zh: '`return recvmsg`'
 - en: '`def sendGetBlockTxn(s: socket, recvmsg: dict, shortIDs_index_l):`'
   id: totrans-1125
   prefs: []
   type: TYPE_NORMAL
+  zh: '`def sendGetBlockTxn(s: socket, recvmsg: dict, shortIDs_index_l):`'
 - en: '`sndcmd = ‘getblocktxn’`'
   id: totrans-1126
   prefs: []
   type: TYPE_NORMAL
+  zh: '`sndcmd = ‘getblocktxn’`'
 - en: '`payload = createGetBlockTxnPayload(recvmsg[‘payload’], shortIDs_index_l)`'
   id: totrans-1127
   prefs: []
   type: TYPE_NORMAL
+  zh: '`payload = createGetBlockTxnPayload(recvmsg[‘payload’], shortIDs_index_l)`'
 - en: '`sndmsg = createMessage(sndcmd, payload)`'
   id: totrans-1128
   prefs: []
   type: TYPE_NORMAL
+  zh: '`sndmsg = createMessage(sndcmd, payload)`'
 - en: '`s.send(sndmsg)`'
   id: totrans-1129
   prefs: []
   type: TYPE_NORMAL
+  zh: '`s.send(sndmsg)`'
 - en: '`print(‘==> cmd = %s, msg = %s’ % (sndcmd, sndmsg.hex()), file=flog)`'
   id: totrans-1130
   prefs: []
   type: TYPE_NORMAL
+  zh: '`print(‘==> cmd = %s, msg = %s’ % (sndcmd, sndmsg.hex()), file=flog)`'
 - en: '`def waitForBlockTxn(s: socket):`'
   id: totrans-1131
   prefs: []
   type: TYPE_NORMAL
+  zh: '`def waitForBlockTxn(s: socket):`'
 - en: '`while True:`'
   id: totrans-1132
   prefs: []
   type: TYPE_NORMAL
+  zh: '`while True:`'
 - en: '`recvmsg = recvMsg(s)`'
   id: totrans-1133
   prefs: []
   type: TYPE_NORMAL
+  zh: '`recvmsg = recvMsg(s)`'
 - en: '`if recvmsg[‘command’] == ‘blocktxn’:`'
   id: totrans-1134
   prefs: []
   type: TYPE_NORMAL
+  zh: '`if recvmsg[‘command’] == ‘blocktxn’:`'
 - en: '`return recvmsg`'
   id: totrans-1135
   prefs: []
   type: TYPE_NORMAL
+  zh: '`return recvmsg`'
 - en: '`elif recvmsg[‘command’] == ‘ping’:`'
   id: totrans-1136
   prefs: []
   type: TYPE_NORMAL
+  zh: '`elif recvmsg[‘command’] == ‘ping’:`'
 - en: '`sendPongMessage(s, recvmsg)`'
   id: totrans-1137
   prefs: []
   type: TYPE_NORMAL
+  zh: '`sendPongMessage(s, recvmsg)`'
 - en: '`def waitAndHandleHeaderResponse(s: socket):`'
   id: totrans-1138
   prefs: []
   type: TYPE_NORMAL
+  zh: '`def waitAndHandleHeaderResponse(s: socket):`'
 - en: '`recvmsg = waitForCmpctBlock(s)`'
   id: totrans-1139
   prefs: []
   type: TYPE_NORMAL
+  zh: '`recvmsg = waitForCmpctBlock(s)`'
 - en: '`shortIDs_index_l = findMissingShortIDs(recvmsg[‘payload’])`'
   id: totrans-1140
   prefs: []
   type: TYPE_NORMAL
+  zh: '`shortIDs_index_l = findMissingShortIDs(recvmsg[‘payload’])`'
 - en: '`if len(shortIDs_index_l) > 0:`'
   id: totrans-1141
   prefs: []
   type: TYPE_NORMAL
+  zh: '`if len(shortIDs_index_l) > 0:`'
 - en: '`sendGetBlockTxn(s, recvmsg, shortIDs_index_l)`'
   id: totrans-1142
   prefs: []
   type: TYPE_NORMAL
+  zh: '`sendGetBlockTxn(s, recvmsg, shortIDs_index_l)`'
 - en: '`waitForBlockTxn(s)`'
   id: totrans-1143
   prefs: []
   type: TYPE_NORMAL
+  zh: '`waitForBlockTxn(s)`'
 - en: '`def sendrecvHeadersData(s: socket, version: int):`'
   id: totrans-1144
   prefs: []
   type: TYPE_NORMAL
+  zh: '`def sendrecvHeadersData(s: socket, version: int):`'
 - en: '`sendSendHeadersMessage(s)`'
   id: totrans-1145
   prefs: []
   type: TYPE_NORMAL
+  zh: '`sendSendHeadersMessage(s)`'
 - en: '`sendSendCompactMessage(s)`'
   id: totrans-1146
   prefs: []
   type: TYPE_NORMAL
+  zh: '`sendSendCompactMessage(s)`'
 - en: '`blkhash_l = getBlockHashListFromCoreClient()`'
   id: totrans-1147
   prefs: []
   type: TYPE_NORMAL
+  zh: '`blkhash_l = getBlockHashListFromCoreClient()`'
 - en: '`sendAndHandleGetHeaders(s, blkhash_l, version)`'
   id: totrans-1148
   prefs: []
   type: TYPE_NORMAL
+  zh: '`sendAndHandleGetHeaders(s, blkhash_l, version)`'
 - en: '`waitAndHandleHeaderResponse(s)`'
   id: totrans-1149
   prefs: []
   type: TYPE_NORMAL
+  zh: '`waitAndHandleHeaderResponse(s)`'
 - en: '`def sendrecvHandler(s: socket, version: int):`'
   id: totrans-1150
   prefs: []
   type: TYPE_NORMAL
+  zh: '`def sendrecvHandler(s: socket, version: int):`'
 - en: '`if establishConnection(s, version) == False:`'
   id: totrans-1151
   prefs: []
   type: TYPE_NORMAL
+  zh: '`if establishConnection(s, version) == False:`'
 - en: '`print(‘Establish connection failed’, file=flog)`'
   id: totrans-1152
   prefs: []
@@ -5728,187 +6417,233 @@
   id: totrans-1180
   prefs: []
   type: TYPE_NORMAL
+  zh: 在低带宽紧凑区块公告方法中，我们在`**sendcmpct**`消息中设置为0，并为分离见证和非分离见证交易发送`**sendcmpct**`消息。一旦区块链同步，我们等待来自对等方的`**headers**`消息。作为对`***headers***`消息的回应，我们发送一个带有`**MSG_CMPCT_BLOCK**`作为响应的`**getdata**`消息。
 - en: 'The following code does this:'
   id: totrans-1181
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下代码执行此操作：
 - en: '`def sendSendCompactMessage(s: socket):`'
   id: totrans-1182
   prefs: []
   type: TYPE_NORMAL
+  zh: 定义发送SendCompactMessage函数如下：
 - en: '`# send sendcmpct message for Segwit`'
   id: totrans-1183
   prefs: []
   type: TYPE_NORMAL
+  zh: '`# 发送Segwit的sendcmpct消息`'
 - en: '`sndcmd = ‘sendcmpct’`'
   id: totrans-1184
   prefs: []
   type: TYPE_NORMAL
+  zh: '`sndcmd = ‘sendcmpct’`'
 - en: '`payload = createSendCompactPayload(0, 2)`'
   id: totrans-1185
   prefs: []
   type: TYPE_NORMAL
+  zh: '`payload = createSendCompactPayload(0, 2)`'
 - en: '`sndmsg = createMessage(sndcmd, payload)`'
   id: totrans-1186
   prefs: []
   type: TYPE_NORMAL
+  zh: '`sndmsg = createMessage(sndcmd, payload)`'
 - en: '``s.send(sndmsg)``'
   id: totrans-1187
   prefs: []
   type: TYPE_NORMAL
+  zh: '``s.send(sndmsg)``'
 - en: '`print(‘==> cmd = %s, msg = %s’ % (sndcmd, sndmsg.hex()), file=flog)`'
   id: totrans-1188
   prefs: []
   type: TYPE_NORMAL
+  zh: '`print(‘==> cmd = %s, msg = %s’ % (sndcmd, sndmsg.hex()), file=flog)`'
 - en: '`# send sendcmpct message for others`'
   id: totrans-1189
   prefs: []
   type: TYPE_NORMAL
+  zh: '`# 发送其他情况的sendcmpct消息`'
 - en: '`sndcmd = ‘sendcmpct’`'
   id: totrans-1190
   prefs: []
   type: TYPE_NORMAL
+  zh: '`sndcmd = ‘sendcmpct’`'
 - en: '`payload = createSendCompactPayload(0, 1)`'
   id: totrans-1191
   prefs: []
   type: TYPE_NORMAL
+  zh: '`payload = createSendCompactPayload(0, 1)`'
 - en: '``sndmsg = createMessage(sndcmd, payload)``'
   id: totrans-1192
   prefs: []
   type: TYPE_NORMAL
+  zh: '``sndmsg = createMessage(sndcmd, payload)``'
 - en: '``s.send(sndmsg)``'
   id: totrans-1193
   prefs: []
   type: TYPE_NORMAL
+  zh: '``s.send(sndmsg)``'
 - en: '`print(‘==> cmd = %s, msg = %s’ % (sndcmd, sndmsg.hex()), file=flog)`'
   id: totrans-1194
   prefs: []
   type: TYPE_NORMAL
+  zh: '`print(‘==> cmd = %s, msg = %s’ % (sndcmd, sndmsg.hex()), file=flog)`'
 - en: '`def createGetDataPayloadCMPCTBlock(hash_l: list):`'
   id: totrans-1195
   prefs: []
   type: TYPE_NORMAL
+  zh: '`定义创建GetDataPayloadCMPCTBlock函数如下：`'
 - en: '`MSG_CMPCT_BLOCK = 4`'
   id: totrans-1196
   prefs: []
   type: TYPE_NORMAL
+  zh: '`MSG_CMPCT_BLOCK = 4`'
 - en: '`count = len(hash_l)`'
   id: totrans-1197
   prefs: []
   type: TYPE_NORMAL
+  zh: '`count = len(hash_l)`'
 - en: '``hash_count_b = setVarInt(count)``'
   id: totrans-1198
   prefs: []
   type: TYPE_NORMAL
+  zh: '``hash_count_b = setVarInt(count)``'
 - en: '`hashes_b = b’’`'
   id: totrans-1199
   prefs: []
   type: TYPE_NORMAL
+  zh: '`hashes_b = b’’`'
 - en: '`for i in range(count):`'
   id: totrans-1200
   prefs: []
   type: TYPE_NORMAL
+  zh: '`for i in range(count):`'
 - en: '`type_b = struct.pack(‘<L’, MSG_CMPCT_BLOCK)`'
   id: totrans-1201
   prefs: []
   type: TYPE_NORMAL
+  zh: '`type_b = struct.pack(‘<L’, MSG_CMPCT_BLOCK)`'
 - en: '`hashes_b += type_b + bytes.fromhex(hash_l[i][‘blkhash’])[::-1]`'
   id: totrans-1202
   prefs: []
   type: TYPE_NORMAL
+  zh: '`hashes_b += type_b + bytes.fromhex(hash_l[i][‘blkhash’])[::-1]`'
 - en: '``payload_b = hash_count_b + hashes_b``'
   id: totrans-1203
   prefs: []
   type: TYPE_NORMAL
+  zh: '``payload_b = hash_count_b + hashes_b``'
 - en: '``return payload_b``'
   id: totrans-1204
   prefs: []
   type: TYPE_NORMAL
+  zh: '``return payload_b``'
 - en: '`def sendGetDataMessage(s: socket, recvmsg: dict):`'
   id: totrans-1205
   prefs: []
   type: TYPE_NORMAL
+  zh: 定义发送GetDataMessage函数如下：
 - en: '`sndcmd = ‘getdata’`'
   id: totrans-1206
   prefs: []
   type: TYPE_NORMAL
+  zh: '`sndcmd = ‘getdata’`'
 - en: '`blk_l = recvmsg[‘payload’][‘headers’]`'
   id: totrans-1207
   prefs: []
   type: TYPE_NORMAL
+  zh: '`blk_l = recvmsg[‘payload’][‘headers’]`'
 - en: '``payload = createGetDataPayloadCMPCTBlock(blk_l)``'
   id: totrans-1208
   prefs: []
   type: TYPE_NORMAL
+  zh: '``payload = createGetDataPayloadCMPCTBlock(blk_l)``'
 - en: '``sndmsg = createMessage(sndcmd, payload)``'
   id: totrans-1209
   prefs: []
   type: TYPE_NORMAL
+  zh: '``sndmsg = createMessage(sndcmd, payload)``'
 - en: '``s.send(sndmsg)``'
   id: totrans-1210
   prefs: []
   type: TYPE_NORMAL
+  zh: '``s.send(sndmsg)``'
 - en: '`print(‘==> cmd = %s, msg = %s’ % (sndcmd, sndmsg.hex()), file=flog)`'
   id: totrans-1211
   prefs: []
   type: TYPE_NORMAL
+  zh: '`print(‘==> cmd = %s, msg = %s’ % (sndcmd, sndmsg.hex()), file=flog)`'
 - en: '`def waitAndHandleHeaderResponse(s: socket):`'
   id: totrans-1212
   prefs: []
   type: TYPE_NORMAL
+  zh: '`定义等待并处理头部响应函数如下：`'
 - en: '``recvmsg = waitForHeaders(s)``'
   id: totrans-1213
   prefs: []
   type: TYPE_NORMAL
+  zh: '``recvmsg = waitForHeaders(s)``'
 - en: '``sendGetDataMessage(s, recvmsg)``'
   id: totrans-1214
   prefs: []
   type: TYPE_NORMAL
+  zh: '``sendGetDataMessage(s, recvmsg)``'
 - en: '``recvmsg = waitForCmpctBlock(s)``'
   id: totrans-1215
   prefs: []
   type: TYPE_NORMAL
+  zh: '``recvmsg = waitForCmpctBlock(s)``'
 - en: '`shortIDs_index_l = findMissingShortIDs(recvmsg[‘payload’])`'
   id: totrans-1216
   prefs: []
   type: TYPE_NORMAL
+  zh: '`shortIDs_index_l = findMissingShortIDs(recvmsg[‘payload’])`'
 - en: '`if len(shortIDs_index_l) > 0:`'
   id: totrans-1217
   prefs: []
   type: TYPE_NORMAL
+  zh: '`if len(shortIDs_index_l) > 0:`'
 - en: '`sendGetBlockTxn(s, recvmsg, shortIDs_index_l)`'
   id: totrans-1218
   prefs: []
   type: TYPE_NORMAL
+  zh: '`sendGetBlockTxn(s, recvmsg, shortIDs_index_l)`'
 - en: '``waitForBlockTxn(s)``'
   id: totrans-1219
   prefs: []
   type: TYPE_NORMAL
+  zh: '``waitForBlockTxn(s)``'
 - en: '`def sendrecvHandler(s: socket, version: int):`'
   id: totrans-1220
   prefs: []
   type: TYPE_NORMAL
+  zh: 定义发送接收处理函数如下：
 - en: '`if establishConnection(s, version) == False:`'
   id: totrans-1221
   prefs: []
   type: TYPE_NORMAL
+  zh: '`if establishConnection(s, version) == False:`'
 - en: '`print(‘Establish connection failed’, file=flog)`'
   id: totrans-1222
   prefs: []
   type: TYPE_NORMAL
+  zh: '`print(''建立连接失败'', file=flog)`'
 - en: '``return``'
   id: totrans-1223
   prefs: []
   type: TYPE_NORMAL
+  zh: '``return``'
 - en: '``sendrecvHeadersData(s, version)``'
   id: totrans-1224
   prefs: []
   type: TYPE_NORMAL
+  zh: '``sendrecvHeadersData(s, version)``'
 - en: '**Program 7.15:** Program for receiving and processing compact messages for
     low bandwith relay'
   id: totrans-1225
   prefs: []
   type: TYPE_NORMAL
+  zh: '**程序 7.15：** 用于接收和处理低带宽中继紧凑消息的程序'
 - en: 'We execute the preceding code and get the communication log. First, our node
     sends `**sendheader**` and `**sendcmpct**` messages to let it know that our node
     supports Direct Header Announcements. When the peer receives a new block, it sends
@@ -5916,33 +6651,40 @@
   id: totrans-1226
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们执行前述代码并获得通信日志。首先，我们的节点发送`**sendheader**`和`**sendcmpct**`消息，让对方知道我们的节点支持直接头部公告。当节点收到新的区块时，它会向我们的节点发送以下`***headers***`消息：
 - en: '![](images/Figure-7.45.jpg)'
   id: totrans-1227
   prefs: []
   type: TYPE_IMG
+  zh: '![](images/Figure-7.45.jpg)'
 - en: '**Figure 7.45:** Received headers message from a peer with a list of blockhash
     and header'
   id: totrans-1228
   prefs: []
   type: TYPE_NORMAL
+  zh: '**图 7.45：** 从对等方接收到的包含区块哈希和头部的headers消息'
 - en: 'We respond with the following `**getdata**` message containing the `**MSG_CMPCT_BLOCK**`
     flag and a list of blockhash we expect from the peer:'
   id: totrans-1229
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们用以下包含`**MSG_CMPCT_BLOCK**`标志和我们期望从对等方获取的区块哈希列表的`**getdata**`消息进行回复：
 - en: '![](images/Figure-7.46.jpg)'
   id: totrans-1230
   prefs: []
   type: TYPE_IMG
+  zh: '![](images/Figure-7.46.jpg)'
 - en: '**Figure 7.46:** getdata request sent to the peer with a list of blockhash'
   id: totrans-1231
   prefs: []
   type: TYPE_NORMAL
+  zh: '**图 7.46：** 向对等方发送包含区块哈希列表的getdata请求'
 - en: 'The peer responds with the following `**cmpctblock**` message containing block
     header and list of short IDs for included transactions:'
   id: totrans-1232
   prefs: []
   type: TYPE_NORMAL
+  zh: 对等方用以下包含区块头部和包含的交易的短 ID 列表的`**cmpctblock**`消息进行回复。
 - en: '![](images/Figure-7.47.jpg)'
   id: totrans-1233
   prefs: []
