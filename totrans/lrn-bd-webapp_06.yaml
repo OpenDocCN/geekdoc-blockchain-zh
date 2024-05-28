@@ -1239,12 +1239,22 @@
   id: totrans-132
   prefs: []
   type: TYPE_NORMAL
+  zh: '我们将修改我们的主要铸币方法，在ERC721组件中，以便它不仅接受ID，还接受标题和描述字符串字段（见[6-22](#PC24)）。我们将保存此数据离线，获取一个URL，并将其传递给以下合同
+    *铸币* 调用。// 02-storage/src/components/ERC721.jsasync mint({ id, **title, description**
+    }) {  const { contract, owner } = this.props;  const data = JSON.stringify({ id,
+    **title, description** });  **const url = await save(data);**  const value = new
+    BigNumber(id).shiftedBy(12).toString(10);  const gasPrice = await getGasPrice();  const
+    gas = await contract.methods    .mint(owner, id, **url**).estimateGas({ value,
+    from: owner });  contract.methods.mint(owner, id, **url**)    .send({ value, gas,
+    gasPrice, from: owner })    .on(''transactionHash'', () => {      this.addToken(id,
+    **{ title, description }**);    })}Listing 6-22'
 - en: Updated mint method to handle token metadata. Note that this also requires modifying
     the Mint component by adding the title and description inputs, so the user can
     provide these values
   id: totrans-133
   prefs: []
   type: TYPE_NORMAL
+  zh: 更新了铸币方法以处理令牌元数据。请注意，这还需要修改铸币组件，添加标题和描述输入，以便用户可以提供这些值。
 - en: 'The save function will calculate the hash of the data, use it as an identifier,
     and store it in a storage server (Listing [6-23](#PC25)). Note that by using the
     hash as an identifier,^([12](#Fn12)) any client can validate that the data retrieved
@@ -1257,10 +1267,18 @@
   id: totrans-134
   prefs: []
   type: TYPE_NORMAL
+  zh: '保存功能将计算数据的哈希值，将其用作标识符，并将其存储在存储服务器中（见[6-23](#PC25)）。请注意，通过使用哈希作为标识符，^([12](#Fn12))
+    任何客户端都可以验证检索到的数据是否已被篡改。// 02-storage/src/storage/local.jsimport { createHash }
+    from ''crypto'';const server = ''http://localhost:3010'';export async function
+    save(data) {  let hash = createHash(''sha256'').update(data).digest(''hex'');  let
+    url = `${server}/${hash}`;  await fetch(url, {    method: ''POST'', mode: ''cors'',
+    body: data,    headers: { "Content-Type": "application/json" }  });  return url;}Listing
+    6-23'
 - en: Saving data to a local storage server, using the data hash as an identifier
   id: totrans-135
   prefs: []
   type: TYPE_NORMAL
+  zh: 将数据保存到本地存储服务器，使用数据哈希作为标识符
 - en: In this example, the server that receives the POST request is a NodeJS process
     that will accept arbitrary JSON data at an URL path, save it locally in a file,
     and then serve it upon a GET request. In an actual application, you may want to
@@ -1454,12 +1472,18 @@
   id: totrans-156
   prefs: []
   type: TYPE_NORMAL
+  zh: 在我们的应用中打开一个 IPFS 连接与打开以太坊连接非常相似：首先检查是否有全局连接对象可用，如果不是，回退到一个众所周知的公共节点（列表 [6-25](#PC27)）。我们将使用
+    ipfs-http-client@30.1 javascript 库来访问网络，这是 web3.js 的 IPFS 等效库。// 02-storage/src/storage/ipfs.js导入
+    ipfsClient 'ipfs-http-client';异步功能 getClient() { 如果 (window.ipfs && window.ipfs.enable)
+    { 返回 await window.ipfs.enable({ 命令：['id', '版本', '添加', '得到'] }); } else { 返回 ipfsClient({
+    主机：'ipfs.infura.io', 端口：'5001', 协议：'https'，'api-path'：'/api/v0/' }); }}清单 6-25
 - en: Creating a new ipfs client instance. We first check whether the global object,
     injected by the companion extension, is available. If not, we fall back to a connection
     to the Infura IPFS gateway
   id: totrans-157
   prefs: []
   type: TYPE_NORMAL
+  zh: 创建一个新的 ipfs 客户端实例。首先，我们检查通过伴生扩展注入的全局对象是否可用。如果不可用，我们将回退到连接到 Infura IPFS 网关。
 - en: Using this new IPFS client, we can now easily save our token metadata to the
     IPFS network instead to a centralized server.export async function save(data)
     {  const ipfs = await getClient();  const [result] = await ipfs.add(Buffer.from(data));  return
@@ -1471,11 +1495,17 @@
   id: totrans-158
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用这个新的 IPFS 客户端，我们现在可以很容易地将我们的令牌元数据保存到 IPFS 网络而不是中心化服务器。导出异步功能保存数据 { const ipfs
+    = await getClient(); const [result] = await ipfs.add(Buffer.from(data)); return
+    `/ipfs/${result.path}`; }从 IPFS 网络中取回结果给定 URL 也很简单。请注意，我们不再需要验证其完整性，因为协议会自动处理。导出异步功能加载
+    URL { const ipfs = await getClient(); const [result] = await ipfs.get(url); return
+    JSON.parse(result.content.toString()); }
 - en: Hosting Our Application on IPFS
   id: totrans-159
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 在 IPFS 上托管我们的应用
 - en: IPFS can be used not only to store our application data but also the application
     itself, for maximum decentralization. All our application’s client-side code can
     be uploaded to IPFS and served from there. But how can our users access it from
@@ -1483,6 +1513,7 @@
   id: totrans-160
   prefs: []
   type: TYPE_NORMAL
+  zh: IPFS 不仅可用于存储我们的应用数据，还可以存储应用本身，以实现最大程度的分权化。我们应用的客户端代码可以上传到 IPFS 并从那里提供。但用户如何能在普通浏览器中访问它？或者在不必指定哈希的情况下对其进行定址？
 - en: The first problem can be solved via IPFS gateways (see Listing [6-26](#PC30)
     for examples). An IPFS gateway is a regular web site that serves content from
     the IPFS network. It allows you to access any IPFS item at the path /ipfs/CID,
