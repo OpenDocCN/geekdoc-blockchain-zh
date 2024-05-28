@@ -4072,203 +4072,251 @@
   id: totrans-866
   prefs: []
   type: TYPE_NORMAL
+  zh: 下一节将解释P2PKH交易的创建和发布。
 - en: '[Building P2SH transaction](toc.xhtml#s227a)'
   id: totrans-867
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: '**构建P2SH交易](toc.xhtml#s227a)'
 - en: In this section, we will create a transaction and publish it. To do that, we
     need to generate a block that pays to a P2SH address. The P2SH address is generated
     by generating hash160 of redeem script.
   id: totrans-868
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本节中，我们将创建一个交易并发布它。为此，我们需要生成一个区块，该区块支付给P2SH地址。P2SH地址是通过生成赎回脚本的hash160值生成的。
 - en: 'We use the following method to generate redeem script:'
   id: totrans-869
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们使用以下方法生成赎回脚本：
 - en: '`OP_CHECKMULTISIG = 0xae`'
   id: totrans-870
   prefs: []
   type: TYPE_NORMAL
+  zh: '`OP_CHECKMULTISIG = 0xae`'
 - en: '`def createRedeemScript(pubkey_l: list, sigcount: int):`'
   id: totrans-871
   prefs: []
   type: TYPE_NORMAL
+  zh: '`def createRedeemScript(pubkey_l: list, sigcount: int):`'
 - en: '`redeem_script_b = bytes([0x50 + sigcount])`'
   id: totrans-872
   prefs: []
   type: TYPE_NORMAL
+  zh: '`redeem_script_b = bytes([0x50 + sigcount])`'
 - en: '`for pubkey in pubkey_l:`'
   id: totrans-873
   prefs: []
   type: TYPE_NORMAL
+  zh: '`for pubkey in pubkey_l:`'
 - en: '`pubkey_b = bytes.fromhex(pubkey)`'
   id: totrans-874
   prefs: []
   type: TYPE_NORMAL
+  zh: '`pubkey_b = bytes.fromhex(pubkey)`'
 - en: '`redeem_script_b += encodePushdata(len(pubkey_b)) + pubkey_b`'
   id: totrans-875
   prefs: []
   type: TYPE_NORMAL
+  zh: '`redeem_script_b += encodePushdata(len(pubkey_b)) + pubkey_b`'
 - en: '`redeem_script_b += bytes([0x50 + len(pubkey_l), OP_CHECKMULTISIG])`'
   id: totrans-876
   prefs: []
   type: TYPE_NORMAL
+  zh: '`redeem_script_b += bytes([0x50 + len(pubkey_l), OP_CHECKMULTISIG])`'
 - en: '`return redeem_script_b`'
   id: totrans-877
   prefs: []
   type: TYPE_NORMAL
+  zh: '`return redeem_script_b`'
 - en: '**Program 10.22:** Method to create redeem scripts for multisig'
   id: totrans-878
   prefs: []
   type: TYPE_NORMAL
+  zh: '**程序10.22：** 创建多签名赎回脚本的方法'
 - en: We are creating redeem script, which requires two signatures using private keys
     related to the three public keys. So, we are going to use 2-of-3 `**multisig**`.
   id: totrans-879
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们正在创建赎回脚本，这需要使用与三个公钥相关的私钥的两个签名。所以，我们将使用2-of-3 `**多签名**`。
 - en: 'We pass three public keys, and the required count of signature is 2 in the
     following code:'
   id: totrans-880
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们传递三个公钥，以下代码中所需的签名数量是2：
 - en: '`if __name__ == ‘__main__’:`'
   id: totrans-881
   prefs: []
   type: TYPE_NORMAL
+  zh: '`if __name__ == ‘__main__’:`'
 - en: '`pubkey_l = [‘037fadaea6edf196bf70af16cefb2bd3c830e54c0a6e9a00bf7806b241933547f7’,
     ‘02fcb1c7507db15576ab35cd7c9b1ea570141a8b81c9938dae0320392b0f7034d0’, ‘02d50250aa629914e3146a5123a362a516c8aa95e5f0a6f3a078bd31fabe383abc’]`'
   id: totrans-882
   prefs: []
   type: TYPE_NORMAL
+  zh: '`pubkey_l = [‘037fadaea6edf196bf70af16cefb2bd3c830e54c0a6e9a00bf7806b241933547f7’,
+    ‘02fcb1c7507db15576ab35cd7c9b1ea570'
 - en: '`redeem_script_b = createRedeemScript(pubkey_l, 2)`'
   id: totrans-883
   prefs: []
   type: TYPE_NORMAL
+  zh: '`redeem_script_b = createRedeemScript(pubkey_l, 2)`'
 - en: '`print(‘redeem script = %s’ % redeem_script_b.hex())`'
   id: totrans-884
   prefs: []
   type: TYPE_NORMAL
+  zh: '`print(‘赎回脚本 = %s’ % redeem_script_b.hex())`'
 - en: '`sh = hash160(redeem_script_b)`'
   id: totrans-885
   prefs: []
   type: TYPE_NORMAL
+  zh: '`sh = hash160(redeem_script_b)`'
 - en: '`address = sh2address(sh)`'
   id: totrans-886
   prefs: []
   type: TYPE_NORMAL
+  zh: '`address = sh2address(sh)`'
 - en: '`print(‘P2SH address = %s’ % address)`'
   id: totrans-887
   prefs: []
   type: TYPE_NORMAL
+  zh: '`print(‘P2SH地址 = %s’ % 地址)`'
 - en: 'On executing the preceding lines of code, we get the following result:'
   id: totrans-888
   prefs: []
   type: TYPE_NORMAL
+  zh: 执行上述代码行后，我们得到以下结果：
 - en: '![](images/Figure-10.23.jpg)'
   id: totrans-889
   prefs: []
   type: TYPE_IMG
+  zh: '![](images/Figure-10.23.jpg)'
 - en: '**Figure 10.23:** Shows the P2SH address generated using redeem script'
   id: totrans-890
   prefs: []
   type: TYPE_NORMAL
+  zh: '**图10.23：** 显示使用赎回脚本生成的P2SH地址'
 - en: 'We use the preceding address to generate a block and receive bitcoin, as follows:'
   id: totrans-891
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们使用前面的地址生成一个区块并接收比特币，如下所示：
 - en: '![](images/Figure-10.24.jpg)'
   id: totrans-892
   prefs: []
   type: TYPE_IMG
+  zh: '![](images/Figure-10.24.jpg)'
 - en: '**Figure 10.24:** Shows the generated block that pays to the P2SH address'
   id: totrans-893
   prefs: []
   type: TYPE_NORMAL
+  zh: '**图10.24：** 显示支付给P2SH地址生成的区块'
 - en: 'Next, we use the blockhash in the preceding Bitcoin Core CLI command to get
     the transaction-ID of the coinbase transaction:'
   id: totrans-894
   prefs: []
   type: TYPE_NORMAL
+  zh: 接下来，我们使用前一个Bitcoin Core CLI命令中的区块散列来获取coinbase交易的交易ID：
 - en: '![](images/Figure-10.25.jpg)'
   id: totrans-895
   prefs: []
   type: TYPE_IMG
+  zh: '![](images/Figure-10.25.jpg)'
 - en: '**Figure 10.25:** Shows the coinbase transaction that will pay to the P2SH
     transaction'
   id: totrans-896
   prefs: []
   type: TYPE_NORMAL
+  zh: '**图10.25：** 显示将支付给P2SH交易的coinbase交易'
 - en: We need to get the structure of the generated transaction since we need to use
     the transaction output in a transaction.
   id: totrans-897
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们需要获取生成的交易的结构，因为我们需要使用交易输出在交易中。
 - en: 'We get raw transaction by executing the following command:'
   id: totrans-898
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们通过执行以下命令获取原始交易：
 - en: '![](images/Figure-10.26.jpg)'
   id: totrans-899
   prefs: []
   type: TYPE_IMG
+  zh: '![](images/Figure-10.26.jpg)'
 - en: '**Figure 10.26:** Shows the hex data of the coinbase transaction that pays
     to the P2SH address'
   id: totrans-900
   prefs: []
   type: TYPE_NORMAL
+  zh: '**图10.26：** 显示支付给P2SH地址的coinbase交易的十六进制数据'
 - en: 'By executing the following command, we get transaction structure from the raw
     transaction:'
   id: totrans-901
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过执行以下命令，我们从原始交易中获取交易结构：
 - en: '![](images/Figure-10.27.jpg)'
   id: totrans-902
   prefs: []
   type: TYPE_IMG
+  zh: '![](images/Figure-10.27.jpg)'
 - en: '**Figure 10.27:** Shows the command to get content in the transaction hex data'
   id: totrans-903
   prefs: []
   type: TYPE_NORMAL
+  zh: '**图10.27：** 显示获取交易十六进制数据内容的命令'
 - en: 'The following is the structure of the raw transaction generated from the preceding
     command:'
   id: totrans-904
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下是从前面命令生成的原始交易结构：
 - en: '![](images/Figure-10.28.jpg)'
   id: totrans-905
   prefs: []
   type: TYPE_IMG
+  zh: '![](images/Figure-10.28.jpg)'
 - en: '**Figure 10.28:** Shows the decoded transaction data'
   id: totrans-906
   prefs: []
   type: TYPE_NORMAL
+  zh: '**图10.28：** 显示解码的交易数据'
 - en: 'We create a transaction structure using the transaction IDs of generated transaction
     for P2SH transaction, as follows:'
   id: totrans-907
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们使用生成的交易ID为P2SH交易创建交易结构，如下所示：
 - en: '`def createTransactionStruct():`'
   id: totrans-908
   prefs: []
   type: TYPE_NORMAL
+  zh: '`def createTransactionStruct():`'
 - en: '`txn = {}`'
   id: totrans-909
   prefs: []
   type: TYPE_NORMAL
+  zh: '`txn = {}`'
 - en: '`txn[‘version’] = 1`'
   id: totrans-910
   prefs: []
   type: TYPE_NORMAL
+  zh: '`txn[‘version’] = 1`'
 - en: '`txn[‘input_count’] = 1`'
   id: totrans-911
   prefs: []
   type: TYPE_NORMAL
+  zh: '`txn[‘input_count’] = 1`'
 - en: '`txn[‘inputs’] = []`'
   id: totrans-912
   prefs: []
   type: TYPE_NORMAL
+  zh: '`txn[‘inputs’] = []`'
 - en: '`input0 = {}`'
   id: totrans-913
   prefs: []
