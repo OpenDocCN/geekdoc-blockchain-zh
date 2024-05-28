@@ -183,6 +183,7 @@
   id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果每一笔小支付都在区块链上作为交易进行，累积的交易手续费可能对实际支付产生相当大的影响。为每一笔20美分的支付向网络支付20美分的费用并不划算。此外，由于服务提供商要求在每次支付后进行验证，确认时间将不断给服务增加显著的延迟。
 - en: 'A solution could be to have a trusted third party collect a large initial deposit
     from the user and monitor the service being provided. The user then signs each
     of these *microtransactions* with their private key, acknowledging each of the
@@ -195,6 +196,7 @@
   id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 一种解决方案可能是由可信任的第三方从用户收取大额的初始存款，并监控提供的服务。然后用户用他们的私钥对每一笔*微交易*进行签名，承认每笔要付款项。在所有的微支付都完成后，第三方会发布一个包括总支付给服务提供商和将剩余的初始存款退还给用户的单一链上交易。假设用户和服务提供商都信任这个第三方，这可以将所有的微支付减少到网络上的仅两笔交易：一笔是存款，另一笔是支付。
 - en: A *unidirectional payment channel* is an implementation of this solution using
     a smart contract as the trusted third party. The user is said to *open* a payment
     channel to the service provider as they deploy the payment channel contract with
@@ -206,10 +208,13 @@
   id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: '*单向支付通道*是使用智能合约作为可信第三方的一种实现方案。用户在部署支付通道智能合约并存入初始存款时，“开启”对服务提供者的支付通道。用户直接向服务提供者发送每笔微支付作为*签名消息*。这些消息不是通过以太坊网络发送的，而是通过一个独立的协议，比如
+    HTTPS，全部是在链下进行的。当服务提供商想要兑现时，他们可以向支付通道智能合约提交签名消息并收取他们的支付（图 [8-1](#Fig1)）。![../images/476252_1_En_8_Chapter/476252_1_En_8_Fig1_HTML.png](../images/476252_1_En_8_Chapter/476252_1_En_8_Fig1_HTML.png)'
 - en: Figure 8-1
   id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: 图 8-1
 - en: Flow diagram of a payment channel. The user first opens the channel with an
     initial 1 ETH deposit. Every time the user needs to make a micropayment to the
     service provider, they instead sign a message with the accumulated amount to be
@@ -1465,6 +1470,7 @@
   id: totrans-175
   prefs: []
   type: TYPE_NORMAL
+  zh: 本节涵盖了目前正在进行大量研究和持续发展的主题。如果您考虑在状态通道网络上构建，请将其用作进行最新研究的起点。
 - en: The easiest construction in networks comes once again from Bitcoin, which is
     *multi-hop payment channels*. This method allows to securely route payments through
     one or more intermediaries. For instance, Alice could send payments to an intermediary
@@ -1474,6 +1480,9 @@
   id: totrans-176
   prefs: []
   type: TYPE_NORMAL
+  zh: 网络中最简单的构建再次来自比特币，即 *多跳支付通道*。这种方法允许通过一个或多个中间人安全地路由支付。例如，Alice 可以将支付发送给一个中间人 Ingrid，与此同时她与
+    Ingrid 建立了一个支付通道，并让 Ingrid 转发支付给 Bob（假设 Ingrid 也与 Bob 有一个通道）。由于这些通道的建立方式^([15](#Fn15))，Ingrid
+    没有办法将这些资金据为己有。
 - en: This type of channels leads directly to a simple and effective network layout,
     a *hub-and-spoke channel network*, where multiple clients connect to a single
     hub that acts as an intermediary for all of them. This way, setting up a single
@@ -1483,6 +1492,7 @@
   id: totrans-177
   prefs: []
   type: TYPE_NORMAL
+  zh: 这种类型的通道直接导致了一种简单而有效的网络布局，即 *枢纽与辐射式通道网络*，其中多个客户端连接到一个充当所有人的中间人的枢纽。通过与枢纽建立一个单一的通道，用户可以与网络中的任何其他人进行交易。另一方面，它的缺点是中心化，需要枢纽可用。
 - en: There are also several projects working on more interesting network layouts,
     such as the Raiden Network,^([16](#Fn16)) inspired by Bitcoin’s Lightning Network.
     The ultimate goal for these networks is to allow for any two participants to establish
@@ -1493,11 +1503,14 @@
   id: totrans-178
   prefs: []
   type: TYPE_NORMAL
+  zh: 也有一些项目致力于更有趣的网络布局，比如灵感来自比特币闪电网络的 Raiden 网络^([16](#Fn16))。这些网络的最终目标是以一种无需信任的方式允许任何两个参与者建立一个共享的通道，通常称为
+    *虚拟通道* 或 *元通道*。这些通道不仅可以是支付通道，还可以是完整的广义状态通道，并且在每次交换中潜在地可以不需要中间人的积极参与。
 - en: Sidechains
   id: totrans-179
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: Sidechains
 - en: At their most basic version, a *sidechain*  is a parallel Ethereum network that
     potentially runs a different consensus algorithm, such as *proof-of-authority,*
     and is connected to the main network by a *bridge*. Working on smaller sizes allows
@@ -1505,11 +1518,13 @@
   id: totrans-180
   prefs: []
   type: TYPE_NORMAL
+  zh: 在它们最基本的版本中，*侧链* 是一个并行的以太坊网络，可能运行不同的共识算法，比如 *权威证明*，并通过 *桥接器* 连接到主网络。在较小的规模上工作使得侧链能够实现比主以太坊网络高得多的吞吐量。
 - en: Note
   id: totrans-181
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: Note
 - en: While it is technically possible for a sidechain to use proof-of-work, this
     is highly insecure. Remember that proof-of-work relies on an attacker being unable
     to produce more computing power than the rest of the network. Since sidechains
@@ -1774,11 +1789,13 @@
   id: totrans-209
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在让我们将这个网络与现有的网络连接起来，比如 Rinkeby。
 - en: Building a Bridge
   id: totrans-210
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 建立桥梁
 - en: 'We will build a simple bridge, exclusively dependent on the validator accounts,
     using a contract deployed on both the main network and the sidechain, in addition
     to a script being run by each validator. In this model, the steps for a user moving
@@ -1786,52 +1803,62 @@
   id: totrans-211
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将建立一个简单的桥梁，完全依赖于验证人账户，使用在主网络和侧链上部署的合约，以及每个验证人运行的脚本。在这个模型中，用户进入侧链并稍后退出的步骤如下：
 - en: '1.'
   id: totrans-212
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '1.'
 - en: The user transfers funds to the bridge contract on mainnet.
   id: totrans-213
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 用户将资金转移到主网上的桥合约。
 - en: '2.'
   id: totrans-214
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '2.'
 - en: The bridge contract retains the funds and emits an event.
   id: totrans-215
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 桥合约保留资金并发出事件。
 - en: '3.'
   id: totrans-216
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '3.'
 - en: The validators note the event, and each of them calls into the bridge contract
     on the sidechain side requesting to unlock the same amount of funds.
   id: totrans-217
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 验证人注意到事件，并且每个验证人都调用侧链上的桥合约，请求解锁相同数量的资金。
 - en: '4.'
   id: totrans-218
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '4.'
 - en: The user gets their funds in the sidechain and uses them to operate there.
   id: totrans-219
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 用户将资金存入侧链并在那里进行操作。
 - en: '5.'
   id: totrans-220
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '5.'
 - en: Once the user wants to exit the sidechain, the same process is repeated by transferring
     the sidechain funds to the sidechain bridge contract and having the validators
     unlock them on the mainnet bridge contract.
@@ -1839,6 +1866,7 @@
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 当用户想要退出侧链时，通过将侧链资金转移到侧链桥合约并由验证人在主网桥合约上解锁它们，重复相同的流程。
 - en: 'We will begin by building the bridge contract. This contract will have two
     main responsibilities: (1) accepting and locking user funds and (2) unlocking
     them at the request of the validators. Note that we will deploy two instances
@@ -1847,11 +1875,13 @@
   id: totrans-222
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将首先建立桥合约。这个合约将有两个主要职责：（1）接受和锁定用户资金，（2）在验证人的请求下解锁它们。请注意，我们将在两个链上部署合约的两个实例。一个链上的锁定功能将与另一个链上的解锁功能对应，反之亦然。
 - en: Note
   id: totrans-223
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 注意
 - en: In this example, we are building a bridge that accepts ETH and dispenses the
     native currency of the sidechain on the other end. However, we could also build
     bridges that accept a certain ERC20 token on the main chain or even non-fungible
@@ -1859,6 +1889,8 @@
   id: totrans-224
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这个例子中，我们正在建立一个桥梁，它接受以太币，并在另一端发放侧链的本地货币。然而，我们也可以建立接受主链上某种 ERC20 代币甚至非同质化 ERC721
+    资产的桥梁。
 - en: To begin with, the bridge will need to know the validators’ addresses (Listing
     [8-22](#PC24)). We will also specify how many validators need to agree to release
     a user’s funds. In our scenario with three validators, we will release the funds
@@ -1962,6 +1994,7 @@
   id: totrans-233
   prefs: []
   type: TYPE_NORMAL
+  zh: 此实现允许恶意验证者阻止用户的资金解锁。验证者可以向桥接合约发送虚假的解锁请求，针对即将到来的请求 ID。这样，当诚实的验证者实际尝试满足解锁请求时，参数（如金额或收件人）将不匹配，操作将失败。我们将忽略此攻击，因为此桥的目的仅在于说明基本用法。尽管如此，这提醒我们，即使是最简单的实现也可能隐藏着安全问题，您应该始终使用经过审查和审计的合约。
 - en: 'We can now deploy this contract on both networks (Listing [8-25](#PC27)), using
     the set of validators we defined earlier and choosing a required threshold of
     two approvals for unlocking. Remember to also transfer a large amount of funds
@@ -1975,11 +2008,19 @@
   id: totrans-234
   prefs: []
   type: TYPE_NORMAL
+  zh: '现在我们可以在两个网络上部署此合约（见[8-25](#PC27)），使用我们之前定义的验证者集合，并选择解锁所需的两个批准阈值。在部署到侧链时，记得同时转移大量资金到合约中，以便在请求时进行解锁。const
+    Web3 = require(''web3'');const Artifact = require(''../artifacts/Bridge.json'');const
+    web3 = new Web3(PROVIDER_URL);const abi = Artifact.compilerOutput.abi;const data
+    = Artifact.compilerOutput.evm.bytecode.object;const Bridge = new web3.eth.Contract(abi,
+    null, { data });const bridge = await Bridge.deploy({  arguments: [THRESHOLD, VALIDATORS]}).send({  from:
+    FROM, gas: 1e6, gasPrice: GAS_PRICE, value: VALUE});console.log("Bridge deployed
+    at", bridge.options.address);8-25号清单'
 - en: 'Deployment script for the bridge contract. Run this twice with different PROVIDER_URLs:
     one for the Rinkeby Ethereum network and the other for the sidechain'
   id: totrans-235
   prefs: []
   type: TYPE_NORMAL
+  zh: 桥接合约的部署脚本。使用不同的 PROVIDER_URL 两次运行此脚本：一个用于 Rinkeby 以太坊网络，另一个用于侧链。
 - en: 'Finally, we need to set up the watcher scripts that will be run by each validator
     (Listing [8-26](#PC28)). These scripts will watch the bridge contract in one network
     for Locked events and execute the corresponding unlock on the other side.const
@@ -2040,6 +2081,7 @@
   id: totrans-240
   prefs: []
   type: TYPE_NORMAL
+  zh: 但是，实际上您可以利用特定于应用程序的侧链来改善入门体验。您可以直接为您的用户的初始账户在您的侧链上提供资金，或者构建一个病毒式的邀请方案，其中现有用户可以直接在更便宜、更快速的侧链上邀请新用户。然后，桥梁仅供希望从主网络转移价值或者到主网络转移价值的高级用户使用，但对于以太坊新手来说，应用程序简单流畅地运行而不知道其背后的原理。
 - en: A good example of this, already mentioned in the previous chapter, is the Burner
     Wallet.^([24](#Fn24)) This wallet operates on a proof-of-authority sidechain^([25](#Fn25))
     with four different teams acting as validators. Users are quickly onboarded by
@@ -2050,17 +2092,21 @@
   id: totrans-241
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个很好的例子是在上一章中已经提到的**Burner Wallet**。[^24] 这个钱包在一个由四个不同团队充当验证者的权威证明侧链上运行，[^25]
+    用户通过接收一个在侧链上预先资助的账户链接很快就可以入门，并且由于低燃气成本和5秒区块，他们可以很容易地与他人进行交易。对于最高级的用户，还可以选择将资金转移到主以太坊网络，甚至从他们的主网账户向他们的临时钱包提供种子资金。
 - en: Plasma Chains
   id: totrans-242
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 等离子链
 - en: The state of the art in terms of layer 2 solutions at the time of this writing
     are plasma chains,^([26](#Fn26)) originally designed by Vitalik Buterin and Joseph
     Poon in 2017.
   id: totrans-243
   prefs: []
   type: TYPE_NORMAL
+  zh: '[写作时的第2层解决方案的最新技术水平](https://zh.wikipedia.org/wiki/%E7%AC%AC%E4%BA%8C%E5%B1%82%E7%9A%84%E5%8A%A0%E5%AF%86%E7%94%B5%E5%AD%90%E5%AF%86%E7%A0%81)是由**维塔利克·布特林**和**约瑟夫·普恩**在2017年首次设计的等离子链。[^26]'
 - en: Plasma chains  are different from sidechains in that their security can be enforced
     by the main chain (or *parent chain*, in plasma terminology) and thus does not
     depend exclusively on the consensus mechanism of the sidechain. This means that
@@ -2071,6 +2117,7 @@
   id: totrans-244
   prefs: []
   type: TYPE_NORMAL
+  zh: 等离子链不同于侧链，因为它们的安全性可以由主链（或等离子术语中的*父链*）强制执行，因此不完全依赖于侧链的共识机制。这意味着如果子链上的验证者集合（称为*等离子操作员*）行为不端，任何用户都可以构建一个加密证据并将其带到主链上的智能合约（称为*根合约*）。如果没有犯规行为，子链上的交易将以减少的燃气成本和延迟进行，这是侧链的典型特点。
 - en: However, this additional security comes at a cost. Whenever a user wants to
     exit the child chain (i.e., transfer their assets back to the main chain), they
     must go through a *challenge period*, similar to the one we saw in state channels.
@@ -2081,6 +2128,7 @@
   id: totrans-245
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，这种额外的安全性是有代价的。每当用户想要退出子链（即将其资产转移到主链时），他们必须经过*挑战期*，类似于我们在状态通道中看到的那种。如果一个恶意验证者创建了一个虚假的区块，在其中窃取了用户的资产，并使用它来控制主链中的这些资产，用户可以在这个挑战期间提交欺诈证据，并重新获得他们的资产。因此，退出等离子链并不是瞬间完成的，需要用户等待一段时间。[^27]
 - en: Also, since a smart contract needs to be able to process whether a set of transactions
     on the child chain was legitimate, the operations allowed on the child chain cannot
     be overly complex. In particular, no plasma implementations at the time of this
@@ -2090,6 +2138,7 @@
   id: totrans-246
   prefs: []
   type: TYPE_NORMAL
+  zh: 另外，由于智能合约需要能够处理子链上一组交易是否合法，因此子链上允许的操作不能过于复杂。特别是，在撰写本文时，没有一种等离子实现支持任意智能合约，并且只提供用户之间交换资产的手段。这个主题的研究是在*广义等离子*实现下进行的。
 - en: On the flip side, plasma chains are designed for having a tree-like structure.
     The parent chain of a plasma chain can be *another* plasma chain, allowing for
     massive scalability by simply composing plasma chains within others. This means
@@ -2098,6 +2147,7 @@
   id: totrans-247
   prefs: []
   type: TYPE_NORMAL
+  zh: 另一方面，等离子链设计为具有类似树状结构。等离子链的父链可以是*另一条*等离子链，通过简单地在其他链中组合等离子链，可以实现可伸缩性。这意味着，如果一个特定应用的等离子链变得过拥挤，它可以简单地产生新的子链并将用户群集移至其中。
 - en: It is worth mentioning that plasma itself is not a specification but a framework
     for building scalable layer 2 infrastructure. This has led to the development
     of many different flavors of plasma by different teams, such as minimal viable
@@ -2107,11 +2157,14 @@
   id: totrans-248
   prefs: []
   type: TYPE_NORMAL
+  zh: 值得一提的是，等离子本身不是一个规范，而是用于构建可伸缩的第二层基础设施的框架。这导致了许多不同团队开发了许多不同类型的等离子，例如最小可行等离子、等离子现金、等离子借记或等离子主链。[^28]
+    很可能在本书到达你手中的时候，这个领域会有新的重大发展。
 - en: Summary
   id: totrans-249
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 摘要
 - en: Public blockchains like Bitcoin or Ethereum have traditionally sacrificed performance
     for trustlessness and security. While there are multiple efforts toward building
     Ethereum 2.0, which includes sharding mechanics that help the network scale, it
@@ -2120,12 +2173,14 @@
   id: totrans-250
   prefs: []
   type: TYPE_NORMAL
+  zh: 像比特币或以太坊这样的公共区块链传统上为了去中心化和安全性而牺牲了性能。虽然有多个努力构建以太坊 2.0 的项目，其中包括分片机制以帮助网络扩展，但有趣的是看到许多解决可扩展性问题的解决方案在现有基础设施上不断涌现。
 - en: Some of the solutions presented in this chapter, such as early versions of plasma
     or state channels, are ready to use and in production today, helping real-life
     applications scale beyond the limits of the main Ethereum network.
   id: totrans-251
   prefs: []
   type: TYPE_NORMAL
+  zh: 本章介绍的一些解决方案，如早期版本的 Plasma 或状态通道，已经准备就绪并且今天已经在生产中，帮助现实生活中的应用程序突破了以太坊主网络的限制。
 - en: These solutions not only allow your application to achieve a higher transaction
     throughput, but they can also be used to provide a better user experience overall.
     Channels provide instant finality to peer-to-peer transactions if both parties
@@ -2135,12 +2190,16 @@
   id: totrans-252
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些解决方案不仅允许您的应用程序实现更高的交易吞吐量，而且还可以用于提供更好的整体用户体验。如果双方行为得当，通道为点对点交易提供即时的终局性，而不是等待十几个确认。而侧链可以提供可靠的区块时间，远低于主网络，并且具有相当低的
+    Gas 费用。
 - en: 'These techniques can even be combined: you can set up state channels between
     parties in a sidechain or even use channels as the actual asset being traded in
     a plasma chain.^([29](#Fn29)) The sky is the limit here.'
   id: totrans-253
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些技术甚至可以结合使用：你可以在侧链中的各方之间建立状态通道，甚至可以在 Plasma 链中使用通道作为实际交易的资产。^([29](#Fn29))
+    这里的可能性是无限的。
 - en: How you leverage these solutions and present them to (or hide them from) your
     users will depend on what you are building. Remember what your users need from
     your application, and use the building blocks available to you to create the best
@@ -2148,7 +2207,9 @@
   id: totrans-254
   prefs: []
   type: TYPE_NORMAL
+  zh: 你如何利用这些解决方案并向用户展示（或隐藏）它们将取决于你正在构建的内容。记住你的用户从你的应用程序中需要什么，并利用现有的构建模块为他们创造最佳的体验。
 - en: Happy coding!
   id: totrans-255
   prefs: []
   type: TYPE_NORMAL
+  zh: 祝愉快编码！
