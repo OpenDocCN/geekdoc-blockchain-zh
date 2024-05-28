@@ -1,82 +1,122 @@
 - en: © The Author(s), under exclusive license to APress Media, LLC, part of Springer
     Nature 2021B. SitnikovskiIntroducing Blockchain with Lisp[https://doi.org/10.1007/978-1-4842-6969-5_3](https://doi.org/10.1007/978-1-4842-6969-5_3)
+  id: totrans-0
   prefs: []
   type: TYPE_NORMAL
+  zh: © 作者（们），独家许可给 APress Media, LLC，Springer Nature 子公司 2021B. Sitnikovski《用 Lisp
+    介绍区块链》[https://doi.org/10.1007/978-1-4842-6969-5_3](https://doi.org/10.1007/978-1-4842-6969-5_3)
 - en: 3. Blockchain Implementation
+  id: totrans-1
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 3. 区块链实现
 - en: Boro Sitnikovski^([1](#Aff2)  )(1)Skopje, North Macedonia![../images/510363_1_En_3_Chapter/510363_1_En_3_Figa_HTML.jpg](../images/510363_1_En_3_Chapter/510363_1_En_3_Figa_HTML.jpg)
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: Boro Sitnikovski^([1](#Aff2)  )(1)北马其顿斯科普里![../images/510363_1_En_3_Chapter/510363_1_En_3_Figa_HTML.jpg](../images/510363_1_En_3_Chapter/510363_1_En_3_Figa_HTML.jpg)
 - en: '*Gateway to abstractions, by D. Bozhinovski*'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '*《通往抽象的门户》，作者 D. Bozhinovski*'
 - en: Now that we have equipped ourselves with the ability to write computer programs,
     we will implement the components (data structures and operations) of the blockchain.
     Throughout this chapter, we will be using some new procedures. For some of them,
     we will give a brief explanation. For others, if you are curious, you can get
     additional details from Racket’s manuals.
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们已经具备了编写计算机程序的能力，我们将实现区块链的组件（数据结构和操作）。在本章中，我们将使用一些新的程序。对于其中一些程序，我们将提供简要解释。对于其他程序，如果你感兴趣，可以从
+    Racket 的手册中获得更多详细信息。
 - en: 'Every section in this chapter is hands-on, meaning that you will have to implement
     it as we go through. Exercises are provided to make sure you understand how the
     procedures we build will be used. Before we start, recall that at the top of every
     file you have to prepend #lang racket, as we mentioned in the previous chapter.'
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: '本章的每一节都是动手操作的，这意味着在我们进行操作时，你将不得不实现它们。我们提供了练习，以确保你了解我们构建的过程将如何使用。在我们开始之前，请记住在每个文件的顶部加上
+    #lang racket，就像我们在上一章中提到的那样。'
 - en: As before, code snippets that start with a > are to be evaluated in the REPL.
     Don’t save their definitions in the actual target file.
+  id: totrans-6
   prefs: []
   type: TYPE_NORMAL
+  zh: 与以前一样，以 > 开头的代码片段应在 REPL 中进行评估。不要将它们的定义保存在实际的目标文件中。
 - en: We start by defining serialization. We will rely on it heavily in the next chapter,
     when peers will send information to each other. Think of it as a neat way to transform
     data structures to some object that’s easy to transfer between peers.
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们从定义序列化开始。在下一章中，当节点互相发送信息时，我们将大量依赖它。把它看作是一种将数据结构转换为易于在节点之间传输的对象的整洁方式。
 - en: '![../images/510363_1_En_3_Chapter/510363_1_En_3_Figb_HTML.gif](../images/510363_1_En_3_Chapter/510363_1_En_3_Figb_HTML.gif)Definition
     3-1'
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: '![../images/510363_1_En_3_Chapter/510363_1_En_3_Figb_HTML.gif](../images/510363_1_En_3_Chapter/510363_1_En_3_Figb_HTML.gif)定义
+    3-1'
 - en: '**Serialization** is the process of converting an object into a stream of bytes
     to store the object or transmit it to memory, a database, or a file. **Deserialization**
     is the opposite process—converting a stream of bytes into an object.'
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: '**序列化**是将对象转换为字节流以存储对象或将其传输到内存、数据库或文件的过程。**反序列化**是相反的过程——将字节流转换为对象。'
 - en: 3.1 The wallet.rkt File
+  id: totrans-10
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 3.1 钱包.rkt 文件
 - en: In this section, we will implement wallets. They will be used by transactions
     later to determine the source and the destination of sending/receiving money.
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本节中，我们将实现钱包。它们将由后续交易使用，以确定发送/接收资金的来源和目的地。
 - en: As we discussed earlier, a wallet is a structure that contains a public and
     a private key. Wallets have this form:1   (**struct** wallet2     (private-key
     public-key)3     **#:prefab**)
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 正如我们之前讨论的，钱包是包含公钥和私钥的结构。钱包具有以下形式：1   (**struct** 钱包2     (私钥 公钥)3     **#:prefab**)
 - en: 'The #: operator represents an **optional keyword argument**—it’s basically
     an argument whose value can be set by referring to this argument’s name. In contrast,
     for ordinary arguments, we have to rely on their order to set their values. For
     example, in (lambda (x y z) ...), we have to pass values for x and y before we
     can pass a value for z.'
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: '#: 运算符代表**可选关键字参数**—基本上是一个参数，其值可以通过引用此参数的名称来设置。相反，对于普通参数，我们必须依赖它们的顺序来设置它们的值。例如，在
+    (lambda (x y z) ...) 中，我们必须在为 z 传递值之前传递 x 和 y 的值。'
 - en: 'The #:prefab part is new. A prefab (“previously fabricated”) structure type
     is a built-in type that is known to the Racket printer. We can print/display the
     structure and all of its contents. In addition, we can serialize/deserialize these
     kinds of structures.'
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: '#:prefab 部分是新内容。一个预制结构类型是一种内置类型，Racket 打印机已知它。我们可以打印/显示结构及其所有内容。此外，我们可以序列化/反序列化这些类型的结构。'
 - en: '![../images/510363_1_En_3_Chapter/510363_1_En_3_Figc_HTML.gif](../images/510363_1_En_3_Chapter/510363_1_En_3_Figc_HTML.gif)Definition
     3-2'
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: '![../images/510363_1_En_3_Chapter/510363_1_En_3_Figc_HTML.gif](../images/510363_1_En_3_Chapter/510363_1_En_3_Figc_HTML.gif)定义
+    3-2'
 - en: '**RSA** is an asymmetric-key algorithm used to encrypt and decrypt messages,
     similar in nature to the one described in Section 1.2.2.'
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: '**RSA** 是一种用于加密和解密消息的非对称密钥算法，与第 1.2.2 节描述的算法类似。'
 - en: 'We will make a procedure that creates a wallet by generating random public
     and private keys, and it will rely on the RSA algorithm.1   (**define** (make-wallet)2     (**letrec**
     ([rsa-impl (get-pk ''rsa libcrypto-factory)]3              [privkey (generate-private-key
@@ -84,166 +124,258 @@
     (bytes->hex-string6                (pk-key->datum privkey ''PrivateKeyInfo))7               (bytes->hex-string8                (pk-key->datum
     pubkey ''SubjectPublicKeyInfo)))))All of the procedures we’re using come from
     the crypto package:'
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将创建一个过程，通过生成随机的公钥和私钥来创建一个钱包，并且它将依赖于 RSA 算法。1   (**define** (make-wallet)2     (**letrec**
+    ([rsa-impl (get-pk 'rsa libcrypto-factory)]3              [privkey (generate-private-key
+    rsa-impl '((nbits 512)))]4              [pubkey (pk-key->public-only-key privkey)])5       (wallet
+    (bytes->hex-string6                (pk-key->datum privkey 'PrivateKeyInfo))7               (bytes->hex-string8                (pk-key->datum
+    pubkey 'SubjectPublicKeyInfo)))))我们使用的所有过程都来自 crypto 包：
 - en: get-pk returns the RSA implementation algorithm.
+  id: totrans-18
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: get-pk 返回 RSA 实现算法。
 - en: generate-private-key generates a private key given algorithm (in this case,
     RSA).
+  id: totrans-19
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: generate-private-key 生成给定算法（在本例中为 RSA）的私钥。
 - en: pk-key->public-only-key returns a public key given public/private key.
+  id: totrans-20
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: pk-key->public-only-key返回给定公钥/私钥的公钥。
 - en: pk-key->datum returns a public/private key so that it is easily serializable
     by the next procedure in this list.
+  id: totrans-21
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: pk-key->datum返回一个公钥/私钥，以便下一个列表中的程序可以轻松序列化。
 - en: bytes->hex-string converts a hex string (think numbers for example) to bytes,
     e.g. "0102030304" -> "Hello".
+  id: totrans-22
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: bytes->hex-string将十六进制字符串（比如数字）转换为字节，例如"0102030304" -> "Hello"。
 - en: We need to require the necessary packages:1   (**require** crypto)2   (**require**
     crypto/all)And we export everything so that this procedure can be used as a package.1   (**provide**
     (**struct-out** wallet) make-wallet)
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们需要引入必要的软件包：1   (**require** crypto)2   (**require** crypto/all)并且我们导出所有内容，以便该过程可以作为一个软件包使用。1   (**provide**
+    (**struct-out** wallet) make-wallet)
 - en: The struct-out syntax  is exporting the struct together with the procedures
     it generates.
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: struct-out语法是将结构与其生成的过程一起导出。
 - en: Here’s an example of a generated wallet:1   > (make-wallet)2   '#s(wallet3       "3082015502010030..."4       "305c300d06092a86...")
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下是一个生成的钱包示例：1   > (make-wallet)2   '#s(wallet3       "3082015502010030..."4       "305c300d06092a86...")
 - en: We now have a way to create wallets for our blockchain.
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，我们可以为我们的区块链创建钱包的方式了。
 - en: '![../images/510363_1_En_3_Chapter/510363_1_En_3_Figd_HTML.gif](../images/510363_1_En_3_Chapter/510363_1_En_3_Figd_HTML.gif)Exercise
     3-1'
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: '![../images/510363_1_En_3_Chapter/510363_1_En_3_Figd_HTML.gif](../images/510363_1_En_3_Chapter/510363_1_En_3_Figd_HTML.gif)练习
+    3-1'
 - en: Create a wallet using make-wallet and store it in a variable using define.
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用make-wallet创建一个钱包，并使用define将其存储在一个变量中。
 - en: '![../images/510363_1_En_3_Chapter/510363_1_En_3_Fige_HTML.gif](../images/510363_1_En_3_Chapter/510363_1_En_3_Fige_HTML.gif)Exercise
     3-2'
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: '![../images/510363_1_En_3_Chapter/510363_1_En_3_Fige_HTML.gif](../images/510363_1_En_3_Chapter/510363_1_En_3_Fige_HTML.gif)练习
+    3-2'
 - en: Extract the private and the public key of the previously created wallet. The
     code should look something like (wallet-?? (make-wallet)).
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: 提取先前创建的钱包的私钥和公钥。代码应该看起来像 (wallet-?? (make-wallet))。
 - en: '![../images/510363_1_En_3_Chapter/510363_1_En_3_Figf_HTML.gif](../images/510363_1_En_3_Chapter/510363_1_En_3_Figf_HTML.gif)Exercise
     3-3'
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: '![../images/510363_1_En_3_Chapter/510363_1_En_3_Figf_HTML.gif](../images/510363_1_En_3_Chapter/510363_1_En_3_Figf_HTML.gif)练习
+    3-3'
 - en: Get yourself briefly introduced to the procedures used in the crypto package
     by reading the manuals.
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过阅读手册，简要了解加密软件包中使用的过程。
 - en: '**Hint**: If your local documentation does not contain information about the
     crypto package, refer to [https://docs.racket-lang.org](https://docs.racket-lang.org/).'
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: '**提示**：如果你的本地文档中没有有关加密包的信息，请参考[https://docs.racket-lang.org](https://docs.racket-lang.org/)。'
 - en: 3.2 The block.rkt File
+  id: totrans-34
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 3.2 区块.rkt 文件
 - en: Recall that a blockchain is simply a list of blocks, as depicted in Figure [1-4](510363_1_En_1_Chapter.xhtml#Fig4)
     (Chapter [1](510363_1_En_1_Chapter.xhtml)). Thus, a block is the building block
     of a blockchain, and in this section, we will provide an implementation of blocks.
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 请记住，区块链就是一个块的列表，如图 [1-4](510363_1_En_1_Chapter.xhtml#Fig4) (第 [1](510363_1_En_1_Chapter.xhtml))
+    中所示。因此，区块是区块链的基本组成部分，在本节中，我们将提供块的实现。
 - en: 3.2.1 Construction
+  id: totrans-36
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 3.2.1 构造
 - en: A block should contain the current hash, the previous hash, the data, and the
     timestamp that it was generated:1   > (**struct** block2   (current-hash previous-hash
     data timestamp)3   **#:prefab**)
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 区块应包含当前哈希、上一个哈希、数据以及生成时间戳：1   > (**struct** block2   (current-hash previous-hash
+    data timestamp)3   **#:prefab**)
 - en: Using a hashing algorithm will allow us to confirm that the block is valid.
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用散列算法将使我们能够确认区块是否有效。
 - en: In general, blocks can contain any data, not just transactions, but we are limiting
     them to transactions for now. We will also add a nonce field for the Hashcash
     algorithm. We will see the purpose of this field in a moment:1   (**struct** block2     (current-hash
     previous-hash transaction timestamp nonce)3     **#:prefab**)Our block also contains
     a transaction that is roughly of the following form:1   > (**struct** transaction2     (signature
     from to value)3     **#:prefab**)
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: 一般来说，区块可以包含任何数据，不仅限于交易，但我们目前将其限制为交易。我们还将为 Hashcash 算法添加一个 nonce 字段。我们稍后会看到这个字段的用途：1   (**struct**
+    block2     (current-hash previous-hash transaction timestamp nonce)3     **#:prefab**)我们的区块还包含一个大致如下形式的交易：1   >
+    (**struct** transaction2     (signature from to value)3     **#:prefab**)
 - en: We will implement transactions in details later.
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们稍后会详细实现交易。
 - en: 'Here’s one way to generate a block:1   > (block "123456" "234" (transaction
     "BoroS" "Boro" "You" 123) 1 1)2   ''#s(block "123456" "234" #s(transaction "BoroS"
     "Boro" "You" 123)3   1 1)'
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: '生成区块的一种方式如下：1   > (block "123456" "234" (transaction "BoroS" "Boro" "You" 123)
+    1 1)2   ''#s(block "123456" "234" #s(transaction "BoroS" "Boro" "You" 123)3   1
+    1)'
 - en: For example, this block makes a transaction from "Boro" to "You" with the value
     of 123, and with a timestamp and a nonce of 1.
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 例如，这个区块将从“Boro”转账给“You”，金额为 123，时间戳和 nonce 为 1。
 - en: 3.2.2 Hashing and Verification
+  id: totrans-43
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 3.2.2 散列和验证
 - en: Next, we will implement a procedure that calculates a block’s hash. We will
     use the SHA hashing algorithm.
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: 接下来，我们将实现一个计算区块哈希的过程。我们将使用 SHA 散列算法。
 - en: '![../images/510363_1_En_3_Chapter/510363_1_En_3_Figg_HTML.gif](../images/510363_1_En_3_Chapter/510363_1_En_3_Figg_HTML.gif)'
+  id: totrans-45
   prefs: []
   type: TYPE_IMG
+  zh: '![../images/510363_1_En_3_Chapter/510363_1_En_3_Figg_HTML.gif](../images/510363_1_En_3_Chapter/510363_1_En_3_Figg_HTML.gif)'
 - en: Definition 3-3
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: 定义 3-3
 - en: '**SHA** is a hashing algorithm that takes an input and produces a hash value.'
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: '**SHA** 是一种散列算法，它接受一个输入并产生一个哈希值。'
 - en: 'Here’s how the procedure looks:1   (**define** (calculate-block-hash previous-hash
     timestamp transaction nonce)2     (bytes->hex-string (sha256 (bytes-append3              (string->bytes/utf-8
     previous-hash)4              (string->bytes/utf-8 (number->string timestamp))5              (string->bytes/utf-8
     (~a (serialize transaction)))6              (string->bytes/utf-8 (number->string
     nonce))))))There are a few things to note here:'
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: 下面是该过程的样子：1   (**define** (calculate-block-hash previous-hash timestamp transaction
+    nonce)2     (bytes->hex-string (sha256 (bytes-append3              (string->bytes/utf-8
+    previous-hash)4              (string->bytes/utf-8 (number->string timestamp))5              (string->bytes/utf-8
+    (~a (serialize transaction)))6              (string->bytes/utf-8 (number->string
+    nonce))))))这里有几点需要注意：
 - en: We expect every field in the structure to be of type string. This will make
     things much easier later, e.g., when we want to store the blockchain in a data
     file.
+  id: totrans-49
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我们期望结构中的每个字段都是字符串类型。这样将在后面（例如在我们想要将区块链存储到数据文件时）使事情变得更简单。
 - en: If you check the manuals for sha256, you will notice it accepts bytes. That
     means we have to convert every field to bytes using string->bytes/utf-8 and then
     append all these bytes together before hashing them.
+  id: totrans-50
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果你查阅sha256的手册，你会注意到它接受字节。这意味着我们必须使用`string->bytes/utf-8`将每个字段转换为字节，然后在散列它们之前将所有这些字节拼接在一起。
 - en: number->string converts a number to a string, so for example 3 -> "3" and ∼a
     does the same thing but it can also convert objects to string.
+  id: totrans-51
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`number->string`将一个数字转换为字符串，例如 3 -> "3"，而`~a`也做同样的事情，但它也可以将对象转换为字符串。'
 - en: 'We use serialize on a transaction. This procedure accepts an object and returns
     an S-expression containing the same contents. Not all objects can be serialized;
     however, in this case, we use #:prefab which additionally makes structures serializable.'
+  id: totrans-52
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我们对一个交易使用`serialize`函数。这个程序接受一个对象，并返回包含相同内容的S表达式。并非所有对象都可以被序列化；然而，在这种情况下，我们使用`#:prefab`，它还使结构可序列化。
 - en: Finally, we store the hash as a hex string. Think of hex as a way to store a
     string from readable characters to numbers, e.g. "Hello" -> "0102030304".
+  id: totrans-53
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 最后，我们将哈希值存储为十六进制字符串。将十六进制视为一种将字符串从可读字符转换为数字的方式，例如，“Hello” -> "0102030304"。
 - en: As an example, this is how we calculate the hash of our earlier example block:1   >  (calculate-block-hash  "234"  1  (transaction  "BoroS"  "Boro"  "You"2   "a
     book") 1)3   "5e2889a76a464ea19a493a74d2da991a78626fc1fa9070340c2284ad92f4dd17"Now
     that we have a way to calculate a block’s hash, we also need a way to verify it.
@@ -252,139 +384,221 @@
     bl)3             (calculate-block-hash (block-previous-hash bl)4                                   (block-timestamp
     bl)5                                   (block-transaction bl)6                                   (block-nonce
     bl))))
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: 作为一个例子，这是我们如何计算我们早期示例区块的哈希值：1   >  (calculate-block-hash  "234"  1  (transaction  "BoroS"  "Boro"  "You"2   "a
+    book") 1)3   "5e2889a76a464ea19a493a74d2da991a78626fc1fa9070340c2284ad92f4dd17"现在我们有了计算区块哈希的方法，我们还需要一种验证它的方法。为此，我们只需再次对区块内容进行哈希处理，并将此哈希与存储在区块中的哈希进行比较：1   (**定义**
+    (valid-block? bl)2     (equal? (block-current-hash bl)3             (calculate-block-hash
+    (block-previous-hash bl)4                                   (block-timestamp bl)5                                   (block-transaction
+    bl)6                                   (block-nonce bl))))
 - en: 3.2.3 Hashcash Algorithm
+  id: totrans-55
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 3.2.3 Hashcash算法
 - en: At this point, we have everything we need to implement the Hashcash algorithm  .1   (**define**
     difficulty 2)2   (**define** target (bytes->hex-string (make-bytes difficulty
     32)))
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: 此时，我们已经拥有了实现Hashcash算法所需的一切。1   (**定义** 难度 2)2   (**定义** 目标 (`bytes->hex-string`
+    (`make-bytes` 难度 32)))
 - en: We set the difficulty to 2, and thus the target will contain a difficulty number
     of bytes using the built-in procedure called make-bytes.
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将难度设置为2，因此目标将包含使用名为`make-bytes`的内置程序生成的难度数目的字节。
 - en: 'A block will be considered mined if the hash matches the target, given the
     difficulty:1   (**define** (mined-block? block-hash)2     (equal? (subbytes (hex-string->bytes
     block-hash) 1 difficulty)3             (subbytes (hex-string->bytes target) 1
     difficulty)))A couple of things to note here:'
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果哈希与目标匹配，则将认为区块已挖掘，考虑到难度：1   (**define** (mined-block? block-hash)2     (equal?
+    (subbytes (hex-string->bytes block-hash) 1 difficulty)3             (subbytes
+    (hex-string->bytes target) 1 difficulty)))这里需要注意的几件事：
 - en: 'hex-string->bytes is just a way to convert a hex string, e.g. "0102030304"
     -> #"\1\2\3\3\4".'
+  id: totrans-59
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 'hex-string->bytes 只是一种将十六进制字符串转换为字节的方法，例如，"0102030304" -> #"\1\2\3\3\4"。'
 - en: subbytes takes a list of bytes, a start, and an end point and returns that sublist.
+  id: totrans-60
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: subbytes 接受一个字节列表、一个起始点和一个结束点，并返回该子列表。
 - en: Thus, given a random hash, we consider it to be valid if its first two (in this
     case, per difficulty) bytes match the target.
+  id: totrans-61
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 因此，给定一个随机哈希，在此情况下，如果其前两个字节与目标匹配，我们认为它是有效的。
 - en: The actual Hashcash procedure is as follows:1   (**define** (make-and-mine-block2             previous-hash
     timestamp transaction nonce)3     (**let** ([current-hash (calculate-block-hash4                   previous-hash
     timestamp transaction nonce)])5       (**if** (mined-block? current-hash)6           (block
     current-hash previous-hash transaction timestamp nonce)7           (make-and-mine-block8            previous-hash
     timestamp transaction (+ nonce 1)))))
+  id: totrans-62
   prefs: []
   type: TYPE_NORMAL
+  zh: 实际的 Hashcash 过程如下：1   (**define** (make-and-mine-block2             previous-hash
+    timestamp transaction nonce)3     (**let** ([current-hash (calculate-block-hash4                   previous-hash
+    timestamp transaction nonce)])5       (**if** (mined-block? current-hash)6           (block
+    current-hash previous-hash transaction timestamp nonce)7           (make-and-mine-block8            previous-hash
+    timestamp transaction (+ nonce 1)))))
 - en: This procedure keeps increasing the nonce until a block is valid  , at which
     point it is returned. That is, we continuously change the nonce until sha256 produces
     a hash that matches the target. This defines the foundations of mining (proof
     of work).
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: 该过程会不断增加 nonce，直到出现有效的区块，此时会返回该区块。也就是说，我们不断地改变 nonce，直到 sha256 生成与目标匹配的哈希为止。这定义了挖矿（工作证明）的基础。
 - en: For example, here’s how we can mine the earlier block we gave as an example:1   >
     (**define** mined-block (make-and-mine-block "234" 1 (transaction "BoroS"2     "Boro"
     "You" "a book") 1))3   > (block-nonce mined-block)4   3375   > (block-previous-hash
     mined-block)6   "234"7   > (block-current-hash mined-block)8   "e920d627196658b64e349c1d3d6f2de1ab308d98d1c48130ee36df47ef25ee9a"
+  id: totrans-64
   prefs: []
   type: TYPE_NORMAL
+  zh: 例如，这是我们如何挖掘我们之前提到的区块的示例：1   > (**define** mined-block (make-and-mine-block "234"
+    1 (transaction "BoroS"2     "Boro" "You" "a book") 1))3   > (block-nonce mined-block)4   3375   >
+    (block-previous-hash mined-block)6   "234"7   > (block-current-hash mined-block)8   "e920d627196658b64e349c1d3d6f2de1ab308d98d1c48130ee36df47ef25ee9a"
 - en: Note that nonce had to go up to 337 for the mining conditionals to be fulfilled.
     This is the amount of “work” that was required. In some cases, it will be smaller,
     and in others, it will be larger.
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
+  zh: 注意，nonce 必须增加到 337 才能满足挖矿条件。这是所需的“工作量”。在某些情况下，它会更小，在其他情况下，它会更大。
 - en: Lastly, we need a small helper procedure:1   (**define** (mine-block transaction
     previous-hash)2     (make-and-mine-block3      previous-hash (current-milliseconds)
     transaction 1))
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后，我们需要一个小的辅助程序：1   (**定义** (mine-block transaction previous-hash)2     (make-and-mine-block3      previous-hash
+    (current-milliseconds) transaction 1))
 - en: current-milliseconds returns the current time in milliseconds since midnight
     UTC, January 1, 1970.
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
+  zh: current-milliseconds 返回自 1970 年 1 月 1 日午夜 UTC 以来的当前时间（以毫秒为单位）。
 - en: We provide these structures and procedures:1   (**provide** (**struct-out block**)
     mine-block valid-block? mined-block?)And make sure we require all the necessary
     packages  :1   (**require** (**only-in** file/sha1 hex-string->bytes))2   (**require**
     (**only-in** sha sha256))3   (**require** (**only-in** sha bytes->hex-string))4   (**require**
     racket/serialize)
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们提供以下结构和程序：1   (**提供** (**struct-out block**) mine-block valid-block? mined-block?)并确保我们需要所有必要的包：1   (**需要**
+    (**only-in** file/sha1 hex-string->bytes))2   (**需要** (**only-in** sha sha256))3   (**需要**
+    (**only-in** sha bytes->hex-string))4   (**需要** racket/serialize)
 - en: The only-in syntax imports only specific objects from a package that we specify,
     instead of importing everything.
+  id: totrans-69
   prefs: []
   type: TYPE_NORMAL
+  zh: only-in 语法仅从我们指定的包中导入特定对象，而不是导入所有内容。
 - en: At this point, besides being able to create and sign wallets, we now also have
     the necessary procedures to create and mine a block.
+  id: totrans-70
   prefs: []
   type: TYPE_NORMAL
+  zh: 此时，除了能够创建和签名钱包外，我们现在还有了创建和挖掘区块所需的程序。
 - en: '![../images/510363_1_En_3_Chapter/510363_1_En_3_Figh_HTML.gif](../images/510363_1_En_3_Chapter/510363_1_En_3_Figh_HTML.gif)Exercise
     3-4'
+  id: totrans-71
   prefs: []
   type: TYPE_NORMAL
+  zh: '![../images/510363_1_En_3_Chapter/510363_1_En_3_Figh_HTML.gif](../images/510363_1_En_3_Chapter/510363_1_En_3_Figh_HTML.gif)练习
+    3-4'
 - en: Create a block (with a transaction) using block (and transaction) and store
     it in a variable using define. Then, calculate its hash using calculate-block-hash.
+  id: totrans-72
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用 block（和 transaction）创建一个区块（含一笔交易），并使用 define 存储在一个变量中。然后使用 calculate-block-hash
+    计算其哈希值。
 - en: '![../images/510363_1_En_3_Chapter/510363_1_En_3_Figi_HTML.gif](../images/510363_1_En_3_Chapter/510363_1_En_3_Figi_HTML.gif)Exercise
     3-5'
+  id: totrans-73
   prefs: []
   type: TYPE_NORMAL
+  zh: '![../images/510363_1_En_3_Chapter/510363_1_En_3_Figi_HTML.gif](../images/510363_1_En_3_Chapter/510363_1_En_3_Figi_HTML.gif)练习
+    3-5'
 - en: Use make-and-mine-block on a block you generated. What’s the nonce count, i.e.,
     how much “work” (processing) did it take to mine that block?
+  id: totrans-74
   prefs: []
   type: TYPE_NORMAL
+  zh: 在你生成的区块上使用 make-and-mine-block。随机数计数是多少，即挖掘该区块需要多少“工作”（处理）？
 - en: '![../images/510363_1_En_3_Chapter/510363_1_En_3_Figj_HTML.gif](../images/510363_1_En_3_Chapter/510363_1_En_3_Figj_HTML.gif)Exercise
     3-6'
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
+  zh: '![../images/510363_1_En_3_Chapter/510363_1_En_3_Figj_HTML.gif](../images/510363_1_En_3_Chapter/510363_1_En_3_Figj_HTML.gif)练习
+    3-6'
 - en: Use valid-block? on the block in the previous exercise. Now use valid-block?
     on that block where its nonce is 1.
+  id: totrans-76
   prefs: []
   type: TYPE_NORMAL
+  zh: 在前一个练习中的区块上使用 valid-block?。现在在随机数为 1 的那个区块上使用 valid-block?。
 - en: '**Hint**: To generate a “new” block out of an existing one called bl, you can
     use:'
+  id: totrans-77
   prefs: []
   type: TYPE_NORMAL
+  zh: '**提示**：为了从一个名为 bl 的现有区块生成一个“新”的区块，你可以使用：'
 - en: 1   (block (block-current-hash bl)
+  id: totrans-78
   prefs: []
   type: TYPE_NORMAL
+  zh: 1   (block (block-current-hash bl)
 - en: 2          (block-previous-hash bl)
+  id: totrans-79
   prefs: []
   type: TYPE_NORMAL
+  zh: 2          (block-previous-hash bl)
 - en: 3          (block-transaction bl)
+  id: totrans-80
   prefs: []
   type: TYPE_NORMAL
+  zh: 3          (block-transaction bl)
 - en: 4          (block-timestamp bl)
+  id: totrans-81
   prefs: []
   type: TYPE_NORMAL
+  zh: 4          (block-timestamp bl)
 - en: 5          (block-nonce bl))
+  id: totrans-82
   prefs: []
   type: TYPE_NORMAL
+  zh: 5          (block-nonce bl))
 - en: 3.3 The utils.rkt File
+  id: totrans-83
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 3.3 utils.rkt 文件
 - en: This file will contain common procedures that will be used by other components.
+  id: totrans-84
   prefs: []
   type: TYPE_NORMAL
+  zh: 此文件将包含其他组件将使用的常见过程。
 - en: 'A procedure that we will use often is true-for-all?. It returns true if a predicate
     satisfies all members of the list, and false otherwise:1   (**define** (true-for-all?
     pred list)2     (**cond**3       [(empty? list) #t]4       [(pred (car list))
@@ -394,69 +608,107 @@
     for a procedure to export a struct into a file:1   (**define** (struct->file object
     **file**)2     (**let** ([out (open-output-file **file #:exists** ''replace)])3       (write
     (serialize object) out)4       (close-output-port out)))'
+  id: totrans-85
   prefs: []
   type: TYPE_NORMAL
+  zh: '我们经常使用的一个过程是 true-for-all?。如果谓词满足列表的所有成员，则返回 true，否则返回 false：1   （**定义**（true-for-all?
+    pred list）2     （**cond**3       （（empty? list）#t）4       （（pred（car list））（true-for-all?
+    pred（cdr list）））5       [**else** #f]））以下是我们如何使用它的示例：1   >（true-for-all?（**lambda**（x）（>
+    x 3））''（1 2 3））2   #f3   >（true-for-all?（**lambda**（x）（> x 3））''（4 5 6））4   #t接下来，我们需要一个将结构导出到文件的过程：1   （**定义**（struct->file
+    object **file**）2     （**let**（[out（open-output-file **file #:exists** ''replace）]）3     （write（serialize
+    object）out）4     （close-output-port out）））'
 - en: open-output-file returns an object in memory, which we can then write to using
     write. When we do that, it will write to the opened file. close-output-port closes
     this object in memory. This procedure will serialize a struct and then will write
     the serialized contents to a file.
+  id: totrans-86
   prefs: []
   type: TYPE_NORMAL
+  zh: open-output-file 返回内存中的一个对象，我们可以使用 write 将其写入。当我们这样做时，它将写入已打开的文件。close-output-port
+    关闭内存中的这个对象。此过程将序列化一个结构，然后将序列化的内容写入文件。
 - en: 'The following procedure is the opposite of struct->file: given a file, it will
     return a struct by opening the file, reading its contents, and deserializing its
     contents.1   (**define** (file->struct **file**)2     (**letrec** ([in (open-input-file
     **file**)]3              [result (read in)])4       (close-input-port in)5       (deserialize
     result)))A few notes here:'
+  id: totrans-87
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下过程是 struct->file 的相反过程：给定一个文件，它将通过打开文件、读取其内容和反序列化其内容来返回一个结构。1   （**定义**（file->struct
+    **file**）2     （**letrec**（[in（open-input-file **file**）]3              [result（read
+    in）]）4     （close-input-port in）5     （deserialize result）））这里有几点需要注意：
 - en: read will read and return data from in (the opposite of write).
+  id: totrans-88
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: read 将从 in 中读取数据并返回（与 write 相反）。
 - en: open-input-file is similar to open-output-file, except that it is used to read
     from a file using read.
+  id: totrans-89
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: open-input-file 与 open-output-file 类似，只是它用于使用 read 从文件中读取。
 - en: deserialize is the opposite of serialize.
+  id: totrans-90
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: deserialize 是 serialize 的相反操作。
 - en: We provide these procedures:1   (**provide** true-for-all? struct->file file->struct)And
     make sure we require all the necessary packages:1   (**require** racket/serialize)
+  id: totrans-91
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们提供这些过程：1   （**提供** true-for-all? struct->file file->struct）并确保我们需要所有必要的包：1   （**要求**
+    racket/serialize）
 - en: Now we have a way to write our blockchain data into the filesystem (and read
     it from the filesystem). This way, our blockchain data can persist.
+  id: totrans-92
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们有一种将我们的区块链数据写入文件系统（并从文件系统中读取）的方法。这样，我们的区块链数据就可以持久化了。
 - en: '![../images/510363_1_En_3_Chapter/510363_1_En_3_Figk_HTML.gif](../images/510363_1_En_3_Chapter/510363_1_En_3_Figk_HTML.gif)Exercise
     3-7'
+  id: totrans-93
   prefs: []
   type: TYPE_NORMAL
+  zh: '![../images/510363_1_En_3_Chapter/510363_1_En_3_Figk_HTML.gif](../images/510363_1_En_3_Chapter/510363_1_En_3_Figk_HTML.gif)练习
+    3-7'
 - en: Use struct->file on some block to store it in a file. Then, use file->struct
     on that same file. Did you get the same block? Next, use a text editor to open
     the file you created. What do the file contents look like?
+  id: totrans-94
   prefs: []
   type: TYPE_NORMAL
+  zh: 在某个区块上使用 struct->file 将其存储到文件中。然后，在同一个文件上使用 file->struct。你得到了相同的区块吗？接下来，使用文本编辑器打开你创建的文件。文件内容是什么样子的？
 - en: 3.4 Transactions
+  id: totrans-95
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 3.4 交易
 - en: In this section, we will implement the procedures for signing and verifying
     transactions, as depicted in Figure 1-2 (Chapter [1](510363_1_En_1_Chapter.xhtml)).
+  id: totrans-96
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本节中，我们将实现签名和验证交易的过程，如图 1-2 所示（第 [1](510363_1_En_1_Chapter.xhtml) 章）。
 - en: 3.4.1 The transaction-io.rkt File
+  id: totrans-97
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 3.4.1 交易-io.rkt 文件
 - en: The transaction  structure will consist of a transaction-io structure  (transaction
     input/output). The transaction input will represent the blockchain address from
     which the money was sent, and the transaction output will represent the blockchain
     address to which the money was sent.
+  id: totrans-98
   prefs: []
   type: TYPE_NORMAL
+  zh: 交易结构将由一个交易-io 结构（交易输入/输出）组成。交易输入将代表从哪个区块链地址发送了资金，而交易输出将代表资金发送至哪个区块链地址。
 - en: This structure contains a hash so that we’re able to verify its validity. It
     also has a value, an owner, and a timestamp.1   (**struct** transaction-io2     (transaction-hash
     value owner timestamp)3     **#:prefab**)Similarly to a block, we will use the
@@ -478,56 +730,97 @@
     packages and export the procedures:1   (**require** (**only-in** sha sha256))2   (**require**
     (**only-in** sha bytes->hex-string))3   (**require** racket/serialize)45   (**provide**
     (**struct-out** transaction-io)6             make-transaction-io valid-transaction-io?)
+  id: totrans-99
   prefs: []
   type: TYPE_NORMAL
+  zh: 此结构包含一个哈希，以便我们能够验证其有效性。它还具有一个值，一个所有者和一个时间戳。1   (**struct** transaction-io2     (transaction-hash
+    value owner timestamp)3     **#:prefab**)类似于一个区块，我们将使用相同的代码来创建一个哈希，并依赖于序列化：1   (**define**
+    (calculate-transaction-io-hash value owner timestamp)2     (bytes->hex-string  (sha256  (bytes-append3              (string->bytes/utf-8
+    (number->string value))4              (string->bytes/utf-8 (~a (serialize owner)))5              (string->bytes/utf-8  (number->string  timestamp))))))make-transaction-io是一个帮助程序，它将初始化时间戳：1   (**define**
+    (make-transaction-io value owner)2     (**let** ([timestamp (current-milliseconds)])3       (transaction-io4        (calculate-transaction-io-hash
+    value owner timestamp)5        value6        owner7        timestamp)))一个 transaction-io
+    结构如果其哈希等于值、所有者和时间戳的哈希，则有效：1   (**define** (valid-transaction-io? t-in)2     (equal?
+    (transaction-io-transaction-hash t-in)3             (calculate-transaction-io-hash4              (transaction-io-value
+    t-in)5              (transaction-io-owner t-in)6              (transaction-io-timestamp  t-in))))下面是一个使用示例：1   >
+    (make-transaction-io 123 "Some person")2   '#s(transaction-io "df652a3c15feba2eb9071cfdd810130c971f7fe7494a4710ee623   2fca11f0d83e"
+    123 "Some person" 1573765357289)4   > (valid-transaction-io? (transaction-io "df652a3c15feba2eb9071cfdd810135   0c971f7fe7494a4710ee622fca11f0d83e"
+    123 "Some person" 1573765357289))6   #t7   > (valid-transaction-io? (transaction-io
+    "badhash" 123 "Some person"8   1573765357289))9   #f最后，我们导入必要的包并导出这些程序：1   (**require**
+    (**only-in** sha sha256))2   (**require** (**only-in** sha bytes->hex-string))3   (**require**
+    racket/serialize)45   (**provide** (**struct-out** transaction-io)6             make-transaction-io
+    valid-transaction-io?)
 - en: Now that we have a way to store transaction inputs/outputs, we can proceed with
     the actual transaction implementation  .
+  id: totrans-100
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们有了一种方法来存储交易输入/输出，我们可以继续进行实际的交易实现。
 - en: 3.4.2 The transaction.rkt File
+  id: totrans-101
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 3.4.2 交易.rkt 文件
 - en: This file will contain procedures for signing and verifying transactions. It
     will also use transaction inputs and outputs and store them in a single transaction.
+  id: totrans-102
   prefs: []
   type: TYPE_NORMAL
+  zh: 此文件将包含用于签署和验证交易的过程。它还将使用交易输入和输出，并将它们存储在单个交易中。
 - en: Here’s everything that we will need to require:1   (**require** "transaction-io.rkt")2   (**require**
     "utils.rkt")3   (**require** (**only-in** file/sha1 hex-string->bytes))4   (**require**
     "wallet.rkt")5   (**require** crypto)6   (**require** crypto/all)7   (**require**
     racket/serialize)A transaction contains a signature, sender, receiver, value,
     and a list of inputs and outputs (transaction-io objects).1   (**struct** transaction2     (signature
     from to value inputs outputs)3     **#:prefab**)
+  id: totrans-103
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是我们需要的所有内容：1   (**require** "transaction-io.rkt")2   (**require** "utils.rkt")3   (**require**
+    (**only-in** file/sha1 hex-string->bytes))4   (**require** "wallet.rkt")5   (**require**
+    crypto)6   (**require** crypto/all)7   (**require** racket/serialize)交易包含一个签名、发送方、接收方、价值和输入输出列表（transaction-io
+    对象）。1   (**struct** transaction2     (signature from to value inputs outputs)3     **#:prefab**)
 - en: '![../images/510363_1_En_3_Chapter/510363_1_En_3_Figl_HTML.gif](../images/510363_1_En_3_Chapter/510363_1_En_3_Figl_HTML.gif)'
+  id: totrans-104
   prefs: []
   type: TYPE_IMG
+  zh: '![../images/510363_1_En_3_Chapter/510363_1_En_3_Figl_HTML.gif](../images/510363_1_En_3_Chapter/510363_1_En_3_Figl_HTML.gif)'
 - en: Definition 3-4
+  id: totrans-105
   prefs: []
   type: TYPE_NORMAL
+  zh: 定义 3-4
 - en: In Racket, a **crypto factory** consists of specific implementations of crypto-graphic
     algorithms.
+  id: totrans-106
   prefs: []
   type: TYPE_NORMAL
+  zh: 在 Racket 中，**加密工厂** 包括特定的加密算法实现。
 - en: In addition to the code, we need to use all crypto factories. They will allow
     us to use some procedures, for example hex<->pk-key:1   (use-all-factories!)We
     will need a procedure that makes an empty, unsigned, and unprocessed (no input
     outputs) transaction. This procedure will be used later when we send money or
     create the first (genesis) transaction.1   (**define** (make-transaction from
     to value inputs)2     (transaction3      ""4      from5      to6      value7      inputs8      '()))
+  id: totrans-107
   prefs: []
   type: TYPE_NORMAL
+  zh: 除了代码之外，我们还需要使用所有加密工厂。它们将允许我们使用一些程序，例如 hex<->pk-key：1   (use-all-factories!)我们需要一个过程，它制作一个空的、未签名的、未处理的（没有输入输出）交易。稍后在我们发送资金或创建第一个（创世）交易时将使用此过程。1   (**define**
+    (make-transaction from to value inputs)2     (transaction3       ""4       from5       to6       value7       inputs8       '()))
 - en: 3.4.2.1 Digital Signatures
+  id: totrans-108
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 3.4.2.1 数字签名
 - en: Next, we need a procedure  to sign a transaction. It is similar to the procedures
     we wrote earlier where we used hashing, in that we get all bytes from the structure
     and append them. The difference, in this case, is that we will be using digital
     signatures for signing and verifying data.
+  id: totrans-109
   prefs: []
   type: TYPE_NORMAL
+  zh: 接下来，我们需要一个流程来签署交易。它类似于我们之前编写的使用哈希的流程，因为我们从结构中获取所有字节并追加它们。不同之处在于，在这种情况下，我们将使用数字签名来签署和验证数据。
 - en: To create a digital signature, we use a hashing procedure (in this case, it
     is using the SHA algorithm). The private key is then used to encrypt the produced
     hash. The encrypted hash will represent the digital signature. 1   (**define**
@@ -536,42 +829,64 @@
     (hex-string->bytes privkey) 'PrivateKeyInfo) 7         'sha1 8         (bytes-append 9          (string->bytes/utf-8
     (~a (serialize from)))10          (string->bytes/utf-8 (~a (serialize to)))11          (string->bytes/utf-8
     (number->string value)))))))
+  id: totrans-110
   prefs: []
   type: TYPE_NORMAL
+  zh: 要创建数字签名，我们使用哈希过程（在本例中，使用SHA算法）。然后使用私钥加密生成的哈希。加密的哈希将表示数字签名。 1 （**定义**（sign-transaction
+    from to value）2 （**让**（[privkey（钱包私钥from）] 3 [pubkey（钱包公钥from）]）4 （bytes->hex-string
+    5 （digest/sign 6 （datum->pk-key（hex-string->bytes privkey）'PrivateKeyInfo）7 'sha1
+    8 （bytes-append 9 （string->bytes/utf-8（~a（serialize from）））10 （string->bytes/utf-8（~a（serialize
+    to）））11 （string->bytes/utf-8（number->string value）））））））
 - en: digest/sign is the procedure that does the hashing and encryption. It accepts
     a private key, an algorithm,^([1](#Fn1)) and bytes, and it returns encrypted data.
+  id: totrans-111
   prefs: []
   type: TYPE_NORMAL
+  zh: digest/sign是执行哈希和加密的过程。它接受一个私钥、一个算法^([1](#Fn1))和字节，并返回加密数据。
 - en: 3.4.2.2 Processing Transactions
+  id: totrans-112
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 3.4.2.2 处理交易
 - en: 'Next, we implement a procedure for processing transactions  which will:'
+  id: totrans-113
   prefs: []
   type: TYPE_NORMAL
+  zh: 接下来，我们实现一个处理交易的流程，它将：
 - en: Sum all the inputs within inputs-sum.
+  id: totrans-114
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 对inputs-sum中的所有输入求和。
 - en: Calculate the leftover, which is the difference between inputs-sum and the current
     transaction’s value.
+  id: totrans-115
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 计算剩余量，即输入总和与当前交易价值的差异。
 - en: Generate new outputs based on the transaction’s value and leftover.
+  id: totrans-116
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 根据交易的价值和剩余量生成新输出。
 - en: Combine the old outputs (outputs) and new outputs (new-outputs) to the newly
     generated transaction (inputs remain unchanged and will be used by the UTXO implementation
     later).
+  id: totrans-117
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 将旧输出（outputs）和新输出（new-outputs）合并到新生成的交易中（输入保持不变，稍后将由UTXO实现使用）。
 - en: Use foldr + 0 l to calculate the sum of a list of numbers, l.
+  id: totrans-118
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用foldr + 0 l计算数字列表l的总和。
 - en: In other words, based on some transaction inputs, the procedure will create
     transaction outputs that contain the transaction’s value and leftover money: 1   (**define**
     (process-transaction t) 2     (**letrec** 3         ([inputs (transaction-inputs
@@ -589,82 +904,141 @@
     (~a (serialize (transaction-from t)))) 8         (string->bytes/utf-8 (~a (serialize
     (transaction-to t)))) 9         (string->bytes/utf-8 (number->string (transaction-value
     t))))10         (hex-string->bytes (transaction-signature t)))))
+  id: totrans-119
   prefs: []
   type: TYPE_NORMAL
+  zh: 换句话说，基于一些交易输入，该过程将创建包含交易价值和剩余资金的交易输出： 1   (**定义** (process-transaction t) 2     (**letrec** 3         ([inputs
+    (transaction-inputs t)] 4          [outputs (transaction-outputs t)] 5          [value
+    (transaction-value t)] 6          [inputs-sum 7           (foldr + 0 (map (lambda
+    (i) (transaction-io-value i)) inputs))] 8          [leftover (- inputs-sum value)] 9          [new-outputs10           (list11            (make-transaction-io
+    value (transaction-to t))12            (make-transaction-io leftover (transaction-from
+    t)))])13       (transaction14        (sign-transaction (transaction-from t)15                          (transaction-to
+    t)16                          (transaction-value t))17        (transaction-from
+    t)18        (transaction-to t)19        value20        inputs21        (append
+    new-outputs outputs))))我们还需要一个检查交易签名的过程： 1   (**定义** (valid-transaction-signature?
+    t) 2     (**let** ([pubkey (wallet-public-key (transaction-from t))]) 3       (digest/verify 4        (datum->pk-key
+    (hex-string->bytes pubkey) 'SubjectPublicKeyInfo) 5        'sha1 6        (bytes-append 7         (string->bytes/utf-8
+    (~a (serialize (transaction-from t)))) 8         (string->bytes/utf-8 (~a (serialize
+    (transaction-to t)))) 9         (string->bytes/utf-8 (number->string (transaction-value
+    t))))10         (hex-string->bytes (transaction-signature t)))))
 - en: digest/verify is the opposite of digest/sign, in that instead of signing, it
     determines if a signature is valid.
+  id: totrans-120
   prefs: []
   type: TYPE_NORMAL
+  zh: digest/verify 是 digest/sign 的反义词，它确定签名是否有效。
 - en: 'Lastly, we will need a procedure that determines transaction validity under
     the following conditions:'
+  id: totrans-121
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后，我们需要一个在以下条件下确定交易有效性的过程：
 - en: 'Its signature is valid: valid-transaction-signature?'
+  id: totrans-122
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 其签名是有效的：valid-transaction-signature?
 - en: 'All outputs are valid: valid-transaction-io?'
+  id: totrans-123
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 所有的输出都是有效的：valid-transaction-io?
 - en: 'The sum of the inputs is greater than or equal to the sum of the outputs: >=
     sum-inputs sum-outputs. This resolves the problem of double-spending.'
+  id: totrans-124
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 输入的总和大于或等于输出的总和：>= sum-inputs sum-outputs。这解决了双重支付的问题。
 - en: 1   (**define** (valid-transaction? t) 2     (**let** ([sum-inputs 3            (foldr
     + 0 (map (**lambda** (t) (transaction-io-value t)) 4                            (transaction-inputs
     t)))] 5           [sum-outputs 6            (foldr + 0 (map (**lambda** (t) (transaction-io-value
     t)) 7                            (transaction-outputs t)))]) 8       (**and** 9        (valid-transaction-signature?
     t)10        (true-for-all? valid-transaction-io? (transaction-outputs t))11        (>=
     sum-inputs sum-outputs))))
+  id: totrans-125
   prefs: []
   type: TYPE_NORMAL
+  zh: 1   (**定义** (valid-transaction? t) 2     (**let** ([sum-inputs 3            (foldr
+    + 0 (map (**lambda** (t) (transaction-io-value t)) 4                            (transaction-inputs
+    t)))] 5           [sum-outputs 6            (foldr + 0 (map (**lambda** (t) (transaction-io-value
+    t)) 7                            (transaction-outputs t)))]) 8       (**and** 9        (valid-transaction-signature?
+    t)10        (true-for-all? valid-transaction-io? (transaction-outputs t))11        (>=
+    sum-inputs sum-outputs))))
 - en: 'The (and ...) syntax  will return #t if all values passed to it are #t, and
     it will return #f otherwise. In contrast, (or ...) will return #t if at least
     one value passed to it is #t, and #f otherwise.'
+  id: totrans-126
   prefs: []
   type: TYPE_NORMAL
+  zh: '(and ...) 语法如果传递给它的所有值都是 #t，则返回 #t，否则返回 #f。相反，(or ...) 如果传递给它的至少有一个值是 #t，则返回
+    #t，否则返回 #f。'
 - en: Finally, we export the following:1   (**provide** (**all-from-out** "transaction-io.rkt")2            (**struct-out**
     transaction)3            make-transaction process-transaction valid-transaction?)
+  id: totrans-127
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后，我们导出以下内容：1   (**提供** (**all-from-out** "transaction-io.rkt")2            (**struct-out**
+    transaction)3            make-transaction process-transaction valid-transaction?)
 - en: The all-from-out syntax specifies all objects that we import (and that are exported)
     from the target. In this case, besides the file exporting the transaction structure
     with a couple of procedures, it also exports everything from transaction-io.rkt.
+  id: totrans-128
   prefs: []
   type: TYPE_NORMAL
+  zh: all-from-out 语法指定我们从目标中导入的所有对象（并且导出的对象）。在本例中，除了导出带有一些过程的交易结构的文件之外，它还从 transaction-io.rkt
+    中导出了所有内容。
 - en: In addition to wallets and blocks, our implementation also supports the creation
     and processing of transactions.
+  id: totrans-129
   prefs: []
   type: TYPE_NORMAL
+  zh: 除了钱包和区块之外，我们的实现还支持交易的创建和处理。
 - en: '![../images/510363_1_En_3_Chapter/510363_1_En_3_Figm_HTML.gif](../images/510363_1_En_3_Chapter/510363_1_En_3_Figm_HTML.gif)Exercise
     3-8'
+  id: totrans-130
   prefs: []
   type: TYPE_NORMAL
+  zh: '![../images/510363_1_En_3_Chapter/510363_1_En_3_Figm_HTML.gif](../images/510363_1_En_3_Chapter/510363_1_En_3_Figm_HTML.gif)练习
+    3-8'
 - en: Create a transaction, process it, and verify it using the procedures above.
+  id: totrans-131
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用上述过程创建、处理和验证交易。
 - en: '**Hint**: Use make-transaction, process-transaction, and valid-transaction?,
     respectively.'
+  id: totrans-132
   prefs: []
   type: TYPE_NORMAL
+  zh: '**提示**：分别使用 make-transaction、process-transaction 和 valid-transaction?。'
 - en: 3.5 The blockchain.rkt File
+  id: totrans-133
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 3.5 区块链.rkt 文件
 - en: We will now implement the final component—the blockchain. We’ll need to require
     a bunch of stuff:1   (**require** "block.rkt")2   (**require** "transaction.rkt")3   (**require**
     "utils.rkt")4   (**require** "wallet.rkt")Recall that UTXO is just a list of transaction-io
     objects, where it represents unspent transaction outputs. In a way, it resembles
     the initial balance of wallets. Thus, the structure will contain a list of blocks
     and UTXO:1   (**struct** blockchain2     (blocks utxo)3     **#:prefab**)
+  id: totrans-134
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们将实现最后一个组件——区块链。我们需要引入一堆东西：1   (**require** "block.rkt")2   (**require**
+    "transaction.rkt")3   (**require** "utils.rkt")4   (**require** "wallet.rkt")回想一下，UTXO
+    只是一个交易-io 对象的列表，其中它表示未花费的交易输出。在某种程度上，它类似于钱包的初始余额。因此，结构将包含一个块和 UTXO 的列表：1   (**struct**
+    blockchain2     (blocks utxo)3     **#:prefab**)
 - en: 3.5.1 Initialization
+  id: totrans-135
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 3.5.1 初始化
 - en: We will need a procedure for the initialization of the blockchain. It should
     accept the genesis transaction, genesis hash, and UTXO:1   (**define** (init-blockchain
     t seed-hash utxo)2     (blockchain (cons (mine-block (process-transaction t) seed-hash)
@@ -673,12 +1047,21 @@
     (**define** genesis-t (make-transaction coin-base wallet-a 100  '()))4   > (**define**
     utxo (list5   >              (make-transaction-io 100 wallet-a)))6   > (**define**
     blockchain (init-blockchain genesis-t "1337cafe"  utxo))
+  id: totrans-136
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将需要一个过程来初始化区块链。它应该接受创世交易、创世哈希和 UTXO：1   (**define** (init-blockchain t seed-hash
+    utxo)2     (blockchain (cons (mine-block (process-transaction t) seed-hash) '())3                 utxo))初始化区块链的一种方式如下：1   >
+    (**define** coin-base (make-wallet))2   > (**define** wallet-a (make-wallet))3   >
+    (**define** genesis-t (make-transaction coin-base wallet-a 100  '()))4   > (**define**
+    utxo (list5   >              (make-transaction-io 100 wallet-a)))6   > (**define**
+    blockchain (init-blockchain genesis-t "1337cafe"  utxo))
 - en: 3.5.2 Rewards
+  id: totrans-137
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 3.5.2 奖励
 - en: In the original Bitcoin implementation, the block reward starts at 50 coins
     for the first block and halves on every 210000 blocks. This means that every block
     up until block 210000 will reward 50 coins, while block 210001 will reward 25\.
@@ -688,48 +1071,74 @@
     follow the same algorithm. We start with 50 coins initially and halve them on
     every 210000 blocks.1   (**define** (mining-reward-factor blocks)2     (/ 50 (expt
     2 (floor (/ (length blocks) 210000)))))
+  id: totrans-138
   prefs: []
   type: TYPE_NORMAL
+  zh: 在原始比特币实现中，区块奖励从第一个区块的 50 个硬币开始，并且在每 210000 个区块后减半。这意味着直到第 210000 个区块之前的每个区块都将奖励
+    50 个硬币，而第 210001 个区块将奖励 25 个硬币。换句话说，奖励使用以下公式计算，其中 *b* 是区块的数量。![$$ \frac{2^{\left\lfloor
+    \frac{b}{210000}\right\rfloor }}{50} $$](../images/510363_1_En_3_Chapter/510363_1_En_3_Chapter_TeX_Equa.png)我们遵循相同的算法。我们最初从
+    50 个硬币开始，然后在每 210000 个区块后减半。1   (**define** (mining-reward-factor blocks)2     (/
+    50 (expt 2 (floor (/ (length blocks) 210000)))))
 - en: 3.5.3 Adding a Transaction
+  id: totrans-139
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 3.5.3 添加一个交易
 - en: 'The next procedure will add a transaction to the blockchain. It should:'
+  id: totrans-140
   prefs: []
   type: TYPE_NORMAL
+  zh: 下一个步骤将向区块链添加一个交易。它应该：
 - en: '1.'
+  id: totrans-141
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '1.'
 - en: Mine a block.
+  id: totrans-142
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 挖掘一个区块。
 - en: '2.'
+  id: totrans-143
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '2.'
 - en: Create a new UTXO based on the processed transaction outputs, inputs, and the
     current UTXO.
+  id: totrans-144
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 根据处理后的交易输出、输入和当前的 UTXO 创建一个新的 UTXO。
 - en: '3.'
+  id: totrans-145
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '3.'
 - en: Generate a new list of blocks by adding the newly mined block.
+  id: totrans-146
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 通过添加新挖掘的区块生成一个新的区块链列表。
 - en: '4.'
+  id: totrans-147
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '4.'
 - en: Calculate the rewards based on the current UTXO.
+  id: totrans-148
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 根据当前的 UTXO 计算奖励。
 - en: Additionally, UTXO will be treated as a set so that we can easily remove specific
     inputs and append new transactions using set operations. 1   (**define** (add-transaction-to-blockchain
     b t) 2     (**letrec** ([hashed-blockchain 3               (mine-block t 4                (block-current-hash
@@ -740,14 +1149,24 @@
     (cons hashed-blockchain (blockchain-blocks b))]11              [utxo-rewarded
     (cons12                              (make-transaction-io13                               (mining-reward-factor
     new-blocks)14                               (transaction-from t))15                              utxo)])16        (blockchain17         new-blocks18         utxo-rewarded)))
+  id: totrans-149
   prefs: []
   type: TYPE_NORMAL
+  zh: 另外，UTXO 将被视为一个集合，以便我们可以轻松地使用集合操作删除特定的输入并追加新的交易。1（**定义**（add-transaction-to-blockchain
+    b t）2 （**letrec**（[hashed-blockchain 3 （mine-block t 4 （block-current-hash（car（blockchain-blocks
+    b））））] 5 [processed-inputs（transaction-inputs t）] 6 [processed-outputs（transaction-outputs
+    t）] 7 [utxo（set-union processed-outputs 8 （set-subtract（blockchain-utxo b）9 processed-inputs））]10
+    [new-blocks（cons hashed-blockchain（blockchain-blocks b））]11 [utxo-rewarded（cons12
+    （make-transaction-io13 （mining-reward-factor new-blocks）14 （transaction-from t））15
+    utxo））16）（blockchain17 new-blocks18 utxo-rewarded））
 - en: 'There is another thing about add-transaction-to-blockchain: given a blockchain
     and a transaction, it returns a new, updated blockchain. This newly returned blockchain
     will be the latest that should be used, since the previous one will not contain
     this new transaction. This way, we avoid mutating the previous blockchain.'
+  id: totrans-150
   prefs: []
   type: TYPE_NORMAL
+  zh: 在关于 add-transaction-to-blockchain 的另一件事情是：给定一个区块链和一个交易，它返回一个新的、更新的区块链。这个新返回的区块链将是应该使用的最新的，因为之前的区块链不会包含这个新交易。这样，我们就避免了对之前的区块链进行变异。
 - en: Next, we will create a procedure that will determine the balance of a wallet—the
     sum of all unspent transactions for the matching owner:1   (**define** (balance-wallet-blockchain  b  w)2     (**letrec**
     ([utxo (blockchain-utxo b)]3              [my-ts (filter4                      (**lambda**
@@ -764,34 +1183,60 @@
     (balance-wallet-blockchain b from) value)10                  (valid-transaction?
     processed-transaction))11                 (add-transaction-to-blockchain b processed-transaction)12                 b))13           (add-transaction-to-blockchain
     b '()))))
+  id: totrans-151
   prefs: []
   type: TYPE_NORMAL
+  zh: 接下来，我们将创建一个过程，用于确定钱包的余额——匹配所有未花费交易的总和：1   (**define** (balance-wallet-blockchain  b  w)2     (**letrec**
+    ([utxo (blockchain-utxo b)]3             [my-ts (filter4                         (**lambda**
+    (t) (equal? w (transaction-io-owner t)))5                         utxo)])6       (foldr
+    + 0 (map (**lambda** (t) (transaction-io-value t)) my-ts))))我们还需要一个过程，通过启动交易然后将其添加到区块链进行处理，从一个钱包发送钱到另一个钱包。my-ts
+    将包含当前接收者的交易输入。最后，我们只有在交易有效时才将交易添加到区块链。1   (**define** (send-money-blockchain b
+    from to value) 2     (**letrec** ([my-ts 3                       (filter (**lambda**
+    (t) (equal? from (transaction-io-owner t))) 4                               (blockchain-utxo
+    b))] 5                     [t (make-transaction from to value my-ts)]) 6       (**if**
+    (transaction? t) 7           (**let** ([processed-transaction (process-transaction
+    t)]) 8             (**if** (**and** 9                     (>= (balance-wallet-blockchain
+    b from) value)10                     (valid-transaction? processed-transaction))11                     (add-transaction-to-blockchain
+    b processed-transaction)12                     b))13           (add-transaction-to-blockchain
+    b '()))))
 - en: 3.5.4 Verification
+  id: totrans-152
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 3.5.4 验证
 - en: 'We will now introduce a procedure that determines blockchain validity under
     the following conditions:'
+  id: totrans-153
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们现在将介绍一个过程，在以下条件下确定区块链的有效性：
 - en: All blocks are valid using valid-block?.
+  id: totrans-154
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 所有区块都是通过 `valid-block?` 进行验证的。
 - en: Previous hashes are matching using the equal? check by comparing the previous
     hash of all blocks (except the last) to the current hash of all blocks (except
     the first).
+  id: totrans-155
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用 `equal?` 检查前一个哈希的匹配情况，通过将所有区块（除最后一个之外）的前一个哈希与所有区块（除第一个之外）的当前哈希进行比较。
 - en: All transactions are valid using valid-transaction?.
+  id: totrans-156
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用 `valid-transaction?` 来验证所有交易是否有效。
 - en: All blocks are mined using mined-block?.
+  id: totrans-157
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 所有区块都是通过 `mined-block?` 进行挖掘的。
 - en: 1   (**define** (valid-blockchain? b) 2     (**let** ([blocks (blockchain-blocks
     b)]) 3       (**and** 4        (true-for-all? valid-block? blocks) 5        (equal?
     (drop-right (map block-previous-hash blocks) 1) 6                (cdr (map block-current-hash
@@ -801,55 +1246,93 @@
     (**all-from-out** "block.rkt")2            (**all-from-out** "transaction.rkt")3            (**all-from-out**
     "wallet.rkt")4            (**struct-out** blockchain)5            init-blockchain
     send-money-blockchain6            balance-wallet-blockchain valid-blockchain?)
+  id: totrans-158
   prefs: []
   type: TYPE_NORMAL
+  zh: 1   (**define** (valid-blockchain? b) 2     (**let** ([blocks (blockchain-blocks
+    b)]) 3       (**and** 4        (true-for-all? valid-block? blocks) 5        (equal?
+    (drop-right (map block-previous-hash blocks) 1) 6                (cdr (map block-current-hash
+    blocks))) 7        (true-for-all? 8         valid-transaction? (map 9                            (**lambda**
+    (block) (block-transaction block))10                            blocks))11         (true-for-all?12         mined-block?
+    (map block-current-hash blocks)))))最后，我们导出所有内容：1   (**provide** (**all-from-out**
+    "block.rkt")2            (**all-from-out** "transaction.rkt")3            (**all-from-out**
+    "wallet.rkt")4            (**struct-out** blockchain)5            init-blockchain
+    send-money-blockchain6            balance-wallet-blockchain valid-blockchain?)
 - en: 'We now have all the necessary components: managing wallets, blocks, transactions,
     and finally the blockchain.'
+  id: totrans-159
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们拥有所有必要的组件：管理钱包、区块、交易，最后是区块链。
 - en: '![../images/510363_1_En_3_Chapter/510363_1_En_3_Fign_HTML.gif](../images/510363_1_En_3_Chapter/510363_1_En_3_Fign_HTML.gif)Exercise
     3-9'
+  id: totrans-160
   prefs: []
   type: TYPE_NORMAL
+  zh: '![../images/510363_1_En_3_Chapter/510363_1_En_3_Fign_HTML.gif](../images/510363_1_En_3_Chapter/510363_1_En_3_Fign_HTML.gif)练习
+    3-9'
 - en: Create two sets and use set-subtract, set-union, and set-intersect on them.
     Observe the results.
+  id: totrans-161
   prefs: []
   type: TYPE_NORMAL
+  zh: 创建两个集合，并对它们使用 set-subtract、set-union 和 set-intersect。观察结果。
 - en: '![../images/510363_1_En_3_Chapter/510363_1_En_3_Figo_HTML.gif](../images/510363_1_En_3_Chapter/510363_1_En_3_Figo_HTML.gif)Exercise
     3-10'
+  id: totrans-162
   prefs: []
   type: TYPE_NORMAL
+  zh: '![../images/510363_1_En_3_Chapter/510363_1_En_3_Figo_HTML.gif](../images/510363_1_En_3_Chapter/510363_1_En_3_Figo_HTML.gif)练习
+    3-10'
 - en: Initialize a blockchain with init-blockchain and add a transaction to it using
     add-transaction-to-blockchain.
+  id: totrans-163
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用 init-blockchain 初始化区块链，并使用 add-transaction-to-blockchain 添加交易到其中。
 - en: '![../images/510363_1_En_3_Chapter/510363_1_En_3_Figp_HTML.gif](../images/510363_1_En_3_Chapter/510363_1_En_3_Figp_HTML.gif)Exercise
     3-11'
+  id: totrans-164
   prefs: []
   type: TYPE_NORMAL
+  zh: '![../images/510363_1_En_3_Chapter/510363_1_En_3_Figp_HTML.gif](../images/510363_1_En_3_Chapter/510363_1_En_3_Figp_HTML.gif)练习
+    3-11'
 - en: Use valid-blockchain? on the blockchain in the previous exercise (do this before
     adding the new transaction, and again after adding the new transaction).
+  id: totrans-165
   prefs: []
   type: TYPE_NORMAL
+  zh: 在上一个练习中的区块链上使用 valid-blockchain?（在添加新交易之前执行此操作，然后在添加新交易之后再次执行）。
 - en: '![../images/510363_1_En_3_Chapter/510363_1_En_3_Figq_HTML.gif](../images/510363_1_En_3_Chapter/510363_1_En_3_Figq_HTML.gif)Exercise
     3-12'
+  id: totrans-166
   prefs: []
   type: TYPE_NORMAL
+  zh: '![../images/510363_1_En_3_Chapter/510363_1_En_3_Figq_HTML.gif](../images/510363_1_En_3_Chapter/510363_1_En_3_Figq_HTML.gif)练习
+    3-12'
 - en: Make a transfer in a blockchain using send-money-blockchain.
+  id: totrans-167
   prefs: []
   type: TYPE_NORMAL
+  zh: 在区块链中进行转账，使用 send-money-blockchain。
 - en: 3.6 Integrating Components
+  id: totrans-168
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 3.6 集成组件
 - en: In this section, we will combine all the various parts into a single point and
     show how they can be easily used.
+  id: totrans-169
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这一部分中，我们将把所有各部分组合成一个单一的要点，并展示它们如何轻松使用。
 - en: 3.6.1 The main-helper.rkt File
+  id: totrans-170
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 3.6.1 主助手.rkt 文件
 - en: 'This file will import everything from blockchain.rkt and utils.rkt and will
     provide some printing procedures.1   (**require** "blockchain.rkt")2   (**require**
     "utils.rkt")The next procedure will convert a transaction object to a printable
@@ -874,28 +1357,40 @@
     procedures:1   (**provide** (**all-from-out** "blockchain.rkt")2            (**all-from-out**
     "utils.rkt")3            format-transaction print-block print-blockchain print-wallets)![../images/510363_1_En_3_Chapter/510363_1_En_3_Figr_HTML.gif](../images/510363_1_En_3_Chapter/510363_1_En_3_Figr_HTML.gif)Exercise
     3-13'
+  id: totrans-171
   prefs: []
   type: TYPE_NORMAL
 - en: Create a transaction and use format-transaction to see what it outputs. Repeat
     the same for a block (print-block), blockchain (print-blockchain), and wallets
     (print-wallets).
+  id: totrans-172
   prefs: []
   type: TYPE_NORMAL
+  zh: 创建一个交易并使用 format-transaction 查看其输出。对一个块（print-block）、区块链（print-blockchain）和钱包（print-wallets）重复相同步骤。
 - en: 3.6.2 The main.rkt File
+  id: totrans-173
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 3.6.2 主文件 main.rkt
 - en: This is where we will put all the components together and use them. We start
     by checking if the blockchain.data file  exists by using file-exists?. This file
     will contain contents from a previous blockchain if it exists. If it doesn’t,
     we will just create a fresh blockchain.1   (**require** "main-helper.rkt")23   (**when**
     (file-exists? "blockchain.data")4     (**begin**4       (printf "Found 'blockchain.data',
     reading...**\n**")6       (print-blockchain (file->struct "blockchain.data"))7       (exit)))
+  id: totrans-174
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是我们将所有组件放在一起并使用它们的地方。我们首先通过使用 file-exists? 来检查 blockchain.data 文件是否存在。如果该文件存在，则它将包含来自先前区块链的内容。如果不存在，我们将创建一个新的区块链。
+    （**require** "main-helper.rkt") （**when** (file-exists? "blockchain.data") （**begin**
+    （printf "发现 'blockchain.data'，正在读取...**\n**") （print-blockchain (file->struct
+    "blockchain.data")) （exit)））
 - en: We used when, which is similar to if, except that the else branch is omitted.
+  id: totrans-175
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们使用了 when，它类似于 if，但省略了 else 分支。
 - en: 'Next, we initialize wallets:1   (**define** coin-base (make-wallet))2   (**define**
     wallet-a (make-wallet))3   (**define** wallet-b (make-wallet))We initialize transactions
     by creating the genesis transaction:1   (printf "Making genesis transaction...**\n**")2   (**define**
@@ -929,20 +1424,50 @@
     sends ...bb6... an amount of 20.3940   Block  information41   =================42   Hash:   6a20fbe4038bb3b83090e7f767bb24af5164218bba5c751a1858262df2a2a84743   Hash_p:
     7365656467656e6573697344   Stamp:  152992361033245   Nonce:  22046   Data:   ...58d...
     sends ...896... an amount of 100.4748   Exported blockchain to ''blockchain.data''...'
+  id: totrans-176
   prefs: []
   type: TYPE_NORMAL
+  zh: '接下来，我们初始化钱包：1   (**define** coin-base (make-wallet))2   (**define** wallet-a
+    (make-wallet))3   (**define** wallet-b (make-wallet))我们通过创建创世交易来初始化交易：1   (printf
+    "制作创世交易...**\n**")2   (**define** genesis-t (make-transaction coin-base wallet-a
+    100 ''()))我们初始化未花费的交易——创世交易：1   (**define** utxo (list2                 (make-transaction-io
+    100 wallet-a)))最后，我们通过挖掘创世交易来初始化区块链：1   (printf "挖掘创世区块...**\n**")2   (**define**
+    blockchain (init-blockchain genesis-t "1337cafe" utxo))3   (print-wallets blockchain
+    wallet-a wallet-b)制作第二笔交易：1   (printf "挖掘第二笔交易...**\n**")2   (**set!** blockchain
+    (send-money-blockchain blockchain wallet-a wallet-b 2))3   (print-wallets blockchain
+    wallet-a wallet-b)制作第三笔交易：1   (printf "挖掘第三笔交易...**\n**")2   (**set!** blockchain
+    (send-money-blockchain blockchain wallet-b wallet-a 1))3   (print-wallets blockchain
+    wallet-a wallet-b)尝试制作第四笔交易：1   (printf "尝试挖掘第四笔（无效）交易...**\n**")2   (**set!**
+    blockchain (send-money-blockchain blockchain wallet-b wallet-a 3))3   (print-wallets
+    blockchain wallet-a wallet-b)检查区块链的有效性：1   (printf "区块链是否有效: ~a**\n\n**" (valid-blockchain?
+    blockchain))从区块链中打印每个区块：1   (**for** ([block (blockchain-blocks blockchain)])2     (print-block
+    block)3     (newline))并将区块链导出到 blockchain.data，以便稍后重用：1   (struct->file blockchain
+    "blockchain.data")2   (printf "已导出区块链到 ''blockchain.data''...**\n**")创建 main.rkt
+    后，我们可以从 Racket > Run 菜单中运行它。它应该显示以下输出：1   制作创世交易... 2   挖掘创世区块... 3 4   钱包 A 余额:
+    100 5   钱包 B 余额: 0 6 7   挖掘第二笔交易... 8 9   钱包 A 余额: 13010   钱包 B 余额: 201112   挖掘第三笔交易...1314   钱包
+    A 余额: 14015   钱包 B 余额: 601617   尝试挖掘第四笔（无效）交易...1819   钱包 A 余额: 14020   钱包 B 余额:
+    602122   区块链是否有效: #t2324   区块信息25   =================26   哈希:   e720bb198279a76057280bdf8eb667fe1883d0ae263c5d5d1be08697a2f534d127   哈希_p:
+    38200563c1f807be2a5d10ec42dd53acae1f6f804b4c93016b87c974817f065d28   时间戳:  152992361057429   随机数:  21630   数据:   ...bb6...
+    发送 ...896... 金额为 10.3132   区块信息33   =================34   哈希:   38200563c1f807be2a5d10ec42dd53acae1f6f804b4c93016b87c974817f065d35   哈希_p:
+    6a20fbe4038bb3b83090e7f767bb24af5164218bba5c751a1858262df2a2a84736   时间戳:  152992361040537   随机数'
 - en: 3.7 Summary
+  id: totrans-177
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 3.7 总结
 - en: We built every component one by one, gradually. Some components are *orthogonal*—they
     are independent of one another. For example, the wallet implementation does not
     call any procedures from block, and a block can be used independently of a wallet.
     When we combine all of the components, we get a blockchain system.
+  id: totrans-178
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们逐个构建每个组件，逐渐地。一些组件是*正交*的——它们彼此独立。例如，钱包实现不调用块中的任何过程，块可以独立于钱包使用。当我们将所有组件组合在一起时，我们得到一个区块链系统。
 - en: This design allows us to easily extend our system. In the next chapter, we will
     extend the system with peer-to-peer and smart contracts functionalities without
     having to change the basic components.
+  id: totrans-179
   prefs: []
   type: TYPE_NORMAL
+  zh: 这种设计使我们能够轻松地扩展我们的系统。在下一章中，我们将扩展系统，增加点对点和智能合约功能，而无需更改基本组件。
