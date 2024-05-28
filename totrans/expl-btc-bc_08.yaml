@@ -1792,92 +1792,114 @@
   id: totrans-336
   prefs: []
   type: TYPE_NORMAL
+  zh: 链状态数据库是编码的，与其他数据库不同。这是因为过去链状态数据库中的字符序列触发了防病毒软件。在这种编码方法中，每个字节都与混淆密钥中的字节进行异或操作。混淆密钥存储在链状态数据库中的
+    b’\x0e\x00’ 键下。
 - en: 'The following code applies to obfuscate key to all the bytes and returns decoded
     chainstate values:'
   id: totrans-337
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下代码将混淆密钥应用于所有字节并返回解码的链状态值：
 - en: '`def getObfuscationKey(chainstate_db):`'
   id: totrans-338
   prefs: []
   type: TYPE_NORMAL
+  zh: '`def getObfuscationKey(chainstate_db):`'
 - en: '`value = chainstate_db.get(b’\x0e\x00’ + b’obfuscate_key’)`'
   id: totrans-339
   prefs: []
   type: TYPE_NORMAL
+  zh: '`value = chainstate_db.get(b’\x0e\x00’ + b’obfuscate_key’)`'
 - en: '`print(‘obfuscation key = %s’ % value)`'
   id: totrans-340
   prefs: []
   type: TYPE_NORMAL
+  zh: '`print(‘混淆密钥 = %s’ % value)`'
 - en: '`obfuscation_key = value[1:]`'
   id: totrans-341
   prefs: []
   type: TYPE_NORMAL
+  zh: '`obfuscation_key = value[1:]`'
 - en: '`return obfuscation_key`'
   id: totrans-342
   prefs: []
   type: TYPE_NORMAL
+  zh: '`return obfuscation_key`'
 - en: '`def applyObfuscationKey(data: bytes, chainstate_db):`'
   id: totrans-343
   prefs: []
   type: TYPE_NORMAL
+  zh: '`def applyObfuscationKey(data: bytes, chainstate_db):`'
 - en: '`obfuscation_key = getObfuscationKey(chainstate_db)`'
   id: totrans-344
   prefs: []
   type: TYPE_NORMAL
+  zh: '`obfuscation_key = getObfuscationKey(chainstate_db)`'
 - en: '`new_val = bytes(data[index] ^ obfuscation_key[index % len(obfuscation_key)]
     for index in range(len(data)))`'
   id: totrans-345
   prefs: []
   type: TYPE_NORMAL
+  zh: '`new_val = bytes(data[index] ^ obfuscation_key[index % len(obfuscation_key)]
+    for index in range(len(data)))`'
 - en: '`return new_val`'
   id: totrans-346
   prefs: []
   type: TYPE_NORMAL
+  zh: '`return new_val`'
 - en: '**Program 6.9:** Program to decode LevelDB for chainstate using Obfuscation
     key'
   id: totrans-347
   prefs: []
   type: TYPE_NORMAL
+  zh: '**程序 6.9:** 使用混淆密钥解码链状态的 LevelDB 程序'
 - en: 'Now, we have enough understanding to traverse blockchain. Let us see how we
     can do that:'
   id: totrans-348
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，我们已经有了足够的信息来遍历区块链。让我们看看我们是如何做到的：
 - en: '**Step 1:** Query last block hash from chainstate database.'
   id: totrans-349
   prefs: []
   type: TYPE_NORMAL
+  zh: '**步骤 1:** 从链状态数据库中查询最后一个区块哈希。'
 - en: '**Step 2:** Query block hash in block index database to get block index.'
   id: totrans-350
   prefs: []
   type: TYPE_NORMAL
+  zh: '**步骤 2:** 在区块索引数据库中查询区块哈希以获取区块索引。'
 - en: '**Step 3:** Block index has information on the location of the block. Using
     that, we read the correct block file or undo file and read data from the offset
     location to get block data.'
   id: totrans-351
   prefs: []
   type: TYPE_NORMAL
+  zh: '**步骤 3:** 区块索引包含区块的位置信息。使用这些信息，我们读取正确的区块文件或撤销文件，并从偏移位置读取数据以获取区块数据。'
 - en: '**Step 4** From the block data, we get the block hash of the previous block
     and then repeat steps 2-4.'
   id: totrans-352
   prefs: []
   type: TYPE_NORMAL
+  zh: '**步骤 4** 从区块数据中，我们获取前一个区块的区块哈希，然后重复步骤 2-4。'
 - en: 'The following is the block index information obtained from the Block index
     database:'
   id: totrans-353
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下是自区块索引数据库获得的区块索引信息：
 - en: '`**version**`: The version number of the client (Not the block).'
   id: totrans-354
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`**版本号**`: 客户端的版本号（不是区块）。'
 - en: '`**height**`: Height of the block.'
   id: totrans-355
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`**高度**`: 区块的高度。'
 - en: '`**status**`: Indicates the kind of data it contains. It may be BLOCK_HAVE_DATA
     or BLOCK_HAVE_UNDO, indicating whether it forward patches or reverse patches chainstate
     data.'
@@ -1885,31 +1907,37 @@
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`**状态**`: 表示它包含的数据类型。它可能是 BLOCK_HAVE_DATA 或 BLOCK_HAVE_UNDO，表示它是否正向修补或反向修补链状态数据。'
 - en: '`**txcount**`: Transaction count in the block.'
   id: totrans-357
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`**交易计数**`: 区块中的交易计数。'
 - en: '`**n_file**`: File number of the block file containing the block.'
   id: totrans-358
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`**文件编号**`: 包含区块的区块文件编号。'
 - en: '`**data_pos**`: Byte position of the data block.'
   id: totrans-359
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`**数据位置**`: 数据块的字节位置。'
 - en: '`**undo_pos**`: Byte position of the undo block.'
   id: totrans-360
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`**撤销位置**`: 撤销区块的字节位置。'
 - en: '`**header**`: Block header content.'
   id: totrans-361
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`**头部**`: 区块头内容。'
 - en: In the above-mentioned information, we come across reverse patching via the
     undo block. To understand this, we need to understand that blocks in Bitcoin blockchain
     may be competing to get the next spot. This happens because miners may mine a
@@ -1919,55 +1947,66 @@
   id: totrans-362
   prefs: []
   type: TYPE_NORMAL
+  zh: 在上面的信息中，我们遇到了通过撤销区块的反向修补。要理解这一点，我们需要了解比特币区块链中的区块可能竞争下一个位置。这是因为矿工可能会几乎同时挖掘一个区块，其中一个区块将在后来被接受，因为它所在的竞争链变得更长。当这种情况发生时，使用撤销区块来反转链状态索引。
 - en: 'Here’s the code to traverse the blockchain using LevelDB indexes:'
   id: totrans-363
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下是使用 LevelDB 索引遍历区块链的代码：
 - en: 'Get LevelDB databases:'
   id: totrans-364
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 获取 LevelDB 数据库：
 - en: '`block_db_g = plyvel.DB(os.getenv(‘BLOCK_INDEX_DB’), compression=None)`'
   id: totrans-365
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`block_db_g = plyvel.DB(os.getenv(‘BLOCK_INDEX_DB’), compression=None)`'
 - en: '`chainstate_db_g = plyvel.DB(os.getenv(‘CHAINSTATE_DB’), compression=None)`'
   id: totrans-366
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`chainstate_db_g = plyvel.DB(os.getenv(‘CHAINSTATE_DB’), compression=None)`'
 - en: 'Get last block hash from chainstate database:'
   id: totrans-367
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 从链状态数据库中获取最后一个区块哈希：
 - en: '`def getRecentBlockHash(chainstate_db):`'
   id: totrans-368
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`def getRecentBlockHash(chainstate_db):`'
 - en: '`key = b’B’`'
   id: totrans-369
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`key = b’B’`'
 - en: '`block_hash_b = chainstate_db.get(key)`'
   id: totrans-370
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`block_hash_b = chainstate_db.get(key)`'
 - en: '`block_hash_b = applyObfuscationKey(block_hash_b, chainstate_db)`'
   id: totrans-371
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`block_hash_b = applyObfuscationKey(block_hash_b, chainstate_db)`'
 - en: '`return block_hash_b`'
   id: totrans-372
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`return block_hash_b`'
 - en: '**Program 6.10:** Program to get recent block from Chainstate DB'
   id: totrans-373
   prefs:
@@ -3460,206 +3499,251 @@
   id: totrans-709
   prefs: []
   type: TYPE_NORMAL
+  zh: 前面提到的方法`**getUnspentTransactions**`，需要交易哈希、未花费的输出索引和链状态数据库。以下是一个调用语句的例子：
 - en: '`if __name__ == ‘__main__’:`'
   id: totrans-710
   prefs: []
   type: TYPE_NORMAL
+  zh: '`if __name__ == ‘__main__’:`'
 - en: '`tx = bytes.fromhex(‘a23203c053852755c97b87e354d1e9053a6d1a20d32892e8ee45dfa2c3105f94’)[::-1]`'
   id: totrans-711
   prefs: []
   type: TYPE_NORMAL
+  zh: '`tx = bytes.fromhex(‘a23203c053852755c97b87e354d1e9053a6d1a20d32892e8ee45dfa2c3105f94’)[::-1]`'
 - en: '`jsonobj = getUnspentTransactions(tx, 0, chainstate_db_g)`'
   id: totrans-712
   prefs: []
   type: TYPE_NORMAL
+  zh: '`jsonobj = getUnspentTransactions(tx, 0, chainstate_db_g)`'
 - en: '`print(jsonobj)`'
   id: totrans-713
   prefs: []
   type: TYPE_NORMAL
+  zh: '`print(jsonobj)`'
 - en: 'This is the result:'
   id: totrans-714
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是结果：
 - en: '![](images/Figure-6.34.jpg)'
   id: totrans-715
   prefs: []
   type: TYPE_IMG
+  zh: '![](images/Figure-6.34.jpg)'
 - en: '**Figure 6.34:** Shows information stored in Chainstate DB for a UTXO'
   id: totrans-716
   prefs: []
   type: TYPE_NORMAL
+  zh: '**图 6.34:** 显示存储在Chainstate DB中的UTXO信息'
 - en: 'In the preceding result, `**scriptPubKey**` is not a full script; it needs
     script type to get the full script. The following code prints full `**scriptPubKey**`
     for script type 0:'
   id: totrans-717
   prefs: []
   type: TYPE_NORMAL
+  zh: 在前面的结果中，`**scriptPubKey**`不是一个完整的脚本；它需要脚本类型来获取完整的脚本。以下代码打印出脚本类型0的完整的`**scriptPubKey**`：
 - en: '`def uncompressScriptType0(script_data: bytes):`'
   id: totrans-718
   prefs: []
   type: TYPE_NORMAL
+  zh: '`def uncompressScriptType0(script_data: bytes):`'
 - en: '`script = bytes([`'
   id: totrans-719
   prefs: []
   type: TYPE_NORMAL
+  zh: '`script = bytes([`'
 - en: '`0x76, # OP_DUP`'
   id: totrans-720
   prefs: []
   type: TYPE_NORMAL
+  zh: '`0x76, # OP_DUP`'
 - en: '`0xa9, # OP_HASH160`'
   id: totrans-721
   prefs: []
   type: TYPE_NORMAL
+  zh: '`0xa9, # OP_HASH160`'
 - en: '`20 # size`'
   id: totrans-722
   prefs: []
   type: TYPE_NORMAL
+  zh: '`20 # size`'
 - en: '`]) + script_data + bytes([`'
   id: totrans-723
   prefs: []
   type: TYPE_NORMAL
+  zh: '`]) + script_data + bytes([`'
 - en: '`0x88, # OP_EQUALVERIFY`'
   id: totrans-724
   prefs: []
   type: TYPE_NORMAL
+  zh: '`0x88, # OP_EQUALVERIFY`'
 - en: '`0xac # OP_CHECKSIG`'
   id: totrans-725
   prefs: []
   type: TYPE_NORMAL
+  zh: '`0xac # OP_CHECKSIG`'
 - en: '`])`'
   id: totrans-726
   prefs: []
   type: TYPE_NORMAL
+  zh: '`])`'
 - en: '`return script`'
   id: totrans-727
   prefs: []
   type: TYPE_NORMAL
+  zh: '`return script`'
 - en: '**Program 6.21:** Program to get scriptPubKey using script types and script
     data'
   id: totrans-728
   prefs: []
   type: TYPE_NORMAL
+  zh: '**程序 6.21:** 使用脚本类型和脚本数据获取脚本公钥的程序'
 - en: We have not covered other scripts as the transaction scripting is left for the
     upcoming chapters.
   id: totrans-729
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于交易脚本留到接下来的章节讲解，所以我们没有讲解其他脚本。
 - en: 'The following is the code for calling the preceding method:'
   id: totrans-730
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下是对前面方法的调用代码：
 - en: '`if __name__ == ‘__main__’:`'
   id: totrans-731
   prefs: []
   type: TYPE_NORMAL
+  zh: '`if __name__ == ‘__main__’:`'
 - en: '`script_data = bytes.fromhex(‘3eba92179cd0b4caff74e3e81a14399e3c1b7ca3’)`'
   id: totrans-732
   prefs: []
   type: TYPE_NORMAL
+  zh: '`script_data = bytes.fromhex(‘3eba92179cd0b4caff74e3e81a14399e3c1b7ca3’)`'
 - en: '`script = uncompressScriptType٠(script_data)`'
   id: totrans-733
   prefs: []
   type: TYPE_NORMAL
+  zh: '`script = uncompressScriptType٠(script_data)`'
 - en: '`print(‘script = %s’ % script.hex())`'
   id: totrans-734
   prefs: []
   type: TYPE_NORMAL
+  zh: '`print(‘script = %s’ % script.hex())`'
 - en: 'This gives us the following script:'
   id: totrans-735
   prefs: []
   type: TYPE_NORMAL
+  zh: 这给了我们以下的脚本：
 - en: '![](images/Figure-6.35.jpg)'
   id: totrans-736
   prefs: []
   type: TYPE_IMG
+  zh: '![](images/Figure-6.35.jpg)'
 - en: '**Figure 6.35:** Shows the scriptPubKey obtained by uncompressing script data'
   id: totrans-737
   prefs: []
   type: TYPE_NORMAL
+  zh: '**图 6.35:** 显示通过解压脚本数据获得的脚本公钥'
 - en: This concludes this section on transactions. In this section, we were primarily
     focused on transaction format and transaction indexes in databases. Scripting
     has been left for the upcoming chapters.
   id: totrans-738
   prefs: []
   type: TYPE_NORMAL
+  zh: 本节关于交易的内容就讲解到这里。在本节中，我们主要关注数据库中的交易格式和交易索引。脚本留到接下来的章节讲解。
 - en: '[Mining](toc.xhtml#s119a)'
   id: totrans-739
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: '**挖矿](toc.xhtml#s119a)'
 - en: Mining is the process of finding nonce and creating a block. We have learned
     a few things in previous sections and chapters that will be useful in understanding
     the mining process.
   id: totrans-740
   prefs: []
   type: TYPE_NORMAL
+  zh: 挖矿是寻找nonce并创建区块的过程。在前面的章节中，我们学到了一些有用的知识，这些知识将有助于我们理解挖矿过程。
 - en: 'Mining involves the following:'
   id: totrans-741
   prefs: []
   type: TYPE_NORMAL
+  zh: 挖矿涉及以下内容：
 - en: Spending energy to find nonce, which is required to create block hash that has
     value less than the target threshold.
   id: totrans-742
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 花费能量寻找nonce，这是创建小于目标阈值的区块哈希所必需的。
 - en: Knowledge of block reward.
   id: totrans-743
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 了解区块奖励。
 - en: Selecting transactions from mempool to maximize transaction reward within the
     block size limit.
   id: totrans-744
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 从mempool中选择交易以在区块大小限制内最大化交易奖励。
 - en: Creation of coinbase transaction using block reward, transaction fee, block
     height, and scriptPubKey for paying the rewards to own address.
   id: totrans-745
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 创建币基交易，使用区块奖励、交易费、区块高度和脚本公钥向自身地址支付奖励。
 - en: Finding Merkle Root.
   id: totrans-746
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 寻找Merkle根。
 - en: Finding Target threshold for the next block.
   id: totrans-747
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 寻找下一个区块的目标阈值。
 - en: Readying and supporting softforks.
   id: totrans-748
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 准备和支持软分叉。
 - en: Creating other fields in the block header.
   id: totrans-749
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在区块头部创建其他字段。
 - en: In this section, we will investigate each of these.
   id: totrans-750
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本节中，我们将逐一研究这些内容。
 - en: '[Mining profitability](toc.xhtml#s120a)'
   id: totrans-751
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: '**挖矿盈利性](toc.xhtml#s120a)'
 - en: To calculate mining profitability, we need to understand how much energy is
     required to find nonce using popular mining devices and how much is the block
     reward and total transaction fee earned in each transaction.
   id: totrans-752
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了计算挖矿盈利性，我们需要了解使用流行的挖矿设备寻找nonce需要多少能量，以及每个交易中获得的区块奖励和总交易费。
 - en: '[Block reward](toc.xhtml#s121a)'
   id: totrans-753
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: '**区块奖励](toc.xhtml#s121a)'
 - en: Block reward is a mechanism by which bitcoin are created. Block reward is decreasing
     with time. When the Bitcoin network was created, block reward was 50![](images/Bitcoin.jpg)
     in each block. Currently, it is 6.25![](images/Bitcoin.jpg). After every 210,000
@@ -3668,88 +3752,109 @@
   id: totrans-754
   prefs: []
   type: TYPE_NORMAL
+  zh: 区块奖励是一种创建比特币的机制。随着时间的推移，区块奖励在减少。比特币网络创建之初，每个区块的区块奖励是50![](images/Bitcoin.jpg)。目前，它是6.25![](images/Bitcoin.jpg)。每210,000个区块后，区块奖励减半。这减少了新铸造的比特币的供应量。
 - en: 'The following program gives block reward for given block height:'
   id: totrans-755
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下程序为给定的区块高度提供区块奖励：
 - en: '`def getBlockReward(block_height):`'
   id: totrans-756
   prefs: []
   type: TYPE_NORMAL
+  zh: '`def getBlockReward(block_height):`'
 - en: '`halving_count = block_height // 210000`'
   id: totrans-757
   prefs: []
   type: TYPE_NORMAL
+  zh: '`halving_count = block_height // 210000`'
 - en: '`block_reward = 50/(2**halving_count)`'
   id: totrans-758
   prefs: []
   type: TYPE_NORMAL
+  zh: '`block_reward = 50/(2**halving_count)`'
 - en: '`return block_reward`'
   id: totrans-759
   prefs: []
   type: TYPE_NORMAL
+  zh: '`return block_reward`'
 - en: '**Program 6.22:** Program to get block reward for a given block height'
   id: totrans-760
   prefs: []
   type: TYPE_NORMAL
+  zh: '**程序 6.22:** 为给定区块高度获取区块奖励'
 - en: 'We call this method for given block height, as follows:'
   id: totrans-761
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们对给定的区块高度调用此方法，如下所示：
 - en: '`if __name__ == ‘__main__’:`'
   id: totrans-762
   prefs: []
   type: TYPE_NORMAL
+  zh: '`if __name__ == ‘__main__’:`'
 - en: '`block_reward = getBlockReward(645675)`'
   id: totrans-763
   prefs: []
   type: TYPE_NORMAL
+  zh: '`block_reward = getBlockReward(645675)`'
 - en: '`print(block_reward)`'
   id: totrans-764
   prefs: []
   type: TYPE_NORMAL
+  zh: '`print(block_reward)`'
 - en: 'This gives us the following result:'
   id: totrans-765
   prefs: []
   type: TYPE_NORMAL
+  zh: 这给了我们以下结果：
 - en: '![](images/Figure-6.36.jpg)'
   id: totrans-766
   prefs: []
   type: TYPE_IMG
+  zh: '![](images/Figure-6.36.jpg)'
 - en: '**Figure 6.36:** Shows block reward obtained by running the preceding program'
   id: totrans-767
   prefs: []
   type: TYPE_NORMAL
+  zh: '**图 6.36:** 显示运行前面程序获得的区块奖励'
 - en: This means the block reward for the block that has a height of `***645675***`
     is `***6.25₿***`.
   id: totrans-768
   prefs: []
   type: TYPE_NORMAL
+  zh: 这意味着高度为`***645675***`的区块的区块奖励是`***6.25₿***`。
 - en: '[Transaction fee](toc.xhtml#s122a)'
   id: totrans-769
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: '**交易费用](toc.xhtml#s122a)*'
 - en: 'We can calculate the transaction fee of a transaction with the following equation:'
   id: totrans-770
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以用以下方程计算交易的交易费用：
 - en: '*f : Transaction Fee*'
   id: totrans-771
   prefs: []
   type: TYPE_NORMAL
+  zh: '*f : 交易费用*'
 - en: '*i[n]: n^(th) input*'
   id: totrans-772
   prefs: []
   type: TYPE_NORMAL
+  zh: '*i[n]: 第n个输入*'
 - en: '*o[n]: n^(th) output*'
   id: totrans-773
   prefs: []
   type: TYPE_NORMAL
+  zh: '*o[n]: 第n个输出*'
 - en: '*f = ∑[n]i[n] - ∑[n]o[n] (1)*'
   id: totrans-774
   prefs: []
   type: TYPE_NORMAL
+  zh: '*f = ∑[n]i[n] - ∑[n]o[n] (1)*'
 - en: To write a program to calculate the transaction fee for a transaction, we need
     to look up the previous transaction in txindex. A node always verifies transactions
     against previously unspent transaction output that is stored in chainstate database
@@ -3761,91 +3866,113 @@
   id: totrans-775
   prefs: []
   type: TYPE_NORMAL
+  zh: 要编写一个计算交易费用的程序，我们需要在txindex中查找之前的交易。节点总是根据存储在链状态数据库中或处于mempool中的之前未花费的交易输出验证交易。一个区块中的所有交易都已经验证。节点只需要验证区块头和包含在区块中的交易列表的Merkle根哈希。由于我们试图查找已经验证和确认的交易的先前交易输出，我们需要txindex来查找交易。
 - en: 'The following method returns the value of bitcoin locked in a transaction output:'
   id: totrans-776
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下方法返回交易输出中锁定的比特币的价值：
 - en: '`def getTransactionOutAmount(tx_hash: bytes, out_index: int, txindex_db):`'
   id: totrans-777
   prefs: []
   type: TYPE_NORMAL
+  zh: '`def getTransactionOutAmount(tx_hash: bytes, out_index: int, txindex_db):`'
 - en: '`tx = findTransaction(tx_hash, txindex_db)`'
   id: totrans-778
   prefs: []
   type: TYPE_NORMAL
+  zh: '`tx = findTransaction(tx_hash, txindex_db)`'
 - en: '`return tx[‘outs’][out_index][‘satoshis’]`'
   id: totrans-779
   prefs: []
   type: TYPE_NORMAL
+  zh: '`return tx[‘outs’][out_index][‘satoshis’]`'
 - en: '**Program 6.23:** Program gets UTXO amount from txindex'
   id: totrans-780
   prefs: []
   type: TYPE_NORMAL
+  zh: '**程序 6.23:** 从txindex获取UTXO金额'
 - en: The method calls `**findTransaction**` defined in *program 6.17*.
   id: totrans-781
   prefs: []
   type: TYPE_NORMAL
+  zh: 该方法调用*程序 6.17*中定义的`**findTransaction**`。
 - en: 'The following method uses the value locked in a transaction input from the
     preceding method and returns the transaction fee associated with the transaction:'
   id: totrans-782
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下方法使用前一个方法中的交易输入锁定的值，并返回与交易相关的交易费用：
 - en: '`def getTransactionFee(tx: dict):`'
   id: totrans-783
   prefs: []
   type: TYPE_NORMAL
+  zh: '`def getTransactionFee(tx: dict):`'
 - en: '`inp_val = 0`'
   id: totrans-784
   prefs: []
   type: TYPE_NORMAL
+  zh: '`inp_val = 0`'
 - en: '`for inp in tx[‘inputs’]:`'
   id: totrans-785
   prefs: []
   type: TYPE_NORMAL
+  zh: '`for inp in tx[‘inputs’]:`'
 - en: '`prev_tx_hash = bytes.fromhex(inp[‘prev_tx_hash’])[::-1]`'
   id: totrans-786
   prefs: []
   type: TYPE_NORMAL
+  zh: '`prev_tx_hash = bytes.fromhex(inp[‘prev_tx_hash’])[::-1]`'
 - en: '`inp_val += getTransactionOutAmount(prev_tx_hash, inp[‘prev_tx_out_index’],
     txindex_db_g)`'
   id: totrans-787
   prefs: []
   type: TYPE_NORMAL
+  zh: '`inp_val += getTransactionOutAmount(prev_tx_hash, inp[‘prev_tx_out_index’],
+    txindex_db_g)`'
 - en: '`out_val = 0`'
   id: totrans-788
   prefs: []
   type: TYPE_NORMAL
+  zh: '`out_val = 0`'
 - en: '`for out in tx[‘outs’]:`'
   id: totrans-789
   prefs: []
   type: TYPE_NORMAL
+  zh: '`for out in tx[‘outs’]:`'
 - en: '`out_val += out[‘satoshis’]`'
   id: totrans-790
   prefs: []
   type: TYPE_NORMAL
+  zh: '`out_val += out[‘satoshis’]`'
 - en: '`tx_fee = inp_val - out_val`'
   id: totrans-791
   prefs: []
   type: TYPE_NORMAL
+  zh: '`tx_fee = inp_val - out_val`'
 - en: '`return tx_fee`'
   id: totrans-792
   prefs: []
   type: TYPE_NORMAL
+  zh: '`return tx_fee`'
 - en: '**Program 6.24:** Program gets transaction fee collected by a miner for the
     given transaction'
   id: totrans-793
   prefs: []
   type: TYPE_NORMAL
+  zh: '**程序 6.24:** 程序获取给定交易的矿工收取的交易费用'
 - en: 'Now, we can add all the transaction fees collected from the transaction list
     in a block. The following is the program that calculates the fee reward collected
     by a block miner:'
   id: totrans-794
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，我们可以将区块中交易列表收集的所有交易费用相加。以下程序计算区块矿工收取的费用奖励：
 - en: '`def getBlockFeeReward(block_hash: bytes, block_db):`'
   id: totrans-795
   prefs: []
   type: TYPE_NORMAL
+  zh: '`def getBlockFeeReward(block_hash: bytes, block_db):`'
 - en: '`block_index = getBlockIndex(block_hash, block_db)`'
   id: totrans-796
   prefs: []
@@ -4039,6 +4166,7 @@
   id: totrans-838
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，任何进入挖矿行业都必须确保电力成本低，除了在维护和安全上的支出外，他们还应该将利润的大部分用于挖矿设备的升级和扩张。
 - en: To calculate electricity cost, we need to understand the network hash power
     needed to find the required nonce. Network hash power needed to find the nonce
     is the consequence of the difficulty in finding the nonce, so it depends on the
@@ -4047,87 +4175,107 @@
   id: totrans-839
   prefs: []
   type: TYPE_NORMAL
+  zh: 要计算电力成本，我们需要了解找到所需nonce所需的网络哈希能力。找到nonce所需网络哈希能力是找到nonce难度的后果，因此它取决于块哈希值低于目标阈值的概率。由于散列生成一个随机的256位代码，所以有可能的结果。
 - en: Possible values of nonce less than 1 are only 0, so the probability of finding
     them is .
   id: totrans-840
   prefs: []
   type: TYPE_NORMAL
+  zh: 小于1的nonce的可能值只有0，所以找到它们的概率为。
 - en: Possible values of nonce less than 2 are 0 and 1, so the probability of finding
     them is .
   id: totrans-841
   prefs: []
   type: TYPE_NORMAL
+  zh: 小于2的nonce的可能值为0和1，所以找到它们的概率为。
 - en: 'This gives us:'
   id: totrans-842
   prefs: []
   type: TYPE_NORMAL
+  zh: 这给我们：
 - en: '*p: probability of finding nonce*'
   id: totrans-843
   prefs: []
   type: TYPE_NORMAL
+  zh: '*p：找到nonce的概率*'
 - en: '*T: Target Threshold*'
   id: totrans-844
   prefs: []
   type: TYPE_NORMAL
+  zh: '*T: 目标阈值*'
 - en: '*p=T/2*^(256) (1)'
   id: totrans-845
   prefs: []
   type: TYPE_NORMAL
+  zh: '*p=T/2*^(256) (1)'
 - en: Mining equipment tries to find the hashes at an extremely fast rate.
   id: totrans-846
   prefs: []
   type: TYPE_NORMAL
+  zh: 挖矿设备试图以极快的速度找到散列值。
 - en: 'The hash rate of 1 TH/s is hashes per second. The following calculation finds
     the hash rate of the Bitcoin network:'
   id: totrans-847
   prefs: []
   type: TYPE_NORMAL
+  zh: 1 TH/s的哈希率是每秒的散列值。以下计算找到了比特币网络的哈希率：
 - en: '*t[b]: Block time in seconds*'
   id: totrans-848
   prefs: []
   type: TYPE_NORMAL
+  zh: '*t[b]：秒内的区块时间*'
 - en: '*H[network]: Hash rate of network*'
   id: totrans-849
   prefs: []
   type: TYPE_NORMAL
+  zh: '*H[网络]：网络哈希率*'
 - en: '*(1)* ⇒ *Number of trials required = H[network] t[b]=2^(256)/T*'
   id: totrans-850
   prefs: []
   type: TYPE_NORMAL
+  zh: '*(1)* ⇒ *所需试验次数 = H[网络] t[b]=2^(256)/T*'
 - en: ⇒*H[network] = 2^(256) / Tt[b]*
   id: totrans-851
   prefs: []
   type: TYPE_NORMAL
+  zh: ⇒*H[网络] = 2^(256) / Tt[b]*
 - en: 'Using the preceding equation, we can find the current hash rate of network:'
   id: totrans-852
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用上述方程，我们可以找到当前网络的哈希率：
 - en: Target threshold of block with block height *645675* is
   id: totrans-853
   prefs: []
   type: TYPE_NORMAL
+  zh: 区块高度为*645675*的区块的目标阈值为
 - en: '*T = 0x1007ea0000000000000000000000000000000000000000*'
   id: totrans-854
   prefs: []
   type: TYPE_NORMAL
+  zh: '*T = 0x1007ea0000000000000000000000000000000000000000*'
 - en: '*H[network] = 2256/(600*T)=125,686,927,612,715,270,144*'
   id: totrans-855
   prefs: []
   type: TYPE_NORMAL
+  zh: '*H[网络] = 2256/(600*T)=125,686,927,612,715,270,144*'
 - en: 'As we can see, the value is 125 exa-hashes per second. This has grown exponentially
     over time. The following is the chart showing the rise in network hashrate over
     time:'
   id: totrans-856
   prefs: []
   type: TYPE_NORMAL
+  zh: 正如我们所看到的，值为125 exa-hashes per second。随着时间的推移，这个数值已经增长了指数级。以下是显示网络哈希率随时间变化的图表：
 - en: '![](images/Figure-6.39.jpg)'
   id: totrans-857
   prefs: []
   type: TYPE_IMG
+  zh: '![](images/Figure-6.39.jpg)'
 - en: '**Figure 6.39:** Bitcoin network hashrate over the years'
   id: totrans-858
   prefs: []
   type: TYPE_NORMAL
+  zh: '**图6.39：**比特币网络哈希率逐年变化'
 - en: Even though network hashrate has gone up exponentially, there have been short
     durations when the hashrate has fallen. This has happened when miners started
     losing money and had to stop mining. This is a crucial difference between Bitcoin
@@ -4144,16 +4292,19 @@
   id: totrans-859
   prefs: []
   type: TYPE_NORMAL
+  zh: 尽管网络哈希率已经指数增长，但哈希率有时会下降。当矿工开始亏损不得不停止挖矿时，这种情况会发生。这是比特币挖矿与商品挖矿之间的一个重要区别。比特币挖矿的成本相当有弹性，并根据挖矿盈利进行调整，而在常规挖矿中，盈利的下降并不会导致挖矿成本的下降。此外，商品矿工需要继续挖矿，因为关闭矿山重新开放是昂贵且有时困难的。因此，常规商品挖矿总是存在风险，如果没有找到进一步的低成本储备，那么挖矿可能需要放弃或价格上涨。因此，价格上涨导致供应增加。相比之下，在比特币中，通货膨胀是由算法固定的，所以挖矿盈利和网络哈希率不会导致比特币产量的变化。这使得比特币通货膨胀不受任何外部影响，如禁令或限制。
 - en: 'The mining equipment cost thousands of dollars. The equipment with the highest
     hash power has crossed 100 Tera hashes per second (TH/s). For a miner to mine
     a block using equipment with 100 Tera hashes, they will need:'
   id: totrans-860
   prefs: []
   type: TYPE_NORMAL
+  zh: 挖矿设备成本数千美元。拥有最高哈希能力的设备已经超过了100 Tera每秒哈希（TH/s）。对于使用100 Tera每秒哈希设备的矿工来说，他们将需要：
 - en: '![](images/c06eq-1.jpg)'
   id: totrans-861
   prefs: []
   type: TYPE_IMG
+  zh: '![](images/c06eq-1.jpg)'
 - en: As we can see, even 100 TH/s is not sufficient to mine a block. For this reason,
     mining is almost never done solo. To perform mining as a business, a miner needs
     to join a mining pool. Mining pools operate by trying to find nonce collectively.
@@ -4171,50 +4322,60 @@
   id: totrans-862
   prefs: []
   type: TYPE_NORMAL
+  zh: 如我们所见，即使是100 TH/s也不足以挖出一个区块。因此，几乎从不单独挖矿。为了将挖矿作为一项业务，矿工需要加入一个挖矿池。挖矿池通过集体寻找nonce来运作。每个参与者向池贡献他们的CPU功率来寻找nonce。对于池中谁成功找到nonce来说没有区别。池使用nonce来准备一个区块，然后根据他们对挖矿哈希能力的贡献，与池中的所有参与者分享利润。这是一个非常民主的系统，但它使挖矿变得更加集中。由于只有在找到nonce时才分享利润，所以每个矿工都更愿意加入一个累积哈希能力最高的挖矿池，因为这将增加找到nonce的概率，并更频繁地分享利润。因此，比特币网络有一些大型的挖矿池，如果它们联合起来主导共识规则，那么开发者和其他利益相关者可能会失去他们的价值，网络可能会被少数玩家接管。
 - en: 'At the time of authoring this book, the following are the few top mining pools:'
   id: totrans-863
   prefs: []
   type: TYPE_NORMAL
+  zh: 在撰写本书的时候，以下是一些顶级的挖矿池：
 - en: Foundry USA
   id: totrans-864
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Foundry USA
 - en: AntPool
   id: totrans-865
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: AntPool
 - en: Fool
   id: totrans-866
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Fool
 - en: Poolin
   id: totrans-867
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Poolin
 - en: Binance Pool
   id: totrans-868
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Binance Pool
 - en: VIABLE
   id: totrans-869
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: VIABLE
 - en: BTC.com
   id: totrans-870
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: BTC.com
 - en: SlushPool
   id: totrans-871
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: SlushPool
 - en: Bitcoin mining is done using ASIC miners, which are specifically designed to
     perform SHA256 operations at an extremely fast rate. Choosing the right miner
     depends on several factors, such as input cost, power consumption, the amount
@@ -4223,26 +4384,31 @@
   id: totrans-872
   prefs: []
   type: TYPE_NORMAL
+  zh: 比特币挖矿是使用ASIC矿机完成的，这些矿机被专门设计用来以极快的速度执行SHA256运算。选择正确的矿机取决于几个因素，如输入成本、电力消耗、产生的热量和噪音、效率、电力来源以及达到盈亏平衡点的时间。
 - en: A new miner may be more power efficient but may cost an exorbitant amount of
     money, which can push time to breakeven farther. A cheap or free power source
     can make low-efficiency equipment more economical.
   id: totrans-873
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个新的矿工可能更节能，但可能需要一大笔钱，这可能会使达到盈亏平衡点的时间更长。一个便宜或免费的电源可以使低效的设备更加经济。
 - en: 'Plus, the following two popular pooled mining protocols can be used for mining:'
   id: totrans-874
   prefs: []
   type: TYPE_NORMAL
+  zh: 此外，以下两种流行的池挖矿协议可用于挖矿：
 - en: Stratum
   id: totrans-875
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Stratum
 - en: Stratum V2
   id: totrans-876
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Stratum V2
 - en: As the name suggests, Stratum V2 is the newer version of Stratum protocol. These
     are open protocols and are widely used for pooled mining. Stratum V2 is two to
     three times more efficient than version 1\. Version 2 also gives better control
@@ -4251,54 +4417,65 @@
   id: totrans-877
   prefs: []
   type: TYPE_NORMAL
+  zh: 正如名字所说的，Stratum V2是Stratum协议的新版本。这些都是开放的协议，被广泛用于池挖矿。Stratum V2比版本1至少高效两到三倍。版本2在定制块模板方面也给了个体矿工更好的控制权，这可以使矿工个体决定它打算支持或不予支持的改进。
 - en: 'There are also the popular pool mining software:'
   id: totrans-878
   prefs: []
   type: TYPE_NORMAL
+  zh: 还有一些流行的池挖矿软件：
 - en: Nice Hash
   id: totrans-879
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Nice Hash
 - en: Better Hash
   id: totrans-880
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 更好的哈希算法
 - en: Cuddle Miner
   id: totrans-881
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Cuddle Miner
 - en: Each of the above-mentioned software have advantages and disadvantages and will
     depend on individual requirements.
   id: totrans-882
   prefs: []
   type: TYPE_NORMAL
+  zh: 上面提到的每一款软件都有优点和缺点，并且将取决于个人需求。
 - en: Most mining pools leave their signature in the arbitrary data of coinbase transactions
     when they create a block. Using these signatures, we can figure out the percentage
     of blocks mined by each mining pool.
   id: totrans-883
   prefs: []
   type: TYPE_NORMAL
+  zh: 大多数挖矿池在创建区块时，在coinbase交易的任意数据中留下它们的签名。利用这些签名，我们可以计算出每个挖矿池挖出的区块百分比。
 - en: Using the cost of electricity, we can calculate the average monthly profit of
     mining equipment.
   id: totrans-884
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用电力成本，我们可以计算出挖矿设备的平均每月利润。
 - en: 'First, we need to define mining hash rate, electricity expense and current
     sell price of bitcoin:'
   id: totrans-885
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，我们需要定义比特币的挖矿哈希率、电力消耗和当前的卖出价格：
 - en: '`MINER_HASH_RATE = 96 * 10**12`'
   id: totrans-886
   prefs: []
   type: TYPE_NORMAL
+  zh: '`MINER_HASH_RATE = 96 * 10**12`'
 - en: '`MINER_POWER_WATT = 2832`'
   id: totrans-887
   prefs: []
   type: TYPE_NORMAL
+  zh: '`MINER_POWER_WATT = 2832`'
 - en: '`electricity_rates = {“rate_slabs”: [{“min”: 1, “max”: 30, “unit_price”: 4},
     {“min”: 31, “max”: 100, “unit_price”: 5.45}, {“min”: 101, “max”: 200, “unit_price”:
     7}, {“min”: 201, “unit_price”: 8.05}]}`'
@@ -4533,125 +4710,155 @@
   id: totrans-943
   prefs: []
   type: TYPE_NORMAL
+  zh: '`revenue = btc_mined_per_month * CURRENT_SELL_PRICE`'
 - en: '`profit = revenue - expense`'
   id: totrans-944
   prefs: []
   type: TYPE_NORMAL
+  zh: '`profit = revenue - expense`'
 - en: '`return profit`'
   id: totrans-945
   prefs: []
   type: TYPE_NORMAL
+  zh: '`return profit`'
 - en: '**Program 6.32:** Program to calculate monthly mining profit for a single miner'
   id: totrans-946
   prefs: []
   type: TYPE_NORMAL
+  zh: '**程序 6.32:** 计算单个矿工每月挖矿利润的程序'
 - en: 'The following is the code to call the `**miningReturn**` method to get mining
     profit:'
   id: totrans-947
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下是要调用 `**miningReturn**` 方法的代码以获取挖矿利润：
 - en: '`def getBlockHeaderBytes(blk_hash: bytes):`'
   id: totrans-948
   prefs: []
   type: TYPE_NORMAL
+  zh: '`def getBlockHeaderBytes(blk_hash: bytes):`'
 - en: '`jsonobj = getBlockIndex(blk_hash, block_db_g)`'
   id: totrans-949
   prefs: []
   type: TYPE_NORMAL
+  zh: '`jsonobj = getBlockIndex(blk_hash, block_db_g)`'
 - en: '`if ‘data_pos’ in jsonobj:`'
   id: totrans-950
   prefs: []
   type: TYPE_NORMAL
+  zh: '`if ‘data_pos’ in jsonobj:`'
 - en: '`block_filepath = os.path.join(blocks_path_g, ‘blk%05d.dat’ % jsonobj[‘n_file’])`'
   id: totrans-951
   prefs: []
   type: TYPE_NORMAL
+  zh: '`block_filepath = os.path.join(blocks_path_g, ‘blk%05d.dat’ % jsonobj[‘n_file’])`'
 - en: '`start = jsonobj[‘data_pos’]`'
   id: totrans-952
   prefs: []
   type: TYPE_NORMAL
+  zh: '`start = jsonobj[‘data_pos’]`'
 - en: '`elif ‘undo_pos’ in jsonobj:`'
   id: totrans-953
   prefs: []
   type: TYPE_NORMAL
+  zh: '`elif ‘undo_pos’ in jsonobj:`'
 - en: '`block_filepath = os.path.join(blocks_path_g, ‘rev%05d.dat’ % jsonobj[‘n_file’])`'
   id: totrans-954
   prefs: []
   type: TYPE_NORMAL
+  zh: '`block_filepath = os.path.join(blocks_path_g, ‘rev%05d.dat’ % jsonobj[‘n_file’])`'
 - en: '`start = jsonobj[‘undo_pos’]`'
   id: totrans-955
   prefs: []
   type: TYPE_NORMAL
+  zh: '`start = jsonobj[‘undo_pos’]`'
 - en: '`# load file to memory`'
   id: totrans-956
   prefs: []
   type: TYPE_NORMAL
+  zh: '`# 将文件加载到内存中`'
 - en: '`with open(block_filepath, ‘rb’) as blk_f:`'
   id: totrans-957
   prefs: []
   type: TYPE_NORMAL
+  zh: '`with open(block_filepath, ‘rb’) as blk_f:`'
 - en: '`blk_f.seek(start)`'
   id: totrans-958
   prefs: []
   type: TYPE_NORMAL
+  zh: '`blk_f.seek(start)`'
 - en: '`return blk_f.read(80)`'
   id: totrans-959
   prefs: []
   type: TYPE_NORMAL
+  zh: '`return blk_f.read(80)`'
 - en: '`if __name__ == ‘__main__’:`'
   id: totrans-960
   prefs: []
   type: TYPE_NORMAL
+  zh: '`if __name__ == ‘__main__’:`'
 - en: '`blk_hash = bytes.fromhex(‘000000000000000000079dc864537510659e14439ff5f4a208231bcf276358ba’)[::-1]`'
   id: totrans-961
   prefs: []
   type: TYPE_NORMAL
+  zh: '`blk_hash = bytes.fromhex(‘000000000000000000079dc864537510659e14439ff5f4a208231bcf276358ba’)[::-1]`'
 - en: '`blk_index = getBlockIndex(blk_hash, block_db_g)`'
   id: totrans-962
   prefs: []
   type: TYPE_NORMAL
+  zh: '`blk_index = getBlockIndex(blk_hash, block_db_g)`'
 - en: '`blk_hdr_b = getBlockHeaderBytes(blk_hash)`'
   id: totrans-963
   prefs: []
   type: TYPE_NORMAL
+  zh: '`blk_hdr_b = getBlockHeaderBytes(blk_hash)`'
 - en: '`jsonobj = getBlockHeader(blk_hdr_b)`'
   id: totrans-964
   prefs: []
   type: TYPE_NORMAL
+  zh: '`jsonobj = getBlockHeader(blk_hdr_b)`'
 - en: '`blk_reward = getBlockReward(blk_index[‘height’])`'
   id: totrans-965
   prefs: []
   type: TYPE_NORMAL
+  zh: '`blk_reward = getBlockReward(blk_index[‘height’])`'
 - en: '`bits_b = bytes.fromhex(jsonobj[‘bits’])[::-1]`'
   id: totrans-966
   prefs: []
   type: TYPE_NORMAL
+  zh: '`bits_b = bytes.fromhex(jsonobj[‘bits’])[::-1]`'
 - en: '`mining_return = miningReturn(MINER_POWER_WATT, MINER_HASH_RATE, bits_b, blk_reward)`'
   id: totrans-967
   prefs: []
   type: TYPE_NORMAL
+  zh: '`mining_return = miningReturn(MINER_POWER_WATT, MINER_HASH_RATE, bits_b, blk_reward)`'
 - en: '`print(“Mining Return Per Month = %s” % (mining_return))`'
   id: totrans-968
   prefs: []
   type: TYPE_NORMAL
+  zh: '`print(“每月挖矿回报 = %s” % (mining_return))`'
 - en: 'This gives us the following mining return per month:'
   id: totrans-969
   prefs: []
   type: TYPE_NORMAL
+  zh: 这给我们以下每月挖矿回报：
 - en: '![](images/Figure-6.40.jpg)'
   id: totrans-970
   prefs: []
   type: TYPE_IMG
+  zh: '![](images/Figure-6.40.jpg)'
 - en: '**Figure 6.40:** Shows current monthly mining profit calculated for mining
     in Bengaluru for the equipment'
   id: totrans-971
   prefs: []
   type: TYPE_NORMAL
+  zh: '**图 6.40:** 显示了为在班加罗尔的设备计算的当前每月挖矿利润'
 - en: '[Mempool](toc.xhtml#s125a)'
   id: totrans-972
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: '[内存池](toc.xhtml#s125a)'
 - en: The transactions broadcasted on the Bitcoin network are verified by each node
     and stored in memory in a data structure called mempool. To create a block, the
     miner selects transactions from mempool. The transaction count needs to remain
@@ -4661,30 +4868,38 @@
   id: totrans-973
   prefs: []
   type: TYPE_NORMAL
+  zh: 在比特币网络上广播的交易由每个节点验证并存储在称为内存池的数据结构中。为了创建一个区块，矿工从内存池中选择交易。交易数量需要保持在限制范围内，使得区块大小不超过
+    1MB 的区块大小限制。因此，矿工选择那些能给他们带来最大利润的交易。
 - en: 'We need to use the following Bitcoin client APIs to access mempool data:'
   id: totrans-974
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们需要使用以下比特币客户端 API 来访问内存池数据：
 - en: '![](images/Figure-6.41.jpg)'
   id: totrans-975
   prefs: []
   type: TYPE_IMG
+  zh: '![](images/Figure-6.41.jpg)'
 - en: '**Figure 6.41:** Shows a portion of the list of mempool transactions'
   id: totrans-976
   prefs: []
   type: TYPE_NORMAL
+  zh: '**图 6.41:** 显示了内存池交易列表的一部分'
 - en: 'The following is the part of the output of API getrawmempool:'
   id: totrans-977
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下是从 API getrawmempool 输出的部分内容：
 - en: '![](images/Figure-6.42.jpg)'
   id: totrans-978
   prefs: []
   type: TYPE_IMG
+  zh: '![](images/Figure-6.42.jpg)'
 - en: '**Figure 6.42:** Shows detailed information of a single mempool transaction'
   id: totrans-979
   prefs: []
   type: TYPE_NORMAL
+  zh: '**图 6.42:** 显示单个内存池交易的详细信息'
 - en: Here, we want to write a program that selects mempool transactions to maximize
     the fee reward for the miner. To achieve that, we need to select transactions
     that have the highest satoshi per byte fees because we have limited space of 1
@@ -4696,6 +4911,8 @@
   id: totrans-980
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这里，我们希望编写一个程序，选择内存池交易以最大化矿工的手续费奖励。为了实现这一点，我们需要选择具有最高每字节 Satoshi 费用的交易，因为我们的空间限制为
+    1 MB，如果一个交易占用的字节更多，它需要支付更多费用以在有限的区块大小中得到容纳。有时，交易输入本身就在内存池中。我们不能将依赖于比特币的交易添加到区块中，而这些交易仍然在内存池中。因此，我们需要确保如果一个交易被添加到区块中，那么它的所有祖先也被添加到内存池中的区块。
 - en: In the mempool json, `**ancestorcount**` includes current transactions, and
     so does `**descendantcount**`. Additionally, depends is the list of ancestors,
     and `**spentby**` is a list of descendants.
@@ -5345,114 +5562,138 @@
   - PREF_IND
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 第一个字节是字节的长度。
 - en: The next 3 bytes are the three most significant numbers in the base 256 number.![](images/Figure-6.43.jpg)
   id: totrans-1108
   prefs:
   - PREF_IND
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 接下来的3个字节是基数256数中的三个最高有效数字。![](images/Figure-6.43.jpg)
 - en: '**Figure 6.43:** Illustration of conversion of target threshold to bits'
   id: totrans-1109
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '**图6.43：目标阈值转换为bits的说明**'
 - en: '`def targetThreshold2bits(tt: int):`'
   id: totrans-1110
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`def targetThreshold2bits(tt: int):`'
 - en: '`tt_b = tt.to_bytes((tt.bit_length() + 7) // 8, ‘big’)`'
   id: totrans-1111
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`tt_b = tt.to_bytes((tt.bit_length() + 7) // 8, ‘big’)`'
 - en: '`print(tt_b.hex())`'
   id: totrans-1112
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`print(tt_b.hex())`'
 - en: '`prepend = b”0” if tt_b[0] > 0x7f else b””`'
   id: totrans-1113
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`prepend = b”0” if tt_b[0] > 0x7f else b””`'
 - en: '`tt_b = prepend + tt_b`'
   id: totrans-1114
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`tt_b = prepend + tt_b`'
 - en: '`b١ = bytes([len(tt_b)])`'
   id: totrans-1115
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`b١ = bytes([len(tt_b)])`'
 - en: '`tt_b = tt_b + bytes(2)`'
   id: totrans-1116
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`tt_b = tt_b + bytes(2)`'
 - en: '`tt_b = tt_b[0:3]`'
   id: totrans-1117
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`tt_b = tt_b[0:3]`'
 - en: '`bits = b١ + tt_b`'
   id: totrans-1118
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`bits = b١ + tt_b`'
 - en: '`return bits`'
   id: totrans-1119
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '`return bits`'
 - en: '**Program 6.42:** Program to convert target threshold to bits'
   id: totrans-1120
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '**程序6.42：将目标阈值转换为bits的程序**'
 - en: 'Bits are only updated when block height is in multiples of 2016\. The following
     code returns bits based on block height:'
   id: totrans-1121
   prefs: []
   type: TYPE_NORMAL
+  zh: 只有在块高是2016的倍数时，bits才会被更新。以下代码根据块高返回bits：
 - en: '`def getBits():`'
   id: totrans-1122
   prefs: []
   type: TYPE_NORMAL
+  zh: '`def getBits():`'
 - en: '`if height % 2016 != 0:`'
   id: totrans-1123
   prefs: []
   type: TYPE_NORMAL
+  zh: '`if height % 2016 != 0:`'
 - en: '`block_hash = rpc_connection.getblockhash(height)`'
   id: totrans-1124
   prefs: []
   type: TYPE_NORMAL
+  zh: '`block_hash = rpc_connection.getblockhash(height)`'
 - en: '`blkhdr = getBlockHeader(bytes.fromhex(block))`'
   id: totrans-1125
   prefs: []
   type: TYPE_NORMAL
+  zh: '`blkhdr = getBlockHeader(bytes.fromhex(block))`'
 - en: '`return bytes.fromhex(blkhdr[‘bits’])[::-1]`'
   id: totrans-1126
   prefs: []
   type: TYPE_NORMAL
+  zh: '`return bytes.fromhex(blkhdr[‘bits’])[::-1]`'
 - en: '`tt = calculateNextTargetThreshold()`'
   id: totrans-1127
   prefs: []
   type: TYPE_NORMAL
+  zh: '`tt = calculateNextTargetThreshold()`'
 - en: '`bits = targetThreshold٢bits(tt)`'
   id: totrans-1128
   prefs: []
   type: TYPE_NORMAL
+  zh: '`bits = targetThreshold٢bits(tt)`'
 - en: '`return bits`'
   id: totrans-1129
   prefs: []
   type: TYPE_NORMAL
+  zh: '`return bits`'
 - en: '**Program 6.43:** Program to return bits if next block height in multiples
     of 2016'
   id: totrans-1130
   prefs: []
   type: TYPE_NORMAL
+  zh: '**程序6.43：如果下一个块高是2016的倍数，则返回bits的程序**'
 - en: Now, we can use the above-mentioned header elements to find nonce and build
     blocks. We also need to update transactions and Merkle root. We can calculate
     the Merkle root of the new block by using the transaction list we already got
@@ -5460,15 +5701,18 @@
   id: totrans-1131
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，我们可以使用上面提到的头元素来查找nonce并构建区块。我们还需要更新交易和Merkle根。我们可以通过在*程序6.37*中已经获得的交易列表来计算新块的Merkle根。我们将留给您实现最终的挖矿代码。
 - en: This brings us to the end of this chapter.
   id: totrans-1132
   prefs: []
   type: TYPE_NORMAL
+  zh: 这带我们结束了这一章。
 - en: '[Conclusion](toc.xhtml#s126a)'
   id: totrans-1133
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: '[结论](toc.xhtml#s126a)'
 - en: In this chapter, we started with setting up Bitcoin software and syncing of
     blockchain. You learned to use the Bitcoin Core CLI and Python RPC client. You
     also investigated the structure of blocks and indexes. You learned how to query
@@ -5478,6 +5722,7 @@
   id: totrans-1134
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本章中，我们从设置比特币软件和区块链同步开始。您学习了如何使用比特币核心CLI和Python RPC客户端。您还研究了区块和索引的结构。您学习了如何从索引中查询数据。我们编写了简短的程序来了解区块文件的结构，您还学习了内存池的内容、它的作用以及如何用于挖矿区块。
 - en: Bitcoin is transformational as it eliminates the need for intermediaries in
     any transaction. Consequently, we have a cryptocurrency that behaves like cash.
     This was the goal that many cryptographic experts aimed at for decades. Most of
@@ -5491,6 +5736,8 @@
   id: totrans-1135
   prefs: []
   type: TYPE_NORMAL
+  zh: 比特币之所以具有变革性，是因为它在任何交易中消除了中介的需求。因此，我们拥有了一种行为类似于现金的加密货币。这是许多密码学专家数十年的目标。我们中的大多数人知道这是一种威慑。这感觉像是我们进入了火箭科学。但正如本章所看到的，这种想法只是威慑。比特币协议简单得令人惊叹。本章是第一章深入编程的章节。我们只使用了比特币软件客户端、区块文件、索引和对协议的一些基本知识来增强您对比特币协议现有实现的
+    understanding. 我们留下了某些重要主题，如交易脚本和隔离见证，供接下来的章节讨论。
 - en: Knowing that such an impactful technology can be learned with ease allows us
     to build confidence in our ability. It allows us to trust ourselves to understand
     things. It removes the need for experts and allows us to find an expert within
@@ -5498,46 +5745,54 @@
   id: totrans-1136
   prefs: []
   type: TYPE_NORMAL
+  zh: 了解到如此有影响力的技术可以轻松学会，这让我们对自己的能力建立了信心。它允许我们相信自己能够理解事物。它消除了对专家的需求，并允许我们在自己内心找到专家。它在根本层面上改变了我们看待世界的方式。
 - en: In the next chapter, you will understand the Bitcoin protocol messaging. You
     will understand how Bitcoin nodes find other nodes, connect with them, synchronize
     their blockchain, and broadcast blocks and transactions.
   id: totrans-1137
   prefs: []
   type: TYPE_NORMAL
+  zh: 在下一章中，你将了解比特币协议消息。你将了解比特币节点如何找到其他节点，与它们连接，同步他们的区块链，以及广播区块和交易。
 - en: '[Points to remember](toc.xhtml#s127a)'
   id: totrans-1138
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: '[需要记住的要点](toc.xhtml#s127a)'
 - en: Bitcoin Core is the most popular Bitcoin software maintained by the Bitcoin
     Core team, and it was originally created by Satoshi Nakamoto.
   id: totrans-1139
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 比特币核心（Bitcoin Core）是由比特币核心团队维护的最受欢迎的比特币软件，最初由中本聪（Satoshi Nakamoto）创建。
 - en: Blocks are mined every 10 minutes on average.
   id: totrans-1140
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 平均每10分钟挖出一个区块。
 - en: Every block in the Bitcoin blockchain contains hashed block header of the previous
     block. This makes the blockchain more like a stack.
   id: totrans-1141
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 比特币区块链中的每个区块都包含前一个区块的哈希区块头。这使得区块链更像一个栈。
 - en: Block header contains Merkle Root Hash, which, along with proof-of-work algorithm,
     secures the integrity of transactions included in the block.
   id: totrans-1142
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 区块头包含默克尔根哈希值，结合工作量证明算法，确保了包含在区块中的交易的完整性。
 - en: Proof-of-work also protects the integrity of other block header fields, such
     as time, version, previous block hash, and target threshold.
   id: totrans-1143
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 工作量证明（Proof-of-work）也保护了区块头其他字段的安全，比如时间、版本、前一个区块哈希和目标阈值。
 - en: Block version indicates miner support and readiness of a protocol enhancement,
     also called a softfork. Such types of softforks are also called Miner Initiated
     Softforks.
@@ -5545,23 +5800,27 @@
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 区块版本表明矿工对协议增强的支持和准备，这也称为软分叉。这种类型的软分叉也称为矿工发起的软分叉。
 - en: If an enhancement is important for the future of Bitcoin, the Bitcoin developer
     community can initiate BIP 148 and enforce miners to move to the softfork.
   id: totrans-1145
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果一个改进对比特币的未来很重要，比特币开发者社区可以发起BIP 148，并强制矿工转向软分叉。
 - en: Hash of Block header should be less than target threshold calculated from bits
     field in the block header.
   id: totrans-1146
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 区块头的哈希应该小于区块头中的位字段计算出的目标阈值。
 - en: Target Threshold is adjusted only at every 2016^(th) block in the blockchain.
   id: totrans-1147
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 目标阈值仅在区块链上的每个第2016个区块时进行调整。
 - en: The new target threshold is calculated by modifying the existing target threshold
     by taking block time of previous 2016 blocks such that the next 2016 blocks are
     mined on an average of 10 minutes.
@@ -5569,22 +5828,26 @@
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 新的目标阈值是通过修改现有的目标阈值来计算的，通过取前2016个区块的区块时间，使得下一个2016个区块的平均挖矿时间为10分钟。
 - en: Blocks are stored in block files, and the information related to block files
     and blocks are stored in the block index.
   id: totrans-1149
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 区块存储在区块文件中，与区块文件和区块相关的信息存储在区块索引中。
 - en: Chainstate database stores unspent transaction outputs (UTXOs).
   id: totrans-1150
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 链状态数据库存储未花费的交易输出（UTXOs）。
 - en: Block indexes and UTXO indexes both help in the quick verification of blocks.
   id: totrans-1151
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 区块索引和UTXO索引都有助于快速验证区块。
 - en: There is another index called transaction index or txindex, which is not used
     by the Bitcoin software. It is optional and stores indexes related to transactions
     stored in blocks.
@@ -5592,12 +5855,14 @@
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 还有一个名为交易索引或txindex的其他索引，比特币软件不使用。这是可选的，它存储与存储在区块中的交易相关的索引。
 - en: Mining is the process of finding nonce so that the newly created block header
     hash is less than the target threshold.
   id: totrans-1153
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 挖矿的过程就是寻找一个nonce值，使得新创建的区块头哈希值小于目标阈值。
 - en: Bitcoin mining is a costly process, and like in commodity mining where miners
     need to invest in exploration, in Bitcoin mining, miners need to continuously
     invest in equipment to remain viable.
@@ -5605,62 +5870,73 @@
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 比特币挖矿是一个昂贵的过程，就像商品挖矿一样，矿工需要投资于勘探，在比特币挖矿中，矿工需要不断投资于设备以保持其可行性。
 - en: Solo mining is only for developers who are learning Bitcoin or who want to reduce
     mining centralization by adding their hashrate to the overall network hashrate.
   id: totrans-1155
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 单独挖矿只适合正在学习比特币的开发者，或者通过将自己的算力加入整个网络算力来减少挖矿集中化的开发者。
 - en: For-profit mining can only be done in a pool. Miners would join one of the few
     famous pools.
   id: totrans-1156
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 盈利性挖矿只能在矿池中进行。矿工会加入其中几个著名的矿池之一。
 - en: Mining pools use a combined hashrate of miners to find nonce. Once the nonce
     is found, the pool pays miners according to their hashrate contribution.
   id: totrans-1157
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 挖矿池使用矿工的组合算力来寻找nonce。一旦找到nonce，矿池将根据矿工的算力贡献支付矿工。
 - en: '[Questions](toc.xhtml#s128a)'
   id: totrans-1158
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: '[问题](toc.xhtml#s128a)'
 - en: Calculate the current bitcoin supply. Additionally, calculate the current bitcoin
     supply as the percentage of maximum supply.
   id: totrans-1159
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 计算当前的比特币供应量。另外，计算当前比特币供应量占最大供应量的百分比。
 - en: Find the expected year, month, and date of the next Bitcoin halving (when block
     reward becomes half of the current reward).
   id: totrans-1160
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 找出下一个比特币减半（当区块奖励变为当前奖励的一半）的预期年份、月份和日期。
 - en: Create a table of Bitcoin mining equipment, their cost, and the profixt per
     month.
   id: totrans-1161
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 创建一个表格，列出比特币挖矿设备、它们的成本和每月的利润。
 - en: Create a table of the average annual transaction count per block.
   id: totrans-1162
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 创建一个表格，列出每个区块的平均年交易次数。
 - en: Complete the solo mining program that has been left incomplete.
   id: totrans-1163
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 完成留白的单独挖矿程序。
 - en: 'True/False:'
   id: totrans-1164
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 真/假：
 - en: Softforks are enhancements that are not backward compatible, which is why miners
     need to vote for its support.
   id: totrans-1165
@@ -5668,6 +5944,7 @@
   - PREF_IND
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 软分叉是不兼容旧版本的改进，这就是矿工需要对其表示支持的原因。
 - en: Network hashrate can only go up in the long run even if the bitcoin price continues
     to fall.
   id: totrans-1166
@@ -5675,44 +5952,52 @@
   - PREF_IND
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 即使比特币价格持续下跌，网络算力也只能在长期内上升。
 - en: Mempool stores unconfirmed transactions in memory.
   id: totrans-1167
   prefs:
   - PREF_IND
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 内存池将未确认的交易存储在内存中。
 - en: 'Fill in the blanks:'
   id: totrans-1168
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 填空：
 - en: After _______ blocks, a miner can use bitcoin locked in coinbase transaction.
   id: totrans-1169
   prefs:
   - PREF_IND
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 在______个区块之后，矿工可以使用锁定在coinbase交易中的比特币。
 - en: Compressed form of transaction count 2,597 is __________.
   id: totrans-1170
   prefs:
   - PREF_IND
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 交易次数2,597的压缩形式是______________。
 - en: Compressed form of 0.25 BTC is _______.
   id: totrans-1171
   prefs:
   - PREF_IND
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 0.25 BTC的压缩形式是______________。
 - en: Bits value 0x1715a35c means target threshold of ______________.
   id: totrans-1172
   prefs:
   - PREF_IND
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 值0x1715a35c的Bit意味着目标阈值是______________。
 - en: Block size limit is ____________ MB.``
   id: totrans-1173
   prefs:
   - PREF_IND
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 区块大小限制是____________MB。
