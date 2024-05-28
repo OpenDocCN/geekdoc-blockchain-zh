@@ -942,6 +942,7 @@
   id: totrans-96
   prefs: []
   type: TYPE_NORMAL
+  zh: 正如本章前面讨论的那样，如果矿工们无法就最长、最重的链达成一致，网络中的矿工可能会分裂成两个。在加密货币社区中，对分叉有很多争论，其中似乎意味着人类社区的分裂以及机器网络中共识的丧失。实际上，初生的分叉不断发生。有时一个分支会死掉，有时两个分支都会死掉，有时一个会继续传播一个获胜的“新区块”。当两个有效的区块指向同一个父区块时就会发生分叉，但一些矿工看到一个，其他矿工看到另一个。事实上，这创建了两个“真相”版本，确保这两个群体不再被认为处于同一个网络中。注意：状态分叉比协议分叉重要得多。在协议分叉中，不会更改任何数据，但矿工可能会调整参数或更新代码，使其按照社区已经同意的修改后规范执行。因此，可以说协议分叉是自愿的，而状态分叉不一定是这样。在以太坊中，这些不断发生的分叉在四个区块内解决，作为数学上的确定性，因为一个链找到一个获胜者，变得更长，并开始“拉”其他节点向其靠拢，以不仅获得找到和执行正确区块的矿工费，还有收集叔叔区块奖励的所有额外激励。有时候，一个节点在已经收到约一到三个区块的奖励之后找到了“正确”的链。一旦节点跳转到更好、更长、更获胜的链，挖矿奖励可能会消失。然而，所有这些都发生在四个区块内，也就是一分钟内，所以这些小的错误被认为不是什么大问题。攻击者通常会部署蓄意的分叉来双倍花费资金：通过同时向多个账户发送一个余额来凭空赚钱。实际上，任何拥有超过50%哈希功率的人都可以引发“敌对”的蓄意分叉，可以这么说。在双花攻击中，操作一群矿工并拥有大量哈希功率的攻击者向以太坊发送一笔交易以购买产品。在获得产品后，攻击者用第二笔交易组合出一个错误的区块。第二笔交易试图将相同的资金发送回攻击者。然后，攻击者在与包含原始交易的区块相同级别的区块上创建一个区块，但包含第二笔交易，并将所有可能的哈希功率都用于在分叉上进行挖矿。如果攻击者拥有50%以上的哈希功率，则双花将最终在任何区块深度上都保证成功。低于50%时，成功的可能性远低。但这种攻击仍然足够令人担忧，以至于实际上，大多数使用以太币的交易所和其他机构在考虑转账完成之前都会等待几个确认。
 - en: Mining Tutorial
   id: totrans-97
   prefs:
@@ -1132,6 +1133,26 @@
   id: totrans-108
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可以在终端中使用 Geth 命令来执行以太坊网络上的许多基本功能。Geth 命令的公式是：`geth [options] command [command
+    options] [arguments...]`。你可以在[https://github.com/ethereum/go-ethereum/wiki/Command-Line-Options](https://github.com/ethereum/go-ethereum/wiki/Command-Line-Options)找到完整的命令、选项和参数列表。然而，由于以太坊网络的最终承诺是真正的分布式应用程序，我们将专注于通过在
+    Geth 中打开的控制台使用以太坊 JavaScript API。控制台实际上是一个 JSRE，或者 JavaScript 运行环境，它在 Geth 内部运行。以太坊的
+    JSRE 提供了完整的 Web3.js JavaScript dapp API，更多内容请参阅第[8](A433414_1_En_8_Chapter.html)章。JSRE
+    可以被主动使用（在控制台中）或非交互式使用（使用编写的脚本）。除了 dapp API，Geth 还支持一整套管理 API，用于远程管理你的以太坊节点。一个例子是个人和管理
+    API，它们公开了访问文件系统、执行命令和远程监视节点的方法。这些 API 遵循与 dapp API 中使用的相同约定。你可以在以下链接了解更多有关管理 API
+    的信息：[https://github.com/ethereum/go-ethereum/wiki/JavaScript-Console#management-apis](https://github.com/ethereum/go-ethereum/wiki/JavaScript-Console#management-apis)
+    。注意同时运行 Geth 和 Mist 会导致错误。一个节点每台机器只能运行一个网络守护程序。要重新启动带控制台的 Geth，请输入以下命令：`geth console`。如果你已经运行并同步了
+    Mist，你可以告诉 Geth 使用 Mist 的节点进行连接，方法是通过以下命令启动 Geth。这样可以避免等待 Geth 再次同步区块链，如果你的机器已经在本地存储了大部分区块链：`geth
+    attach`。你可以一个接一个地调用控制台和附加。为什么这很有用？如果你有一个完全同步的 Mist 客户端正在运行，你可以立即开始使用 Geth 中的 JavaScript
+    控制台。现在这并不重要，但如果你正在使用 Geth 向公共区块链发送和接收真实交易，你可能需要等待同步完成，以便正确返回你的余额查询。下面，我们将在控制台中使用一些
+    JavaScript API 调用。有关这些调用的完整指南在这里：[https://github.com/ethereum/go-ethereum/wiki/JavaScript-Console](https://github.com/ethereum/go-ethereum/wiki/JavaScript-Console)
+    。接下来，我们将通过调用一些 JavaScript 方法来学习如何处理账户和余额。要了解更多关于非交互式使用 JSRE 的信息，请访问[https://github.com/ethereum/go-ethereum/wiki/JavaScript-Console#non-interactive-use-jsre-script-mode](https://github.com/ethereum/go-ethereum/wiki/JavaScript-Console#non-interactive-use-jsre-script-mode)
+    。注意这些 Geth 命令连接到主网络。回想一下，测试网络具有虚假的以太，你可以用来测试，而主网络则要求你在交易所购买以太。挖矿不是现在轻松获得以太的方式，但是我们还是为了乐趣而尝试一下。你的
+    Geth 客户端应该在启用控制台的情况下运行，给你一个命令提示符。让我们通过使用 JavaScript API 调用来创建一个账户。在脑海中选择一个密码。在控制台中，输入以下内容，然后按回车键：`personal.newAccount("your_new_account_password_here")`。将引号之间的文本替换为你选择的密码。默认情况下，你的主账户是账户0。你将得到一个绿色类型的公钥，如图[6-5](#Fig5)所示。![A433414_1_En_6_Fig5_HTML.jpg](A433414_1_En_6_Fig5_HTML.jpg)图6-5.在
+    JavaScript 控制台中创建一个新账户非常简单。你的新公钥显示为绿色。别忘了你的密码！你可以在控制台中输入以下内容来查看你的所有账户：`personal.listAccounts`。毫无疑问余额将返回零。但是，没关系：这个新账户的私钥将与你创建的其他私钥一样存储在同一个目录中，在第[2](A433414_1_En_2_Chapter.html)章中查看的目录；你在这里添加的任何值都将在你备份其他私钥时备份。要查看执行此操作的过程，请转到以下链接：http://backup.eth.guide。回想一下本节开头对
+    Geth JSRE 的描述，它作为以太坊 JavaScript API 的入口。这个 API 是 Web3.js 库的一部分，你必须在你的机器上安装它，才能利用许多命令。它作为
+    Node Package Manager (npm) 模块、一个 Meteor.js 包和其他形式可用。你可以在[https://github.com/ethereum/web3.js/](https://github.com/ethereum/web3.js/)了解更多关于这个库的信息。要查看
+    JavaScript Dapp API 调用的完整列表，请查看[http://js.eth.guide](http://js.eth.guide)或查看以太坊
+    JavaScript API：[https://github.com/ethereum/wiki/wiki/JavaScript-API](https://github.com/ethereum/wiki/wiki/JavaScript-API)。对于
 - en: Launching Geth with Flags
   id: totrans-109
   prefs:
@@ -1206,6 +1227,18 @@
   id: totrans-112
   prefs: []
   type: TYPE_NORMAL
+  zh: Geth 不会自动开始挖矿；您需要给出命令来启动或停止挖矿。在这些示例中，您将使用计算机的 CPU 进行挖矿。使用 GPU 进行挖矿效果更好，但稍微复杂一些，而且更适合专用的挖矿设备。我们稍后会在本章讨论这些。要在主网络上开始挖矿，请打开一个新的终端窗口，并输入以下命令以进入
+    JavaScript 控制台：geth console您将看到节点开始同步，但很快它会迅速返回一个命令行提示符，您可以在其中输入命令，就像 Geth 在后台工作一样。注意：在控制台中，如果挖矿或同步的输出文本似乎覆盖了您的命令，请不要担心；它只是看起来是这样。当您在控制台中按
+    Enter 键时，您的命令将像正常情况下一样执行，即使它似乎已经分成了几行。为了获得报酬，您需要告诉您的节点以太坊地址以接收您的挖矿支付。请记住，由于 EVM
+    是全局虚拟机，它不在乎您输入的以太坊地址或公钥是在本地计算机上创建的，还是当前与之关联的。一切都是 EVM 的本地内容。要将您的 etherbase 设置为收款地址以接收您的支付，请在控制台中键入以下命令：miner.setEtherbase(eth.accounts[your_address_here])最后要开始挖矿，请键入此命令：miner.start()砰！您的矿工将开始工作。如果您偶然找到一个区块，您的付款将发送到您设置的地址，但如果需要几天甚至几周，也不要感到惊讶。您将看到节点正在生成
+    DAG 文件并开始挖矿过程，如图 [6-7](#Fig7) 所示。为什么以太挖矿不是立即赚钱？这与您的硬件有很大关系，正如您将在下面看到的。![A433414_1_En_6_Fig7_HTML.jpg](A433414_1_En_6_Fig7_HTML.jpg)图
+    6-7. 矿工准备开始挖矿您可以通过键入以下命令停止此过程：miner.stop()接下来，您将在您挖掘的区块上添加个人标签，只是因为好玩。练习：将您的姓名添加到区块链中使用
+    JavaScript 控制台，您可以添加额外的数据——总共 32 字节，足以编写一些纯文本或输入一些供其他人阅读的密文。在控制台中，您的矿工应该已经停止。现在键入以下
+    JavaScript 命令并在引号之间输入您的姓名或一条消息：miner.setExtra("My_message_here")然后键入此命令：miner.start()控制台将返回
+    true 并开始挖矿。如果您找到一个区块，它将被标记上您的签名，您可以在任何区块链浏览器上查看，比如 Etherchain（ [https://etherchain.org](https://etherchain.org)
+    ）。练习：检查您的余额按照上一节中的描述，安装 Web3.js 库（ [https://github.com/ethereum/wiki/wiki/JavaScript-API#adding-web3](https://github.com/ethereum/wiki/wiki/JavaScript-API#adding-web3)
+    ），以尝试一些以太坊 JavaScript API 调用。这些调用包括检查余额、发送交易、创建账户以及各种其他数学和与区块链相关的函数。例如，如果您的 etherbase
+    私钥存储在您的计算机上，您可以在控制台中键入以下命令来获取余额：eth.getBalance(eth.coinbase).toNumber();希望到现在为止，您对挖矿有了一个工作上的理解，并且您已经亲眼见证了它的发生。实际上，了解挖矿如何推动状态转换、执行合同的最有效方法是使用测试网络。
 - en: Mining on the Testnet
   id: totrans-113
   prefs:
