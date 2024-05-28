@@ -1024,6 +1024,7 @@
   id: totrans-127
   prefs: []
   type: TYPE_NORMAL
+  zh: 作为等待交易被挖掘的替代方案，我们也可以*乐观地更新*值。乐观更新是一种技术，在超出DApps的许多异步应用程序中使用，它假设用户执行的交易将成功，并立即在客户端更新值。这样，用户感知到应用程序几乎立即做出反应，并且可以继续与其进行交互，并对其行动的结果有即时反馈。
 - en: 'While this solution is good enough for a single user interacting with a contract,
     it falls short when there are multiple users involved. You can try this out by
     opening the web site from two different browser windows: any changes made in one
@@ -1033,11 +1034,13 @@
   id: totrans-128
   prefs: []
   type: TYPE_NORMAL
+  zh: 当单个用户与合同交互时，这种解决方案已经足够好了，但当涉及到多个用户时就不够了。你可以尝试在两个不同的浏览器窗口打开网站：在一个窗口中进行的任何更改都不会影响另一个窗口，除非重新加载页面查询合同。为了解决这个问题，我们将依赖于合同界面中介绍的最后一个概念：事件。
 - en: Monitoring Updates Via Events
   id: totrans-129
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 通过事件监视更新
 - en: A contract’s public interface is not just composed of public functions. A contract
     may also emit custom *events* upon certain transactions. Our Counter contract
     emits an event named Increased every time the increase function is called, and
@@ -1045,6 +1048,7 @@
   id: totrans-130
   prefs: []
   type: TYPE_NORMAL
+  zh: 合同的公共界面不仅由公共函数组成。合同还可能在某些交易发生时发出自定义*事件*。我们的Counter合同在每次调用增加函数时都会发出一个名为Increased的事件，并将计数器的新值作为参数包含在内。
 - en: 'To monitor all instances of this event, we will subscribe to it when the component
     mounts and update the component state accordingly (Listing [2-17](#PC25)).async
     componentDidMount() {  const counter = this.props.contract;  const initialValue
@@ -1054,17 +1058,24 @@
   id: totrans-131
   prefs: []
   type: TYPE_NORMAL
+  zh: '要监视此事件的所有实例，我们将在组件挂载时订阅它，并相应地更新组件状态（见[2-17](#PC25)）。async componentDidMount()
+    {  const counter = this.props.contract;  const initialValue = await counter.methods.value().call();  this.setState({
+    value: initialValue });  **counter.events.Increased()**    **.on(''data'', (event)
+    => {**      **const value = event.returnValues.newValue;**      **this.setState({
+    value });**    **});**}Listing 2-17'
 - en: Subscription to the Increased event, which updates the component’s state whenever
     a new instance of the event is emitted
   id: totrans-132
   prefs: []
   type: TYPE_NORMAL
+  zh: 订阅Increased事件，每当事件的新实例被发出时更新组件的状态
 - en: Note that here we are referring to the counter.events property instead of to
     the counter.methods like we did before. Here, the event emitter fires a data event
     every time a new event is found, and includes the arguments of the event.
   id: totrans-133
   prefs: []
   type: TYPE_NORMAL
+  zh: 请注意，这里我们引用的是 `counter.events` 属性，而不是之前所做的 `counter.methods`。在这里，事件发射器每次发现新事件时都会触发一个数据事件，并包含事件的参数。
 - en: 'Also, by updating the component’s state on every event, we no longer need to
     query the contract state whenever a transaction is confirmed. The receipt event
     handler on the increaseCounter function can be simplified to the following.    .on(''receipt'',
@@ -1072,6 +1083,8 @@
   id: totrans-134
   prefs: []
   type: TYPE_NORMAL
+  zh: '此外，通过在每次事件上更新组件的状态，我们不再需要在确认交易时查询合约状态。`increaseCounter` 函数上的收据事件处理程序可以简化为以下形式。    `.on(''receipt'',
+    async () => {      this.setState({ increasing: false });    })`'
 - en: With this new setup, you can now receive real-time updates on a contract, regardless
     of where the state change originated from. Try again opening two browser windows
     and increasing the counter from one of them, and see how the change is reflected
@@ -1081,11 +1094,13 @@
   id: totrans-135
   prefs: []
   type: TYPE_NORMAL
+  zh: 有了这个新的设置，您现在可以接收到合约的实时更新，无论状态变化的来源是什么。再次尝试打开两个浏览器窗口并从其中一个增加计数器，然后查看一旦交易确认后两者如何反映变化。如果你幸运的话，你甚至可能会碰巧遇到另一位读者在同一个合约实例上发出的更改。
 - en: Deploying the Application
   id: totrans-136
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 部署应用程序
 - en: As you may have noticed, our sample application runs exclusively client-side.
     All logic takes place on the browser, and the blockchain is used as a back end
     to perform simple computations and persist a shared state among all users, acting
@@ -1094,11 +1109,14 @@
   id: totrans-137
   prefs: []
   type: TYPE_NORMAL
+  zh: 您可能已经注意到，我们的示例应用程序仅在客户端运行。所有逻辑都在浏览器中进行，区块链被用作后端来执行简单的计算并保持所有用户之间的共享状态，充当计数器状态的共识层。这使得部署变得简单，因为
+    DApp 只需作为静态站点托管即可。
 - en: Summary
   id: totrans-138
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 摘要
 - en: In this chapter, we have gone through the process of developing a simple DApp,
     providing our users with a basic web-based interface for a single smart contract.
     We have explored how to read state from a contract and send transactions to it
@@ -1106,6 +1124,7 @@
   id: totrans-139
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本章中，我们已经经历了开发一个简单 DApp 的过程，为我们的用户提供了一个基本的基于 Web 的界面，用于单个智能合约。我们已经探讨了如何从合约中读取状态并向其发送交易，以及如何监视事件以进行实时更新。
 - en: 'We have built our entire application relying on just two libraries: web3js
     for interacting with the Ethereum network and React as a presentation framework.
     Given the pace at which libraries and frameworks change in both the javascript
@@ -1119,6 +1138,7 @@
   id: totrans-140
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们构建整个应用程序仅依赖于两个库：用于与以太坊网络交互的web3js和作为演示框架的React。考虑到JavaScript和以太坊生态系统中库和框架的变化速度，本书的目标是（并将始终如此）尽可能少地依赖外部依赖，并专注于构建DApp背后的概念，而不是专注于当前工具的特定API。当然，这并不意味着在构建您自己的DApp时不应该依赖这些工具，因为它们可能会提供很大帮助。确保在拿到本书时检查OpenZeppelin、Truffle、Buidler、Etherlime、Embark、Clevis以及当前可用的其他工具。
 - en: All in all, this chapter should have helped as an overview to the entire development
     process and components of a DApp. We have glossed over the deployments of the
     contracts themselves, as well as account and ETH management in general. We have
@@ -1129,3 +1149,4 @@
   id: totrans-141
   prefs: []
   type: TYPE_NORMAL
+  zh: 总之，本章应该作为整个DApp开发过程和组件的概述帮助了您。我们略过了合约本身的部署，以及账户和ETH管理的一般情况。我们也没有涵盖与基于区块链的后端处理时出现的许多边缘情况或错误情况。然而，在整本书中，我们将深入研究所有这些主题，包括新的和更高级的内容，并通过更有趣的示例重新审视每一个构建DApp的步骤。

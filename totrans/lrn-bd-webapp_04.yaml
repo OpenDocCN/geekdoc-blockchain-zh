@@ -1,57 +1,78 @@
 - en: © Santiago Palladino 2019S. PalladinoEthereum for Web Developers[https://doi.org/10.1007/978-1-4842-5278-9_4](https://doi.org/10.1007/978-1-4842-5278-9_4)
+  id: totrans-0
   prefs: []
   type: TYPE_NORMAL
+  zh: © Santiago Palladino 2019S. Palladino《面向 Web 开发者的以太坊》[https://doi.org/10.1007/978-1-4842-5278-9_4](https://doi.org/10.1007/978-1-4842-5278-9_4)
 - en: 4. Querying the Network
+  id: totrans-1
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 查询网络
 - en: Santiago Palladino^([1](#Aff2) )(1)Ciudad Autónoma de Buenos Aires, Argentina
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: Santiago Palladino^([1](#Aff2) )(1)阿根廷布宜诺斯艾利斯自治市
 - en: After a not-so-brief interlude on writing smart contracts, we will review the
     different ways to connect to the Ethereum network to retrieve data. We will cover
     different connection methods, as well as patterns for listening to changes, and
     put it all together in a sample application for monitoring transfers of an ERC20
     token.
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: 在对编写智能合约进行了不那么简要的插曲之后，我们将审查连接到以太坊网络以检索数据的不同方法。我们将涵盖不同的连接方法，以及监听更改的模式，并在一个用于监视
+    ERC20 代币转账的示例应用程序中将它们整合起来。
 - en: Connecting to the Network
+  id: totrans-4
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 连接到网络
 - en: The first step in retrieving data from the network is to actually connect to
     an Ethereum node. Since web applications do not connect directly to the network,
     they depend on a node to answer any queries on the blockchain state. We will start
     by reviewing node types, connection methods, and the provider object.
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: 从网络中检索数据的第一步是实际连接到以太坊节点。由于 Web 应用程序不能直接连接到网络，它们依赖于节点来回答对区块链状态的任何查询。我们将从审查节点类型、连接方法和提供者对象开始。
 - en: About Full and Light Nodes
+  id: totrans-6
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 关于完整节点和轻节点
 - en: A typical Ethereum node is a Geth or Parity instance^([1](#Fn1)) that has its
     own copy (partial or full) of the blockchain, can answer queries from clients
     (such as a DApp), and relays transactions (more on this in the next chapter).
     A node with a full copy of the blockchain is called a *full node* . These nodes
     either have or can recompute any data from the blockchain history. Most clients
     run in this mode by default.
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 典型的以太坊节点是 Geth 或 Parity 实例^([1](#Fn1))，它拥有自己的区块链副本（部分或全部），可以回答客户端（如 DApp）的查询，并转发交易（更多内容请参阅下一章）。具有区块链完整副本的节点称为*完整节点*。这些节点可以获取或重新计算区块链历史中的任何数据。大多数客户端默认以此模式运行。
 - en: Full nodes may also store all historical data. These nodes are called *archive
     nodes* , and they are much more infrequent, due to the large amount of disk size
     needed to support them – nearly 2TB at the time of this writing. They are required
     in case you want to query particular information from older blocks, such as the
     state of a contract or a balance of an account from a year ago.
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 完整节点也可能存储所有历史数据。这些节点被称为*归档节点*，由于需要支持它们的大量磁盘空间，它们相对较少见——在撰写本文时约为 2TB。它们是必需的，以防您想要查询旧区块的特定信息，例如一年前合约的状态或帐户的余额。
 - en: As an alternative to full nodes, some nodes may run in *light client* mode.
     These nodes keep only the block headers, and request information from the network
     as needed. They are much lighter to run than full nodes, which make them suitable
     for mobile devices, but make a poor choice for the back end of a DApp, since queries
     take longer to resolve.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
 - en: Infura and Public Nodes
+  id: totrans-10
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
@@ -61,18 +82,21 @@
     a third party. Users on mobile or IOT devices may choose to run light nodes instead,
     which would trust other nodes to relay the information but nevertheless verify
     it.
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
 - en: In the current landscape, a small fraction of our users will actually be running
     an Ethereum node  . Most of them will be just learning what Ethereum is about,
     and wondering how to buy their first ETH to pay for the gas to fuel their initial
     transactions. Having them running their own nodes is still out of the question.
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
 - en: As such, and in order to help the Ethereum adoption process easier, there are
     a number of *public nodes* available. An Ethereum node is said to be a public
     node when it holds no private keys, is available to the public, and is used to
     answer blockchain queries and relay pre-signed transactions.
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
 - en: In particular, **Infura** (Japanese for “infrastructure”) is a service that
@@ -80,9 +104,11 @@
     as well as for the Kovan, Ropsten, and Rinkeby testnets. Due to its reliability,
     and to the fact that it is free to use, it is widely used by many decentralized
     apps and wallets.
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
 - en: The JSON-RPC Interface
+  id: totrans-15
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
@@ -93,33 +119,46 @@
     call, sendTransaction, getBlockByNumber, accounts, or getBalance. There are even
     methods for querying the state of the node itself, such as whether its syncing
     or how many peers it is connected to.
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 所有以太坊节点，无论特定的实现如何，都暴露了一组众所周知的方法，这些方法组成了*JSON-RPC 接口*。顾名思义，这是一个基于 JSON 的 API，用于执行远程过程调用，并构成了客户端与节点交互的低级接口。常见方法包括
+    call、sendTransaction、getBlockByNumber、accounts 或 getBalance。甚至还有一些查询节点本身状态的方法，比如它是否在同步或连接了多少对等体。
 - en: Note
+  id: totrans-17
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 注意
 - en: Given it is a low-level interface, it is odd that you will find yourself building
     JSON-RPC calls manually. Most libraries (such as web3.js or ethers.js) will take
     care of generating the calls on your behalf and provide you with the responses.
     Nevertheless, it is always useful to understand what is going on under the hood
     in case you stumble upon a dreadful abstraction leakage.
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: 鉴于它是一个低级接口，你会发现自己手动构建 JSON-RPC 调用有些奇怪。大多数库（如 web3.js 或 ethers.js）将为你生成调用并提供响应。然而，了解底层发生了什么总是有用的，以防你遇到可怕的抽象泄漏。
 - en: It is worth mentioning that certain nodes may not implement all methods. For
     instance, the Infura HTTP endpoint does not offer costly operations such as newFilter
     (more on filters later in this chapter). This will be important to keep in mind
     when we discuss how to connect our app to the Ethereum network.
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 值得一提的是，某些节点可能不实现所有方法。例如，Infura HTTP 端点不提供诸如 newFilter（本章后面将更多介绍过滤器）等昂贵的操作。在讨论如何将我们的应用连接到以太坊网络时，这一点将非常重要。
 - en: Connection Protocols
+  id: totrans-20
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 连接协议
 - en: There are three different protocols that can be used as a transport for interchanging
     JSON-RPC messages. Nodes can be configured to handle any of them.
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 有三种不同的协议可以用作交换 JSON-RPC 消息的传输。节点可以配置为处理其中任何一种。
 - en: The **HTTP** protocol  is the simplest one. It provides a simple HTTP-based
     interface for POSTing JSON messages. Certain nodes may be set up behind HTTPS-encrypted
     connections, and may require basic authentication to access them. A simple HTTPS
@@ -134,16 +173,26 @@
     socket created by the node. Clients with access to the socket may connect to it
     via its filename. These connections are meant to be used by processes with access
     to the same filesystem as the node, and as such are not used on web apps."ipc://home/ubuntu/.ethereum/geth.ipc"
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: '**HTTP** 协议是最简单的协议之一。它提供了一个简单的基于 HTTP 的接口来 POST JSON 消息。某些节点可能设置在 HTTPS 加密连接之后，并且可能需要基本身份验证来访问它们。一个简单的
+    HTTPS 连接字符串如下所示："https://user:password@example.com:8545/"一个更有趣的选择是 **websocket**
+    协议。Websocket 连接是客户端和服务器之间的持久双向连接。这使得客户端不仅可以执行所有可用的 JSON-RPC 调用，还可以订阅从节点推送到客户端的更改（稍后会详细介绍）。像
+    HTTP 连接一样，websocket 也可以在 SSL 上建立，并且可能包括基本身份验证："wss://user:password@example.com:8545/ws"最后，**IPC**（进程间通信）协议基于节点创建的本地
+    UNIX 域套接字。具有对套接字访问权限的客户端可以通过其文件名连接到它。这些连接旨在由具有对节点相同文件系统访问权限的进程使用，因此不会在 Web 应用程序上使用。"ipc://home/ubuntu/.ethereum/geth.ipc"'
 - en: Alternative APIs
+  id: totrans-23
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 备选 API
 - en: As an alternative to establishing a connection to the JSON-RPC interface of
     a node, you may opt to query blockchain data from a different source.
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: 作为与节点的 JSON-RPC 接口建立连接的替代方案，您可以选择从不同的源查询区块链数据。
 - en: '**Etherscan** (etherscan.io) is a centralized service that provides not only
     a web-based blockchain explorer where you can visually check all transactions
     sent to and from an account but also a plain HTTP API (Listing [4-1](#PC4)) that
@@ -151,48 +200,72 @@
     "https://api.etherscan.io/api?module=proxy&action=eth_getTransactionCount&address=$ADDRESS&tag=latest&apikey=YourApiKeyToken"#
     Regular JSON-RPC call{"jsonrpc":"2.0","method":"eth_getTransactionCount","params":["$ADDRESS","latest"],"id":1}Listing
     4-1'
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: '**Etherscan**（etherscan.io）是一个集中式服务，不仅提供了一个基于 Web 的区块链浏览器，在这里您可以直观地检查发送到和从帐户发送的所有交易，还提供了一个普通的
+    HTTP API（见 [4-1](#PC4)）实现了 JSON-RPC 接口中的许多方法。# Etherscan APIcurl "https://api.etherscan.io/api?module=proxy&action=eth_getTransactionCount&address=$ADDRESS&tag=latest&apikey=YourApiKeyToken"#
+    普通的 JSON-RPC 调用{"jsonrpc":"2.0","method":"eth_getTransactionCount","params":["$ADDRESS","latest"],"id":1}列表
+    4-1'
 - en: Example of executing a getTransactionCount call to the etherscan API (preceding)
     vs. the standard JSON-RPC call (following). Both return the same JSON object as
     a response
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: 执行 getTransactionCount 调用到 etherscan API 的示例（前文）与标准 JSON-RPC 调用（后文）的区别。两者都返回相同的
+    JSON 对象作为响应
 - en: Certain javascript libraries, such as ethers.js, even include *provider* objects
     that abstract a connection to the Etherscan API, so it can be used seamlessly
     as any other standard JSON-RPC connection. Let’s now go into the role of the provider.
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: 某些 JavaScript 库，如 ethers.js，甚至包括抽象连接到 Etherscan API 的 *provider* 对象，因此它可以像任何其他标准
+    JSON-RPC 连接一样无缝使用。现在让我们深入了解提供程序的角色。
 - en: Note
+  id: totrans-28
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 注意
 - en: We are not dwelling into domain-specific APIs at this point. A project may decide
     to offer an API to query relevant data from its domain. You may also choose to
     set up a centralized server that aggregates blockchain data from your protocol,
     and relays it to client-side apps.
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们暂时不深入讨论特定领域的 API。项目可能决定提供一个 API 来查询其领域的相关数据。您还可以选择设置一个集中式服务器，从您的协议中聚合区块链数据，并将其中继到客户端应用程序。
 - en: The Provider Object
+  id: totrans-30
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 提供程序对象
 - en: As we briefly saw in Chapter [2](476252_1_En_2_Chapter.xhtml) while building
     our first sample DApp, the connection to a node is managed by a *provider* javascript
     object. It is the provider’s responsibility to abstract the connection protocol
     being used and offer a minimal interface for sending JSON-RPC messages and subscribing
     to notifications.
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 正如我们在第 [2](476252_1_En_2_Chapter.xhtml) 章中简要介绍的，构建我们的第一个示例 DApp 时，与节点的连接由 *provider*
+    JavaScript 对象管理。提供程序负责抽象正在使用的连接协议，并提供一个用于发送 JSON-RPC 消息和订阅通知的最小接口。
 - en: Note
+  id: totrans-32
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 注意
 - en: At the moment of this writing, providers from different libraries have slightly
     different APIs. There is an effort to standardize the minimal provider as EIP
     1193, but is still a draft.
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 在撰写本文时，不同库的提供程序具有略有不同的 API。正在努力将最小提供程序标准化为 EIP 1193，但仍然是草案。
 - en: For example, the web3 javascript library^([2](#Fn2)) offers the following providers
     for connecting to HTTP, websocket, or IPC interfaces (Listing [4-2](#PC5)). The
     provider is then used to initialize an instance of the full web3 object.const
@@ -200,33 +273,50 @@
     wsProvider = newWeb3.providers.WebsocketProvider("wss://example.com");const ipcProvider
     = newWeb3.providers.IpcProvider("/home/ubuntu/.ethereum/geth.ipc");const web3
     = new Web3(provider);Listing 4-2
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: 例如，web3 JavaScript 库^([2](#Fn2)) 提供了以下提供程序用于连接 HTTP、websocket 或 IPC 接口（见列表 [4-2](#PC5)）。然后使用提供程序来初始化完整的
+    web3 对象。const Web3 = require('web3');const httpProvider = newWeb3.providers.HttpProvider("https://example.com");const
+    wsProvider = newWeb3.providers.WebsocketProvider("wss://example.com");const ipcProvider
+    = newWeb3.providers.IpcProvider("/home/ubuntu/.ethereum/geth.ipc");const web3
+    = new Web3(provider);列表 4-2
 - en: Example web3@1.2.0 code for creating a provider and initializing a web3 instance
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 创建提供程序和初始化 web3 实例的示例 web3@1.2.0 代码
 - en: You will only need to create a provider instance if you have to manually set
     up a connection to a node. In most scenarios, you will actually delegate this
     responsibility to the user’s web3-enabled browser.
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: 只有在需要手动设置与节点的连接时，您才需要创建提供者实例。在大多数情况下，您实际上会将这个责任委托给用户的 Web3 可用浏览器。
 - en: Metamask and Web3-enabled Browsers
+  id: totrans-37
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: Metamask 和 Web3 可用浏览器
 - en: After Chapter [2](476252_1_En_2_Chapter.xhtml), you should now be familiar with
     Metamask  , the browser extension that acts as a bridge for a web application
     and the Ethereum network. There are other options as well, such as the Cipher
     or the Opera browsers for Android, though we will focus on Metamask throughout
     the book, as it is the most widespread tool at the moment.
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: 在第 [2](476252_1_En_2_Chapter.xhtml) 章之后，您现在应该对 Metamask 有所了解，这是一个作为 Web 应用程序与以太坊网络之间桥梁的浏览器扩展。还有其他选择，比如
+    Cipher 或 Opera 浏览器用于 Android，不过我们将在本书中专注于 Metamask，因为它目前是最广泛使用的工具。
 - en: Web3-enabled browsers work by injecting a *provider* instance in the global
     scope. How this provider works or how it is backed should not be of importance
     for your DApp. The DApp should be able to query whichever information it needs
     and let the provider resolve it.
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: Web3 可用浏览器通过在全局范围内注入 *提供者* 实例来工作。这个提供者的工作方式或者它的后台支持方式对于您的 DApp 来说并不重要。DApp 应该能够查询它需要的任何信息，并让提供者解决它。
 - en: Note that this provider may need to be *enabled* in order to gain access to
     the user’s accounts or request to sign transactions (Listing [4-3](#PC6)), which
     will prompt the user to accept a request from the DApp to access his accounts
@@ -235,47 +325,72 @@
     Request access to querying the accounts of the user    await provider.enable();  }
     catch (error) {    // User denied account access, but we can still    // run queries
     to the network  }  const web3 = new Web3(provider);}Listing 4-3
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: 请注意，为了访问用户的帐户或请求签署交易（见 [4-3](#PC6)），可能需要 *启用* 这个提供者，这将提示用户接受 DApp 请求访问他的帐户信息。//
+    Metamask 将 web3 提供者注入为 window.ethereumconst Web3 = require('web3');const provider
+    = window.ethereum;if (provider) {  try {    // 请求访问用户的帐户    await provider.enable();  }
+    catch (error) {    // 用户拒绝了帐户访问，但我们仍然可以    // 运行查询到网络  }  const web3 = new Web3(provider);}Listing
+    4-3
 - en: Snippet for instantiating a web3 object using a provider injected by Metamask
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用 Metamask 注入的提供者实例实例化 web3 对象的片段
 - en: Metamask connects by default to the Infura public servers via HTTPS. This allows
     any user who has downloaded the extension to have a connection to the Ethereum
     network up and running right away, without needing to maintain and sync their
     own nodes. Nevertheless, Metamask also allows advanced users to set up their own
     custom connections to other nodes, such as their own (Figures [4-1](#Fig1) and
     [4-2](#Fig2)).![../images/476252_1_En_4_Chapter/476252_1_En_4_Fig1_HTML.jpg](../images/476252_1_En_4_Chapter/476252_1_En_4_Fig1_HTML.jpg)
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 默认情况下，Metamask 通过 HTTPS 连接到 Infura 公共服务器。这允许任何已下载扩展的用户立即连接到以太坊网络，而无需维护和同步自己的节点。尽管如此，Metamask
+    还允许高级用户设置自己的连接到其他节点的自定义连接，例如他们自己的（见图 [4-1](#Fig1) 和 [4-2](#Fig2)）。![../images/476252_1_En_4_Chapter/476252_1_En_4_Fig1_HTML.jpg](../images/476252_1_En_4_Chapter/476252_1_En_4_Fig1_HTML.jpg)
 - en: Figure 4-1
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: 图 4-1
 - en: Metamask settings tab allows a user to configure their own connection to a node
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: Metamask 设置选项卡允许用户配置自己与节点的连接
 - en: '![../images/476252_1_En_4_Chapter/476252_1_En_4_Fig2_HTML.jpg](../images/476252_1_En_4_Chapter/476252_1_En_4_Fig2_HTML.jpg)'
+  id: totrans-45
   prefs: []
   type: TYPE_IMG
+  zh: '![../images/476252_1_En_4_Chapter/476252_1_En_4_Fig2_HTML.jpg](../images/476252_1_En_4_Chapter/476252_1_En_4_Fig2_HTML.jpg)'
 - en: Figure 4-2
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: 图 4-2
 - en: Metamask control for choosing the node to connect to, displayed when clicking
     the network drop-down at the top of the extension dialog. The first four are connections
     to public nodes hosted by Infura
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: Metamask 控制选择连接节点的方式，在扩展对话框顶部点击网络下拉时显示。前四个是由 Infura 托管的公共节点连接。
 - en: Subproviders
+  id: totrans-48
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 子提供程序
 - en: Certain web3 providers may also be composed of *subproviders* . A subprovider
     is a non-standard object that intercepts calls made via the provider. Among other
     uses, subproviders help provide a common interface by filling in any gaps in the
     feature set of the Ethereum node being used. In this sense, subproviders act as
     polyfills hidden within the provider.
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: 某些 web3 提供程序也可能由 *子提供程序* 组成。子提供程序是拦截通过提供程序发出的调用的非标准对象。除了其他用途外，子提供程序还通过填补所使用的以太坊节点功能集中的任何空白来提供一个常见的接口。在这个意义上，子提供程序就像隐藏在提供程序中的填充物。
 - en: 'As an example, a provider that connects to a node that does not offer the *filters*
     API (used for polling for specific changes) may include a *filter subprovider*
     that emulates that feature client-side. Such is the case with the web3 provider
@@ -283,51 +398,74 @@
     that feature at the provider level via a custom subprovider. This way, you as
     a developer do not need to worry about which APIs are supported, and are given
     a consistent interface regardless of the node answering your queries.'
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: 举个例子，连接到不提供 *filters* API（用于轮询特定更改）的节点的提供程序可能包含一个 *filter 子提供程序*，它在客户端模拟该功能。这是
+    Metamask 注入的 web3 提供程序的情况：由于 Infura 不提供 filters API，Metamask 通过自定义子提供程序在提供程序级别添加了该功能。这样，作为开发者，你不需要担心支持哪些
+    API，并且无论哪个节点回答你的查询，都会得到一致的接口。
 - en: We will revisit subproviders in the next chapter, where we discuss about providers
     and signers, since Metamask implements its signer as another subprovider.
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: 在下一章节中，我们将重新讨论子提供者，其中我们将讨论提供者和签名者，因为 Metamask 将其签名者实现为另一个子提供者。
 - en: Choosing the Right Connection
+  id: totrans-52
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 选择正确的连接
 - en: Up to this point, we have reviewed different kinds of nodes (full and light,
     public and private), as well as different connection protocols (ipc, http, and
     websockets). We have also learned how to set up a provider object and how to enable
     the one injected by a web3-enabled browser. Given all these options, it begs the
     question of which connection we should choose for *querying information from a
     DApp*.
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: 到目前为止，我们已经审查了不同类型的节点（完整和轻量级，公共和私有），以及不同的连接协议（ipc、http 和 websockets）。我们还学习了如何设置提供者对象以及如何启用
+    web3 启用的浏览器注入的提供者。在考虑了所有这些选项后，我们需要考虑的一个问题是从 DApp 中查询信息应选择哪种连接方式。
 - en: Respecting the Choice of the User
+  id: totrans-54
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 尊重用户的选择
 - en: First and foremost, if our user is using a web3-enabled browser, our DApp should
     rely on the provider injected by it. A web3-enabled browser means the user is
     already part of the Ethereum ecosystem, and could be potentially running a node
     of their own. As such, we need to provide them with the means to choose which
     node they want to use when browsing our DApp.
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，如果我们的用户正在使用支持 web3 的浏览器，我们的 DApp 应依赖于其注入的提供者。支持 web3 的浏览器意味着用户已经是以太坊生态系统的一部分，并且可能正在运行自己的节点。因此，我们需要为他们提供选择要在浏览我们的
+    DApp 时使用哪个节点的手段。
 - en: While we could reimplement Metamask’s interface for choosing a network connection,
     it makes little sense to do so. A user who wishes to connect to an alternative
     node will already be running Metamask or another web3-enabled browser, and have
     already preconfigured their own nodes. Therefore, an injected web3 provider should
     always be our first choice for connecting to the network.
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: 虽然我们可以重新实现 Metamask 的网络连接界面，但这样做没有多大意义。希望连接到另一个节点的用户已经在运行 Metamask 或其他支持 web3
+    的浏览器，并且已经预先配置了自己的节点。因此，注入的 web3 提供者应始终是我们连接到网络的首选。
 - en: Keep in mind that providers need to be enabled in order to access the list of
     accounts of the user. Nevertheless, if the application does not need this information,
     this step can be skipped.
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: 请记住，需要启用提供者才能访问用户的账户列表。尽管如此，如果应用程序不需要这些信息，这一步可以省略。
 - en: Using a Public Node
+  id: totrans-58
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 使用公共节点
 - en: 'The next option is simple: connect to a public node. You can either set up
     your own for your DApp or use one from Infura. Going with your own node has all
     the benefits and drawbacks of rolling out your own infrastructure: you do not
@@ -335,13 +473,18 @@
     Remember that nothing prevents an arbitrary number of users from connecting to
     your node, so you should be prepared for surges in traffic. Because of this, it
     may be easier to just rely on an external infrastructure provider.'
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: 下一个选项很简单：连接到公共节点。你可以为你的 DApp 设置自己的节点，或者使用 Infura 的节点。选择使用自己的节点具有自己的基础设施的所有利与弊：你不依赖于第三方，但需要注意节点的健康情况。请记住，没有什么可以阻止任意数量的用户连接到您的节点，因此您应该为流量激增做好准备。因此，仅依赖外部的基础设施提供者可能更容易些。
 - en: As an alternative to Infura, you can also rely on a public API such as that
     of Etherscan. Ethers.js, an alternative to web3.js, connects by default to Infura,
     and falls back to Etherscan if the connection fails.
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: 作为 Infura 的替代方案，你也可以依赖于像 Etherscan 这样的公共 API。Ethers.js，作为 web3.js 的一种替代方案，默认连接到
+    Infura，并在连接失败时退而使用 Etherscan。
 - en: Note that in all cases where your DApp relies on a third party, it is relying
     on a foreign centralized service for fetching data from the blockchain. Since
     one of the strong points of DApps is precisely decentralization, adding a component
@@ -349,12 +492,17 @@
     you to decide on the trade-off between convenience and decentralization for the
     users of your DApp. As such, a good rule of thumb is to use an injected provider
     if found, and fall back to a centralized service otherwise.
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: 请注意，在您的 DApp 依赖第三方的所有情况下，它都依赖于外部的集中式服务来从区块链获取数据。由于 DApp 的一个强大之处恰恰在于去中心化，添加一个需要信任的组件可能是朝相反方向迈出的一步。决定在便利性和用户的
+    DApp 的去中心化之间权衡的问题取决于您。因此，一个很好的经验法则是如果找到了注入式提供者，则使用注入式提供者，否则回退到一个集中式服务。
 - en: Putting it all Together
+  id: totrans-62
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 将其整合起来
 - en: The code in Listing [4-4](#PC7) attempts to load the injected provider from
     a web3 browser, both modern and legacy ones. If it fails, it falls back to using
     an Infura secure websocket endpoint. The provider is used to create a web3.js
@@ -365,44 +513,69 @@
     user accounts");    }    return web3;  }  // Legacy web3 browsers  else if (window.web3)
     {    return new Web3(window.web3.currentProvider);  }  // Standard browser  else
     {    return new Web3("wss://mainnet.infura.io/ws/v3/TOKEN");  }}Listing 4-4
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: 在 [4-4](#PC7) 中的代码尝试从 web3 浏览器中加载注入的提供程序，无论是现代的还是旧版的。 如果失败，它将回退到使用 Infura 安全
+    websocket 端点。 提供程序用于创建 web3.js 实例，但相同的代码可以被重新用于其他库。async function getWeb3() {  //
+    现代 web3 浏览器  if (window.ethereum) {    const web3 = new Web3(window.ethereum);    //
+    仅当我们需要访问用户账户时    try {      await window.ethereum.enable();    } catch (error)
+    {      console.error("No access to user accounts");    }    return web3;  }  //
+    旧版 web3 浏览器  else if (window.web3) {    return new Web3(window.web3.currentProvider);  }  //
+    标准浏览器  else {    return new Web3("wss://mainnet.infura.io/ws/v3/TOKEN");  }}Listing
+    4-4
 - en: Code snippet for initializing a web3 connection for a DApp, based on the code
     provided by metamask.io
+  id: totrans-64
   prefs: []
   type: TYPE_NORMAL
+  zh: 基于 metamask.io 提供的代码，用于初始化 DApp 的 web3 连接的代码片段。
 - en: Retrieving Data
+  id: totrans-65
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 检索数据
 - en: Now that we know how to connect to the network, we can start actually retrieving
     data. We will review how to access network information, account balances, perform
     static calls, and subscribe to events. As before, we will be using web3@1.2.0
     as a library to interact with the Ethereum network, but other libraries should
     provide similar features.
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们知道如何连接到网络，我们可以开始实际检索数据。 我们将查看如何访问网络信息、账户余额、执行静态调用和订阅事件。 与之前一样，我们将使用 web3@1.2.0
+    作为与以太坊网络交互的库，但其他库应该提供类似的功能。
 - en: Network Information
+  id: totrans-67
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 网络信息
 - en: We can start out by querying general network information. To begin with, it
     is a good practice to always check that you are connected to the expected network.
     If your application is meant to be used on the Rinkeby test network, you do not
     want a user to be accidentally using a connection to Mainnet. To do this, you
     can get the identifier of the network you are connected to and compare it to the
     identifier of the expected network.> await web3.eth.net.getId()1
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以通过查询一般的网络信息开始。 首先，总是检查您是否连接到预期的网络是一个好习惯。 如果您的应用程序意在在 Rinkeby 测试网络上使用，您不希望用户意外地使用与主网的连接。
+    为此，您可以获取您连接的网络的标识符，并将其与预期网络的标识符进行比较。> await web3.eth.net.getId()1
 - en: Networks are identified by a numeric identifier. Mainnet is 1, Ropsten is 3,
     Rinkeby is 4, and Kovan is 42\. Ephemeral development networks are typically set
     up with higher IDs.
+  id: totrans-69
   prefs: []
   type: TYPE_NORMAL
+  zh: 网络通过数字标识符进行识别。 主网为 1，Ropsten 为 3，Rinkeby 为 4，Kovan 为 42。 临时开发网络通常使用较高的 ID 设置。
 - en: Note
+  id: totrans-70
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 注
 - en: Like most requests to an external data source in javascript, calls to the Ethereum
     network are asynchronous operations. Different libraries may have different ways
     to handle this, either by using callbacks or returning promises. In particular,
@@ -411,8 +584,12 @@
     different stages of the asynchronous operation. They will become more relevant
     in the next chapter. For now, we will simply use the async-await syntax for working
     with promises.
+  id: totrans-71
   prefs: []
   type: TYPE_NORMAL
+  zh: 像大多数 JavaScript 中对外部数据源的请求一样，对以太坊网络的调用都是异步操作。不同的库可能有不同的处理方式，可以使用回调函数或返回 promises。特别是，web3.js
+    支持传统的错误优先回调以及 Promi-events。Promi-events 是同时充当事件发射器的 promise 对象，允许你监听异步操作的不同阶段。它们将在下一章变得更加相关。目前，我们将简单地使用
+    async-await 语法来处理 promises。
 - en: 'Another piece of information we can get from the network is the current block
     number. Polling this value can let us know when a new block was added to the chain,
     potentially including transactions that have modified the state of the contracts
@@ -430,13 +607,16 @@
     chain. Nodes that have been just set up may not have synced yet, so they will
     not be able to return recent information from the network. If a node is no longer
     syncing, you can safely rely on it.> await web3.eth.isSyncing()false'
+  id: totrans-72
   prefs: []
   type: TYPE_NORMAL
 - en: There is more information you can query from a node. Make sure to check out
     the web3.js reference^([4](#Fn4)) for additional methods.
+  id: totrans-73
   prefs: []
   type: TYPE_NORMAL
 - en: Account Balances and Code
+  id: totrans-74
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
@@ -448,9 +628,11 @@
     = '0xcafE1A77e84698c83CA8931F54A755176eF75f2C';> const block = await web3.eth.getBlockNumber()
     - 10;> await web3.eth.getBalance(addr, block);'180300794957635301822239'Listing
     4-5
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
 - en: Querying the balance of an address from ten blocks ago
+  id: totrans-76
   prefs: []
   type: TYPE_NORMAL
 - en: Note that ETH balances are **always** expressed in Wei, which is the smallest
@@ -458,10 +640,12 @@
     1 followed by 18 zeros). You can use the web3 utils module (Listing [4-6](#PC14))
     to convert between them.> const balance = await web3.eth.getBalance(addr, block)>
     web3.utils.fromWei(balance)'180300.794957635301822239'Listing 4-6
+  id: totrans-77
   prefs: []
   type: TYPE_NORMAL
 - en: Using web3.utils.fromWei for converting from Wei to ETH. The reverse method
     is toWei
+  id: totrans-78
   prefs: []
   type: TYPE_NORMAL
 - en: You may have noted from the preceding snippets that ETH balance is returned
@@ -469,6 +653,7 @@
     dealing with very large numbers, since javascript numbers cannot deal with very
     large magnitudes. As an example, 1822239 wei are lost in the conversion to integer
     in the following code.> parseInt(balance).toLocaleString();'180,300,794,957,635,300,000,000'
+  id: totrans-79
   prefs: []
   type: TYPE_NORMAL
 - en: This decision is specific to the web3.js library. Other libraries rely on javascript
@@ -477,26 +662,34 @@
     in the language, libraries will switch to it. Either way, what is important is
     that you keep in mind that most numbers in Ethereum cannot be handled using regular
     javascript numbers, or you risk losing precision.
+  id: totrans-80
   prefs: []
   type: TYPE_NORMAL
 - en: Besides balances, you can also get the code at an address, and use it to check
     whether an address is a contract or an externally owned account. You can also
     check the code itself to see if it matches the binary from a known contract.>
     await web3.eth.getCode(addr);'0x6060604052361561011...'
+  id: totrans-81
   prefs: []
   type: TYPE_NORMAL
+  zh: 除了余额之外，您还可以获取地址上的代码，并使用它来检查地址是合约还是外部拥有的帐户。您还可以检查代码本身，以查看它是否与已知合约的二进制代码匹配。> await
+    web3.eth.getCode(addr);'0x6060604052361561011...'
 - en: 'Keep in mind that this method for checking whether an account is a contract
     or not is far from robust. If you get no code from an address, it does not necessarily
     mean it is externally owned: a contract may be deployed to that address later,
     or a contract may have been deployed there but was eventually self-destructed.
     All in all, you should avoid relying on whether an arbitrary address is externally
     owned or not for particularly sensitive operations.'
+  id: totrans-82
   prefs: []
   type: TYPE_NORMAL
+  zh: 请记住，用于检查帐户是否为合约的方法远非健壮。如果从地址中获取不到代码，则不一定意味着它是外部拥有的：可能稍后会将合约部署到该地址，或者合约可能已在该处部署，但最终已自毁。总而言之，您应避免依赖任意地址是否为外部拥有的帐户来进行特别敏感的操作。
 - en: Calling into a Contract
+  id: totrans-83
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 调用合约
 - en: As we saw in Chapter [2](476252_1_En_2_Chapter.xhtml), you can call into a contract
     to query information from it by issuing a JSON-RPC call to its address. Most contracts
     expose getter functions that return information on their current state or perform
@@ -504,8 +697,11 @@
     view or pure modifiers in Solidity. Like all the functions listed in this chapter,
     calling into them does not cost any gas, since the call can be answered by any
     node in the network, and does not need to introduce a change on the blockchain.
+  id: totrans-84
   prefs: []
   type: TYPE_NORMAL
+  zh: 正如我们在[第二章](476252_1_En_2_Chapter.xhtml)中看到的，您可以通过向其地址发出 JSON-RPC 调用来从合约中查询信息。大多数合约都公开了返回其当前状态或执行纯计算的
+    getter 函数；这些函数可以通过 Solidity 中的 view 或 pure 修饰符进行标记。与本章中列出的所有函数一样，调用它们不会花费任何 gas，因为任何网络中的节点都可以回答该调用，并且不需要在区块链上引入更改。
 - en: 'These calls can be executed at a low level using the call function  from web3.js,
     which requires manually providing the target address and the raw data to send
     to the target contract. As an example, 0x18160ddd is the function selector^([8](#Fn8))
@@ -521,17 +717,32 @@
     false,    "stateMutability": "view",    "type": "function"  }, ...];> const erc20
     = new web3.eth.Contract(abi, addr);> await erc20.methods.totalSupply().call()''1500000000000000000000000000''Listing
     4-7'
+  id: totrans-85
   prefs: []
   type: TYPE_NORMAL
+  zh: '这些调用可以使用`web3.js`中的`call`函数在低级别执行，该函数需要手动提供目标地址和要发送到目标合约的原始数据。例如，`0x18160ddd`是访问
+    ERC20 代币合约的`totalSupply`的函数选择器[^8]，因此我们可以对主网上的现有合约进行测试，例如主网上的 BAT 代币，它返回 1.5e27
+    的十六进制表示。> `const addr = ''0x0d8775f648430679a709e98d2b0cb6250d2887ef'';`> `await
+    web3.eth.call({ to: addr, data: ''0x18160ddd'' });``0x00000000...0004d8c55aefb8c05b5c000000`但是，我们通常会依赖于`web3`合约抽象来与合约进行交互（见清单
+    [4-7](#PC18)）。如前所述，创建其中一个需要合约的 ABI 和其地址。我们将使用 ERC20 的 ABI 复制前面的示例。[^9]> `const
+    abi = [  {    "constant": true,    "inputs": [],    "name": "totalSupply",    "outputs":
+    [{"name": "", "type": "uint256"}],    "payable": false,    "stateMutability":
+    "view",    "type": "function"  }, ...];`> `const erc20 = new web3.eth.Contract(abi,
+    addr);`> `await erc20.methods.totalSupply().call()`''1500000000000000000000000000''清单
+    4-7'
 - en: Accessing the same token’s total supply via the web3 Contract object. Note how
     the output is formatted based on its type instead of returned as a raw hexadecimal
     value
+  id: totrans-86
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过`web3`合约对象访问相同代币的总供应量。请注意，输出的格式是基于其类型而不是作为原始十六进制值返回的。
 - en: Note
+  id: totrans-87
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 注意
 - en: Like getBalance, all calls to a contract can also include an optional block
     parameter, in case you want to query a contract’s state at a previous point in
     time. Remember that requesting changes for a block too long ago in the chain requires
@@ -540,8 +751,10 @@
     from a dozen blocks ago, to shield yourself against possible chain reorgs. Data
     this recent is usually always available, regardless of the node keeping an archive
     or not.
+  id: totrans-88
   prefs: []
   type: TYPE_NORMAL
+  zh: 像`getBalance`一样，对合约的所有调用也可以包括一个可选的区块参数，以便在以前的某个时间点查询合约的状态。请记住，请求链中太久之前的块的更改需要连接到归档节点，而这并不总是可用的。另外，请记住，根据您的用例，仅显示一段时间之前的信息可能是明智的，以防止可能的链重组。这种最近的数据通常始终可用，无论节点是否保留了归档。
 - en: 'The Contract object can also be used to obtain the function selectors that
     can be plugged into low-level calls or raw transactions. In the following line,
     the encodeABI method returns the data selector that we used at the beginning of
@@ -555,19 +768,23 @@
     {      ''0'': ''0xAAAAA6...'',      ''1'': ''0x664753...'',      ''2'': ''1905510325611397921584'',      from:
     ''0xAAAAA6...'',      to: ''0x664753...'',      value: ''1905510325611397921584''
     },  event: ''Transfer''}, ... ]Listing 4-8'
+  id: totrans-89
   prefs: []
   type: TYPE_NORMAL
 - en: Obtaining the transfer events on the BAT token on mainnet that occurred in the
     past 100 blocks. In this example, the address starting with 0xAAAAA6 transferred
     1.9e21 tokens to address 0x664753
+  id: totrans-90
   prefs: []
   type: TYPE_NORMAL
 - en: Each log object informs of the block and the transaction where it occurred,
     as well as the name of the event (in this case, Transfer), and includes the parameters
     with which it was emitted.
+  id: totrans-91
   prefs: []
   type: TYPE_NORMAL
 - en: Detecting Changes
+  id: totrans-92
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
@@ -575,9 +792,11 @@
     events, listening to new events is a useful method to detect changes to a contract
     in our application in real time. We will see three different ways for monitoring
     changes.
+  id: totrans-93
   prefs: []
   type: TYPE_NORMAL
 - en: Polling for New Blocks
+  id: totrans-94
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
@@ -591,20 +810,24 @@
     !== block) {    // update block number    block = newBlock;    // re-read relevant
     data from contract    totalSupply = await erc20.methods.totalSupply().call();  }},
     1000);Listing 4-9
+  id: totrans-95
   prefs: []
   type: TYPE_NORMAL
 - en: Polling for new blocks to update the totalSupply of an ERC20 contract. Though
     we could directly poll for the total supply, this approach is more efficient if
     there is more data that we need to update on every block
+  id: totrans-96
   prefs: []
   type: TYPE_NORMAL
 - en: Whenever a new block is spotted, you can query the contract your app is interacting
     with to retrieve its latest state and update your app accordingly if there were
     any changes. An alternative would be to run getPastEvents on the new block and
     only react if there were any events that affect your contract.
+  id: totrans-97
   prefs: []
   type: TYPE_NORMAL
 - en: Installing Event Filters
+  id: totrans-98
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
@@ -613,18 +836,22 @@
     an event filter **on a node** and then polling for any new events that match that
     filter. At a JSON-RPC level, this pattern is supported mainly by the following
     methods:'
+  id: totrans-99
   prefs: []
   type: TYPE_NORMAL
 - en: newFilter to install a new event filter on a node, which returns a filter ID
+  id: totrans-100
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: getFilterChanges that returns all new logs for a given filter ID since the last
     time this method was called
+  id: totrans-101
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: uninstallFilter to remove a filter given its ID
+  id: totrans-102
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
@@ -634,9 +861,11 @@
     regular getPastLogs calls to check for new events and allows the node to precalculate
     the data to send if needed. It is also possible to install filters for new blocks
     and pending transactions that are sent to the node.
+  id: totrans-103
   prefs: []
   type: TYPE_NORMAL
 - en: Warning
+  id: totrans-104
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
@@ -647,21 +876,25 @@
     the node you are connecting to actually supports them. However, keep in mind that
     the performance gain you could get by using filters is completely lost in this
     scenario.
+  id: totrans-105
   prefs: []
   type: TYPE_NORMAL
 - en: 'At this point, it is worth going into what options can be specified for retrieving
     and polling events. These options can be used both when creating new filters and
     when getting past logs:'
+  id: totrans-106
   prefs: []
   type: TYPE_NORMAL
 - en: '**Block ranges** can be used to specify which blocks to monitor for events.
     By default, filters are created to monitor the latest block mined.'
+  id: totrans-107
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: One or more **addresses** where the logs originate from. Retrieving events from
     a web3 Contract object will automatically restrict the logs to the address of
     the contract instance.
+  id: totrans-108
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
@@ -670,6 +903,7 @@
     them during queries. The first topic is always the event selector, while the remaining
     topics are the indexed arguments from Solidity. A filter can impose restrictions
     on any of the topics, requesting a topic to optionally match a set of values.
+  id: totrans-109
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
@@ -678,13 +912,16 @@
     blocks.> const block = await web3.eth.getBlockNumber();> const filter = { to:
     [holder1, holder2, holder3] };> const opts = { fromBlock: block - 1000, filter:
     filter };> await erc20.getPastEvents(''Transfer'', opts);'
+  id: totrans-110
   prefs: []
   type: TYPE_NORMAL
 - en: 'The web3 library has no support for event filters. Instead, monitoring for
     events is done via the third and last mechanism for listening to changes: subscriptions.'
+  id: totrans-111
   prefs: []
   type: TYPE_NORMAL
 - en: Creating Subscriptions
+  id: totrans-112
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
@@ -695,9 +932,11 @@
     to poll for changes, but rely on two-way connections to directly push new events
     to the client. For this reason, subscriptions are only available on websockets
     or IPC connections and not on HTTP ones.
+  id: totrans-113
   prefs: []
   type: TYPE_NORMAL
 - en: Note
+  id: totrans-114
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
@@ -707,6 +946,7 @@
     to fake subscriptions client-side by relying on polling. Again, this allows you
     to transparently use event subscriptions on your app, having a subprovider polyfill
     the feature if the connection or node does not support it.
+  id: totrans-115
   prefs: []
   type: TYPE_NORMAL
 - en: 'Under the hood, web3 uses subscriptions when you listen to an event (Listing
@@ -719,18 +959,21 @@
     =>    console.log(`New tx from ${evt.returnValues.from}`)  )  .on(''error'', (err)
     =>    console.error(err)  )  .on(''changed'', (evt) =>    console.log(`Removed
     tx from ${evt.returnValues.from}`)  )Listing 4-10'
+  id: totrans-116
   prefs: []
   type: TYPE_NORMAL
 - en: Setting up a subscription to monitor Transfer events on an ERC20 token contract.
     The `data` handler fires on every new event, while `error` fires upon an error
     in the subscription. Events removed from the chain due to a reorganization are
     fired in `changed`.
+  id: totrans-117
   prefs: []
   type: TYPE_NORMAL
 - en: Subscriptions are automatically cleared when the connection to the server is
     closed. Alternatively, they can be removed via the unsubscribe() method  on the
     subscription object, or by using web3.eth.clearSubscriptions(), which removes
     all active subscriptions.
+  id: totrans-118
   prefs: []
   type: TYPE_NORMAL
 - en: As with event filters, it is possible to set up subscriptions for events from
@@ -739,9 +982,11 @@
     is installed to monitor for new blocks, and upon every block the state of the
     contract is re-read. Nevertheless, if the contract emits events for all state
     changes, monitoring them is much more efficient.
+  id: totrans-119
   prefs: []
   type: TYPE_NORMAL
 - en: Example Application
+  id: totrans-120
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
@@ -749,18 +994,22 @@
     application for monitoring transfers on an ERC20 token. This application will
     just retrieve data from the token and not provide any interface for actually sending
     transactions.
+  id: totrans-121
   prefs: []
   type: TYPE_NORMAL
 - en: Setup
+  id: totrans-122
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
 - en: We will once again use the create-react-app package to bootstrap our application.
     Needless to say, using this package is not required, but will simplify our setup
     and let us focus on building the app itself.npm init react-app erc20-app
+  id: totrans-123
   prefs: []
   type: TYPE_NORMAL
 - en: Dependencies
+  id: totrans-124
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
@@ -770,13 +1019,16 @@
     ABI of the ERC20 contract that we need to create the web3 Contract instance. We
     will also add bignumber.js for manipulating a few numeric values throughout the
     app.npm install web3@1.2.0 openzeppelin-solidity@2.1 bignumber.js@8.0
+  id: totrans-125
   prefs: []
   type: TYPE_NORMAL
 - en: As before, try running npm start to make sure that the sample react-app runs
     successfully. We can now start coding.
+  id: totrans-126
   prefs: []
   type: TYPE_NORMAL
 - en: Initializing Web3
+  id: totrans-127
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
@@ -784,15 +1036,18 @@
     to the network. We will rely on the injected web3 provider, falling back to a
     websocket connection to Infura. Note that since we will not request access to
     user accounts, we can skip the ethereum.enable() call.
+  id: totrans-128
   prefs: []
   type: TYPE_NORMAL
 - en: // src/eth/network.jsimport Web3 from 'web3';let web3;export function getWeb3()
     {  if (!web3) {    web3 = new Web3(window.ethereum              || (window.web3
     && window.web3.currentProvider)              || "wss://mainnet.infura.io/ws/v3/PROJECT_ID");  }
     return web3;}
+  id: totrans-129
   prefs: []
   type: TYPE_NORMAL
 - en: Note
+  id: totrans-130
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
@@ -800,9 +1055,11 @@
     Infura token, in case the user browsing the site does not have Metamask or a web3
     compatible browser. Note that it is websocket-based, since we will be using event
     subscriptions later on the app.
+  id: totrans-131
   prefs: []
   type: TYPE_NORMAL
 - en: The ERC20 Contract
+  id: totrans-132
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
@@ -812,14 +1069,17 @@
     ERC20Artifact from 'openzeppelin-solidity/build/contracts/ERC20Detailed.json';export
     default function ERC20(web3, address = null) {  const { abi } = ERC20Artifact;  return
     new web3.eth.Contract(abi, address);}
+  id: totrans-133
   prefs: []
   type: TYPE_NORMAL
 - en: We retrieve the contract ABI from OpenZeppelin, while we’ll leave the address
     as a parameter for now. Now that we have all basic components set up, we can get
     started with the application views.
+  id: totrans-134
   prefs: []
   type: TYPE_NORMAL
 - en: Building the Application
+  id: totrans-135
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
@@ -827,15 +1087,18 @@
     and set up the ERC20 contract instance that we will be monitoring. Once we have
     the contract instance ready, we will begin by retrieving some information from
     it.
+  id: totrans-136
   prefs: []
   type: TYPE_NORMAL
 - en: Root Component
+  id: totrans-137
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
 - en: The App component will be the root of our component tree (Listing [4-11](#PC28)).
     This component will manage the connection to the network and the ERC20 contract
     instance, both of which will be set up on the componentDidMount lifecycle method.
+  id: totrans-138
   prefs: []
   type: TYPE_NORMAL
 - en: 'Remember that this method is automatically fired by React when the component
@@ -851,20 +1114,24 @@
     } = this.state;    if (!erc20) {      return (<div>Connecting to network...</div>);    }
     else {      return (<div>ERC20 at {erc20.options.address}</div>);    }  }}Listing
     4-11'
+  id: totrans-139
   prefs: []
   type: TYPE_NORMAL
 - en: Initial version of the root App component for our application. Note that the
     highlighted line in componentDidMount that is setting up the ERC20 contract is
     using the factory method we built earlier
+  id: totrans-140
   prefs: []
   type: TYPE_NORMAL
 - en: Since the address in the preceding example refers to a contract on mainnet,
     the app will only work if we have a connection to the Ethereum main network. If
     we are connecting to another network, the contract will probably not exist at
     the address listed, causing the app to fail.
+  id: totrans-141
   prefs: []
   type: TYPE_NORMAL
 - en: Note
+  id: totrans-142
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
@@ -872,6 +1139,7 @@
     Augur is a decentralized oracle and prediction market, and its main token is used
     reporting and disputing the outcome of events. If you want to experiment with
     other ERC20s, Etherscan provides a handy list of top tokens at etherscan.io/tokens.
+  id: totrans-143
   prefs: []
   type: TYPE_NORMAL
 - en: 'To handle this case, we will add a few lines to detect the current network,
@@ -882,10 +1150,12 @@
     isMainnet });**    if (isMainnet) {      const erc20 = await ERC20Contract(web3,
     ERC20_ADDRESS);      this.setState({ erc20 });    }    this.setState({ loading:
     false });  }Listing 4-12'
+  id: totrans-144
   prefs: []
   type: TYPE_NORMAL
 - en: Checking that we are currently connected to mainnet. Note that the contract
     is only instantiated if we are on the correct network
+  id: totrans-145
   prefs: []
   type: TYPE_NORMAL
 - en: 'The render method needs to be changed accordingly to handle not just the loading
@@ -905,11 +1175,13 @@
     {    if (!this.state.isMainnet) return;    try {      const erc20 = await ERC20Contract(web3,
     ERC20_ADDRESS);      this.setState({ erc20 });    } catch (error) {      console.error(error);      **this.setState({
     error: `Error retrieving contract` })**    }  }Listing 4-13'
+  id: totrans-146
   prefs: []
   type: TYPE_NORMAL
 - en: Updated componentDidMount method to add error handling. Note that the render
     method also needs to be updated accordingly to display the error message if it
     is present in the component state
+  id: totrans-147
   prefs: []
   type: TYPE_NORMAL
 - en: We can now focus on the token itself. Let’s create a new component named ERC20,
@@ -919,13 +1191,16 @@
     (loading) {      return (<div>Connecting to network...</div>);    } else if (!isMainnet)
     {      return (<div>Please connect to Mainnet</div>);    } else {      **return
     (<ERC20 contract={erc20} />);**    }  }Listing 4-14
+  id: totrans-148
   prefs: []
   type: TYPE_NORMAL
 - en: Updated render helper method to display an ERC20 component, which expects the
     erc20 contract instance as a property
+  id: totrans-149
   prefs: []
   type: TYPE_NORMAL
 - en: ERC20 Component
+  id: totrans-150
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
@@ -935,6 +1210,7 @@
     decimals (Listing [4-15](#PC33)). These are optional attributes according to the
     ERC20 standard, since they are never used as part of the contract’s logic; nevertheless,
     most tokens do implement them.
+  id: totrans-151
   prefs: []
   type: TYPE_NORMAL
 - en: 'We will also retrieve the token’s total supply. This is the total number of
@@ -942,6 +1218,7 @@
     is no guarantee that this value will stay constant: some tokens have a continuous
     issuance model, which causes the total supply to increase on every block, while
     others may have a deflationary model where certain events actually burn tokens.'
+  id: totrans-152
   prefs: []
   type: TYPE_NORMAL
 - en: For the sake of this app, we will work only with tokens with a fixed supply,
@@ -951,12 +1228,14 @@
     {    const { contract } = this.props;    **const [name, symbol, decimals, totalSupply]
     =**      **await Promise.all([**        **contract.methods.name().call(),**        **contract.methods.symbol().call(),**        **contract.methods.decimals().call(),**        **contract.methods.totalSupply().call(),**      **]);**    this.setState({
     name, symbol, decimals, totalSupply });  }}Listing 4-15
+  id: totrans-153
   prefs: []
   type: TYPE_NORMAL
 - en: React component for displaying information on the ERC20 token. Once again, we
     rely on the componentDidMount method to load async information to populate the
     state. By using Promise.all(), we fire all four requests simultaneously and only
     set the return values once we have obtained all of them
+  id: totrans-154
   prefs: []
   type: TYPE_NORMAL
 - en: We can now render this information by showing the token name and symbol to our
@@ -966,10 +1245,12 @@
     formattedSupply = formatValue(totalSupply, decimals);  return (<div>    <h1>{name}
     Token</h1>    <div>Total supply of {formattedSupply} {symbol}</div>  </div>);}Listing
     4-16
+  id: totrans-155
   prefs: []
   type: TYPE_NORMAL
 - en: Render method to display the static information of an ERC20 token. Note that
     the totalSupply is adjusted by the decimals of the token
+  id: totrans-156
   prefs: []
   type: TYPE_NORMAL
 - en: 'For the auxiliary formatValue function (Listing [4-17](#PC35)), we will rely
@@ -979,33 +1260,41 @@
     BigNumber from ''bignumber.js'';BigNumber.config({ DECIMAL_PLACES: 4 });export
     function formatValue(value, decimals) {  const bn = new BigNumber(value);  return
     bn.shiftedBy(-decimals).toString(10);}Listing 4-17'
+  id: totrans-157
   prefs: []
   type: TYPE_NORMAL
 - en: Auxiliary function to format token amounts based on the decimals property of
     the contract
+  id: totrans-158
   prefs: []
   type: TYPE_NORMAL
 - en: The output so far should look like Figure [4-3](#Fig3), assuming you did not
     change the token address from the example.![../images/476252_1_En_4_Chapter/476252_1_En_4_Fig3_HTML.jpg](../images/476252_1_En_4_Chapter/476252_1_En_4_Fig3_HTML.jpg)
+  id: totrans-159
   prefs: []
   type: TYPE_NORMAL
 - en: Figure 4-3
+  id: totrans-160
   prefs: []
   type: TYPE_NORMAL
 - en: 'Our sample application displaying the static information of the Augur REP token:
     name (Reputation), symbol (REP), and total supply (1.1e25) formatted with the
     token decimals (18)'
+  id: totrans-161
   prefs: []
   type: TYPE_NORMAL
 - en: Displaying Transfer Events
+  id: totrans-162
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
 - en: We will now add the last component of our application that will display the
     latest transfers of the token and listen for any new ones in real time.
+  id: totrans-163
   prefs: []
   type: TYPE_NORMAL
 - en: Loading Past Transfers
+  id: totrans-164
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
@@ -1019,10 +1308,12 @@
     Token</h1>      <div>Total supply of {formattedSupply} {symbol}</div>      <div>        **<h2>Transfers</h2>**        **<Transfers
     contract={contract}**           **decimals={decimals} symbol={symbol} />**      </div>    </div>  );}Listing
     4-18'
+  id: totrans-165
   prefs: []
   type: TYPE_NORMAL
 - en: Updated render method from the ERC20 component to include the new Transfers
     component
+  id: totrans-166
   prefs: []
   type: TYPE_NORMAL
 - en: 'We will be loading all transfer events from the past 1000 blocks to seed the
@@ -1037,9 +1328,11 @@
     pastEvents = await contract.getPastEvents(EVENT, {**      **fromBlock: blockNumber
     - 1000,**      **toBlock: blockNumber**    **});**    this.setState({      loading:
     false,      transfers: pastEvents.reverse()    });  }}'
+  id: totrans-167
   prefs: []
   type: TYPE_NORMAL
 - en: Note
+  id: totrans-168
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
@@ -1048,6 +1341,7 @@
     Depending on your use case, you may want to add an option to load more events
     (for instance, when the user scrolls to the end of the list) by firing subsequent
     getPastEvents calls.
+  id: totrans-169
   prefs: []
   type: TYPE_NORMAL
 - en: 'The render method for this component is straightforward: we will show a pure
@@ -1057,10 +1351,12 @@
     { decimals, symbol } = this.props;    if (loading) return "Loading...";    return
     (<div className="Transfers">      { transfers.map(transfer => (        <Transfer          key={getLogId(transfer)}          transfer={transfer}          decimals={decimals}          symbol={symbol}
     />      )) }    </div>)  }Listing 4-19'
+  id: totrans-170
   prefs: []
   type: TYPE_NORMAL
 - en: Displaying each transfer in the collection by using a pure component that simply
     displays the data received
+  id: totrans-171
   prefs: []
   type: TYPE_NORMAL
 - en: Keep in mind that React requires us to assign a unique key to each element in
@@ -1069,12 +1365,14 @@
     and the log index (i.e., the index of the particular event in the array of all
     logs emitted in the transaction). This combination is guaranteed to be unique.function
     getLogId(log) {  return `${log.transactionHash}.${log.logIndex}`;}Listing 4-20
+  id: totrans-172
   prefs: []
   type: TYPE_NORMAL
 - en: Simple function for generating a unique identifier for a log. Note that web3.js
     already assigns an ID to a log entry, calculated as a hash over the same parameters.
     However, the hash is then truncated to 4 bytes, which may yield collisions if
     we are dealing with a large number of events
+  id: totrans-173
   prefs: []
   type: TYPE_NORMAL
 - en: For the Transfer pure component (Listing [4-21](#PC40)), we will just rely on
@@ -1087,18 +1385,22 @@
     transfer.returnValues;  const roundedValue = formatValue(value, decimals);  const
     url = ETHERSCAN_URL + transfer.transactionHash;  return (    <div>      <a href={url}>        {from}
     to {to} for {roundedValue} {symbol}      </a>    </div>  );}Listing 4-21
+  id: totrans-174
   prefs: []
   type: TYPE_NORMAL
 - en: Transfer component for displaying a single Transfer event loaded from the ERC20
     token contract
+  id: totrans-175
   prefs: []
   type: TYPE_NORMAL
 - en: With this code, every time we reload the page, we will see the transfers from
     the last 1000 blocks for the token. We can now add support for listening to new
     transfers as they occur.
+  id: totrans-176
   prefs: []
   type: TYPE_NORMAL
 - en: Monitoring New Transfers
+  id: totrans-177
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
@@ -1111,21 +1413,25 @@
     => {        this.setState(state => ({          ...state,          transfers: [event,
     ...state.transfers]        }));      });    this.setState({ eventSub });  }Listing
     4-22'
+  id: totrans-178
   prefs: []
   type: TYPE_NORMAL
 - en: Subscription function to listen for new transfer events, to be called from componentDidMount,
     using erc20 and blockNumber+1 as arguments. Note that we are storing the subscription
     object in state to be able to unsubscribe later
+  id: totrans-179
   prefs: []
   type: TYPE_NORMAL
 - en: componentWillUnmount() {    const { eventSub } = this.state;    if (eventSub)
     eventSub.unsubscribe();  }Listing 4-23
+  id: totrans-180
   prefs: []
   type: TYPE_NORMAL
 - en: Code to stop listening for events when the component is to be unmounted from
     the tree. Even though we will never unmount the component in this particular application,
     it is a good practice to always remove the subscriptions when they are no longer
     used
+  id: totrans-181
   prefs: []
   type: TYPE_NORMAL
 - en: 'Your application should now show new transactions as they occur, without the
@@ -1140,15 +1446,18 @@
     t.logIndex !== event.logIndex**        **)}))**      **})**      **.on(''error'',
     (error) => {**        **this.setState({ error })**      **});**    this.setState({
     eventSub });  }Listing 4-24'
+  id: totrans-182
   prefs: []
   type: TYPE_NORMAL
 - en: Adding handlers for the changed and error events of the subscription. The former
     fires whenever an event is removed from the blockchain, so we remove it from our
     state, while the latter fires upon an error, which we add to our state to be displayed
     to the user
+  id: totrans-183
   prefs: []
   type: TYPE_NORMAL
 - en: Awaiting Confirmations
+  id: totrans-184
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
@@ -1156,6 +1465,7 @@
     to the user. Instead of showing a transfer event as soon as we receive it, we
     will instead wait for a certain number of blocks to be added to the chain before
     rendering it in our list.
+  id: totrans-185
   prefs: []
   type: TYPE_NORMAL
 - en: 'In order to do this, we first need to monitor the current block number. We
@@ -1167,10 +1477,12 @@
     (number) this.setState({ blockNumber: number});**      **});**    this.setState({
     blockSub });    // Subscribe to new transfers and load previous ones    // ...  }Listing
     4-25'
+  id: totrans-186
   prefs: []
   type: TYPE_NORMAL
 - en: Updated section of componentDidMount to set the initial block number in the
     component’s state, and add a subscription to update it as new blocks are received
+  id: totrans-187
   prefs: []
   type: TYPE_NORMAL
 - en: Now we can limit our component to just render the transfer events that happened
@@ -1180,21 +1492,26 @@
     = this.state;    **const confirmed = transfers.filter((transfer) => (**      **blockNumber
     - transfer.blockNumber > 12**    **));**    // Render only confirmed transfers    //
     ...  }Listing 4-26
+  id: totrans-188
   prefs: []
   type: TYPE_NORMAL
 - en: Updated render method to show only transfers with at least 12 confirmations
+  id: totrans-189
   prefs: []
   type: TYPE_NORMAL
 - en: Note
+  id: totrans-190
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
 - en: Different applications will have different requirements for the number of confirmations,
     some of them going up to hundreds of blocks. This will depend strictly on your
     use case.
+  id: totrans-191
   prefs: []
   type: TYPE_NORMAL
 - en: Summary
+  id: totrans-192
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
@@ -1205,6 +1522,7 @@
     underlying connection. We also learned that there are different types of nodes
     available and how a Provider, such as the one injected by web3-enabled browsers,
     may abstract away some of these differences via the usage of subproviders.
+  id: totrans-193
   prefs: []
   type: TYPE_NORMAL
 - en: 'Using web3.js as a sample library, we studied what kind of queries we could
@@ -1212,17 +1530,20 @@
     as balance and code, and calls to existing contracts. When connecting to an archive
     node, these queries can be issued to any block in the past, not just the most
     recent ones.'
+  id: totrans-194
   prefs: []
   type: TYPE_NORMAL
 - en: We also studied different ways for monitoring changes to contracts in real time
     in our applications. While polling is a classic method that is always available,
     event filters or subscriptions may be more interesting options due to better performance
     or faster notification times.
+  id: totrans-195
   prefs: []
   type: TYPE_NORMAL
 - en: To wrap up the chapter, we built an application for retrieving information from
     an ERC20 token contract, and monitor all its transfer events using subscriptions.
     In the next chapter, we will learn how to make changes to the blockchain, going
     into all the details involved in sending a new transaction to the network.
+  id: totrans-196
   prefs: []
   type: TYPE_NORMAL

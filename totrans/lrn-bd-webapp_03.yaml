@@ -1,10 +1,14 @@
 - en: © Santiago Palladino 2019S. PalladinoEthereum for Web Developers[https://doi.org/10.1007/978-1-4842-5278-9_3](https://doi.org/10.1007/978-1-4842-5278-9_3)
+  id: totrans-0
   prefs: []
   type: TYPE_NORMAL
+  zh: © Santiago Palladino 2019S. Palladino[Ethereum for Web Developers](https://doi.org/10.1007/978-1-4842-5278-9_3)
 - en: 3. A Crash Course on Smart Contracts
+  id: totrans-1
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 3. 智能合约速成课
 - en: Santiago Palladino^([1](#Aff2) )(1)Ciudad Autónoma de Buenos Aires, ArgentinaSmart
     contracts are the key component in Ethereum. They hold the logic to be executed
     on the network, keep track of their own state, and can interact with other smart
@@ -13,91 +17,130 @@
     they depend on external accounts to trigger them. And since they run on the Ethereum
     network, they cannot directly interact with anything outside it. In this chapter,
     we will
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: Santiago Palladino^([1](#Aff2) )(1)阿根廷布宜诺斯艾利斯自治城智能合约是以太坊的关键组成部分。它们保存在网络上执行的逻辑，跟踪自己的状态，并且还可以与其他智能合约进行交互。然而，它们有一些限制，例如每笔交易的计算受限以及昂贵的存储成本。它们也无法启动新的交易
+    - 它们依赖外部账户来触发。并且由于它们在以太坊网络上运行，因此无法直接与网络外的任何东西进行交互。在本章中，我们将
 - en: Define Ethereum smart contracts, as opposed to externally owned accounts
+  id: totrans-3
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 定义以太坊智能合约，与外部拥有账户相对应
 - en: Identify the components of a transaction, such as data, gas limit, and price
+  id: totrans-4
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 确定交易的组成部分，如数据、燃气限制和价格
 - en: Learn how to write a contract in Solidity
+  id: totrans-5
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 学习如何用Solidity编写合约
 - en: Go through Solidity modifiers, data types, and events
+  id: totrans-6
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 了解Solidity的修饰符、数据类型和事件
 - en: Review how inheritance works in Solidity
+  id: totrans-7
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 回顾Solidity中继承的工作原理
 - en: Present the ERC20 and ERC721 widely used token standards
+  id: totrans-8
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 展示广泛使用的ERC20和ERC721令牌标准
 - en: What is a Smart Contract?
+  id: totrans-9
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 什么是智能合约？
 - en: The concept of smart contract was coined by Nick Szabo in the 1990s,^([1](#Fn1))
     referring to self-executing code in a public network that could capture the concept
     of a real-life contract and enforce it via code.
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 智能合约的概念由Nick Szabo在1990年代提出，^([1](#Fn1)) 指的是在公共网络中能够捕捉现实合同概念并通过代码执行的自执行代码。
 - en: '*The basic idea behind smart contracts is that many kinds of contractual clauses
     (such as collateral, bonding, delineation of property rights, etc.) can be embedded
     in the hardware and software we deal with, in such a way as to make breach of
     contract expensive (if desired, sometimes prohibitively so) for the breacher.*'
+  id: totrans-11
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: '*智能合约背后的基本思想是，许多种类的合同条款（如抵押、债券、财产权界定等）可以嵌入我们处理的硬件和软件中，以使违约成本昂贵（如果需要，有时甚至是令人望而却步的）对于违约者来说。*'
 - en: ''
+  id: totrans-12
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
 - en: —Nick Szabo
+  id: totrans-13
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: —Nick Szabo
 - en: In the Ethereum network, a smart contract is represented as code, deployed at
     an address, with its own state. The code is executed on every transaction sent
     to it and can perform arbitrary computation, read and write to its own storage,
     and potentially call other contracts in the network. A smart contract can also
     hold and transfer ETH, just like any other Ethereum address.
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 在以太坊网络中，智能合约被表示为代码，部署在一个地址上，拥有自己的状态。该代码在每次发送到它的交易上执行，并且可以执行任意计算，读写自己的存储，并可能调用网络中的其他合约。智能合约也可以持有和转移
+    ETH，就像任何其他以太坊地址一样。
 - en: Note
+  id: totrans-15
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 注意
 - en: Since smart contracts are powered by code that can execute any computation,
     they are not actually limited to financial contractual clauses. For instance,
     they can be used to express different kinds of agreement or consensus, or even
     governance mechanisms.
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于智能合约由可以执行任何计算的代码驱动，它们实际上并不限于金融合同条款。例如，它们可以用来表达不同种类的协议或共识，甚至是治理机制。
 - en: 'A good analogy for a smart contract in software is an *actor*. In the actor
     model, a system is composed of stand-alone units called actors that receive messages
     and execute code in response to it, modifying their own internal state and potentially
     interacting with other actors in the system. Smart contracts can also be thought
     of as *reducer functions* in functional terms: given a transaction and the contract’s
     state, the smart contract returns an updated state.'
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 在软件中，对智能合约的一个很好的类比是 *actor*。在 actor 模型中，系统由称为 actor 的独立单元组成，它们接收消息并根据消息执行代码，修改自己的内部状态，并可能与系统中的其他
+    actor 进行交互。从功能的角度来看，智能合约也可以被视为 *reducer functions*：给定一个交易和合约的状态，智能合约返回一个更新后的状态。
 - en: External Accounts vs. Smart Contracts
+  id: totrans-18
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 外部账户与智能合约
 - en: 'When a smart contract is deployed on the Ethereum network, it is created at
     a new *address*. This address acts as an identifier for a smart contract: whenever
     a user (or another contract) wants to interact with it, they send a *transaction*
     to that particular address.'
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 当一个智能合约被部署到以太坊网络上时，它被创建在一个新的 *地址* 上。该地址充当智能合约的标识符：每当用户（或另一个合约）想要与其交互时，他们向该特定地址发送一个
+    *交易*。
 - en: '*Externally owned accounts* (often abbreviated EOAs),  on the other hand, are
     accounts owned by real-life users – or by any agent outside the network. They
     are also represented by addresses, which use the exact same format as the ones
@@ -105,38 +148,51 @@
     are equal in Ethereum: they are just addresses. This allows sending ETH to a recipient,
     without needing to differentiate whether it is an address backed by a smart contract
     or managed by an end user.'
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: '*Externally owned accounts*（通常简称为 EOAs），另一方面，是由现实生活中的用户或网络外的任何代理拥有的账户。它们也由地址表示，其格式与标识智能合约的地址完全相同。因此，在以太坊中，对用户或智能合约的引用是相等的：它们只是地址。这允许将
+    ETH 发送到一个接收者，而不需要区分它是由智能合约支持的地址还是由最终用户管理的地址。'
 - en: 'However, there are a few differences between smart contract and externally
     owned accounts that are worth mentioning:'
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，智能合约和外部拥有账户之间有几个值得一提的区别：
 - en: First and foremost, a smart contract account has *code* that is executed on
     every transaction. Sending a transaction to an externally owned account does not
     trigger any execution on the network.
+  id: totrans-22
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 首先，智能合约账户有*代码*，每次交易都会执行这些代码。向外部拥有账户发送交易不会在网络上触发任何执行。
 - en: Smart contract accounts cannot initiate transactions. A smart contract can only
     react to an incoming message, and potentially call into other contracts in the
     process, but they cannot start a new transaction by themselves. A contract that
     needs to execute on a timely basis (similar to a cron job) or upon an event (such
     as balance being moved between certain addresses) needs an EOA to call into it
     to trigger the operation.
+  id: totrans-23
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 智能合约账户无法发起交易。智能合约只能对传入消息作出反应，并在此过程中可能调用其他合约，但它们不能自行启动新的交易。需要按时执行操作（类似于定时作业）或在事件发生时（例如在特定地址之间移动余额）执行操作的合约需要外部拥有账户调用以触发操作。
 - en: Only externally owned accounts have a corresponding *private key*. Private keys
     are used for signing new transactions sent to the network as a means of authentication.
     Smart contracts cannot initiate new transactions, so there is need for them to
     sign any operation.
+  id: totrans-24
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 只有外部拥有账户有对应的*私钥*。私钥用于签署发送到网络的新交易，作为身份验证的一种方式。智能合约不能发起新交易，因此它们没有必要签署任何操作。
 - en: Note
+  id: totrans-25
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 注意
 - en: An implication of this last difference is that only externally owned accounts
     can *sign* arbitrary messages. A private key can be used not only to sign Ethereum
     transactions but also plain text messages with any information. For example, a
@@ -145,27 +201,39 @@
     to that signature. This allows them to verify that the owner of that account is
     who wrote that message.^([2](#Fn2)) The fact that a smart contract does not have
     a private key means that it is not possible for it to sign a message.
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后一点差异的含义是，只有外部拥有账户才能*签署*任意消息。私钥不仅可用于签署以太坊交易，还可用于任何信息的纯文本消息。例如，用户可以签署一条声明其身份的消息（如“我是
+    Github 上的 spalladino”），任何人（包括合约）都可以恢复对应于该签名的以太坊地址。这允许他们验证该账户的所有者是谁写了那条消息。^([2](#Fn2))
+    智能合约没有私钥的事实意味着它无法签署消息。
 - en: Code and State
+  id: totrans-27
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 代码和状态
 - en: 'A smart contract has two main properties: its code and its state. A contract’s
     state is composed of its ETH balance (since all Ethereum addresses have an associated
     balance) and its storage (where the value of its variables is persisted).'
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 智能合约有两个主要属性：其代码和其状态。合约的状态由其以太币余额（因为所有以太坊地址都有相关联的余额）和其存储（其中变量的值被持久化）组成。
 - en: Code in a smart contract is typically short, since its execution “time” has
     a tight upper bound, defined by the Ethereum network. The code is run every time
     a transaction is received by the contract, and has access to the contract’s local
     storage, and the transaction’s context.
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 智能合约中的代码通常很短，因为其执行“时间”有着紧密的上界，由以太坊网络定义。每次收到合同的交易时，都会运行代码，并且可以访问合同的本地存储和交易的上下文。
 - en: Note
+  id: totrans-30
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 注意
 - en: 'The code of a smart contract is immutable. This means that once deployed, a
     smart contract cannot be changed. While this is in line with the original concept
     of real-life contracts made software, it poses some challenges around development.
@@ -176,8 +244,10 @@
     vulnerability is found, there is no way for the original developer to patch it.
     If the prospect of this limitation seems daunting, fear not, for there are workarounds^([3](#Fn3))
     that can be used for upgrading smart contracts even if their code is immutable.'
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 智能合约的代码是不可变的。这意味着一旦部署，智能合约就不能更改。虽然这与现实生活中的合同制造软件的原始概念一致，但它在开发方面提出了一些挑战。这使得迭代式开发特别困难，合同在推送到生产网络之前还必须是无缺陷的。这就是为什么智能合约中的安全性是如此关键的问题：智能合约不仅位于任何攻击者都可以自由交互的公共网络中，而且如果发现漏洞，原始开发人员也无法修补它。如果这种限制的前景看起来令人生畏，不要担心，因为有解决方法^([3](#Fn3))可用于升级智能合约，即使它们的代码是不可变的。
 - en: All Ethereum code is not run natively, but executed by Ethereum nodes on the
     Ethereum Virtual Machine, or EVM. The EVM executes a low-level stack-based assembly
     that operates with 32-byte words, typically referred to as *EVM assembly*. This
@@ -188,28 +258,37 @@
     that the EVM has no support for floating-point arithmetic, and all operations
     are done on 256-bit integers used as fixed point decimals, to minimize the risk
     of numerical errors.
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: 所有以太坊代码都不是在本地运行的，而是由以太坊节点在以太坊虚拟机（EVM）上执行。EVM执行一个基于堆栈的低级汇编，该汇编使用32字节的字（word）操作，通常称为*EVM汇编*。此汇编具有传统算术和逻辑操作的操作码，基本控制流操作，以及一些以太坊特定操作，如访问存储和内存，或查询和管理ETH余额。还有一些用于计算哈希或使用椭圆曲线签名的原语^([4](#Fn4))。值得一提的是，EVM不支持浮点算术，所有操作都是在用作固定小数点的256位整数上进行的，以最小化数值错误的风险。
 - en: Note
+  id: totrans-33
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 注意
 - en: At the time of this writing, a second back end based on WebAssembly, named eWASM,
     is under development, as an alternative environment for executing Ethereum code.
     Since it is based on existing WebAssembly technology, it will be possible to leverage
     the toolchain and optimizations already available instead of having to reimplement
     them from scratch. Ethereum nodes will be expected to accept and execute smart
     contract code in either format.
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: 在撰写本文时，基于 WebAssembly 的第二个后端，名为 eWASM，正在开发中，作为执行以太坊代码的替代环境。由于它基于现有的 WebAssembly
+    技术，将可以利用已经可用的工具链和优化，而不必重新实现它们。预期以太坊节点将接受并执行以任一格式编写的智能合约代码。
 - en: 'The execution model of the EVM is designed to favor simplicity over performance.
     All transactions are executed in a serial fashion (i.e. one after the other) and
     always in a single execution thread. This makes reasoning on smart contracts much
     easier: while a contract is executing a piece of code in response to a transaction,
     you can be sure that it will not receive a simultaneous transaction that could
     affect the current thread.'
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: EVM 的执行模型旨在追求简单而非性能。所有交易都是按顺序执行的（即一个接一个地），而且始终在单个执行线程中进行。这使得对智能合约进行推理变得更加容易：当一个合约在响应交易时执行一段代码时，你可以确信它不会接收到可能影响当前线程的同时交易。
 - en: 'However, since contracts can call other contracts, the EVM does allow *reentrant
     calls*.  For instance, if contract A calls contract B, nothing prevents B to call
     back into A during the same transaction. Reentrancy can be tricky to reason about
@@ -217,54 +296,75 @@
     in 2016, which prompted the chain to fork into Ethereum and Ethereum Classic when
     it was decided to return the funds to the hacked users, was possible due to a
     reentrancy bug:'
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，由于合约可以调用其他合约，EVM 确实允许*重入调用*。例如，如果合约 A 调用合约 B，那么在同一笔交易中，没有任何阻止 B 回调 A 的机制。重入性调用可能很难推理，并且一直以来都是生态系统中一些主要黑客攻击的源头。2016
+    年著名的 DAO 攻击促使链分叉成为以太坊和以太经典，当时决定将被黑客攻击的用户资金归还给他们是可能的，这是由于一个重入性 bug：
 - en: '*Special care is required in reviews of Ethereum code to make sure that any
     functions moving value occur after any state updates whatsoever, otherwise these
     state values will be necessarily vulnerable to reentrancy.*'
+  id: totrans-37
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: '*在审查以太坊代码时，需要特别小心确保任何转移价值的函数都发生在任何状态更新之后，否则这些状态值将必然容易受到重入攻击的影响。*'
 - en: ''
+  id: totrans-38
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
 - en: —Phil Daian, “Analysis of the DAO exploit”^([5](#Fn5))
+  id: totrans-39
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: —Phil Daian，《对 DAO 攻击的分析》^([5](#Fn5))
 - en: Note
+  id: totrans-40
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 注意
 - en: As in most platforms, it is rare that you will find yourself coding smart contracts
     directly in assembly, unless you are working in some particularly obscure feature.
     There are several high-level languages, built specifically for smart contracts,
     that compile to EVM code. The most popular of them is Solidity, which we will
     review in the upcoming sections.
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: 与大多数平台一样，你很少会发现自己直接在汇编中编写智能合约，除非你在处理某些特别隐蔽的功能。有几种专为智能合约构建的高级语言，可以编译成 EVM 代码。其中最流行的是
+    Solidity，我们将在接下来的章节中进行详细介绍。
 - en: 'State  in a smart contract is comprised of its storage and balance. The latter
     is the most straightforward of the two: all address types in Ethereum, regardless
     of being externally owned accounts or smart contracts, have an associated balance
     in ETH. Ethereum provides primitives for querying such balances (both from within
     a smart contract and from outside the network), and for easily transferring it.'
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 智能合约中的状态由其存储和余额组成。后者是两者中最直接的：以太坊中的所有地址类型，无论是外部拥有的帐户还是智能合约，都有与 ETH 关联的余额。以太坊提供了查询这些余额的原语（无论是从智能合约内部还是从网络外部），以及轻松转移它的原语。
 - en: 'As for the storage space in a smart contract, it is extremely large: it is
     an addressable space of 2^256 slots of 32 bytes each. However, writing to storage
     in the EVM is very costly, so it should always be used with care.'
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: 至于智能合约中的存储空间，它非常大：它是一个具有 2^256 个 32 字节槽的可寻址空间。然而，在 EVM 中写入存储是非常昂贵的，因此应该始终谨慎使用。
 - en: Since storage usage is expensive, the EVM also provides another 256-bit-addressable
     transient space called the *memory*, which is equivalent to a memory heap in other
     environments, and is guaranteed to be cleared in-between transactions.
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于存储使用是昂贵的，EVM 还提供了另一个可寻址的 256 位瞬态空间，称为*内存*，它相当于其他环境中的内存堆，并且保证在事务之间被清除。
 - en: Gas Usage
+  id: totrans-45
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 燃气使用
 - en: Executing code in the Ethereum network costs *gas*. Every operation run by a
     smart contract consumes a predefined amount of gas, where more complex operations
     consume more gas than simpler ones. All in all, gas is just a measure of execution
@@ -273,8 +373,10 @@
     it, it is critical to keep them as simple as possible. This is also why operations
     that create new data on the blockchain, such as writing to storage or creating
     a new contract, are among the most costly ones in terms of gas.
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: 在以太坊网络中执行代码需要*燃气*。智能合约运行的每个操作都会消耗预定义数量的燃气，复杂的操作消耗的燃气比简单的操作更多。总的来说，燃气只是执行成本的一种度量，旨在防止以太坊上过度复杂的计算。由于每个节点都需要执行网络上的每个事务以验证它，因此关键是尽量保持简单。这也是为什么在区块链上创建新数据的操作，例如写入存储或创建新合约，是燃气成本最高的操作之一。
 - en: How is gas obtained? The process is handled automatically on every transaction.
     Whenever a user sends a new transaction, they specify a *gas price*, which is
     the conversion rate between ETH and gas. After the transaction is run, the total
@@ -284,17 +386,23 @@
     with a very high gas price will be extremely costly to send; on the other hand,
     transactions with a very low gas price will be unattractive to miners, and will
     most likely never be included in the blockchain.
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: 如何获取气体？这个过程在每笔交易中自动处理。每当用户发送新交易时，他们会指定一个*气价*，这是ETH和气体之间的转换率。交易运行后，计算使用的总气量，然后使用这个气价将其转换为ETH，并从发送者的余额中扣除。请注意，对气价没有任何要求，它几乎可以任意高或低。然而，具有非常高气价的交易将非常昂贵；另一方面，具有非常低气价的交易对矿工不具吸引力，并且很可能永远不会包含在区块链中。
 - en: Note
+  id: totrans-48
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 注意
 - en: There are some services, such as the ETH gas station,^([6](#Fn6)) which provide
     real-time statistics on gas price costs for the Ethereum network. This provides
     you with info on the average gas price to use to send a transaction.
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: 有一些服务，比如ETH gas station，^([6](#Fn6))，提供以太坊网络的实时气价成本统计数据。这为您提供了关于发送交易所需的平均气价的信息。
 - en: Additionally to the gas price, the transaction sender must specify a maximum
     gas allowance to be used during execution. If the transaction reaches a point
     where it has used all the gas allowed, it stops running and reports an out-of-gas
@@ -303,21 +411,28 @@
     has enough ETH for paying forexecution before actually running the code by checking
     that the sender’s balance is at least the maximum gas allowance times the specified
     gas price.
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: 除了气价之外，交易发送者必须指定在执行过程中要使用的最大气量。如果交易达到已使用的所有允许气量的点，它将停止运行并报告燃尽错误。这使用户可以控制他们愿意在交易上花费多少。相反，这也允许网络在实际运行代码之前检查用户是否有足够的ETH来支付执行，方法是检查发送者的余额是否至少是最大气量乘以指定气价。
 - en: Note that Ethereum nodes can be used to query an estimation of the gas required
     to run a transaction, assuming the context where it runs does not change. This
     allows dynamic calculation of how much gas should be attached to a transaction
     instead of needing to hard-code it for every call issues by your system.
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: 请注意，以太坊节点可用于查询运行交易所需的气量估算，假设运行的上下文不会改变。这允许动态计算应该附加到交易中的气量，而不需要为系统发出的每个调用硬编码它。
 - en: However, since the amount of gas used depends on which operations were executed,
     which in turn depend on the context where the transaction is run, the estimation
     performed by a node may not always be representative. For example, given the following
     pseudocode for a smart contract:if balance > 1ETH:    run_expensive_operationelse:    return
     true
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，由于使用的燃气量取决于执行的操作，而执行的操作又取决于交易运行的上下文，因此节点执行的估算可能并不总是代表性的。例如，对于智能合约的以下伪代码：如果余额
+    > 1ETH:    运行昂贵的操作否则:    返回 true
 - en: If the estimation is run when the contract’s balance is below 1 ETH, then the
     gas estimation will be low, and the user may send the transaction to the network
     using that value. However, before the transaction is actually picked up by a miner,
@@ -327,82 +442,119 @@
     You should be aware of these situations when coding interactions with the network
     by always adding a reasonable buffer to the gas allowance on top of the estimated
     amounts and retrying transactions with updated estimations if needed.
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果在合约余额低于 1 ETH 时运行估算，则燃气估算将较低，用户可能会使用该值将交易发送到网络。然而，在交易实际被矿工接受之前，另一个交易可能会在原始交易之前执行，增加合约的余额超过
+    1 ETH。这将导致原始交易实际上需要更高数量的燃气，并最终以燃气耗尽错误失败。在与网络进行交互的编码时，您应该注意这些情况，始终在估算数量之上增加合理的燃气津贴，并根据需要重试带有更新估算的交易。
 - en: Transactions
+  id: totrans-54
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 交易
 - en: To recap, in order to interact with a smart contract, an external account must
     sign and broadcast a transaction directed to the contract’s address. The network
     then executes the smart contract’s code, with all data contained in the transaction
     (and the contract’s state) as context.
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
+  zh: 总结一下，为了与智能合约进行交互，外部账户必须签署并广播一个发送到合约地址的交易。然后网络执行智能合约的代码，使用交易中的所有数据（以及合约的状态）作为上下文。
 - en: 'A transaction is a message with the following properties:'
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: 交易是具有以下属性的消息：
 - en: A sender address, which is always an externally owned account
+  id: totrans-57
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 发送者地址，始终为外部拥有的账户
 - en: A destination address
+  id: totrans-58
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 目标地址
 - en: An amount of ETH to transfer, which can be zero
+  id: totrans-59
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 要转移的 ETH 金额，可以为零
 - en: A binary data field, which packs the arguments for the smart contract to execute
+  id: totrans-60
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 一个二进制数据字段，用于打包智能合约执行的参数
 - en: A nonce
+  id: totrans-61
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 一个一次性使用的数字
 - en: Maximum gas allowance
+  id: totrans-62
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 最大燃气津贴
 - en: Gas price, for converting between gas and ETH
+  id: totrans-63
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 用于在燃气和 ETH 之间进行转换的燃气价格
 - en: Transactions can also be sent to another externally owned account. In these
     cases, data is typically left empty, as the purpose is only to transfer ETH between
     accounts. However, they also consume gas, albeit a small amount compared to those
     sent to smart contracts.
+  id: totrans-64
   prefs: []
   type: TYPE_NORMAL
+  zh: 交易也可以发送到另一个外部拥有的账户。在这些情况下，数据通常为空，因为目的只是在账户之间转移 ETH。然而，它们也会消耗燃气，尽管与发送到智能合约的交易相比数量很少。
 - en: Note
+  id: totrans-65
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 注意
 - en: At the lowest level, the transaction does not actually include the sender address
     as a property. It is retrieved from the transaction’s signature.
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
+  zh: 在最低级别上，交易实际上不包括发送者地址作为属性。它是从交易的签名中检索的。
 - en: 'The only field in a transaction that we have not yet reviewed is the *nonce*.
     This is an incremental integer value that ensures that all transactions sent from
     an account are processed in order: a nonce cannot skip a value and is always equal
     to the number of executed plus pending transactions sent from the address. It
     is also part of the network’s replay protection. Typically, you will not need
     to deal with nonces explicitly.'
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
+  zh: 在交易中我们尚未审查的唯一字段是*nonce*。这是一个递增的整数值，确保从一个账户发送的所有交易按顺序处理：nonce不能跳过一个值，并且始终等于从地址发送的已执行加上待处理的交易数量。它也是网络的重播保护的一部分。通常，您不需要显式处理nonce。
 - en: The lifecycle of a transaction is a bit complex, since transactions need to
     be picked up by a miner and confirmed in order to be considered final (Figure
     [3-1](#Fig1)).![../images/476252_1_En_3_Chapter/476252_1_En_3_Fig1_HTML.png](../images/476252_1_En_3_Chapter/476252_1_En_3_Fig1_HTML.png)
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
+  zh: 交易的生命周期有些复杂，因为交易需要被矿工挑选并确认才能被视为最终（见图[3-1](#Fig1)）。![../images/476252_1_En_3_Chapter/476252_1_En_3_Fig1_HTML.png](../images/476252_1_En_3_Chapter/476252_1_En_3_Fig1_HTML.png)
 - en: Figure 3-1
+  id: totrans-69
   prefs: []
   type: TYPE_NORMAL
+  zh: 图3-1
 - en: Lifecycle of an Ethereum transaction
+  id: totrans-70
   prefs: []
   type: TYPE_NORMAL
+  zh: 以太坊交易的生命周期
 - en: The first step in a transaction’s lifecycle is to be sent to an Ethereum node.
     This could be a private node owned by the user or a public node with no accounts
     associated. On the former, signing is typically handled by the node, which holds
@@ -410,20 +562,27 @@
     and then sent to the node. In either case, the node checks that the transaction
     is valid by trying to execute it locally, and if it is, it broadcasts it to the
     network.
+  id: totrans-71
   prefs: []
   type: TYPE_NORMAL
+  zh: 交易生命周期中的第一步是将其发送到以太坊节点。这可以是用户拥有的私有节点，也可以是没有关联账户的公共节点。在前者中，签名通常由节点处理，该节点保存用户的私钥；在后者中，交易由客户端软件签名，然后发送到节点。无论哪种情况，节点都会通过尝试在本地执行它来检查交易是否有效，如果有效，则将其广播到网络。
 - en: Broadcasted transactions are said to be *pending*, since they have not yet been
     included in a block, but are waiting on what is called the *mempool*.  The time
     until the transaction is processed by a miner and added to the blockchain will
     typically depend on network congestion and the gas price of the transaction itself –
     as we mentioned before, higher gas prices lead to more attractive transactions
     which are mined faster.
+  id: totrans-72
   prefs: []
   type: TYPE_NORMAL
+  zh: 广播的交易被称为*待处理*，因为它们尚未包含在区块中，但正在等待被称为*mempool*的地方。直到交易被矿工处理并添加到区块链中的时间通常取决于网络拥塞情况和交易本身的gas价格
+    - 正如我们之前提到的，更高的gas价格会导致更有吸引力的交易被更快地挖掘。
 - en: Note
+  id: totrans-73
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 注意
 - en: Pending transactions can be *replaced* before they are mined. After a transaction
     is broadcasted, and before it is picked up by a miner, you may send another transaction
     with the same nonce and a higher gas price. Upon seeing both pending transactions,
@@ -431,8 +590,11 @@
     it has an outdated nonce. Replacing transactions is used to correct a mistake
     or to increase the gas price of the same transaction to speed up its confirmation,
     but it is not a technique very widely used. We will review this in Chapter [5](476252_1_En_5_Chapter.xhtml).
+  id: totrans-74
   prefs: []
   type: TYPE_NORMAL
+  zh: 未确认交易在被挖掘之前可以*替换*。在交易被广播之后，并且在被矿工拾取之前，你可以发送另一笔具有相同 nonce 和更高 gas 价格的交易。看到两个待处理交易后，矿工会更倾向于新的那个，这将使原始交易无效，因为它具有过时的
+    nonce。替换交易用于纠正错误或增加同一交易的 gas 价格以加快其确认速度，但这并不是一种被广泛使用的技术。我们将在第[5](476252_1_En_5_Chapter.xhtml)章中对此进行审查。
 - en: Eventually, the transaction is *mined* and included in a block. However, due
     to how the consensus algorithm in Ethereum works, it is still possible that a
     chain *reorganization* occurs, and the block that included this transaction is
@@ -441,14 +603,18 @@
     out of the chain gets slimmer. A dozen confirmations (i.e., new blocks mined)
     is good enough for most scenarios, but you may want to wait for even more depending
     on your use case.
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
+  zh: 最终，交易被*挖掘*并包含在一个区块中。然而，由于以太坊中的共识算法的工作方式，仍然有可能发生链的*重组*，并且包含此交易的区块被另一个区块替换。这只有在最近挖掘的区块中才有可能发生。随着每个新挖掘的区块叠加，一个区块被从链中移出的可能性变得越来越小。一打确认（即，新挖掘的区块）对于大多数情况已经足够，但根据您的用例，您可能希望等待更多确认。
 - en: It is possible for a single account to have multiple pending transactions, since
     it is not required by the protocol to wait for a transaction to be mined or confirmed
     before sending the next one. The nonce ensures that all pending transactions will
     be processed by miners in the correct order.
+  id: totrans-76
   prefs: []
   type: TYPE_NORMAL
+  zh: 单个账户可以有多个待处理交易，因为协议不要求等待交易被挖掘或确认后再发送下一个交易。nonce 确保所有待处理交易将按正确顺序由矿工处理。
 - en: Transactions in Ethereum may not always be successful. A transaction can fail
     due to a variety of reasons, such as running out of gas during execution, or because
     of a failed precondition check in the smart contract code. Smart contracts can
@@ -459,85 +625,119 @@
     the deduction of the gas execution fee from the sender’s balance. As such, when
     a transaction you sent fails, you can be confident that the state of your contracts
     on-chain was not altered in any way.
+  id: totrans-77
   prefs: []
   type: TYPE_NORMAL
+  zh: 在以太坊中的交易并不总是成功的。交易可能由于执行过程中耗尽 gas 或者由于智能合约代码中的预置条件检查失败等各种原因而失败。智能合约可以对调用它们的参数进行检查，如果未通过所有预置条件，则可能导致交易失败。交易是原子性的，这意味着它们在状态变化方面要么全部成功，要么全部失败。换句话说，失败的交易不会将任何更改持久化到区块链上，除了从发送者余额中扣除
+    gas 执行费用。因此，当您发送的交易失败时，您可以放心地知道您的合约在链上的状态没有以任何方式被更改。
 - en: Note
+  id: totrans-78
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 注意
 - en: Failed transactions are either ABORT’ed or REVERT’ed. The difference between
     the two is that the former will consume all gas up to the maximum allowance of
     the transaction, whereas the latter only consumes the gas used up to the point
     where the transaction failed. Smart contracts usually fire a REVERT when a precondition
     check fails, so as not to waste user’s gas.
+  id: totrans-79
   prefs: []
   type: TYPE_NORMAL
+  zh: 失败的交易要么是被 ABORT，要么是被 REVERT。两者之间的区别在于前者将消耗交易的最大配额之前的所有 gas，而后者只消耗直到交易失败的点为止的
+    gas。当预置条件检查失败时，智能合约通常会触发一个 REVERT，以免浪费用户的 gas。
 - en: During execution, a transaction may *log* arbitrary information. These logs
     cannot be accessed from another smart contract and are only visible from outside
     the Ethereum network itself, such as from a front-end interface. Logged data may
     be structured and even *indexed*, allowing clients to search for specific events.
     We will work with logs more in-depth when we tackle Solidity’s *events*.
+  id: totrans-80
   prefs: []
   type: TYPE_NORMAL
+  zh: 在执行过程中，一个交易可能会*记录*任意信息。这些日志不能从另一个智能合约中访问，只能从以太坊网络外部，比如从前端界面中看到。记录的数据可以被结构化甚至*索引*，允许客户端搜索特定事件。当我们处理
+    Solidity 的*事件*时，我们将更深入地研究日志。
 - en: Calls
+  id: totrans-81
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 调用
 - en: While transactions are the only way to perform a change in the Ethereum blockchain,
     they are not the only way to interact with smart contracts. Any off-chain client
     can perform a query on a smart contract by making a static *call* to it.
+  id: totrans-82
   prefs: []
   type: TYPE_NORMAL
+  zh: 虽然交易是在以太坊区块链上执行更改的唯一方法，但它们不是与智能合约互动的唯一方式。任何链下客户端都可以通过向智能合约发出静态*调用*来查询它。
 - en: Calls are different from transactions in that they do not need to be signed
     and are not broadcasted to the Ethereum network, and thus cannot make any changes
     to the blockchain state and do not cost any gas. Calls are always resolved by
     the node that receives them and are only used for querying data from a smart contract.
+  id: totrans-83
   prefs: []
   type: TYPE_NORMAL
+  zh: Calls（调用）与交易不同，因为它们不需要签名，也不会被广播到以太坊网络，因此不能对区块链状态进行任何更改，也不会消耗任何 Gas。调用始终由接收到它们的节点解析，并且仅用于从智能合约查询数据。
 - en: A call executes smart contract code just like a transaction does, the only difference
     is that any changes performed during a call are not persisted, and the return
     value of a call is sent back to the sender (unlike transactions, where the sender
     has no way to get a return value back). If transactions can be thought of as setters
     that change the state of a smart contract, calls would be the getters.
+  id: totrans-84
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个调用执行智能合约代码，就像交易一样，唯一的区别是调用期间执行的任何更改都不会被持久化，并且调用的返回值会发送回发送者（与交易不同，发送者无法获得返回值）。如果交易可以被认为是改变智能合约状态的
+    setter，那么调用将是 getter。
 - en: Calls can even be issued on older blocks. Since all data in the blockchain is
     persisted, the state of the chain on every block,^([7](#Fn7)) so a call to a smart
     contract can be made in the context of an older block. This feature is not used
     very often, but can be used to reconstruct the history of a contract, although
     *logs* are the preferred method to do this.
+  id: totrans-85
   prefs: []
   type: TYPE_NORMAL
+  zh: 调用甚至可以在旧区块上发出。由于区块链中的所有数据都是持久的，每个区块的链状态都被保留，^([7](#Fn7))因此可以在旧区块的上下文中对智能合约进行调用。虽然这个特性并不经常使用，但可以用于重构合约的历史，尽管
+    *日志* 是首选方法。
 - en: Solidity
+  id: totrans-86
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: Solidity
 - en: Solidity  is an object-oriented statically typed language, with curly-braced
     syntax inspired in Javascript, and support for multiple inheritance. It is the
     most popular language for smart contract development. At the time of this writing,
     the latest minor version available is 0.5, which we will be using throughout the
     book.
+  id: totrans-87
   prefs: []
   type: TYPE_NORMAL
+  zh: Solidity 是一种面向对象的静态类型语言，其花括号语法灵感来自于 Javascript，并支持多重继承。它是最流行的智能合约开发语言。在撰写本文时，最新的次要版本是
+    0.5，在本书中我们将使用该版本。
 - en: The basic unit of Solidity code is a contract, which is similar to a class,
     but compiles to code that spawns a new smart contract. Solidity contracts can
     have state variables, which are persisted in the contract’s storage, and can define
     functions that are executed upon a call or a transaction. The language also supports
     modifiers, events, libraries, complex data types, and other concepts that we will
     explore in this section.
+  id: totrans-88
   prefs: []
   type: TYPE_NORMAL
+  zh: Solidity 代码的基本单位是合约，它类似于一个类，但编译成生成新智能合约的代码。Solidity 合约可以有状态变量，这些变量存储在合约的存储中，并可以定义在调用或交易时执行的函数。该语言还支持修饰符、事件、库、复杂数据类型等概念，我们将在本节中探讨这些概念。
 - en: We will only be making an overview of Solidity, covering the required features
     to be able to understand and make small changes to a smart contract system. It
     is strongly suggested that you go through the Solidity documentation^([8](#Fn8))
     to learn more in-depth about the language, and it is also a good idea to review
     security best practices before rolling out your contracts.^([9](#Fn9))
+  id: totrans-89
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们只会对 Solidity 进行概述，涵盖了理解和对智能合约系统进行小改动所需的功能。强烈建议您阅读 Solidity 文档^([8](#Fn8))，以更深入地了解该语言，同时在部署合约之前审查安全最佳实践也是一个好主意。^([9](#Fn9))
 - en: Remix
+  id: totrans-90
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 重新编辑
 - en: Before going into Solidity itself, we will introduce Remix,^([10](#Fn10)) a
     tool for quickly prototyping Solidity code (Figure [3-2](#Fig2)). Remix is a full
     in-browser IDE for Solidity development. It bundles a Solidity code editor, a
@@ -546,39 +746,60 @@
     any Ethereum node, allowing you to manage your smart contract on any network,
     whether it is a local development network or the main Ethereum network (also referred
     to as *mainnet*).![../images/476252_1_En_3_Chapter/476252_1_En_3_Fig2_HTML.jpg](../images/476252_1_En_3_Chapter/476252_1_En_3_Fig2_HTML.jpg)
+  id: totrans-91
   prefs: []
   type: TYPE_NORMAL
+  zh: 在深入研究 Solidity 本身之前，我们将介绍 Remix，^([10](#Fn10)) 这是一个用于快速原型设计 Solidity 代码的工具（图
+    [3-2](#Fig2)）。Remix 是一个完整的基于浏览器的 Solidity 开发 IDE。它包含一个 Solidity 代码编辑器、一个编译器和一个
+    EVM 运行时。EVM 运行时允许您在模拟环境中本地部署和测试智能合约。Remix 也可以连接到任何以太坊节点，允许您管理任何网络上的智能合约，无论是本地开发网络还是主以太坊网络（也称为
+    *主网*）。![../images/476252_1_En_3_Chapter/476252_1_En_3_Fig2_HTML.jpg](../images/476252_1_En_3_Chapter/476252_1_En_3_Fig2_HTML.jpg)
 - en: Figure 3-2
+  id: totrans-92
   prefs: []
   type: TYPE_NORMAL
+  zh: 图 3-2
 - en: Screenshot of remix IDE at remix.ethereum.org
+  id: totrans-93
   prefs: []
   type: TYPE_NORMAL
+  zh: 在 remix.ethereum.org 上 remix IDE 的屏幕截图
 - en: Remix has several features for developing, analyzing, deploying, interacting
     with, and debugging smart contracts. We will focus on the most fundamental ones,
     but feel free to play around with the tool.
+  id: totrans-94
   prefs: []
   type: TYPE_NORMAL
+  zh: Remix 具有几个功能，用于开发、分析、部署、与智能合约交互和调试。我们将重点关注最基本的功能，但也可以随意使用该工具进行尝试。
 - en: To start, add a new file by clicking the plus sign on the top left of the IDE,
     and create a new MyContract.sol file. On the right side of the screen, in the
     *Compile tab*, make sure you are using the compiler version 0.5.0, and choose
     to *auto-compile* your contracts. We will use this to test our first Solidity
     contract.
+  id: totrans-95
   prefs: []
   type: TYPE_NORMAL
+  zh: 要开始，请点击 IDE 左上角的加号，添加一个新文件，并创建一个新的 MyContract.sol 文件。在屏幕右侧的 *编译选项卡* 中，请确保您正在使用编译器版本
+    0.5.0，并选择 *自动编译* 您的合约。我们将使用此选项测试我们的第一个 Solidity 合约。
 - en: Note
+  id: totrans-96
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 注意
 - en: The Solidity compiler, written in C++, is not only compiled to native code but
     also to javascript using Emscripten. This allows you to compile a Solidity smart
     contract directly in your browser.
+  id: totrans-97
   prefs: []
   type: TYPE_NORMAL
+  zh: Solidity 编译器使用 C++ 编写，不仅编译为本机代码，还使用 Emscripten 编译为 JavaScript。这使您可以直接在浏览器中编译
+    Solidity 智能合约。
 - en: Your First Solidity Contract
+  id: totrans-98
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 您的第一个 Solidity 合约
 - en: We will start with a very simple Solidity contract (Listing [3-1](#PC2)). This
     contract will hold a single integer value myNumber and provide a constructor to
     set its initial value, a public function to increase it by a certain amount, and
@@ -587,31 +808,49 @@
     = initialValue;    }    function increase(uint256 x) public {        require(x
     > 0);        myNumber = myNumber + x;    }    function getValue() public view
     returns (uint256) {        return myNumber;    }}Listing 3-1
+  id: totrans-99
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将从一个非常简单的 Solidity 合约开始（见[3-1](#PC2)）。这个合约将保存一个单一的整数值 myNumber，并提供一个构造函数来设置它的初始值，一个公共函数来增加它的值，以及一个公共
+    getter 来检索它。pragma solidity ^0.5.0;contract MyContract {    uint256 private myNumber;    constructor(uint256
+    initialValue) public {        myNumber = initialValue;    }    function increase(uint256
+    x) public {        require(x > 0);        myNumber = myNumber + x;    }    function
+    getValue() public view returns (uint256) {        return myNumber;    }}[3-1]
 - en: Simple Solidity contract, implementing a counter
+  id: totrans-100
   prefs: []
   type: TYPE_NORMAL
+  zh: 简单的 Solidity 合约，实现一个计数器
 - en: Let’s go through this contract. First thing to notice is the pragma directive
     to set a required Solidity compiler version that corresponds to the code. A compiler
     that does not match the required version will refuse to compile the file. In particular,
     ^0.5.0 indicates any version that starts with 0.5.^([11](#Fn11))
+  id: totrans-101
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们来逐步理解这个合约。首先要注意的是 pragma 指令，用于设置与代码相对应的所需 Solidity 编译器版本。不符合所需版本的编译器将拒绝编译文件。特别是
+    ^0.5.0 表示以 0.5 开头的任何版本。^([11](#Fn11))
 - en: Next is a contract block, which defines a smart contract to be deployed. The
     contract can define several state variables, such as myNumber in the example,
     which will be saved to storage in the EVM.
+  id: totrans-102
   prefs: []
   type: TYPE_NORMAL
+  zh: 下面是一个合约块，定义了一个要部署的智能合约。合约可以定义多个状态变量，比如例子中的 myNumber，它将保存到 EVM 的存储中。
 - en: Note
+  id: totrans-103
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 注意
 - en: Storage is always initialized to zero in the EVM. This means that all state
     variables in Solidity are zero by default. To prevent any billion-dollar mistakes,
     Solidity does not have null values.^([12](#Fn12))
+  id: totrans-104
   prefs: []
   type: TYPE_NORMAL
+  zh: 存储在以太虚拟机（EVM）中始终初始化为零。这意味着 Solidity 中的所有状态变量默认都是零。为了防止任何价值数十亿美元的错误，Solidity
+    没有空值。^([12](#Fn12))
 - en: A contract can define multiple functions that will be executed in its context
     and will have access to its storage. Functions must always define the type of
     their arguments and their return type, if any. Also, functions can have different
@@ -619,31 +858,44 @@
     contract or from outside, and can be restricted to not modify the contract’s storage,
     like getValue in the example. A constructor can be optionally defined and is run
     when the contract is deployed.
+  id: totrans-105
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个合约可以定义多个函数，这些函数将在其上下文中执行，并可以访问其存储。函数必须始终定义其参数类型及其返回类型（如果有）。此外，函数可以具有不同的可见性，取决于它们是否只能在合约内部调用或从外部调用，并且可以限制为不修改合约的存储，例如在示例中的
+    getValue。可以选择定义构造函数，并在部署合约时运行。
 - en: Note
+  id: totrans-106
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 注意
 - en: Solidity supports function overloading; this means having two functions in the
     same contract with the same name but different arguments. While useful for certain
     scenarios, several client-side libraries, especially those in javascript, do not
     always have good support for them. Furthermore, it can be argued that overloaded
     functions make code more difficult to follow, and other smart contract languages
     have even made the explicit design decision to not support function overloading.
+  id: totrans-107
   prefs: []
   type: TYPE_NORMAL
+  zh: Solidity 支持函数重载；这意味着在同一合同中有两个名称相同但参数不同的函数。尽管对于某些场景很有用，但一些客户端库，特别是 JavaScript
+    中的库，并不总是对其有很好的支持。此外，可以说，重载函数会使代码更难理解，而其他智能合同语言甚至明确决定不支持函数重载。
 - en: Another interesting keyword in this sample contract is require. It allows you
     to check for a condition and throw an error (an EVM revert) if it doesn’t hold.
     It is commonly used to check for preconditions in functions.
+  id: totrans-108
   prefs: []
   type: TYPE_NORMAL
+  zh: 另一个在这份示例合同中有趣的关键词是 `require`。它允许您检查条件，并在条件不成立时抛出错误（EVM 回滚）。通常用于检查函数的前置条件。
 - en: Remember that your contract is exposed to everyone on the blockchain. This means
     that any attacker can send a transaction to any public function with any parameters
     they wish. This makes a very compelling case for adding as many require statements
     as you need to always validate the inputs to your functions.
+  id: totrans-109
   prefs: []
   type: TYPE_NORMAL
+  zh: 请记住，您的合同对区块链上的所有人都是公开的。这意味着任何攻击者都可以向任何公共函数发送带有任何所需参数的交易。这极大地促使您添加尽可能多的 `require`
+    语句，以始终验证函数的输入。
 - en: 'Before delving deeper into Solidity code, let’s try out our first contract
     in Remix. Copy the code for MyContract into the newly created MyContract.sol file
     tab in Remix, and wait for it to auto-compile. Then open the *Run* tab on the
@@ -651,41 +903,60 @@
     the environment where you want to deploy your contract: choose *JavaScript VM*
     to run the code in a simulated blockchain in your browser, and pick any of the
     provided *Accounts*.![../images/476252_1_En_3_Chapter/476252_1_En_3_Fig3_HTML.jpg](../images/476252_1_En_3_Chapter/476252_1_En_3_Fig3_HTML.jpg)'
+  id: totrans-110
   prefs: []
   type: TYPE_NORMAL
+  zh: 在深入研究 Solidity 代码之前，让我们在 Remix 中尝试我们的第一个合同。将 MyContract 的代码复制到 Remix 中新创建的 MyContract.sol
+    文件选项卡中，并等待其自动编译。然后在 IDE 右侧打开 *Run* 选项卡（见图 [3-3](#Fig3)）。这将允许您配置要部署合同的环境：选择 *JavaScript
+    VM* 在浏览器中模拟区块链运行代码，并选择提供的 *任何账户*。![../images/476252_1_En_3_Chapter/476252_1_En_3_Fig3_HTML.jpg](../images/476252_1_En_3_Chapter/476252_1_En_3_Fig3_HTML.jpg)
 - en: Figure 3-3
+  id: totrans-111
   prefs: []
   type: TYPE_NORMAL
+  zh: 图 3-3
 - en: Deploying a contract via Remix
+  id: totrans-112
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过 Remix 部署合同
 - en: To deploy your contract, choose MyContract from the contracts drop-down, enter
     an initial value to be used for the constructor we had defined, and accept the
     transaction. This will deploy the contract to your in-browser environment, which
     will execute almost instantly. Remember that when working in a real blockchain,
     the deployment will actually take several seconds.
+  id: totrans-113
   prefs: []
   type: TYPE_NORMAL
+  zh: 要部署您的合约，请从合约下拉菜单中选择 MyContract，输入要用于我们定义的构造函数的初始值，并接受交易。这将将合约部署到您的浏览器环境中，几乎会立即执行。请记住，在真实的区块链中工作时，部署实际上将需要几秒钟的时间。
 - en: You will notice that a new log entry showed up at in the middle-bottom panel
     (Figure [3-4](#Fig4)). This has detailed information on the transaction executed.
     Take some time to go through it and understand all the info listed, referring
     back to the “Transactions” section in this chapter.![../images/476252_1_En_3_Chapter/476252_1_En_3_Fig4_HTML.jpg](../images/476252_1_En_3_Chapter/476252_1_En_3_Fig4_HTML.jpg)
+  id: totrans-114
   prefs: []
   type: TYPE_NORMAL
+  zh: 您将注意到在中底部面板出现了一个新的日志条目（图 [3-4](#Fig4)）。其中包含有关执行的交易的详细信息。花些时间仔细阅读并理解列出的所有信息，并参考本章的“交易”部分。![../images/476252_1_En_3_Chapter/476252_1_En_3_Fig4_HTML.jpg](../images/476252_1_En_3_Chapter/476252_1_En_3_Fig4_HTML.jpg)
 - en: Figure 3-4
+  id: totrans-115
   prefs: []
   type: TYPE_NORMAL
+  zh: 图 3-4
 - en: Details of a transaction as shown in Remix’s console
+  id: totrans-116
   prefs: []
   type: TYPE_NORMAL
+  zh: Remix 控制台中显示的交易详细信息
 - en: 'Also, on the bottom of the right sidebar of the IDE, you will now see that
     an instance of MyContract is listed under the *Deployed Contracts* section, including
     the address at which it was deployed. Expanding it will give you access to the
     public functions of the contract: increase and getValue. Try calling both of them,
     using different values for increase, to play around with the contract and check
     out the transactions generated.'
+  id: totrans-117
   prefs: []
   type: TYPE_NORMAL
+  zh: 此外，在集成开发环境（IDE）右侧侧边栏底部，您现在将看到一个名为 MyContract 的实例列在*已部署的合约*部分下，包括其部署的地址。展开它将使您可以访问合约的公共函数：increase
+    和 getValue。尝试调用它们两个，并使用不同的值来调用 increase，以便玩弄合约并查看生成的交易。
 - en: 'Remember the distinction we made earlier between transactions and calls to
     contracts: the former broadcasts a transaction to the entire network that may
     change the state of a contract or the balance of an address, while the latter
@@ -694,78 +965,116 @@
     issues a call to the contract when you execute it instead of a transaction. On
     the other hand, since increase does alter the contract’s state, it spawns a new
     transaction every time you call it.'
+  id: totrans-118
   prefs: []
   type: TYPE_NORMAL
+  zh: 请记住，我们之前在交易和对合约的调用之间进行的区分：前者向整个网络广播一个交易，该交易可能会更改合约的状态或地址的余额，而后者仅查询单个节点以检索值。由于
+    getValue 被标记为不修改合约的方法（通过 view 关键字），当您执行它时，Remix 会自动对合约发出调用，而不是交易。另一方面，由于 increase
+    确实改变了合约的状态，所以每次调用它时都会生成一个新的交易。
 - en: We will now go more in depth into Solidity. Feel free to copy the code samples
     into Remix, deploy them, and interact with them. Remember that if you change the
     code of a contract, you will need to deploy a new instance of it in order to interact
     with the new version, since already deployed contracts cannot be changed. Also,
     refer to the Solidity documentation if you want to explore a particular topic
     in detail.
+  id: totrans-119
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们将更深入地了解 Solidity。随意将代码示例复制到 Remix 中，部署它们，并与之交互。请记住，如果更改合约的代码，则需要部署其新实例才能与新版本交互，因为已部署的合约无法更改。此外，如果您想详细探讨特定主题，请参阅
+    Solidity 文档。
 - en: What’s in a Function?
+  id: totrans-120
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 函数的内部结构
 - en: 'A function definition in Solidity has the following structure:'
+  id: totrans-121
   prefs: []
   type: TYPE_NORMAL
+  zh: Solidity 中的函数定义具有以下结构：
 - en: A function name
+  id: totrans-122
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 函数名
 - en: A set of typed parameters
+  id: totrans-123
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 一组类型化的参数
 - en: A visibility modifier
+  id: totrans-124
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 可见性修饰符
 - en: A pay-ability modifier
+  id: totrans-125
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 一个支付能力修饰符
 - en: A set of custom modifiers
+  id: totrans-126
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 一组自定义修饰符
 - en: A set of return values
+  id: totrans-127
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 一组返回值
 - en: A function may then look like the following. Note that a function may return
     more than a single value, expressed as a tuple.function myFunction(uint256 param1,
     bool param2)  public payable onlyOwner  returns (uint256, bool);
+  id: totrans-128
   prefs: []
   type: TYPE_NORMAL
+  zh: 函数可能如下所示。请注意，函数可以返回多个值，表示为元组。function myFunction(uint256 param1, bool param2)  public
+    payable onlyOwner  returns (uint256, bool);
 - en: Visibility Modifiers
+  id: totrans-129
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 可见性修饰符
 - en: 'As in most object-oriented languages, functions in Solidity can specify different
     visibility or access modifiers, that control whether a function can be called
     from outside the contract or not. Solidity provides the following four access
     levels:'
+  id: totrans-130
   prefs: []
   type: TYPE_NORMAL
+  zh: 与大多数面向对象的语言一样，Solidity 中的函数可以指定不同的可见性或访问修饰符，以控制函数是否可以从合约外部调用。Solidity 提供了以下四个访问级别：
 - en: External
+  id: totrans-131
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 外部
 - en: Public
+  id: totrans-132
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 公共
 - en: Internal
+  id: totrans-133
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 内部
 - en: Private
+  id: totrans-134
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 私有
 - en: '**Private** functions can only be called from within the same contract. Under
     the hood, they are implemented as a jump to another part of the contract’s code.
     This means that a call to a private function does not create a new scope, with
@@ -773,8 +1082,11 @@
     scope of the caller, what makes the call itself cheap in terms of gas usage. **Internal**
     functions work exactly the same, only that they allow derived contracts to call
     them (equivalent to protected in other languages).'
+  id: totrans-135
   prefs: []
   type: TYPE_NORMAL
+  zh: '**私有**函数只能在同一合约内部调用。在内部，它们实现为跳转到合约代码的另一部分。这意味着对私有函数的调用不会创建新的作用域，也不会产生相关的调用数据、值、gas
+    等。相反，它在调用者的相同作用域内执行，这使得调用本身在 gas 使用方面很廉价。**内部**函数的工作方式完全相同，只是它们允许派生合约调用它们（在其他语言中相当于受保护的）。'
 - en: On the other hand, **external** functions can only be called from an external
     account or from another contract. External functions are used to define the exposed
     surface of a contract and are usually where most input argument checks are made.
@@ -783,16 +1095,20 @@
     more expensive than a jump to an internal or private function, but it is required
     by the EVM. Note that it is possible to call an external function from the same
     contract where it is defined, but this requires an EVM call as well.
+  id: totrans-136
   prefs: []
   type: TYPE_NORMAL
+  zh: 另一方面，**外部**函数只能从外部帐户或另一个合约中调用。外部函数用于定义合约的暴露接口，并且通常是大多数输入参数检查所在的地方。当一个合约调用另一个合约时，它会进行一个EVM调用，这会创建一个新的作用域，具有自己的调用数据、转移值、gas等等。这比跳转到内部或私有函数更昂贵，但是EVM要求如此。请注意，可能会在定义它的同一合约中调用外部函数，但这也需要一个EVM调用。
 - en: 'If you have an external function that you would also need to call from within
     your contract, you would label it as a **public** function. Public functions are
     a mix between external and internal: they support being called from both outside
     the contract and from within. The compiler is smart enough to use an internal
     cheap jump if the function is called from within the same contract, but creates
     a new EVM call if calling a public function from another contract.'
+  id: totrans-137
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你有一个外部函数，你还需要从你的合约内部调用它，你会将它标记为**公共**函数。公共函数是外部和内部之间的混合：它们支持从合约内外部都被调用。编译器足够智能，如果从同一合约内调用该函数，它会使用一个内部廉价的跳转，但是如果从另一个合约调用公共函数，则会创建一个新的EVM调用。
 - en: Note that state variables also have their own set of visibility modifiers, which
     are public, internal, and private, though they have slightly different semantics.
     A private state variable can only be accessed from within the same contract and
@@ -802,17 +1118,23 @@
     with the same name as the state variable (Listing [3-2](#PC4)).contract ExplicitGetter
     {  uint256 internal _value;  function value() public returns (uint256) {    return
     _value;  }}contract ImplicitGetter {  uint256 public value;}Listing 3-2
+  id: totrans-138
   prefs: []
   type: TYPE_NORMAL
+  zh: 请注意，状态变量也有自己的一套可见性修饰符，即public、internal和private，尽管它们的语义略有不同。私有状态变量只能从同一合约内部访问，而内部状态变量不仅可以从同一合约内部访问，还可以从任何派生合约中访问（与函数的情况相同）。然而，当将public修饰符应用于状态变量时，它的行为类似于internal修饰符，并为具有与状态变量相同名称的隐式getter函数定义一个内部修饰符（见列表[3-2](#PC4)）。
 - en: 'Example of using a getter function vs. the public state variable modifier.
     Both contracts are equivalent in terms of the getter. There is one caveat though:
     implicit getters cannot be overridden by derived contracts'
+  id: totrans-139
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用获取器函数与公共状态变量修改器的示例。在获取器方面，这两个合约是等价的。但有一个注意事项：隐式获取器不能被派生合约覆盖。
 - en: Payability Modifiers
+  id: totrans-140
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 支付性修改器
 - en: A function may optionally be defined as payable (Listing [3-3](#PC5)). This
     tells Solidity that the function can accept ETH when called. The compiler will
     throw an error if you try to send ETH to a function not defined as payable. This
@@ -822,30 +1144,47 @@
     pay(Payable p, uint256 eth) public {    // this syntax is used for sending eth    //
     along with a function call    p.canPay.value(eth)();    // this fails to compile    p.cannotPay.value(eth)();  }}Listing
     3-3
+  id: totrans-141
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个函数可以选择性地被定义为可支付的（见列表[3-3](#PC5)）。这告诉 Solidity 当调用该函数时可以接受 ETH。如果尝试向未定义为可支付的函数发送
+    ETH，编译器将抛出错误。这可以防止意外向未准备处理的合约发送余额，可能将 ETH 锁定在其中。可支付合约 {  function canPay() public
+    payable {  }  function cannotPay() public { }}支付方 {  function pay(Payable p, uint256
+    eth) public {    // 这种语法用于发送 eth    // 与函数调用一起    p.canPay.value(eth)();    //
+    这无法编译    p.cannotPay.value(eth)();  }}列表 3-3
 - en: Payable vs. non-payable functions in Solidity
+  id: totrans-142
   prefs: []
   type: TYPE_NORMAL
+  zh: Solidity 中的可支付 vs. 非可支付函数
 - en: Solidity also adds runtime checks to ensure that no balance is sent to non-payable
     functions. For instance, if you try to send ETH to a non-payable function of a
     contract from an external account, you will get a revert error.
+  id: totrans-143
   prefs: []
   type: TYPE_NORMAL
+  zh: Solidity 还添加了运行时检查，以确保没有余额发送到不可支付的函数。例如，如果尝试从外部帐户向合约的不可支付函数发送 ETH，您将收到一个 revert
+    错误。
 - en: Custom Modifiers
+  id: totrans-144
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 自定义修改器
 - en: Solidity allows you to define your own function modifiers. These are code blocks
     that can execute as a filter before and after a function and can even call into
     other contract functions, manage storage, or react based on the current message.
+  id: totrans-145
   prefs: []
   type: TYPE_NORMAL
+  zh: Solidity 允许您定义自己的函数修改器。这些是在函数之前和之后可以执行的代码块，甚至可以调用其他合约函数、管理存储或根据当前消息做出反应。
 - en: Information on the current call is available via a context variable named msg
     and includes the ETH value received, the sender address of the call, the gas provided,
     the gas price, and more.
+  id: totrans-146
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过名为 msg 的上下文变量可以获取有关当前调用的信息，其中包括接收的 ETH 值、调用方地址、提供的 gas、gas 价格等。
 - en: A typical use case for modifiers is access control (Listing [3-4](#PC6)). By
     defining who can call into a function in a modifier, you can then easily reuse
     that logic across multiple functions via the usage of modifiers.contract OwnerDepositable
@@ -854,26 +1193,40 @@
     value) {    require(msg.value > 0);    _;  }  function ownerDeposits()    onlyOwner
     minDeposit(1 ether) payable public {    // here we know that the sender is the
     owner,    // and has transferred at least 1 ETH   }}Listing 3-4
+  id: totrans-147
   prefs: []
   type: TYPE_NORMAL
+  zh: 修饰符的典型用例是访问控制（见[3-4](https://example.org/PC6)）。 通过在修饰符中定义谁可以调用函数，您可以通过修饰符在多个函数之间轻松重用该逻辑。
+    合同`OwnerDepositable` {  address public owner;  constructor(address _owner) public
+    {    owner = _owner;  }  modifier onlyOwner {    require(msg.sender == owner);    _;  }  modifier
+    minDeposit(uint256 value) {    require(msg.value > 0);    _;  }  function ownerDeposits()    onlyOwner
+    minDeposit(1 ether) payable public {    // 这里我们知道发送者是所有者，    // 并且已经转移了至少1 ETH   }}[3-4]
 - en: Using custom modifiers for access control
+  id: totrans-148
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用自定义修饰符进行访问控制
 - en: Modifiers are defined with the modifier keyword and yield the call to the original
     function via an underscore. They are then applied to a function by listing them
     by name in the function’s definition. Modifiers can even accept arguments, which
     must be provided when applied to a function.
+  id: totrans-149
   prefs: []
   type: TYPE_NORMAL
+  zh: 修饰符使用`modifier`关键字定义，并通过下划线将调用委托给原始函数。 然后，在函数定义中通过名称列出它们应用于一个函数。 修饰符甚至可以接受参数，当应用于函数时必须提供这些参数。
 - en: Fallback Function
+  id: totrans-150
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 回退函数
 - en: A contract may define a function without a name. This function is referred to
     as the *fallback function* and is invoked if the contract receives a call that
     does not match any other function.
+  id: totrans-151
   prefs: []
   type: TYPE_NORMAL
+  zh: 合同可以定义一个没有名称的函数。 这个函数被称为*回退函数*，如果合同收到一个与任何其他函数不匹配的调用，则会调用它。
 - en: Even though they can be used as catch-all functions in contracts, the main use
     case of fallback functions is handling plain ETH transfers (Listing [3-5](#PC7)).
     When you transfer funds to a contract address, you typically do not include anything
@@ -881,12 +1234,18 @@
     in response to that transfer, or perform checks on the transfer itself.contract
     NotCheap {  function() external payable {    require(msg.value >= 1 ether);  }}Listing
     3-5
+  id: totrans-152
   prefs: []
   type: TYPE_NORMAL
+  zh: 尽管它们可以在合同中用作通用函数，但回退函数的主要用例是处理纯粹的以太币转账（见[3-5](https://example.org/PC7)）。 当您向合同地址转账资金时，通常不在交易数据中包含任何内容。
+    回退函数允许合同对该转账做出响应，或者对转账本身进行检查。合同`NotCheap` {  function() external payable {    require(msg.value
+    >= 1 ether);  }}[3-5]
 - en: Using a fallback function to prevent a contract from accepting transfers that
     are below 1 ETH
+  id: totrans-153
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用回退函数防止合同接受低于1 ETH的转账
 - en: Note that when transferring ETH from Solidity code using the transfer method,
     only a very small gas stipend will be allocated. This is due to security reasons
     in order to prevent reentrancy attacks when transferring funds. What this means
@@ -894,76 +1253,111 @@
     or risk running out of gas when receiving ETH, thus reverting the transfer transaction.
     Even a write to storage is more expensive than the gas stipend available in a
     plain transfer.
+  id: totrans-154
   prefs: []
   type: TYPE_NORMAL
+  zh: 请注意，当使用 Solidity 代码从转移资金时，transfer 方法仅会分配很小的 gas 补贴。这是出于安全原因，以防止在转移资金时发生重入攻击。这意味着回退函数应只执行非常简单的检查或操作，否则在接收
+    ETH 时可能会耗尽 gas，从而导致转账交易失败。甚至对存储的写入都比普通转账中可用的 gas 补贴更昂贵。
 - en: Warning
+  id: totrans-155
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 警告
 - en: Fallback functions are also required to signal whether a contract can receive
     ETH. If a contract does not define a payable fallback function, then no plain
     ETH transfers can be sent to it. This prevents from accidentally sending funds
     to a contract that cannot handle them, thus locking the funds.
+  id: totrans-156
   prefs: []
   type: TYPE_NORMAL
+  zh: 回退函数还需要表明合约是否能够接收以太币。如果合约没有定义可付款的回退函数，那么不能向其发送纯以太币转账。这可以防止意外向无法处理资金的合约发送资金，从而锁定资金。
 - en: Value Data Types
+  id: totrans-157
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 值数据类型
 - en: 'Solidity supports the traditional basic data types, such as bool or uint, plus
     some more complex data types such as array, mapping, or struct. We will start
     with the most simple data types: value types (Listing [3-6](#PC8)).pragma solidity
     ^0.5.0;contract MyContract {  bool private myFlag;  uint256 private myUnsignedNumber;  int256
     private mySignedNumber;  address private myAddress;}Listing 3-6'
+  id: totrans-158
   prefs: []
   type: TYPE_NORMAL
+  zh: Solidity 支持传统的基本数据类型，例如 bool 或 uint，以及一些更复杂的数据类型，例如数组、映射或结构。我们将从最简单的数据类型开始：值类型（见列表[3-6](#PC8)）。pragma
+    solidity ^0.5.0;contract MyContract {  bool private myFlag;  uint256 private myUnsignedNumber;  int256
+    private mySignedNumber;  address private myAddress;}列表 3-6
 - en: Overview of value data types in a contract
+  id: totrans-159
   prefs: []
   type: TYPE_NORMAL
+  zh: 合约中值数据类型的概述
 - en: Booleans and Equality
+  id: totrans-160
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 布尔值和相等性
 - en: 'Boolean literals are denoted by the keywords true and false. The usual logical
     operations are available, using the same symbols, and with the same short-circuit
     semantics as in javascript:'
+  id: totrans-161
   prefs: []
   type: TYPE_NORMAL
+  zh: 布尔字面值由关键字 true 和 false 表示。通常的逻辑操作可用，使用相同的符号，并具有与 javascript 相同的短路语义：
 - en: Negation !x
+  id: totrans-162
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 否定 !x
 - en: Conjunction x && y
+  id: totrans-163
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 且 x && y
 - en: Disjunction x || y
+  id: totrans-164
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 或 x || y
 - en: On the other hand, equality comparison operators == and != actually behave as
     javascript’s === and !==. Solidity will not coerce types when comparing and will
     throw a compiler error when attempting to compare objects of two different types.
     This holds for all data types, not just booleans.
+  id: totrans-165
   prefs: []
   type: TYPE_NORMAL
+  zh: 另一方面，相等比较运算符==和!=实际上的行为与javascript的===和!==相同。当比较时，Solidity 不会强制转换类型，并且在尝试比较两种不同类型的对象时会抛出编译器错误。这对于所有数据类型都适用，不仅仅是布尔值。
 - en: Integers and Arithmetic
+  id: totrans-166
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 整数和算术
 - en: 'Integer types can be both signed and unsigned, and can be defined of different
     sizes – from 8 to 256 bits in steps of 8\. The usual arithmetic, shifting, and
     bitwise operations are available, as well as comparison operators:'
+  id: totrans-167
   prefs: []
   type: TYPE_NORMAL
+  zh: 整数类型可以是有符号的，也可以是无符号的，可以定义不同大小的类型，从 8 到 256 位，步长为 8。通常的算术、移位和按位操作都可用，以及比较运算符：
 - en: uint8, uint16, uint24, ..., uint256 are unsigned integer types.
+  id: totrans-168
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: uint8、uint16、uint24、...、uint256 是无符号整数类型。
 - en: int8, int16, int24, ..., int256 are signed integer types.
+  id: totrans-169
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: int8、int16、int24、...、int256 是有符号整数类型。
 - en: 'Since integer types are often used to represent *value* in smart contracts,
     unsigned integers are much more common than signed. Also, since fixed or floating-point
     values are not (fully) supported, it is common to represent all values using integers
@@ -974,8 +1368,12 @@
     for working with time values, such as minutes, hours, days, and weeks. In these
     cases, the base unit is the second, so 3 minutes is compiled to the integer value
     180.'
+  id: totrans-170
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于整数类型通常用于在智能合约中表示*值*，无符号整数比有符号整数更常见。此外，由于不支持固定或浮点值（完全），因此通常使用带有固定小数位数的整数表示所有值。这对于以太坊余额特别真实，它们始终用*wei*来表示，这是以太坊的最小可分割单位：1e18
+    wei 等于 1 ETH。Solidity 甚至提供了后缀来使用这些单位：文字量 1 ether 实际上是整数值 1e18。还有用于处理时间值的后缀，如分钟、小时、天和周。在这些情况下，基本单位是秒，因此
+    3 分钟被编译为整数值 180。
 - en: 'A word of warning: all integer arithmetic operations in Solidity are unchecked;
     this means that it is possible to silently overflow. This is especially risky
     when dealing with unsigned numbers associated to value. For instance, accidentally
@@ -989,20 +1387,33 @@
     around    myNumber = myNumber - x;  }  function safeDecrease(uint256 x) {    //
     if x > myNumber, this will throw an error    myNumber = myNumber.sub(x);  }}Listing
     3-7'
+  id: totrans-171
   prefs: []
   type: TYPE_NORMAL
+  zh: 警告：Solidity中的所有整数算术操作都是不受检查的；这意味着可能会发生悄悄溢出。这在处理与值相关的无符号数时尤为危险。例如，意外地将表示某人余额的变量减少到零以下实际上会将该值变为几乎为2^(^255)。因此，强烈建议始终使用SafeMath^([13](#Fn13))（清单[3-7](#PC9)），这是OpenZeppelin框架提供的一个库，它为每个算术操作添加了溢出检查（有关导入和库的更多信息，请参见后文）。import
+    "openzeppelin-solidity/contracts/math/SafeMath.sol";contract MyContract {  using
+    SafeMath for uint256;  uint256 private myNumber;  function unsafeDecrease(uint256
+    x) {    // 如果 x > myNumber，则 myNumber 将悄悄地回绕    myNumber = myNumber - x;  }  function
+    safeDecrease(uint256 x) {    // 如果 x > myNumber，则会抛出错误    myNumber = myNumber.sub(x);  }}清单
+    3-7
 - en: Example of SafeMath usage for arithmetic operations
+  id: totrans-172
   prefs: []
   type: TYPE_NORMAL
+  zh: 算术运算的SafeMath用法示例
 - en: We will review how to use imports and libraries later in this chapter. For now,
     keep in mind that directly using arithmetic operators in Solidity, without going
     through SafeMath, is a potential security risk.
+  id: totrans-173
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将在本章后面介绍如何使用导入和库。现在，请记住，在Solidity中直接使用算术运算符，而不经过SafeMath，是一种潜在的安全风险。
 - en: Fixed Size Bytes
+  id: totrans-174
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 固定大小字节
 - en: Solidity also provides fixed size byte strings of up to 32 bytes, in the form
     of the bytes1, bytes2, ..., bytes32 data types. Since these all fit within an
     EVM word, they are all handled as value types as well, and behave similarly to
@@ -1010,31 +1421,44 @@
     support comparison, bitwise, and shift operators, plus an index access operator
     to retrieve a single byte from the array.bytes32 data;uint8 index;byte firstByte
     = data[0];
+  id: totrans-175
   prefs: []
   type: TYPE_NORMAL
+  zh: Solidity还提供了多达32字节的固定大小字节字符串，形式为bytes1、bytes2、...、bytes32数据类型。由于它们都适合于EVM字，它们也都被视为值类型，并且行为类似于整数类型，只是它们不提供任何算术函数。它们支持比较、位和移位运算符，以及一个索引访问运算符，用于从数组中检索单个字节。bytes32
+    data;uint8 index;byte firstByte = data[0];
 - en: These types are often used to store hashes or identifiers, where the numeric
     value itself is not relevant. For instance, precompiled hashing functions like
     sha256 or ripemd160 return bytes32 and bytes20, respectively.
+  id: totrans-176
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些类型通常用于存储哈希或标识符，其中数值本身并不重要。例如，预编译的哈希函数如sha256或ripemd160分别返回bytes32和bytes20。
 - en: Addresses, Contracts, and Transfers
+  id: totrans-177
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 地址、合同和转账
 - en: The address data type represents any Ethereum address. While any integer or
     byte type of at least 160 bits could be used to store addresses, Solidity specifically
     provides this type to handle them. Addresses also have specific properties for
     checking ETH balances, as well as for transferring funds.
+  id: totrans-178
   prefs: []
   type: TYPE_NORMAL
+  zh: 地址数据类型表示任何以太坊地址。虽然任何至少有 160 位的整数或字节类型都可以用来存储地址，但 Solidity 特别提供了这种类型来处理它们。地址还具有用于检查
+    ETH 余额以及转移资金的特定属性。
 - en: 'Solidity differentiates addresses into two separate types: address and address
     payable. The underlying representation for both is the same, and the difference
     is that only the latter provides the transfer method for sending ETH to it. This
     allows you rely on the type system to decide which addresses should be allowed
     to receive funds from your contracts. A non-payable address only provides a balance
     property to query its ETH balance.'
+  id: totrans-179
   prefs: []
   type: TYPE_NORMAL
+  zh: Solidity 将地址区分为两种不同类型：address 和 address payable。它们的基础表示相同，不同之处在于只有后者提供了用于向其发送
+    ETH 的 transfer 方法。这使得您可以依靠类型系统来决定哪些地址应该被允许从您的合同中接收资金。不可付款地址只提供余额属性来查询其 ETH 余额。
 - en: The following quite uninteresting contract (Listing [3-8](#PC11)) keeps track
     of an owner who created the contract and provides a single function to forward
     funds to them.contract MyContract {  address payable private owner;  address private
@@ -1042,38 +1466,61 @@
     forward() public payable {    uint256 ethReceived = msg.value;    require(ethReceived
     > 0);    lastContributor = msg.sender;    owner.transfer(ethReceived);  }}Listing
     3-8
+  id: totrans-180
   prefs: []
   type: TYPE_NORMAL
+  zh: 下面这份相当无聊的合同（见列表 [3-8](#PC11)）跟踪了创建合同的所有者，并提供了一个将资金转发给他们的单一功能。合同 MyContract {  address
+    payable private owner;  address private lastContributor;  constructor(address
+    payable _owner) public {    owner = _owner;  }  function forward() public payable
+    {    uint256 ethReceived = msg.value;    require(ethReceived > 0);    lastContributor
+    = msg.sender;    owner.transfer(ethReceived);  }}列表 3-8
 - en: Sample contract using address data types
+  id: totrans-181
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用地址数据类型的示例合同
 - en: Note that the owner address needs to be stored as an address payable type; otherwise,
     the compiler will throw an error when attempting to compile owner.transfer(ethReceived).
     On the other hand, lastContributor can be a plain address, since it will never
     receive ETH from the contract.
+  id: totrans-182
   prefs: []
   type: TYPE_NORMAL
+  zh: 请注意，所有者地址需要存储为地址支付类型；否则，当尝试编译 owner.transfer(ethReceived) 时，编译器会抛出错误。另一方面，lastContributor
+    可以是普通地址，因为它永远不会从合同中接收 ETH。
 - en: Note
+  id: totrans-183
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 注意
 - en: Solidity provides another function for sending ETH, which is send. The difference
     between the two is that send returns a boolean value indicating whether the ETH
     transfer was successful, and transfer throws a REVERT on failure. To avoid errors
     caused by forgetting checking send return values, it is recommended to always
     use transfer.
+  id: totrans-184
   prefs: []
   type: TYPE_NORMAL
+  zh: Solidity 还提供了另一个用于发送 ETH 的函数，即 send。两者之间的区别在于 send 返回一个布尔值，指示 ETH 转账是否成功，并且
+    transfer 在失败时抛出 REVERT。为了避免由于忘记检查 send 返回值而引起的错误，建议始终使用 transfer。
 - en: Any contract defined in Solidity can also be used as a type (Listing [3-9](#PC12)).
     A contract instance has all the public functions defined in the contract.contract
     Provider {  function answer() public pure returns (uint256) {    return 42;  }}contract
     Caller {  function fetchAnswer(Provider provider) public {    uint256 answer =
     provider.answer();    // do something with the answer  }}Listing 3-9
+  id: totrans-185
   prefs: []
   type: TYPE_NORMAL
+  zh: 在 Solidity 中定义的任何合约也可以用作类型（见列表[3-9](#PC12)）。合约实例具有合约中定义的所有公共函数。合约提供者 {  function
+    answer() public pure returns (uint256) {    return 42;  }}合约调用者 {  function fetchAnswer(Provider
+    provider) public {    uint256 answer = provider.answer();    // 对答案进行操作  }}列表
+    3-9
 - en: Calling a contract public function from Solidity
+  id: totrans-186
   prefs: []
   type: TYPE_NORMAL
+  zh: 从 Solidity 调用合约的公共函数
 - en: Internally, a contract instance is stored as its address, so contracts can be
     casted to and from the address type. This is useful when attempting to check the
     balance of a contract or transfer funds to it, since only the address type provides
@@ -1084,31 +1531,49 @@
     and create other contracts.contract Box {  uint256 public value;  constructor
     (uint256 _value) public {    value = _value;  }}contract Factory {  function create(uint256
     _value) public returns (Box) {    return new Box(_value);  }}Listing 3-10
+  id: totrans-187
   prefs: []
   type: TYPE_NORMAL
+  zh: 在内部，合约实例存储为其地址，因此合约可以转换为地址类型并从地址类型进行转换。当尝试检查合约的余额或向其转移资金时，这很有用，因为只有地址类型提供了余额和转移方法。function
+    sendFunds(MyContract recipient) {  recipient.transfer(1 eth); // 编译错误  address(recipient).transfer(1
+    eth); // ok!}合约类型也可以用于部署合约的新实例（见列表[3-10](#PC14)）。您可以利用这一点创建类似工厂的合约，用于设置和创建其他合约。合约
+    Box {  uint256 public value;  constructor (uint256 _value) public {    value =
+    _value;  }}合约工厂 {  function create(uint256 _value) public returns (Box) {    return
+    new Box(_value);  }}列表 3-10
 - en: Creating a contract from Solidity
+  id: totrans-188
   prefs: []
   type: TYPE_NORMAL
+  zh: 从 Solidity 创建合约
 - en: Also, like many other languages, Solidity also provides a this keyword that
     represents the current contract. The type of this is the contract itself.function
     forward(address payable beneficiary) public {  uint256 myBalance = address(this).balance;  beneficiary.transfer(myBalance);}
+  id: totrans-189
   prefs: []
   type: TYPE_NORMAL
+  zh: 与许多其他语言一样，Solidity 也提供了一个代表当前合约的关键字 this。this 的类型是合约本身。function forward(address
+    payable beneficiary) public {  uint256 myBalance = address(this).balance;  beneficiary.transfer(myBalance);}
 - en: Reference Types
+  id: totrans-190
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 引用类型
 - en: '*Reference types* in Solidity include arrays, strings, mappings, and structs.
     Unlike value types, which are always handled by copy when assigning them or passing
     them as a parameter, reference types usually pass a handle to an object that can
     be aliased or modified from another function. We will review how this works with
     the most common reference type: the array.'
+  id: totrans-191
   prefs: []
   type: TYPE_NORMAL
+  zh: Solidity 中的*引用类型*包括数组、字符串、映射和结构体。与值类型不同，赋值或将引用类型作为参数传递时，通常会传递指向可以在另一个函数中别名或修改的对象的句柄。我们将研究这是如何与最常见的引用类型——数组一起工作的。
 - en: Arrays, Bytes, and Strings
+  id: totrans-192
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 数组、字节和字符串
 - en: 'Solidity supports both fixed size and dynamic arrays. Array types are parametric,
     which means they are defined as an array of a base type. This allows you to define
     dynamic integer arrays like uint256[], or fixed size address arrays like address[4].
@@ -1116,8 +1581,11 @@
     notation is reversed as compared to other languages: bool[][4] is an fixed size
     array of four dynamic arrays. Furthermore, you cannot return arrays of arrays
     in an external function call.'
+  id: totrans-193
   prefs: []
   type: TYPE_NORMAL
+  zh: Solidity 支持固定大小和动态数组。数组类型是参数化的，这意味着它们被定义为基本类型的数组。这使您可以定义动态整数数组，如 uint256[]，或固定大小地址数组，如
+    address[4]。您甚至可以使用数组的数组，但请记住，在 Solidity 中，符号的表示与其他语言相比是相反的：bool[][4] 是一个包含四个动态数组的固定大小数组。此外，您不能在外部函数调用中返回数组的数组。
 - en: Arrays have a length method to query their size and provide an indexing operator
     to access or modify a position in the array. Dynamic arrays also have push and
     pop methods to add or remove elements. Arrays are typically iterated using a for-loop
@@ -1125,65 +1593,88 @@
     sum() public view returns (uint256) {    uint256 total = 0;    for (uint256 i
     = 0; i < array.length; i++) {      total += array[i];    }    return total;  }  function
     add(uint256 value) public {    array.push(value);  }}Listing 3-11
+  id: totrans-194
   prefs: []
   type: TYPE_NORMAL
+  zh: 数组有一个 length 方法来查询它们的大小，并提供一个索引运算符来访问或修改数组中的位置。动态数组还具有 push 和 pop 方法来添加或删除元素。在
+    Solidity 中，通常使用 for 循环来迭代数组（参见[3-11](#PC16)）。
 - en: Sample code for appending elements to an array and iterating them. Note that
     this example is subject to arithmetic overflow, since it is not using SafeMath
     for computing the sum over the array
+  id: totrans-195
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于向数组追加元素并迭代它们的示例代码，请注意该示例可能存在算术溢出，因为它没有使用 SafeMath 来计算数组元素的总和。
 - en: Warning
+  id: totrans-196
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 警告
 - en: Using a for-loop over an unbounded array is risky, since it may consume an arbitrarily
     high amount of gas, potentially more that fits in a single block, rendering the
     function impossible to call. Always avoid looping over an array that can grow
     out of control, or at least provide methods for iterating it by batches of controllable
     size.
+  id: totrans-197
   prefs: []
   type: TYPE_NORMAL
+  zh: 对无界数组使用 for 循环是有风险的，因为它可能消耗任意数量的 gas，潜在地超过一个区块的限制，使函数无法调用。始终避免循环遍历可能无限增长的数组，或者至少提供按可控大小批次迭代它的方法。
 - en: Remember that arrays are reference types instead of value types. Reference types
     contain, as their name indicates, a reference to an object instead of the actual
     value. This means that, depending on the context, assigning an array variable
     to another will not create a copy but hand over a reference to the same array.
+  id: totrans-198
   prefs: []
   type: TYPE_NORMAL
+  zh: 请记住数组是引用类型而不是值类型。引用类型包含，正如其名称所示，指向对象的引用而不是实际值。这意味着，根据上下文，将数组变量分配给另一个变量不会创建副本，而是将对相同数组的引用传递给另一个。
 - en: Whether the array is copied or a reference is passed depends on the *data location*.
     Data location may be a confusing concept, since it does not have a direct equivalent
     in other languages, and is an abstraction leakage from the EVM. Instead of trying
     to hide it and lead to potentially surprising results, Solidity opts for surfacing
     this distinction and forcing the programmer to be conscious about this important
     implementation detail.
+  id: totrans-199
   prefs: []
   type: TYPE_NORMAL
+  zh: 数组是复制还是传递引用取决于*数据位置*。数据位置可能是一个令人困惑的概念，因为它在其他语言中没有直接等价物，并且是来自EVM的抽象泄漏。Solidity选择将这种区别暴露出来，并迫使程序员意识到这个重要的实现细节，而不是试图隐藏它并导致潜在的令人惊讶的结果。
 - en: 'As we mentioned before, every contract has access to an internal storage that
     can be used to persist data. And since this space is very expensive to use, the
     EVM provides access to a memory heap for transient operations. These are precisely
     the two main data locations that Solidity defines: storage and memory. The third
     location is calldata, which refers to the space where data is supplied in a transaction.
     For all practical purposes, calldata works just like memory, only that it is immutable.'
+  id: totrans-200
   prefs: []
   type: TYPE_NORMAL
+  zh: 正如我们之前提到的，每个合约都可以访问一个内部存储，用于持久化数据。由于这个空间使用起来非常昂贵，EVM提供了一个用于临时操作的内存堆。这正是Solidity定义的两个主要数据位置：存储和内存。第三个位置是calldata，它指的是事务中提供数据的空间。在实际应用中，calldata的工作方式与内存完全相同，唯一的区别是它是不可变的。
 - en: 'Data locations need to be specified for every local variable or function parameter
     of a reference type. The only case where data location is unneeded is when declaring
     contract state variables, since these are always kept in storage. Note that when
     specifying locations for function arguments, you need to adhere to the following
     rules:'
+  id: totrans-201
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于每个引用类型的局部变量或函数参数，都需要指定数据位置。唯一不需要数据位置的情况是声明合约状态变量时，因为这些变量始终保留在存储中。请注意，在为函数参数指定位置时，您需要遵循以下规则：
 - en: External functions can only accept calldata reference types.
+  id: totrans-202
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 外部函数只能接受calldata引用类型。
 - en: Public functions can only accept memory reference types.
+  id: totrans-203
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 公共函数只能接受内存引用类型。
 - en: Internal or private functions can only accept memory or storage reference types.
+  id: totrans-204
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 内部或私有函数只能接受内存或存储引用类型。
 - en: Assignment semantics then depend on the location of a reference type (Listing
     [3-12](#PC17)). An assignment from a memory reference to another will just pass
     a reference to the same object, and the same happens when assigning from a storage
@@ -1197,67 +1688,103 @@
     = storageArray;    localStorage[0] = 21;    require(localStorage[0] == storageArray[0]);    //
     And changes to storageArray don't affect    // the original memoryArray    require(storageArray[0]
     != memoryArray[0]);  }}Listing 3-12
+  id: totrans-205
   prefs: []
   type: TYPE_NORMAL
+  zh: 赋值语义取决于引用类型的位置（见[3-12](#PC17)列表）。从一个内存引用到另一个的赋值只会传递对同一对象的引用，当从存储引用赋值到另一个引用时也是一样。然而，当从内存引用赋值到存储引用时，Solidity将**复制**整个内存数组到存储中。合约数据位置
+    {  uint256[] public storageArray;  function test(uint256[] memory memoryArray)
+    public {  // 我们把memoryArray命名为localMemory  uint256[] memory localMemory = memoryArray;  localMemory[0]
+    = 42;  require(localMemory[0] == memoryArray[0]);  // 我们把memoryArray复制到storageArray  storageArray
+    = memoryArray;  require(storageArray[0] == 42);  // 我们把storageArray命名为localStorage  uint256[]
+    storage localStorage = storageArray;  localStorage[0] = 21;  require(localStorage[0]
+    == storageArray[0]);  // 对storageArray的更改不会影响原始memoryArray  require(storageArray[0]
+    != memoryArray[0]);  }}列表3-12
 - en: Demo of how the memory and storage location modifiers work in Solidity
+  id: totrans-206
   prefs: []
   type: TYPE_NORMAL
+  zh: 演示内存和存储位置修饰符在Solidity中的工作方式
 - en: A special case of an array is bytes , which behaves exactly as a byte[] (i.e.,
     a dynamic array of byte). However, this type is optimized and tightly packed in
     memory or storage, so it should always be preferred over byte[].
+  id: totrans-207
   prefs: []
   type: TYPE_NORMAL
+  zh: 数组的一个特殊情况是bytes ，它的行为与byte[]（即byte的动态数组）完全相同。然而，这种类型经过优化并严密打包在内存或存储中，因此应始终优先使用它而不是byte[]。
 - en: Another special case are strings. A string is an immutable UTF-8-encoded byte
     array, which doesn’t allow indexed access. String literals are defined using double
     quotes. Keep in mind that Solidity ships with almost no string manipulation functions,
     so strings are mostly stored as immutable identifiers or descriptions.string myString
     = "foo";
+  id: totrans-208
   prefs: []
   type: TYPE_NORMAL
+  zh: 另一个特殊情况是字符串。字符串是不可变的UTF-8编码的字节数组，不允许按索引访问。字符串字面量使用双引号定义。请记住，Solidity几乎没有字符串操作函数，因此字符串大多以不可变的标识符或描述存储。字符串myString
+    = "foo";
 - en: 'Unlike value types, when an array state variable is defined as public, the
     implicit getter generated by Solidity accepts an index parameter, to identify
     which item in the array is to be retrieved. This only holds for regular dynamic
     arrays: bytes and strings are returned in a single call.'
+  id: totrans-209
   prefs: []
   type: TYPE_NORMAL
+  zh: 与值类型不同，当数组状态变量被定义为 public 时，Solidity 生成的隐式获取器接受索引参数，以确定要检索数组中的哪个项目。这仅适用于常规动态数组：字节和字符串在单个调用中返回。
 - en: As an example, given the following contract with a public dynamic array, string,
     and bytes, the following getters (Figure [3-5](#Fig5)) are available:contract
     PublicArrays {    uint256[] public numbers = [20,30,40];    string public text
     = "foo";    bytes public data = hex"20";}![../images/476252_1_En_3_Chapter/476252_1_En_3_Fig5_HTML.jpg](../images/476252_1_En_3_Chapter/476252_1_En_3_Fig5_HTML.jpg)
+  id: totrans-210
   prefs: []
   type: TYPE_NORMAL
+  zh: 作为例子，给定以下带有公共动态数组、字符串和字节的合同，以下获取器（图 [3-5](#Fig5)）可用：合同 PublicArrays {    uint256[]
+    public numbers = [20,30,40];    string public text = "foo";    bytes public data
+    = hex"20";}![../images/476252_1_En_3_Chapter/476252_1_En_3_Fig5_HTML.jpg](../images/476252_1_En_3_Chapter/476252_1_En_3_Fig5_HTML.jpg)
 - en: Figure 3-5
+  id: totrans-211
   prefs: []
   type: TYPE_NORMAL
+  zh: 图 3-5
 - en: Accessing a public dynamic array with a getter that requires an index vs. getting
     a string or bytes variable
+  id: totrans-212
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用需要索引的获取器访问公共动态数组 vs. 获取字符串或字节变量
 - en: Mappings
+  id: totrans-213
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 映射
 - en: Mappings, also referred to as hashes or dictionaries in other languages, are
     an associative reference type in Solidity.
+  id: totrans-214
   prefs: []
   type: TYPE_NORMAL
+  zh: 映射，在其他语言中也称为哈希表或字典，是 Solidity 中的关联引用类型。
 - en: Like arrays, they are parametric, in that they contain elements from other types.
     Mappings go from keys to values, and they accept any value type (plus bytes or
     strings) as keys, and can handle any type whatsoever (including other mappings)
     as values. Unlike arrays, however, the only valid location for mappings is storage,
     not memory or calldata.
+  id: totrans-215
   prefs: []
   type: TYPE_NORMAL
+  zh: 像数组一样，它们是参数化的，因为它们包含来自其他类型的元素。映射从键到值，它们接受任何值类型（加上字节或字符串）作为键，并可以处理任何类型的值（包括其他映射）。然而，与数组不同，映射的唯一有效位置是存储，而不是内存或调用数据。
 - en: Note
+  id: totrans-216
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 注意
 - en: Under the hood, mappings are hash tables that rely on the fact that the storage
     space of a contract is large enough to ensure there will be no collisions for
     two different keys, so they guarantee that access to a value is always in constant
     time.
+  id: totrans-217
   prefs: []
   type: TYPE_NORMAL
+  zh: 在幕后，映射是依赖于合同的存储空间足够大以确保两个不同键不会发生碰撞的哈希表，因此它们保证了对值的访问始终是常量时间的。
 - en: Autogenerated public getters for mappings (Listing [3-13](#PC20)) are similar
     to those of arrays, only that instead of accepting an index, they accept a key
     (Figure [3-6](#Fig6)). In the case of nested mappings, a getter for a nested mapping
@@ -1265,53 +1792,82 @@
     innermost value.contract PublicMappings {  mapping(uint256 => string)    public
     num2str;  mapping(uint256 => mapping(uint256 => string))    public num2num2str;  constructor()
     public {    num2str[10] = "foo";    num2num2str[10][20] = "bar";  }}Listing 3-13
+  id: totrans-218
   prefs: []
   type: TYPE_NORMAL
+  zh: 自动创建的映射的公共getter方法（见列表[3-13](#PC20)）与数组的类似，只是它们不接受索引，而是接受一个键（见图[3-6](#Fig6)）。对于嵌套映射，嵌套映射的getter方法将需要为每个嵌套级别的每个键提供一个参数，并且只返回最内层的值。contract
+    PublicMappings {  mapping(uint256 => string)    public num2str;  mapping(uint256
+    => mapping(uint256 => string))    public num2num2str;  constructor() public {    num2str[10]
+    = "foo";    num2num2str[10][20] = "bar";  }}列表3-13
 - en: 'Sample contract with autogenerated getters for two mappings: a simple one and
     a nested one'
+  id: totrans-219
   prefs: []
   type: TYPE_NORMAL
+  zh: 自动创建的两个映射的样本合约，带有自动生成的getter方法：一个简单的映射和一个嵌套的映射。
 - en: '![../images/476252_1_En_3_Chapter/476252_1_En_3_Fig6_HTML.jpg](../images/476252_1_En_3_Chapter/476252_1_En_3_Fig6_HTML.jpg)'
+  id: totrans-220
   prefs: []
   type: TYPE_IMG
+  zh: '![../images/476252_1_En_3_Chapter/476252_1_En_3_Fig6_HTML.jpg](../images/476252_1_En_3_Chapter/476252_1_En_3_Fig6_HTML.jpg)'
 - en: Figure 3-6
+  id: totrans-221
   prefs: []
   type: TYPE_NORMAL
+  zh: 图3-6
 - en: Getting a value from a nested mapping requires providing a value for each key
     in each nesting level
+  id: totrans-222
   prefs: []
   type: TYPE_NORMAL
+  zh: 从嵌套映射获取值需要为每个嵌套级别的每个键提供一个值。
 - en: An important caveat about mappings in Solidity is that, unlike other languages,
     there is no way to iterate the keys or values present in the mapping. This is
     related to how mappings are implemented. If you do need to keep track of the keys
     inserted into a mapping, you will need to keep a separate array to store them.
+  id: totrans-223
   prefs: []
   type: TYPE_NORMAL
+  zh: Solidity中关于映射的一个重要注意事项是，与其他语言不同，没有办法迭代映射中存在的键或值。这与映射的实现方式有关。如果你确实需要跟踪插入映射的键，你将需要保留一个单独的数组来存储它们。
 - en: Structs
+  id: totrans-224
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 结构体
 - en: The last reference type in Solidity are structs (Listing [3-14](#PC21)). As
     in C, structs act as a named set of fields of other types.contract HasStruct {  struct
     MyStruct {    uint256 number;    string text;  }  mapping(uint256 => MyStruct)
     structs;  constructor() public {    structs[10] = MyStruct(20, "foo");  }  function
     getStruct(    uint256 key  ) public view returns (uint256, string memory) {    MyStruct
     storage s = structs[key];    return (s.number, s.text);  }}Listing 3-14
+  id: totrans-225
   prefs: []
   type: TYPE_NORMAL
+  zh: Solidity中的最后一种引用类型是结构体（见列表[3-14](#PC21)）。与C语言类似，结构体充当其他类型字段的命名集合。contract HasStruct
+    {  struct MyStruct {    uint256 number;    string text;  }  mapping(uint256 =>
+    MyStruct) structs;  constructor() public {    structs[10] = MyStruct(20, "foo");  }  function
+    getStruct(    uint256 key  ) public view returns (uint256, string memory) {    MyStruct
+    storage s = structs[key];    return (s.number, s.text);  }}列表3-14
 - en: Sample usage of structs in a Solidity contract
+  id: totrans-226
   prefs: []
   type: TYPE_NORMAL
+  zh: 在Solidity合约中使用结构体的示例用法。
 - en: Structs are mutable and can be stored in a mapping or array, and they can contain
     other structs or reference types as their own fields. Remember that, as with any
     other Solidity types, structs are initialized with zeroes, so an empty struct
     is one where every field is zero.
+  id: totrans-227
   prefs: []
   type: TYPE_NORMAL
+  zh: 结构体是可变的，可以存储在映射或数组中，它们可以包含其他结构体或引用类型作为自己的字段。请记住，与任何其他 Solidity 类型一样，结构体被初始化为零，因此空结构体是每个字段都为零的结构体。
 - en: Emitting Events
+  id: totrans-228
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 发出事件
 - en: Solidity provides an abstraction over transaction logs named *events*. A Solidity
     event is identified by a name and can have several arguments to provide additional
     data (Listing [3-15](#PC22)). Since they are implemented as logs, a Solidity event
@@ -1320,40 +1876,59 @@
     => uint256) private counters;  event CounterIncreased    (string indexed key,
     uint256 newValue);  function increase(string memory key) public {    counters[key]
     += 1;    emit CounterIncreased(key, counters[key]);  }}Listing 3-15
+  id: totrans-229
   prefs: []
   type: TYPE_NORMAL
+  zh: Solidity 提供了一种对事务日志进行抽象的机制，称为 *事件*。Solidity 事件由名称标识，并可以具有多个参数来提供附加数据（见[3-15](#PC22)）。由于它们被实现为日志，因此
+    Solidity 事件只能被发出，而不能从智能合约中观察到。我们将在后面学习如何从客户端监视或查询事件。contract EmitsEvents {  mapping(string
+    => uint256) private counters;  event CounterIncreased    (string indexed key,
+    uint256 newValue);  function increase(string memory key) public {    counters[key]
+    += 1;    emit CounterIncreased(key, counters[key]);  }}Listing 3-15
 - en: A smart contract that emits an event every time an increase function is called
+  id: totrans-230
   prefs: []
   type: TYPE_NORMAL
+  zh: 每次调用 increase 函数时都会发出事件的智能合约
 - en: The event is declared using the event keyword and fired using emit. Note that,
     in the event declaration, some of its arguments can be flagged as indexed. These
     allow watching or querying events that have a certain value for that parameter.
     Whether to flag an argument as indexed or not will depend strictly on your use
     case.
+  id: totrans-231
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用 event 关键字声明事件，并使用 emit 触发。请注意，在事件声明中，可以将其某些参数标记为索引。这些允许观察或查询具有该参数的特定值的事件。是否将参数标记为索引取决于您的使用情况。
 - en: Note
+  id: totrans-232
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 注意
 - en: Due to EVM restrictions, indexed variable length arguments are not stored using
     their actual value, but with the hash of the value. This means that, in the example,
     you will be able to search for a particular key among all CounterIncreased events,
     but you will not be able to retrieve the actual key from a given event.
+  id: totrans-233
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于 EVM 的限制，索引变量长度参数不是使用其实际值存储的，而是使用该值的哈希。这意味着，在此示例中，您将能够在所有 CounterIncreased
+    事件中搜索特定键，但您将无法从给定事件中检索实际键。
 - en: Events are useful not just for monitoring a contract for changes but also as
     a replacement for return values in a transaction. Since it is not possible for
     a client to retrieve a return value from a method called in a transaction, it
     is common to emit an event with the value that needs to be obtained. The client
     then retrieves the events attached to the transaction receipt and extracts the
     value from there.
+  id: totrans-234
   prefs: []
   type: TYPE_NORMAL
+  zh: 事件不仅用于监视合同的变化，还可以作为交易中返回值的替代。由于客户端无法从在交易中调用的方法中检索返回值，因此通常会发出带有需要获取的值的事件。然后，客户端检索附加到交易收据的事件，并从中提取值。
 - en: Imports, Inheritance, and Libraries
+  id: totrans-235
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 导入、继承和库
 - en: Solidity files can import other files (Listing [3-16](#PC23)). The import statement
     is similar to javascript’s require, in that it pulls to the current file declarations
     from another. In Solidity, since the only top-level objects are contracts (plus
@@ -1361,11 +1936,18 @@
     refer to contracts defined in another file.// Callee.solcontract Callee {  function
     f() external;}// MyContract.solimport "./Callee.sol";contract MyContract {  function
     call(Callee c) public {    c.f();  }}Listing 3-16
+  id: totrans-236
   prefs: []
   type: TYPE_NORMAL
+  zh: Solidity 文件可以导入其他文件（见列表 [3-16](#PC23)）。导入语句类似于 javascript 的 require，在当前文件中从另一个文件中获取声明。在
+    Solidity 中，由于唯一的顶级对象是合同（加上库和接口，我们一会儿会看到），导入允许您引用在另一个文件中定义的合同。// Callee.sol合约 Callee
+    {  function f() external;}// MyContract.solimport "./Callee.sol";合约 MyContract
+    {  function call(Callee c) public {    c.f();  }}列表 3-16
 - en: Sample usage of the import statement to load a contract defined in another file
+  id: totrans-237
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用导入语句加载另一个文件中定义的合同的示例用法
 - en: In the preceding example, MyContract pulls the definition of Callee by importing
     the file in which it is defined. Note that Callee does not define the implementation
     of the function f, so it is actually an abstract contract. Since this is enough
@@ -1373,23 +1955,33 @@
     successfully. Moreover, since we are using Callee just as an interface definition,
     we can redefine the contract using the interface keyword  :// Callee.solinterface
     Callee {  function f() external;}
+  id: totrans-238
   prefs: []
   type: TYPE_NORMAL
+  zh: 在上面的示例中，MyContract 通过导入定义它的文件来获取 Callee 的定义。注意，Callee 没有定义函数 f 的实现，因此实际上它是一个抽象合约。由于这足以让
+    MyContract 知道如何调用 Callee 的实例，因此这些文件可以成功编译。此外，由于我们仅使用 Callee 作为接口定义，因此我们可以使用 interface
+    关键字重新定义合约：// Callee.sol接口 Callee {  function f() external;}
 - en: Note
+  id: totrans-239
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 注意
 - en: When importing code from a dependency, typically as an npm package, the import
     statement refers to the package name. The exact syntax varies depending on the
     build tool in use, but it commonly follows the pattern import "package-name/contracts/Contract.sol".
+  id: totrans-240
   prefs: []
   type: TYPE_NORMAL
+  zh: 当从依赖项中导入代码时，通常作为 npm 包，导入语句指的是包名。具体的语法因使用的构建工具而异，但通常遵循以下模式 `import "package-name/contracts/Contract.sol"`。
 - en: A file can be imported not only to refer to another contract but also to extend
     from it. Solidity has support for multiple inheritance. This makes inheritance
     the default mechanism to extend functionality, or to pull in features from another
     contract, using base contracts as if they were mixins (Listing [3-17](#PC25)).
+  id: totrans-241
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个文件不仅可以被导入以引用另一个合约，还可以从中扩展。Solidity支持多重继承。这使得继承成为扩展功能或从另一个合约中引入功能的默认机制，使用基础合约就像它们是混合物一样（见列表[3-17](#PC25)）。
 - en: Derived contracts can access internal and public methods from the base contracts,
     as well as all struct, modifier, and event definitions. They can also override
     methods from base contracts.contract Timelocked {  uint256 internal locktime;  modifier
@@ -1399,13 +1991,22 @@
     = _locktime;    owner = msg.sender;  }  function f() whenNotLocked onlyOwner public
     {    // only reachable when called by the owner    // and the contract is not
     locked  }}Listing 3-17
+  id: totrans-242
   prefs: []
   type: TYPE_NORMAL
+  zh: 派生合约可以访问基础合约的内部和公共方法，以及所有结构体、修饰符和事件定义。它们还可以覆盖基础合约中的方法。contract Timelocked {  uint256
+    internal locktime;  modifier whenNotLocked() {    require(now > locktime);    _;  }}contract
+    Ownable {  address internal owner;  modifier onlyOwner() {    require(msg.sender
+    == owner);    _;  }}contract MyContract is Timelocked, Ownable {  constructor(uint256
+    _locktime) public {    locktime = _locktime;    owner = msg.sender;  }  function
+    f() whenNotLocked onlyOwner public {    // 只有在所有者调用时可达    // 并且合同未锁定  }}列表 3-17
 - en: Typical pattern of base contracts that provide behaviors or aspects to be included
     similar to mixins in a contract. These base contracts define their own state,
     and provide modifiers or internal functions to be leveraged by the derived contract
+  id: totrans-243
   prefs: []
   type: TYPE_NORMAL
+  zh: 典型的基础合约模式提供行为或方面，类似于合同中包含的混合物。这些基础合约定义了它们自己的状态，并提供了修饰符或内部函数，供派生合约利用。
 - en: Last but not least, Solidity allows to define *libraries*, which are modules
     of helper functions, that may optionally be applied over a specific data type
     (Listing [3-18](#PC26)). Depending on whether their functions are defined as internal
@@ -1417,11 +2018,20 @@
     = a + b;      require(c >= a);      return c;  }}// MyContract.solimport "openzeppelin-solidity/contracts/math/SafeMath.sol";contract
     MyContract {    uint256 value;    function increase(uint256 x) public {        value
     = SafeMath.add(value, x);    }}Listing 3-18
+  id: totrans-244
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后但同样重要的是，Solidity 允许定义*库*，这些库是辅助函数的模块，可以选择性地应用于特定数据类型（见列表 [3-18](#PC26)）。根据它们的函数是内部定义还是不是，库实际上会内联到包含它们的合同中或者单独部署并链接。一个好的库示例是前面提到的
+    SafeMath，它定义了带有溢出检查的简单算术运算。// openzeppelin-solidity SafeMath.sol 代码片段库 SafeMath
+    {  function add(uint256 a, uint256 b)    internal pure returns (uint256) {      uint256
+    c = a + b;      require(c >= a);      return c;  }}// MyContract.solimport "openzeppelin-solidity/contracts/math/SafeMath.sol";contract
+    MyContract {    uint256 value;    function increase(uint256 x) public {        value
+    = SafeMath.add(value, x);    }}列表 3-18
 - en: Sample usage of SafeMath in a contract
+  id: totrans-245
   prefs: []
   type: TYPE_NORMAL
+  zh: 在合同中使用 SafeMath 的示例用法
 - en: Since it is frequent for libraries to define functions on a certain data type,
     such as uint256 in the case of SafeMath, Solidity provides a convenience using
     statement (Listing [3-19](#PC27)) that adds all methods of the library to all
@@ -1429,80 +2039,113 @@
     structs, since it allows us to define custom datatypes with their own set of functions.contract
     MyContract {    using SafeMath for uint256;    uint256 value;    function increase(uint256
     x) public {        value = value.add(x);    }}Listing 3-19
+  id: totrans-246
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于库经常定义某种数据类型（例如 SafeMath 中的 uint256），因此 Solidity 提供了一种方便的 using 语句（见列表 [3-19](#PC27)），该语句将库的所有方法添加到指定类型的所有变量中。当与结构体结合使用时，这尤其强大，因为它允许我们定义具有自己一套函数的自定义数据类型。contract
+    MyContract {    using SafeMath for uint256;    uint256 value;    function increase(uint256
+    x) public {        value = value.add(x);    }}列表 3-19
 - en: Previous example rewritten with the using statement, which adds all methods
     in a library to a type in the scope of the contract
+  id: totrans-247
   prefs: []
   type: TYPE_NORMAL
+  zh: 以 using 语句重写的先前示例，该语句将库中的所有方法添加到合同范围内的类型中
 - en: Well-known Smart Contracts
+  id: totrans-248
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 知名智能合约
 - en: 'To wrap up this chapter on smart contracts, we will review two of the most
     well-known contract standards, which are ERC20 and ERC721\. These correspond to
     fungible and non-fungible tokens, respectively. However, before diving into them,
     we will first introduce a concept that goes beyond the Solidity language: the
     ABI.'
+  id: totrans-249
   prefs: []
   type: TYPE_NORMAL
+  zh: 结束智能合约这一章节时，我们将回顾两个最著名的合约标准，即 ERC20 和 ERC721。它们分别对应可互换和不可互换的代币。但是，在深入研究它们之前，我们将首先介绍一个超越
+    Solidity 语言的概念：ABI。
 - en: Application Binary Interface
+  id: totrans-250
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 应用程序二进制接口
 - en: The Application Binary Interface (ABI) of a contract is the set of public methods
     exposed by a contract. Think of it as its public API that can be called from an
     external account or another contract.
+  id: totrans-251
   prefs: []
   type: TYPE_NORMAL
+  zh: 合约的应用程序二进制接口（ABI）是由合约公开的一组方法。可以将其视为其公共API，可以从外部帐户或另一个合约调用。
 - en: The key concept behind the ABI is that it is language independent. It is a specification
     on how function calls, arguments, and return values should be encoded. This allows
     a contract written in Solidity to seamlessly interact with a contract written
     in another high-level language, such as Vyper.
+  id: totrans-252
   prefs: []
   type: TYPE_NORMAL
+  zh: ABI背后的关键概念是它与编程语言无关。它规定了如何对函数调用、参数和返回值进行编码的规范。这使得用Solidity编写的合约能够与用其他高级语言（如Vyper）编写的合约无缝交互。
 - en: The ABI has a set of data types fairly close to those of Solidity, including
     addresses, integers (signed and unsigned), booleans, strings, arrays, and so on.
     The main exceptions are contract types, which are handled as plain addresses,
     and structs, which are encoded as tuples with all their fields.
+  id: totrans-253
   prefs: []
   type: TYPE_NORMAL
+  zh: ABI具有与Solidity非常接近的一组数据类型，包括地址、整数（有符号和无符号）、布尔值、字符串、数组等。主要的例外是合约类型，它们作为普通地址处理，以及结构体，它们编码为具有所有字段的元组。
 - en: EIPs and ERCs
+  id: totrans-254
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: EIP和ERC
 - en: Being a decentralized protocol, all improvements to Ethereum often start as
     a proposal  (or EIP, Ethereum Improvement Proposal) to be discussed by the community.
     These proposals encompass from changes to the core protocol itself to application-level
     standards defined for compatibility.
+  id: totrans-255
   prefs: []
   type: TYPE_NORMAL
+  zh: 作为去中心化协议，所有对以太坊的改进通常都以提案（或EIP，以太坊改进提案）的形式开始，由社区讨论。这些提案从核心协议本身的变更到为了兼容性而定义的应用级标准，涵盖广泛。
 - en: The latter are referred to as Ethereum Request for Comments  (or ERC, following
     the RFC nomenclature used by the Internet Engineering Task Force). These are of
     particular importance, since they define the common ABIs and semantics of contracts
     to be used. They act as building blocks for larger applications and foster reusability
     by setting a common interface agreed upon by the community.
+  id: totrans-256
   prefs: []
   type: TYPE_NORMAL
+  zh: Ethereum Request for Comments（或 ERC，遵循Internet Engineering Task Force使用的RFC命名约定）通常简称为后者。它们至关重要，因为它们定义了要使用的合约的通用ABI和语义。它们作为更大应用的构建块，并通过设定社区共同接口来促进可重用性。
 - en: Two of the most popular smart contract standards, fungible and non-fungible
     tokens, are defined as ERCs – ERC20 and ERC721, respectively.
+  id: totrans-257
   prefs: []
   type: TYPE_NORMAL
+  zh: 两种最流行的智能合约标准，即可互换和非可互换代币，分别定义为ERC – ERC20和ERC721。
 - en: ERC20 Tokens
+  id: totrans-258
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: ERC20代币
 - en: Tokens, defined in the ERC20 standard,^([14](#Fn14)) are probably the most common
     building block of Ethereum applications. In its core, an ERC20 contract keeps
     track of a balance for every token holder address and provides methods for querying
     and managing such balances (Listing [3-20](#PC28)).
+  id: totrans-259
   prefs: []
   type: TYPE_NORMAL
+  zh: ERC20标准定义的代币，^([14](#Fn14))可能是以太坊应用程序中最常见的构建块。在其核心，ERC20合约为每个代币持有者地址记录余额，并提供查询和管理这些余额的方法（清单[3-20](#PC28)）。
 - en: A token can act as a decentralized currency for any project. As such, any team
     can easily roll out their own cryptocurrency on top of the Ethereum network, without
     needing to set up their own blockchain.
+  id: totrans-260
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个代币可以作为任何项目的去中心化货币。因此，任何团队都可以轻松在以太坊网络上推出自己的加密货币，而无需设置自己的区块链。
 - en: 'Nevertheless, tokens have more uses besides currency. The purpose of the token
     is given to it by the protocol in which it is used: it can be used to signal vouching
     for a particular item, or voting power in a decentralized organization. Many projects
@@ -1515,11 +2158,16 @@
     to, uint256 value  ) external returns (bool);  event Transfer(    address indexed
     from,    address indexed to,    uint256 value  );  event Approval(    address
     indexed owner,    address indexed spender,    uint256 value  );}Listing 3-20'
+  id: totrans-261
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，代币除了货币之外还有更多用途。代币的用途由其所使用的协议赋予：它可以用于表示对特定项目的担保，或者在去中心化组织中的投票权。如今许多项目都依赖于一个（或有时是多个）ERC20
+    代币。
 - en: Complete interface of the ERC20 standard
+  id: totrans-262
   prefs: []
   type: TYPE_NORMAL
+  zh: ERC20 标准的完整接口
 - en: The first step to understand an ERC20 token is to glimpse its state. A fungible
     token is backed by a mapping from a user to a balance, which is exposed by the
     balanceOf getter.  function balanceOf(address who)    external view returns (uint256);Balances
@@ -1541,32 +2189,53 @@
     on behalf of another user is done via the transferFrom method, which will affect
     both balances and allowances.  function transferFrom(    address from, address
     to, uint256 value  ) external returns (bool);
+  id: totrans-263
   prefs: []
   type: TYPE_NORMAL
+  zh: 要理解 ERC20 代币的第一步是窥视其状态。可替换代币由用户到余额的映射支持，这由 balanceOf getter 公开。  function balanceOf(address
+    who)    external view returns (uint256); 通过调用 transfer 来修改余额。用户可以选择将其一定数量的代币转移到另一个地址
+    - 可以是合约或外部账户。每当调用此方法时，都会发出 Transfer 事件以记录该操作。  function transfer(address to, uint256
+    value)    external returns (bool); 除了余额转移的基本行为外，还有 *津贴* 的概念。用户可以批准任何地址代表他们管理一定数量的代币。可以通过
+    allow getter 查询代币津贴的状态。  function allowance(address owner, address spender)    external
+    view returns (uint256); 要为地址设置津贴，合约提供了 approve 方法，在调用时需要发出 Approval 事件。请注意，用户可以为任意高的代币数量设置批准
+    - 无论他们是否拥有它们。  function approve(address spender, uint256 value)    external returns
+    (bool); 当 spender 账户转移所有者的代币时，将消耗津贴。如果地址 A 已经允许地址 B 代表其花费最多 20 个代币，那么在 B 转移了 A
+    的 5 个代币后，剩余的津贴将是 15。代表另一个用户转移代币是通过 transferFrom 方法完成的，这将影响余额和津贴。  function transferFrom(
+       address from, address to, uint256 value  ) external returns (bool);
 - en: 'Additionally, the standard includes three optional getters: name, symbol, and
     decimals. These are often used by wallets or other client software to display
     information about a token given its address.'
+  id: totrans-264
   prefs: []
   type: TYPE_NORMAL
+  zh: 此外，标准还包括三个可选的获取器：name、symbol 和 decimals。这些通常由钱包或其他客户端软件使用，根据其地址显示有关代币的信息。
 - en: The standard does not specify how tokens are initially distributed or how their
     total supply evolves over time. Certain tokens have a fixed supply set when created
     and assigned to a single address which manually distributes them. Others can be
     minted over time and distributed based on certain rules.
+  id: totrans-265
   prefs: []
   type: TYPE_NORMAL
+  zh: 该标准未指定如何最初分配代币或代币的总供应量如何随时间演变。 某些代币在创建时具有固定的供应量，并分配给单个地址，该地址手动分配它们。 其他代币可以随时间铸造并根据某些规则分配。
 - en: Tip
+  id: totrans-266
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 提示
 - en: A canonical and audited implementation of the ERC20 standard can be obtained
     from the OpenZeppelin contracts package,^([15](#Fn15)) so you don’t need to implement
     your own.
+  id: totrans-267
   prefs: []
   type: TYPE_NORMAL
+  zh: 您可以从 OpenZeppelin 合约包中获取 ERC20 标准的规范和经过审计的实现，^([15](#Fn15)) 因此您不需要自行实现。
 - en: ERC721 Non-fungible Tokens
+  id: totrans-268
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: ERC721 非同质化代币
 - en: The ERC721 standard  (Listing [3-21](#PC34)) defines the specification for digital
     collectibles, also called non-fungible tokens (often abbreviated NFTs). NFTs are
     different from the traditional ERC20 token in that each token is identifiable
@@ -1574,8 +2243,12 @@
     but has a particular set of unique identifiable tokens, each with its own metadata
     associated to it. As an analogy, if ERC20 tokens can be used to represent a currency,
     ERC721 tokens can be used to represent collectible cards.
+  id: totrans-269
   prefs: []
   type: TYPE_NORMAL
+  zh: ERC721 标准（列表[3-21](#PC34)）定义了数字收藏品的规范，也称为非同质化代币（通常缩写为 NFT）。 NFT 与传统的 ERC20 代币不同，每个代币都是可识别且与其他代币不同的。
+    因此，用户不再拥有一定数量的代币，而是拥有一组特定的唯一可识别代币，每个代币都有其自身的元数据。 类比而言，如果 ERC20 代币可用于表示货币，那么 ERC721
+    代币可用于表示可收集的卡片。
 - en: The interface for ERC721 is heavily inspired from ERC20, with the difference
     that all operations act on identifiable tokens and not on a balance. ERC721 also
     introduces a few additions over ERC20 which we will now review.contract ERC721
@@ -1592,22 +2265,30 @@
     indexed owner,    address indexed approved,    uint256 indexed tokenId  );  event
     ApprovalForAll(    address indexed owner,    address indexed operator,    bool
     approved  );}Listing 3-21
+  id: totrans-270
   prefs: []
   type: TYPE_NORMAL
+  zh: ERC721 的接口受到 ERC20 的重大启发，区别在于所有操作都针对可识别的代币而不是余额。ERC721 还在 ERC20 的基础上引入了一些补充，现在我们将进行审查。
 - en: Interface of the ERC721 standard
+  id: totrans-271
   prefs: []
   type: TYPE_NORMAL
+  zh: ERC721 标准的接口
 - en: The first methods for querying the number of tokens held by an address, as well
     as for querying whether a particular token belongs to an address, are quite straightforward.  function
     balanceOf(address owner)    public view returns (uint256 balance);  function ownerOf(uint256
     tokenId)    public view returns (address owner);
+  id: totrans-272
   prefs: []
   type: TYPE_NORMAL
+  zh: 查询地址持有的代币数量以及查询特定代币是否属于地址的第一个方法非常简单。
 - en: Throughout the standard, tokens are identified by an opaque uint256 value. While
     some implementations use incremental numbers for IDs, this is not required at
     all.
+  id: totrans-273
   prefs: []
   type: TYPE_NORMAL
+  zh: 在整个标准中，代币由不透明的 uint256 值标识。虽然一些实现使用递增数字作为 ID，但这并不是必需的。
 - en: Note that the standard does not provide any way of actually listing the existing
     tokens or the tokens that belong to a user. To solve this, there is an optional
     extension (Listing [3-22](#PC36)) that provides methods for enumerating all the
@@ -1615,17 +2296,26 @@
     view returns (uint256);  function tokenOfOwnerByIndex    (address owner, uint256
     index)    public view returns (uint256 tokenId);  function tokenByIndex(uint256
     index)    public view returns (uint256);Listing 3-22
+  id: totrans-274
   prefs: []
   type: TYPE_NORMAL
+  zh: 请注意，标准并没有提供任何列出现有代币或属于用户的代币的方式。为了解决这个问题，有一个可选的扩展（见列表 [3-22](#PC36)）提供了方法来枚举所有现有的代币，以及特定用户的代币。  函数
+    `totalSupply()`    public view returns (uint256);  函数 `tokenOfOwnerByIndex`    (address
+    owner, uint256 index)    public view returns (uint256 tokenId);  函数 `tokenByIndex(uint256
+    index)`    public view returns (uint256);列表 3-22
 - en: ERC721Enumerable optional extension
+  id: totrans-275
   prefs: []
   type: TYPE_NORMAL
+  zh: ERC721Enumerable 可选扩展
 - en: To avoid returning an arbitrarily large array with all the tokens created, or
     all the tokens that belong to a user, this Enumerable extension provides means
     to know the total number of tokens (or the number of tokens that belong to a user)
     and to iterate through them via an index.
+  id: totrans-276
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了避免返回一个包含所有已创建代币或属于用户的所有代币的任意大数组，此 Enumerable 扩展提供了一种方法来知道代币的总数（或属于用户的代币的数量）并通过索引迭代它们。
 - en: Like ERC20, ERC721 has the concept of allowances, though managed slightly different.
     ERC721 allows an owner to designate one or more spenders for each of their tokens
     individually and at the same time to designate one or more addresses to manage
@@ -1650,19 +2340,34 @@
     that cannot manage them, thus locking them forever, which is a common problem
     in ERC20\. As such, it is recommended to always prefer this method over the plain
     transferFrom.![../images/476252_1_En_3_Chapter/476252_1_En_3_Fig7_HTML.png](../images/476252_1_En_3_Chapter/476252_1_En_3_Fig7_HTML.png)
+  id: totrans-277
   prefs: []
   type: TYPE_NORMAL
+  zh: 类似于ERC20，ERC721也有授权（allowances）的概念，尽管管理方式略有不同。ERC721允许所有者为其每个代币单独指定一个或多个支出者，并同时为代表他们管理所有代币的一个或多个地址。后者有时被称为*操作者*。这两个概念——对特定代币或所有代币的批准——通过以下方法查询和设置，并通过Approval和ApprovalForAll事件反映。  function
+    approve(address to, uint256 tokenId)    public;  function getApproved(uint256
+    tokenId)    public view returns (address operator);  function setApprovalForAll    (address
+    operator, bool _approved)    public;  function isApprovedForAll    (address owner,
+    address operator)    public view returns (bool);ERC721不包括转账方法。相反，所有代币转账都必须通过transferFrom处理，该方法要求支出者不仅指定要转移的代币和目的地，还要指定当前所有者。如果当前所有者与from参数不匹配，则拒绝转移。  function
+    transferFrom    (address from, address to, uint256 tokenId)    public;此标准包括另外两种管理转账的方法：  function
+    safeTransferFrom    (address from, address to, uint256 tokenId)    public;  function
+    safeTransferFrom    (address from, address to, uint256 tokenId, bytes data)    public;安全转账方法检查代币的接收方是否实际上可以管理它们，通过调用接收方中指定的onERC721Received方法来实现（图[3-7](#Fig7)）。如果接收方未实现此方法，则转账将中止。这可以防止将代币意外丢失，因为将其发送到无法管理它们的合约中，从而永久锁定它们，这是ERC20中的一个常见问题。因此，建议始终优先使用这种方法，而不是普通的transferFrom。![../images/476252_1_En_3_Chapter/476252_1_En_3_Fig7_HTML.png](../images/476252_1_En_3_Chapter/476252_1_En_3_Fig7_HTML.png)
 - en: Figure 3-7
+  id: totrans-278
   prefs: []
   type: TYPE_NORMAL
+  zh: 图 3-7
 - en: Execution flow of an ERC721 safe transfer
+  id: totrans-279
   prefs: []
   type: TYPE_NORMAL
+  zh: ERC721 安全转移的执行流程
 - en: An overload of this method includes an extra data parameter. This data is forwarded
     on the onERC721Received call and can be used by the recipient to decide whether
     to accept the token to be transferred.
+  id: totrans-280
   prefs: []
   type: TYPE_NORMAL
+  zh: 这种方法的另一种重载包括额外的数据参数。这些数据会在 onERC721Received 调用时转发，并且接收者可以使用它来决定是否接受要转移的令牌。
 - en: Another part of ERC721 is the requirement to implement ERC165 (Listing [3-23](#PC40)).
     ERC165 provides a standard way to query whether a contract implements an interface
     or not. This allows users or other contracts to actually check if any given address
@@ -1671,12 +2376,18 @@
     or not. However, keep in mind that whether the actual implementation is correct
     or malicious is an entirely different subject.  function supportsInterface(bytes4
     interfaceId)    external view returns (bool);Listing 3-23
+  id: totrans-281
   prefs: []
   type: TYPE_NORMAL
+  zh: ERC721 的另一个部分是实现 ERC165 的要求（见列表 [3-23](#PC40)）。ERC165 提供了一种标准的查询方式，用于查询合约是否实现了一个接口。这允许用户或其他合约在尝试调用它之前实际上检查任何给定地址是否响应某个方法。在
+    ERC721 的上下文中，这意味着您实际上可以*询问*一个地址是否是 ERC721 合约。然而，请记住，实际实现是否正确或恶意是一个完全不同的话题。  function
+    supportsInterface(bytes4 interfaceId)    external view returns (bool);列表 3-23
 - en: Interface of ERC165\. The interfaceId is a well-known identifier set for every
     standard and is often composed of the hash of the public function signatures
+  id: totrans-282
   prefs: []
   type: TYPE_NORMAL
+  zh: ERC165 的接口。interfaceId 是每个标准的已知标识符集，通常由公共函数签名的哈希组成
 - en: The last component of ERC721 is an optional extension for metadata (Listing
     [3-24](#PC41)). This extension not only includes the name and symbol getters that
     were also present in ERC20 (note that decimals do not make sense in this context,
@@ -1684,22 +2395,34 @@
     information for any given token.  function name() external view returns (string);  function
     symbol() external view returns (string);  function tokenURI(uint256 tokenId)    public
     view returns (string);Listing 3-24
+  id: totrans-283
   prefs: []
   type: TYPE_NORMAL
+  zh: ERC721 的最后一个组件是用于元数据的可选扩展（见列表 [3-24](#PC41)）。该扩展不仅包括了在 ERC20 中也存在的名称和符号获取器（请注意，在此情况下，小数点在这个上下文中没有意义，因为非同质化代币是不可分割的），而且还包括了一种获取任何给定令牌的元数据信息的方法。  function
+    name() external view returns (string);  function symbol() external view returns
+    (string);  function tokenURI(uint256 tokenId)    public view returns (string);列表
+    3-24
 - en: Metadata optional extension for ERC721
+  id: totrans-284
   prefs: []
   type: TYPE_NORMAL
+  zh: ERC721 的元数据可选扩展
 - en: While the format of tokenURI is not defined and is left for implementers to
     choose,^([16](#Fn16)) it provides a standard way to obtain information on a particular
     token instance, such as an image or a blurb of text that describes it. Token URI
     often points to an off-chain^([17](#Fn17)) resource that contains a manifest for
     the token.
+  id: totrans-285
   prefs: []
   type: TYPE_NORMAL
+  zh: 尽管 tokenURI 的格式未定义，而是留给实现者选择，^([16](#Fn16)) 但它提供了一种标准的方式来获取有关特定令牌实例的信息，例如描述其的图像或一小段文本。Token
+    URI 通常指向包含令牌清单的链下^([17](#Fn17)) 资源。
 - en: Summary
+  id: totrans-286
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 摘要
 - en: Throughout this chapter, we have presented what a smart contract is and how
     it is composed of code and state, differentiating it from an externally owned
     account. We have reviewed what a transaction is, its lifecycle, and how it interacts
@@ -1707,8 +2430,10 @@
     calls, used to query contracts without changing them. We have also presented some
     concepts such as gas usage and price, which are of particular importance to clients
     issuing transactions to the network.
+  id: totrans-287
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本章节中，我们介绍了智能合约是什么，以及它由代码和状态组成，区别于外部拥有的账户。我们回顾了交易是什么，它的生命周期以及它与智能合约的交互方式，潜在地修改它的状态——与静态调用相反，用于查询而不更改合约。我们还介绍了一些概念，如燃气使用和价格，这对于向网络发出交易的客户特别重要。
 - en: We have also studied Solidity as a high-level programming language for coding
     smart contracts. Solidity’s basic unit is a contract, which is composed of state
     variables and functions, which can be decorated with modifiers and potentially
@@ -1717,16 +2442,23 @@
     all Solidity concepts and left out several security insights that are vital when
     developing production-level smart contract code, but is enough for you to understand
     smart contracts and be able to code small systems.
+  id: totrans-288
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们还学习了 Solidity 作为一种用于编写智能合约的高级编程语言。Solidity 的基本单位是合约，它由状态变量和函数组成，这些函数可以用修饰符修饰，并且可能会发出事件。Solidity
+    合约可以从多个其他合约继承，或者包含库，作为模块化代码的手段。这个介绍远远没有涵盖所有 Solidity 概念，也忽略了在开发生产级别智能合约代码时至关重要的几个安全见解，但足以让您理解智能合约并能够编写小型系统。
 - en: Last, we reviewed two of the most widely used building blocks in smart contracts –
     tokens, defined in ERC20 and ERC721\. These cover fungible tokens and digital
     collectibles, respectively, and most applications operate on either (or both)
     of the two.
+  id: totrans-289
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后，我们回顾了智能合约中两个最广泛使用的构建模块——在 ERC20 和 ERC721 中定义的代币。分别涵盖可互换的代币和数字收藏品，并且大多数应用程序都在其中之一（或两者）上运行。
 - en: Overall, the main goal of this chapter is not for you to become an expert in
     smart contract development, but to understand key concepts that will be useful
     when developing web applications backed by these contracts.
+  id: totrans-290
   prefs: []
   type: TYPE_NORMAL
+  zh: 总的来说，本章的主要目标不是让您成为智能合约开发的专家，而是理解在开发由这些合约支持的 Web 应用程序时会有用的关键概念。
