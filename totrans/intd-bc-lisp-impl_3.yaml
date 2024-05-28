@@ -1360,6 +1360,21 @@
   id: totrans-171
   prefs: []
   type: TYPE_NORMAL
+  zh: '这个文件将从`blockchain.rkt`和`utils.rkt`导入所有内容，并提供一些打印过程。1   (**require** "blockchain.rkt")2   (**require**
+    "utils.rkt")接下来的过程将把交易对象转换为可打印的字符串。它将使用`substring`仅打印哈希的子集（因为可能太大），并且还将使用`format`，这是一个字符串格式化过程，它将字符串中的每个∼a替换为传递的参数。1   (**define**
+    (format-transaction t)2     (format "...~a... 发送 ...~a... 数量为 ~a。"3             (substring
+    (wallet-public-key (transaction-from t)) 64 80)4             (substring  (wallet-public-key  (transaction-to  t))
+    64  80)5             (transaction-value t)))接下来的过程将打印一个块的详细信息。`printf`类似于`print`，但它可以像`format`一样使用：1   (**define**
+    (print-block bl)2     (printf "块信息**\n**=================3   哈希:**\t**~a**\n**前一个哈希:**\t**~a**\n**时间戳:**\t**~a**\n**随机数:**\t**~a**\n**数据:**\t**~a**\n**"4         (block-current-hash
+    bl)5         (block-previous-hash bl)6         (block-timestamp bl)7         (block-nonce
+    bl)8         (format-transaction (block-transaction bl))))除了显式使用递归，还有一个内置的`for`语法，也允许重复的计算。为了打印区块链，我们将使用`for`语法遍历所有区块，将它们打印到标准输出，然后使用`newline`添加一个换行字符，使每个块的分隔明显：1   (**define**
+    (print-blockchain b)2     (**for** ([block (blockchain-blocks b)])3       (print-block
+    block)4       (newline)))我们类似地打印钱包：1   (**define** (print-wallets b wallet-a wallet-b)2     (printf
+    "**\n**钱包 A 余额: ~a**\n**钱包 B 余额: ~a**\n\n**"3             (balance-wallet-blockchain
+    b wallet-a)4             (balance-wallet-blockchain b wallet-b)))并导出过程：1   (**provide**
+    (**all-from-out** "blockchain.rkt")2            (**all-from-out** "utils.rkt")3            format-transaction
+    print-block print-blockchain print-wallets)![../images/510363_1_En_3_Chapter/510363_1_En_3_Figr_HTML.gif](../images/510363_1_En_3_Chapter/510363_1_En_3_Figr_HTML.gif)练习
+    3-13'
 - en: Create a transaction and use format-transaction to see what it outputs. Repeat
     the same for a block (print-block), blockchain (print-blockchain), and wallets
     (print-wallets).
