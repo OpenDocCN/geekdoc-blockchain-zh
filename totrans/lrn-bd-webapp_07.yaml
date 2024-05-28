@@ -1123,11 +1123,14 @@
   id: totrans-134
   prefs: []
   type: TYPE_NORMAL
+  zh: 请记住，使用智能账户并不意味着不再需要生成本地外部拥有账户。如果用户没有 web3 启用的浏览器，我们的应用程序仍然需要为每个设备创建一个本地密钥来管理身份合约。相对于常规账户，智能合约的改进在于可以以去中心化方式实现额外的安全性和恢复功能
+    - 例如，社交恢复可以用作替代写下 24 个单词的助记词。
 - en: Sample Implementation
   id: totrans-135
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 实现示例
 - en: 'The simplest version of an identity account (Listing [7-10](#PC18)) should
     handle two main concerns: managing the list of the user accounts authorized to
     operate on the contract and forwarding calls and transfers.// 04-identity-contracts/contracts/Identity.solpragma
@@ -1146,11 +1149,24 @@
   id: totrans-136
   prefs: []
   type: TYPE_NORMAL
+  zh: 最简单的身份账户版本（见[7-10](#PC18)）应处理两个主要问题：管理被授权在合同上操作的用户账户列表，并转发调用和转账。// 04-identity-contracts/contracts/Identity.solpragma
+    solidity ^0.5.0;contract Identity {  mapping(address => bool) public accounts;  event
+    AccountAdded(address indexed account);  event AccountRemoved(address indexed account);  constructor(address
+    owner) public payable {    accounts[owner] = true;    emit AccountAdded(owner);  }  modifier
+    onlyUser {    require(accounts[msg.sender], "Sender is not recognized");    _;  }  function
+    addAccount(address newAccount) onlyUser public {    accounts[newAccount] = true;    emit
+    AccountAdded(newAccount);  }  function removeAccount(address toRemove) onlyUser
+    public {    accounts[toRemove] = false;    emit AccountRemoved(toRemove);  }  //
+    转发任意调用和资金至第三方  function forward(    address to, uint256 value, bytes memory data  )
+    onlyUser public returns (bytes memory) {    (bool success, bytes memory returnData)
+    =      **to.call.value(value)(data)**;    require(success, "Forwarded call failed");    return
+    returnData;  }  // 空的回退函数以接受存款  function() external payable { }}列表 7-10
 - en: A very basic identity contract with support for managing user accounts and forwarding
     calls
   id: totrans-137
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个非常基本的身份合约，支持管理用户账户和转发调用
 - en: 'When this contract is first deployed, the user’s first account is registered.
     Any new account from a new device can then be registered from a previous one (Listing
     [7-11](#PC19)).// 04-identity-contracts/index.jsconst identity = await new web3.eth.Contract(identityAbi)  .deploy({
@@ -1224,11 +1240,13 @@
   id: totrans-145
   prefs: []
   type: TYPE_NORMAL
+  zh: 这方面的一个很好的例子是多签钱包[^9]。这些合约被设计为注册了 N 个账户，并且每笔交易都需要至少 M（其中 M < N）个确认。虽然它们经常被用于通过将密钥分配给团队的不同成员来保管大量资金，但它们也可以用于通过将不同的密钥分配给不同的设备来管理个人资金。
 - en: Deploying a Smart Account (Take One)
   id: totrans-146
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 部署智能账户（第一部分）
 - en: Given that the focus of this chapter is to make user onboarding easier, requiring
     the user to not only generate a local externally owned account but also to deploy
     a contract, fund it, and register their devices on it seems like a step (or many)
@@ -1236,6 +1254,7 @@
   id: totrans-147
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于本章的重点是让用户更容易上手，要求用户不仅要生成本地的外部拥有账户，还要部署合约、为其注资，并在其中注册他们的设备，似乎是朝着相反的方向迈出的一步（或许是很多步）。
 - en: Nevertheless, many of these steps can be carried on by the application on behalf
     of the user – including deployments. After the user has performed a certain number
     of actions within our system, we can opt to deploy the identity contract on their
@@ -1245,6 +1264,7 @@
   id: totrans-148
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，许多这些步骤可以由应用程序代表用户完成，包括部署。在用户在我们系统内执行了一定数量的操作后，我们可以选择代表他们部署身份合约，并将其所有权转移到他们的账户上。尽管这意味着需要支付燃气费用，但在许多情况下，这种补贴可以被视为用户获取的必要成本。
 - en: However, a more decentralized (and cheaper for us) option is to rely on single-use
     addresses for setting up the contract. Our application can generate a local wallet
     behind the scenes to act as the initial owner of the identity contract (if the
@@ -1256,11 +1276,15 @@
   id: totrans-149
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，一个更为去中心化（对我们更为便宜）的选择是依赖于用于设置合约的一次性地址。我们的应用程序可以在幕后生成一个本地钱包，作为身份合约的初始所有者（如果用户尚未拥有
+    Web3 浏览器），以及一个一次性地址，可以在资金到位后触发智能账户的部署和配置。当一次性地址从交易所获得资金时，身份就会被部署，并以预定义数量的 ETH
+    进行初始化。从那时起，用户可以直接通过他们的新身份合约进行操作。
 - en: Note
   id: totrans-150
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 注：
 - en: Remember from the single-use addresses section that any extra funds sent to
     the address are irretrievably lost. The user must choose how much ETH they want
     to initially send to their identity and then create the transaction and fund it
@@ -1778,11 +1802,13 @@
   id: totrans-202
   prefs: []
   type: TYPE_NORMAL
+  zh: 以太坊签名通常用于链下验证用户控制某个账户，或者账户的所有者通过签署特定消息来表达意图（例如，在链下投票）。但签名也可以在链上用于验证账户所有者打算*执行*某个操作。这就是元交易的用武之地。
 - en: Introducing Meta Transactions
   id: totrans-203
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 介绍元交易
 - en: A *meta transaction* or *gasless transaction* is similar to a regular transaction
     in that it is a signed tuple of a recipient, an amount of ETH transferred, a set
     of data included in the call, a gas allowance and price, and a nonce. However,
@@ -1793,6 +1819,7 @@
   id: totrans-204
   prefs: []
   type: TYPE_NORMAL
+  zh: '*元交易*或*无 gas 交易*与常规交易类似，它是一个签名的元组，包含收件人、转移的 ETH 金额、调用中包含的数据集、gas 津贴和价格以及一个随机数。但是，元交易不是广播到网络，而是包装在另一个交易中发送到特定的合约。这个合约知道如何展开嵌套交易，验证其签名，并执行请求的操作。'
 - en: 'Note that the contract that first receives and processes the transaction is
     actually reproducing the same behavior as the Ethereum protocol: it verifies the
     nested transaction signature and nonce and performs a call to a recipient with
@@ -1800,6 +1827,7 @@
   id: totrans-205
   prefs: []
   type: TYPE_NORMAL
+  zh: 注意，首先接收和处理交易的合约实际上正在复制以太坊协议的相同行为：它验证嵌套交易的签名和随机数，并对指定值和数据调用接收方。
 - en: 'What is the value of meta transactions then? The key is that the meta transaction
     can be *relayed* to the network by a different account than the one who signed
     the original intent. This decouples the user who intends to execute an action
@@ -1809,18 +1837,22 @@
   id: totrans-206
   prefs: []
   type: TYPE_NORMAL
+  zh: 那么元交易的价值是什么呢？关键在于元交易可以被一个不同于签署原始意图的账户*中继*到网络。这样，打算执行操作的用户和支付其 gas 费用的用户就分离开来了，实际上*允许任何用户执行交易而无需任何
+    gas*，也就是说，只要另一个用户愿意为其支付。因此，元交易涉及两个主要角色：
 - en: The user, who signs a meta transaction that they want to be executed, but does
     not send it to the network
   id: totrans-207
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 用户签署一份他们希望执行的元交易，但并未将其发送到网络。
 - en: The relayer, who picks up that transaction, wraps it in another transaction
     of their own, and sends it to a contract, paying for its execution
   id: totrans-208
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 中继器捡起该交易，将其包装在自己的另一笔交易中，并发送到一个合约，为其执行支付费用。
 - en: We will go into relayers later in this chapter. Let’s dive into the implementation
     of meta transactions first, at the smart contract level.
   id: totrans-209
@@ -1975,12 +2007,18 @@
   id: totrans-226
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将从智能账户部分继续示例，这次是通过我们的 Identity 合约向 Greeter 合约发送元交易。第一步（见 [7-25](#PC34)）是用户签署要执行的交易。//
+    08-meta-txs/01-identity-with-meta-txs.jslet recipient = greeter.options.address;let
+    value = 5000;let data = greeter.methods.setGreeting("Hey").encodeABI();let hash
+    = await identity.methods.getHash(recipient, value, data).call();let signature
+    = web3.eth.accounts.sign(hash, pk).signature;Listing 7-25
 - en: User crafts and signs transaction to be relayed. Here pk is the private key
     of the user, and greeter is an instance of a contract which has a setGreeting
     method
   id: totrans-227
   prefs: []
   type: TYPE_NORMAL
+  zh: 用户制作并签署要中继的交易。这里的 pk 是用户的私钥，greeter 是一个具有 setGreeting 方法的合约实例。
 - en: 'The resulting transaction, along with its signature, is then sent to a relayer
     via HTTP or another off-chain transport. The relayer should validate the transaction,
     wrap it, and then send it to the user’s identity contract (Listing [7-26](#PC35)).await
@@ -1989,12 +2027,16 @@
   id: totrans-228
   prefs: []
   type: TYPE_NORMAL
+  zh: '然后将结果交易及其签名通过 HTTP 或其他链下传输发送到中继。中继应该验证交易，包装它，然后将其发送到用户的身份合约（见 [7-26](#PC35)）。等待
+    identity.methods.forward(recipient, value, data, signature).send({ from: relayer
+    });await greeter.methods.greet().call();// => 嗨[7-26](#PC35)'
 - en: Relayer calls into the forwarding function of the identity contract with the
     parameters and the signature provided by the user. The identity contract will
     in turn call into the greeter, which changes its state
   id: totrans-229
   prefs: []
   type: TYPE_NORMAL
+  zh: 中继使用用户提供的参数和签名调用身份合约的转发函数。身份合约将进一步调用 greeter，从而更改其状态。
 - en: We are deliberately omitting from this example how the user communicates with
     the relayer or how the relayer decides whether to pay for the user’s transaction.
     This will vary from application to application. For instance, an application could
@@ -2004,6 +2046,8 @@
   id: totrans-230
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们故意从此示例中省略了用户如何与中继通信以及中继如何决定是否为用户的交易付款。这将因应用程序而异。例如，一个应用程序可以提供一个位于众所周知的 URL
+    上的中心化中继，该中继为其系统中的每笔交易付款。它也可以强制用户通过验证码以防止垃圾邮件。
 - en: There are also efforts toward building fully decentralized relayer networks,
     in which the logic on whether paying for a user transaction is actually part of
     the application’s smart contracts. These efforts also include approaches where
@@ -2128,6 +2172,7 @@
   id: totrans-242
   prefs: []
   type: TYPE_NORMAL
+  zh: 在前述代码片段中的一个重要变化是该函数不再需要转发的调用成功（require(success)）。这样做的理由是，如果转发的调用失败并回滚整个交易，则转发者将不会收到任何奖励，但仍将失去执行回滚事务的气费。为了避免惩罚一个正确转发但失败的交易的转发者，我们取消了该要求。并且为了允许确定转发调用是否回滚，我们添加了在每个交易中报告成功的事件。
 - en: Also, note that the gas price validation is performed at the beginning of the
     method, since gas price is relative to the entire transaction, and cannot be changed
     in-between contract calls. Gas limit, on the other hand, can be enforced on each
@@ -2138,11 +2183,14 @@
   id: totrans-243
   prefs: []
   type: TYPE_NORMAL
+  zh: 此外，请注意，气价验证是在方法开始时执行的，因为气价相对于整个交易，并且不能在合约调用之间更改。另一方面，气限可以在交易中的每次调用中强制执行，因此如果剩余气量不足，则可以回滚。在这种情况下，将额外的气量包含在请求中以考虑元交易处理（在此实现中约为
+    60K）是转发者的责任。
 - en: Estimating Profits
   id: totrans-244
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 利润估算
 - en: The code for generating the signed transaction in this scenario is analogous
     to the previous one, with the only difference that the user now needs to include
     values for the gas price, the gas limit, and the reward. The first two can be
@@ -2154,6 +2202,8 @@
   id: totrans-245
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这种情况下生成签名交易的代码类似于上一个场景，唯一的区别是用户现在需要包括气价、气限和奖励的值。前两者可以通过使用价格预言机（如 ethgasstation
+    API）或者 gasPrice JSON-RPC 方法来估算气价，并对待发送的交易运行 estimateGas 来估算气限，如第[5](476252_1_En_5_Chapter.xhtml)章所示。奖励的值可能取决于其他因素，但必须大于转发者的总执行成本，以激励转发交易。
 - en: In this scenario, the relayer needs not only to relay the requested transaction
     but also to evaluate whether it should – by calculating the profit. Transactions
     with an estimated profit below a certain threshold should be dropped, and if multiple
@@ -2162,6 +2212,7 @@
   id: totrans-246
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这种情况下，中继人不仅需要中继请求的交易，还需要评估是否应该中继 - 通过计算利润。估计利润低于一定阈值的交易应该被丢弃，并且如果排队了多个交易（来自不同的身份），则利润可以用来确定优先执行哪个交易。
 - en: 'The profit can be easily calculated by actually estimating the entire call,
     multiplying the estimate by the gas price, and subtracting that from the reward.//
     08-meta-txs/02-identity-with-rewards.jslet estimatedGas = await identity.methods  .forward(reward,
@@ -2180,17 +2231,25 @@
   id: totrans-247
   prefs: []
   type: TYPE_NORMAL
+  zh: '利润可以通过实际估算整个调用来轻松计算，将估算乘以气价，然后从奖励中减去。// 08-meta-txs/02-identity-with-rewards.jslet
+    estimatedGas = await identity.methods  .forward(reward, gasPrice, gasLimit,           recipient,
+    value, data, signature)  .estimateGas({ from: relayer, gasPrice });let estimatedProfit
+    =  BN(reward).minus(BN(estimatedGas).times(gasPrice));请记住，如果用户请求的gasLimit更高，则实际上可能需要比估计更高的气体值。要实际执行交易，中继人应发送一个气体津贴，等于gasLimit加上处理元交易所需的额外气体。这额外的气体可以粗略地计算为直接向接收方合约发送交易和通过身份作为元交易发送之间的差异。在我们的实现中，该差异大约为60K气体，尽管此值不是恒定的：它稍微波动取决于交易数据的大小。await
+    identity.methods  .forward(reward, gasPrice, gasLimit,           recipient, value,
+    data, signature)  .send({ from: relayer, gasPrice, gas: gasLimit + 60000 });'
 - en: Note that this difference may actually cause the transaction to cost more than
     the relayer expected in case the estimation and the actual usage differ, as the
     relayer could be setting a higher gas allowance.
   id: totrans-248
   prefs: []
   type: TYPE_NORMAL
+  zh: 请注意，如果估计和实际使用不同，这种差异实际上可能导致交易成本高于中继人预期，因为中继人可能设置了较高的气体津贴。
 - en: Payment in Kind
   id: totrans-249
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 以实物支付
 - en: 'Gas fees from transaction execution are paid in ETH, since it is the native
     currency of the Ethereum network. However, nothing forces us to pay the rewards
     to relayers in the same currency, as there are plenty of other media of exchange
@@ -2227,6 +2286,19 @@
   id: totrans-252
   prefs: []
   type: TYPE_NORMAL
+  zh: 支持令牌支付的代码是直接从之前的代码修改而来的。我们在转发函数中添加了一个新的 rewardToken 参数，并在该地址上发送令牌，如果该参数设置为零地址，则发送以太币。//
+    08-meta-txs/contracts/IdentityWithTokenRewards.sol**import "openzeppelin-solidity/contracts/token/ERC20/IERC20.sol";**function
+    forward(  uint256 reward, **address rewardToken**,  uint256 gasPrice, uint256
+    gasLimit,  address to, uint256 value, bytes memory data,  bytes memory signature)
+    public returns (bytes memory) {  // 验证交易的燃料价格  require(tx.gasPrice >= gasPrice,
+    "Gas price too low");  // 获取被签名的交易的哈希  bytes32 hash = getHash(    reward, **rewardToken**,
+    gasPrice, gasLimit, to, value, data  ).toEthSignedMessageHash();  // 检索签名者地址并验证  address
+    signer = hash.recover(signature);  require(accounts[signer], "Signer not registered");  //
+    增加 nonce，执行调用，并通知成功  nonce++;  require(gasleft() >= gasLimit);  (bool success,
+    bytes memory returnData) =    to.call.value(value).gas(gasLimit)(data);  emit
+    Forwarded(nonce, success, msg.sender);  // 支付给中继  **if (rewardToken == address(0))
+    {**    **msg.sender.transfer(reward);**  **} else {**    **require(IERC20(rewardToken).transfer(msg.sender,
+    reward));**  **}**  return returnData;}
 - en: Keep in mind that while this mechanism is particularly useful when your application
     spins up relayers that trade tokens for executions, it imposes additional difficulties
     for decentralized relayers. A random relayer performing desktop mining now needs
@@ -2237,6 +2309,8 @@
   id: totrans-253
   prefs: []
   type: TYPE_NORMAL
+  zh: 请记住，当你的应用程序启动中继进行令牌交易时，这种机制特别有用，但对于去中心化的中继来说，它带来了额外的困难。现在，进行桌面挖矿的随机中继需要检查奖励令牌的市场价值与执行成本之间的关系，以确定利润。不仅如此，它还需要确保市场上有足够的流动性来交易这种令牌以换取以太币，当他们想要兑现利润时
+    —— 这还没有考虑到交易的费用。
 - en: In other words, paying relayer rewards in a protocol-specific ERC20 is useful
     if the relayer infrastructure you are using is specific to your application, but
     ETH or a widespread ERC20^([15](#Fn15)) may be a better option for working with
@@ -2290,11 +2364,26 @@
   id: totrans-258
   prefs: []
   type: TYPE_NORMAL
+  zh: 作为示例，让我们给 ERC721 合约添加原生的元交易^([17](#Fn17))，允许任何持有非同质代币的用户签署一个交易，使其在不花费 gas 的情况下转移（见清单
+    [7-28](#PC40)）。代码与我们之前处理的转发函数类似，只是专门用于执行代币转移。// 08-meta-txs/contracts/ERC721WithNativeMetaTxs.solpragma
+    solidity ^0.5.0;import "openzeppelin-solidity/contracts/token/ERC721/ERC721.sol";import
+    "openzeppelin-solidity/contracts/cryptography/ECDSA.sol";contract ERC721WithNativeMetaTxs
+    is ERC721 {  using ECDSA for bytes32;  // 每个签名者跟踪 nonce  mapping (address => uint256)
+    nonces;  function signedTransferFrom(    address from, address to, uint256 tokenId,    uint256
+    nonce, bytes memory signature  ) public {    // 检索签名者    bytes32 hash = getTransferHash(      from,
+    to, tokenId, nonce, signature    ).toEthSignedMessageHash();    address signer
+    = hash.recover(signature);    // 确保签名者能处理此代币    require(_isApprovedOrOwner(signer,
+    tokenId));    // 验证 nonce 并增加它    require(nonce == nonces[signer]);    nonces[signer]++;    //
+    执行转移    _transferFrom(from, to, tokenId);  }  // 计算要为转移签名的哈希  function getTransferHash(    address
+    from, address to, uint256 tokenId, uint256 nonce  ) public view returns (bytes32)
+    {    return keccak256(abi.encodePacked(      from, to, tokenId, nonce, address(this)    ));  }}清单
+    7-28
 - en: Adding native meta transactions to an ERC721 contract. Note that the nonces
     now need to be tracked per signer
   id: totrans-259
   prefs: []
   type: TYPE_NORMAL
+  zh: 向 ERC721 合约添加原生的元交易。请注意，现在需要跟踪每个签名者的 nonce。
 - en: By bundling this logic in the reward token contract itself directly, our users
     can directly sign token transfers that are then sent by a relayer and executed
     by the ERC721 contract. This allows a user with an existing account to benefit
@@ -2303,11 +2392,13 @@
   id: totrans-260
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过直接将此逻辑捆绑在奖励代币合约中，我们的用户可以直接签署由中继器发送并由 ERC721 合约执行的代币转账。这使得拥有现有账户的用户能够受益于元交易（这可能是由我们的应用程序补贴的），而无需部署身份合约。
 - en: Rewards in Native Meta Transactions
   id: totrans-261
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 原生元交易中的奖励
 - en: 'While moving the meta transaction logic to the application contract directly
     reduces complexity for the user, it introduces an additional difficulty: how to
     handle rewards to relayers. Identity contracts did not face this problem since
@@ -2316,6 +2407,7 @@
   id: totrans-262
   prefs: []
   type: TYPE_NORMAL
+  zh: 将元交易逻辑直接移至应用合约可降低用户的复杂性，但同时引入了另一个难题：如何处理中继器的奖励。身份合约没有面临这个问题，因为它们已经持有用户的所有资产，所以它们可以直接将它们转移到中继器作为支付。
 - en: 'In the case of ERC20 tokens, the solution is simple: the token contract can
     manage the signer’s tokens and directly transfer the reward to the relayer of
     the transaction using those very tokens (Listing [7-29](#PC41)).// 08-meta-txs/contracts/ERC20WithNativeMetaTxs.solfunction
@@ -2327,11 +2419,18 @@
   id: totrans-263
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于 ERC20 代币的情况，解决方案很简单：代币合约可以管理签名者的代币，并直接使用这些代币将奖励转移到交易的中继器（见列表[7-29](#PC41)）。//
+    08-meta-txs/contracts/ERC20WithNativeMetaTxs.solfunction signedTransfer(   address
+    to, uint256 value,   uint256 nonce, **uint256 reward**, bytes memory signature)
+    public {   bytes32 hash = getTransferHash(     to, value, nonce, reward   ).toEthSignedMessageHash();   address
+    signer = hash.recover(signature);   require(nonce == nonces[signer]);   nonces[signer]++;   **_transfer(signer,
+    msg.sender, reward);**   _transfer(signer, to, value);}列表 7-29
 - en: Sample signedTransfer function in an ERC20 contract that supports meta transactions
     and relayer rewards using the same ERC20 token
   id: totrans-264
   prefs: []
   type: TYPE_NORMAL
+  zh: 在支持元交易和中继器奖励的 ERC20 合约中的 signedTransfer 函数示例，使用相同的 ERC20 代币
 - en: However, this solution does not allow any rewards in any currency that is not
     that same token – for instance, ETH rewards are not possible under this scheme.
     It also does not translate well to other assets. What would be the reward for
@@ -2340,6 +2439,8 @@
   id: totrans-265
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，这个解决方案不允许在不同于相同代币的任何货币中进行奖励 - 例如，ETH 奖励在此方案下不可行。它也不能很好地转化为其他资产。转移 ERC721
+    非同质化代币的奖励会是什么呢？数字收藏品无法被削减并作为奖励给中继器。
 - en: A way around this problem is to rely on ERC20 *approvals*. Recall from Chapter
     [3](476252_1_En_3_Chapter.xhtml) that ERC20 tokens allow holders to appoint other
     addresses to manage their funds. This way, a user could grant an approval on their
@@ -2350,6 +2451,8 @@
   id: totrans-266
   prefs: []
   type: TYPE_NORMAL
+  zh: 解决这个问题的一种方法是依赖于ERC20的*批准*。回顾第[3](476252_1_En_3_Chapter.xhtml)章节，ERC20代币允许持有者指定其他地址来管理他们的资金。这样，用户可以向处理转发器奖励的应用合约授予其代币的批准，然后该合约将代币发送给转发器作为支付。然而，这种方法仍然需要用户有以太币来支付初始批准交易的燃气费用
+    - 除非奖励代币合约本身具有本地元交易支持批准。
 - en: 'Another option is to simply subsidize the user’s transactions and have the
     application itself pay out to the relayers. This requires careful logic in the
     application contract to determine *when* to accept a meta transaction – otherwise,
@@ -2361,11 +2464,13 @@
   id: totrans-267
   prefs: []
   type: TYPE_NORMAL
+  zh: 另一个选择是简单地补贴用户的交易，并让应用本身支付给转发器。这需要应用合约中的谨慎逻辑来确定*何时*接受元交易 - 否则，恶意的转发器可能会向应用发送假交易并耗尽整个奖励池。这样的逻辑完全取决于您的用例，但请记住您有很大的灵活性：您的合约可能需要元交易附带应用密钥的额外签名，以便您可以在链下执行验证来批准交易。
 - en: Revisiting Smart Accounts Deployment
   id: totrans-268
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 重新审视智能账户部署
 - en: 'We will go once more through the process of deploying a smart account contract.
     In the “Smart accounts” section, we discussed how to do this using single-use
     addresses, though it had certain limitations. We will now explore another approach,
@@ -2373,11 +2478,13 @@
   id: totrans-269
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将再次讨论部署智能账户合约的过程。在“智能账户”部分，我们讨论了如何使用一次性地址来实现这一点，尽管它具有某些限制。我们现在将探讨另一种方法，支持转发器奖励，基于不同的EVM操作：CREATE2。
 - en: The CREATE2 Instruction
   id: totrans-270
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: CREATE2指令
 - en: Ethereum has, since its first versions, provided a CREATE instruction for creating
     a new contract from another. The address of the newly created contract, as we
     saw earlier, is a function of the sender address and its nonce. While this allows
@@ -2387,6 +2494,7 @@
   id: totrans-271
   prefs: []
   type: TYPE_NORMAL
+  zh: 以太坊自其最初版本以来，提供了一个CREATE指令，用于从另一个合约创建新合约。如前所述，新创建的合约地址是发送者地址和其nonce的函数。虽然这允许确定性部署，但这也意味着保留地址是棘手的，因为发送者不能发送除部署之外的任何其他交易，以防止更改其nonce。
 - en: 'To solve this, a new CREATE2 instruction  was introduced. This low-level operation
     works similar to CREATE, but also accepts a *salt* parameter: the deployment address
     is now calculated as a function of the sender, the salt, and the contract creation
@@ -2398,12 +2506,17 @@
   id: totrans-272
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了解决这个问题，引入了一个新的CREATE2指令。这个低级操作与CREATE类似，但还接受一个*salt*参数：部署地址现在是根据发送者、盐和合约创建代码计算的函数。这允许通过设置一个使用这个指令的工厂合约来启动合约，从而实现更加有趣的流程。工厂身份工厂带奖励
+    {  function deploy(    bytes code, uint256 salt  ) public returns (address) {    address
+    deployed;    assembly {      deployed:= create2(0, add(code,0x20), mload(code),
+    salt)      if iszero(extcodesize(deployed)) { revert(0, 0) }    }    return deployed;  }}
 - en: A user can now choose a contract, along with its constructor arguments, generate
     a random salt, and know the address where the resulting contract will be deployed.
     Not only that, but *anyone* who knows these parameters can now perform the deployment.
   id: totrans-273
   prefs: []
   type: TYPE_NORMAL
+  zh: 用户现在可以选择一个合约，连同其构造函数参数，生成一个随机盐，并知道结果合约将部署到的地址。不仅如此，*任何*知道这些参数的人现在都可以执行部署。
 - en: This means that the user can simply share the creation parameters and salt,
     plus the address of the factory contract to be used, and have any relayer execute
     the transaction, without even needing to sign the transaction – and certainly
@@ -2413,16 +2526,19 @@
   id: totrans-274
   prefs: []
   type: TYPE_NORMAL
+  zh: 这意味着用户可以简单地共享创建参数和盐，以及要使用的工厂合约的地址，让任何中继执行交易，甚至不需要签名交易，而且肯定不需要支付任何gas费用。如果中继尝试修改代码或创建参数，则合约将部署到不同的地址。让我们使用这种方法来部署我们的身份合约，为中继提供奖励。
 - en: Deployment Rewards
   id: totrans-275
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 部署奖励
 - en: Before going into the code, we need to define how the payments to the relayer
     will be managed and which addresses will be initially funded by the user.
   id: totrans-276
   prefs: []
   type: TYPE_NORMAL
+  zh: 在进入代码之前，我们需要定义如何管理对转发器的支付以及最初由用户资助的地址。
 - en: Recall from the previous approach that one of the downsides of single-use addresses
     is that the user needs to fund from an exchange one address, but then his or her
     identity is spawned at a different one. Even worse, any additional funds sent
@@ -2431,6 +2547,7 @@
   id: totrans-277
   prefs: []
   type: TYPE_NORMAL
+  zh: 请回想一下之前方法的一个缺点是单次使用地址的用户需要从交易所资助一个地址，但是他或她的身份生成在另一个地址上。更糟糕的是，任何额外发送到单次使用地址的资金都将丢失。因此，如果我们可以让用户直接资助身份合约的地址，那将是可取的。
 - en: The easiest way to solve this is by having the Identity contract pay the relayer
     reward upon deployment, that is, in its constructor (Listing [7-30](#PC43)). In
     this scenario, the relayer is by definition the account who initiated the transaction –
@@ -2440,10 +2557,13 @@
   id: totrans-278
   prefs: []
   type: TYPE_NORMAL
+  zh: 解决这个问题的最简单方法是在部署时由身份合约支付转发器奖励，也就是在其构造函数中（见[7-30](#PC43)）。在这种情况下，转发器根据定义是发起交易的账户
+    - 或者在 Solidity 中是 `tx.origin`。// 08-meta-txs/contracts/IdentityFactoryWithRewards.sol
 - en: Modified Identity contract that pays out a reward to the relayer of the transaction
   id: totrans-279
   prefs: []
   type: TYPE_NORMAL
+  zh: 修改后的身份合约，用于向交易的转发器支付奖励
 - en: This approach allows the user to simply specify the owner account and the reward
     to be paid and broadcast those parameters along with the salt chosen, since these
     values alone are enough to determine the deployment address. Any relayer can then
@@ -2454,11 +2574,13 @@
   id: totrans-280
   prefs: []
   type: TYPE_NORMAL
+  zh: 这种方法允许用户简单地指定所有者账户和要支付的奖励，并广播这些参数以及选择的盐，因为仅这些值就足以确定部署地址。然后，任何转发器都可以接收此交易，验证部署地址上是否有足够的资金来支付奖励，并将交易发送到工厂合约。作为奖励，任何额外发送到部署地址的资金在合约创建后仍将保留在那里，准备供其所有者使用。
 - en: Identity Contract Factory
   id: totrans-281
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 身份合约工厂
 - en: The factory contract then must provide a deployment function, callable by anyone,
     that accepts the Identity contract deployment parameters and salt (Listing [7-31](#PC44)).
     This function assembles the creation code and performs the actual creation using
@@ -2473,12 +2595,15 @@
   id: totrans-282
   prefs: []
   type: TYPE_NORMAL
+  zh: 工厂合同必须提供一个可由任何人调用的部署函数，接受身份合同部署参数和盐（见[7-31](#PC44)）。此函数组装创建代码并使用CREATE2指令执行实际创建。//
+    08-meta-txs/contracts/IdentityFactoryWithRewards.sol
 - en: Deploy function of an IdentityFactory contract. The creationCode property of
     the contract type returns the bytecode used in the creation, and any constructor
     arguments just need to be appended at the end
   id: totrans-283
   prefs: []
   type: TYPE_NORMAL
+  zh: IdentityFactory合同的deploy函数。合同类型的creationCode属性返回创建时使用的字节码，任何构造函数参数只需附加在末尾。
 - en: Note that there is no need to validate the owner’s signature, since any change
     on the creation parameters would yield a different deployment address – one with
     no funds to pay back the reward to the relayer. Relayers should validate that
@@ -2486,6 +2611,7 @@
   id: totrans-284
   prefs: []
   type: TYPE_NORMAL
+  zh: 请注意，无需验证所有者的签名，因为对创建参数的任何更改都会产生不同的部署地址，即没有资金用于支付回扣给中继者的地址。中继者应验证部署地址确实有足够的资金来支付回扣。
 - en: An addition to this contract is a view function to obtain the deployment address
     given the constructor parameters and salt. This function can be used to tell the
     user on which address their identity contract will be deployed, that is, which
@@ -2496,6 +2622,11 @@
   id: totrans-285
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个合约的一个补充是一个视图函数，用于根据构造函数参数和盐获取部署地址。 可以使用此函数告知用户他们的身份合约将部署在哪个地址上，也就是说，他们需要资助的地址。function
+    getDeploymentAddress(  address owner, uint256 reward, uint256 salt) public view
+    returns (address) {  bytes memory code = getCode(owner, reward);  bytes32 codeHash
+    = keccak256(code);  bytes32 rawAddress = keccak256(    abi.encodePacked(      bytes1(0xff),      address(this),      salt,      codeHash    )  );  return
+    address(bytes20(rawAddress << 96));}
 - en: Using this strategy, you can precalculate the address where a user’s identity
     will be created given a salt and share the address with him or her. The user acknowledges
     that address as their own and seeds it with funds from an exchange. This in turn
@@ -2503,11 +2634,13 @@
   id: totrans-286
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用这种策略，您可以预先计算出用户的身份将被创建的地址，然后将该地址与他或她共享。 用户确认该地址为自己的地址，并从交易所提供资金。 这反过来触发了中继在资金到位后在该地址创建身份合约。
 - en: Note
   id: totrans-287
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 注意
 - en: This strategy can actually be carried out with single-use addresses instead
     of CREATE2 using a slightly more complex flow. The application can select a relayer
     and create a single-use address that will spawn a new identity contract and send
@@ -2517,11 +2650,14 @@
   id: totrans-288
   prefs: []
   type: TYPE_NORMAL
+  zh: 这种策略实际上可以通过使用单次使用地址而不是CREATE2来执行，使用稍微复杂的流程。 应用程序可以选择一个中继并创建一个单次使用地址，该地址将生成一个新的身份合约并向预先选择的中继发送奖励。
+    用户资助部署身份的地址后，中继再资助单次使用地址，执行部署并收到奖励。
 - en: Ethereum Names
   id: totrans-289
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 以太坊名称
 - en: The last onboarding challenge we will tackle in this chapter is that of Ethereum
     addresses themselves. While addresses are central to any Ethereum application,
     as they identify the actors of a decentralized system, they are far from user-friendly.
@@ -2531,11 +2667,14 @@
   id: totrans-290
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们在本章中将解决的最后一个入职挑战是以太坊地址本身。 虽然地址对于任何以太坊应用程序都是至关重要的，因为它们标识了分散系统的参与者，但它们远非用户友好。
+    要求用户将他们的40个字符的明显胡言乱语字符串理解为他们的全局标识符并不是一个好的设计。 为了解决这个问题，我们将研究ENS（以太坊名称服务）。
 - en: A DNS for Ethereum
   id: totrans-291
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 以太坊的 DNS
 - en: Most web developers are familiar with the concept of DNS (Domain Name Service)  ,
     a protocol for mapping easily recognizable domain names (like “google.com”) to
     machine-friendly addresses (like 172.217.28.206) that identify a server in the
@@ -2543,6 +2682,7 @@
   id: totrans-292
   prefs: []
   type: TYPE_NORMAL
+  zh: 大多数 web 开发人员都熟悉 DNS（域名服务）的概念，这是一种将易于识别的域名（如“google.com”）映射到机器友好的地址（如 172.217.28.206）的协议，该地址标识了互联网协议中的服务器。^([18](#Fn18))
 - en: The Ethereum Name Service^([19](#Fn19)) (or ENS) is an analogous protocol that
     resolves user-friendly names (like “ethereumfoundation.eth”) to Ethereum addresses
     (0xfB6916095ca1df60bB79Ce92cE3Ea74c37c5d359 in this example, which is the Ethereum
@@ -2551,6 +2691,8 @@
   id: totrans-293
   prefs: []
   type: TYPE_NORMAL
+  zh: 以太坊名称服务^([19](#Fn19))（或 ENS）是一种类似的协议，它将用户友好的名称（如“ethereumfoundation.eth”）解析为以太坊地址（例如此示例中的
+    0xfB6916095ca1df60bB79Ce92cE3Ea74c37c5d359，这是以太坊基金会的小费罐）。与 DNS 一样，它支持注册非地址记录（如内容哈希或纯文本），以及反向查找。
 - en: The components involved in ENS loosely mimic those of DNS, with the difference
     that they are implemented as smart contracts within the Ethereum network. The
     ENS **registry** itself is a singleton contract that keeps track of all domain
@@ -2562,6 +2704,8 @@
   id: totrans-294
   prefs: []
   type: TYPE_NORMAL
+  zh: ENS 中涉及的组件大致模拟了 DNS 的组件，不同之处在于它们作为智能合约在以太坊网络中实现。ENS **注册表**本身是一个单例合约，用于跟踪所有域名及其所有者，并将每个域名映射到一个**解析器**。解析器合约提供了将名称解析为地址的方法，以及可选的附加信息，如文本、内容哈希或公钥记录。最后，ENS
+    注册表通过**注册器**进行更新，这些合约管理树的不同级别的子域名注册，每个级别都有自己的政策。
 - en: The most widely used top-level domain for ENS is .eth,^([20](#Fn20)) operated
     by the so-called *.eth permanent registrar*  . This registrar uses a commit-reveal
     scheme for purchasing second-level domains and allows anyone to chip in for extending
@@ -2571,11 +2715,14 @@
   id: totrans-295
   prefs: []
   type: TYPE_NORMAL
+  zh: ENS 最广泛使用的顶级域是 .eth，^([20](#Fn20)) 由所谓的 *.eth 永久注册商* 运营。该注册商使用一种提交-揭示方案来购买二级域名，并允许任何人为扩展名称注册做出贡献。虽然可以直接与此合约交互，但建议使用工具（如
+    mycrypto^([21](#Fn21)) 或 myetherwallet^([22](#Fn22)））来购买和管理您的二级域名。
 - en: Names Resolution
   id: totrans-296
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 名称解析
 - en: A key part of making your application ENS-aware is to allow your users to enter
     ENS names wherever an address is required. Allowing users to input ENS names in
     your application instead of addresses helps abstracting the complexity of Ethereum
@@ -2586,6 +2733,8 @@
   id: totrans-297
   prefs: []
   type: TYPE_NORMAL
+  zh: 使您的应用程序具备 ENS 意识的关键部分是允许用户在需要地址的任何地方输入 ENS 名称。允许用户在应用程序中输入 ENS 名称而不是地址有助于抽象出以太坊地址的复杂性，这意味着您的用户需要掌握的概念少了一个。这相当于允许用户通过在浏览器中输入域名而不是强制他们键入其
+    IP 地址来导航至“google.com”。
 - en: 'As in DNS, translating from ENS names to addresses is a process called *resolution*
     (Listing [7-32](#PC46)). Given the architecture of ENS, resolving a name is a
     two-step process: we first need to query the central ENS registry to obtain the
@@ -2600,10 +2749,18 @@
   id: totrans-298
   prefs: []
   type: TYPE_NORMAL
+  zh: 与 DNS 类似，从 ENS 名称到地址的转换是一个称为*解析*的过程（见列表 [7-32](#PC46)）。鉴于 ENS 的架构，解析名称是一个两步过程：首先，我们需要查询中央
+    ENS 注册表以获取名称的*解析器合约*的地址，然后查询解析器以获取该名称的实际*地址*。域名还需要通过一种称为*namehash*的过程进行规范化和哈希处理。^([23](#Fn23))//
+    09-ens/01-resolve.jsconst ensAddr = '0x314159265dd8dbb310642f98f50c066173c1259b';async
+    function resolve (domain) {  let domainHash = namehash(domain);  let ens = new
+    web3.eth.Contract(ensABI, ensAddr);  let resAddr = await ens.methods.resolver(domainHash).call();  let
+    resolver = new web3.eth.Contract(resolverABI, resAddr);  return await resolver.methods.addr(domainHash).call();}列表
+    7-32
 - en: Resolving a domain name to an address using the central ENS registry on mainnet
   id: totrans-299
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用主网上的中央 ENS 注册表将域名解析为地址
 - en: Since name resolution is a common operation, several libraries implement this
     operation out of the box. In particular, the official ethereum-ens@0.7.6 javascript
     package provides bindings for most operations, making name resolution much simpler.$
@@ -2612,6 +2769,9 @@
   id: totrans-300
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于名称解析是一个常见操作，因此几个库都会默认实现此操作。特别是，官方 ethereum-ens@0.7.6 javascript 包提供了大多数操作的绑定，使名称解析变得更加简单。$
+    let ens = new ENS(web3.eth.currentProvider);$ let domain = "ethereumfoundation.eth";$
+    await **ens.resolver(domain).addr()**;> 0xfB6916095ca1df60bB79Ce92cE3Ea74c37c5d359
 - en: Abstracting your users of Ethereum addresses also means that your application
     must use Ethereum names instead of raw addresses when displaying information.
     It is no good if your users enter a user-friendly Ethereum name, and your application
@@ -2619,6 +2779,8 @@
   id: totrans-301
   prefs: []
   type: TYPE_NORMAL
+  zh: 对以太坊地址的用户进行抽象化还意味着您的应用程序在显示信息时必须使用以太坊名称而不是原始地址。如果您的用户输入一个用户友好的以太坊名称，而您的应用程序回答一个堆积如山的
+    40 个字符的十六进制字符串，那就不好了。
 - en: Reverse resolution is supported in ENS by querying a special “addr.reverse”
     domain, which maps from addresses to full Ethereum names. This domain is managed
     separately from “eth,” and users may choose not to register their addresses on
@@ -2628,11 +2790,14 @@
   id: totrans-302
   prefs: []
   type: TYPE_NORMAL
+  zh: 在 ENS 中支持反向解析是通过查询一个特殊的“addr.reverse”域来实现的，该域将地址映射到完整的以太坊名称。该域是与“eth”分开管理的，并且用户可以选择不在其中注册他们的地址
+    - 因此，并非每个具有以太坊名称的地址都会有反向解析记录。
 - en: Caution
   id: totrans-303
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 注意
 - en: ENS does not enforce the correctness of reverse records; this means that anyone
     could register that their address maps to “ethereumfoundation.eth”. To protect
     against this, you should always run a forward name resolution on the result of
@@ -2640,17 +2805,20 @@
   id: totrans-304
   prefs: []
   type: TYPE_NORMAL
+  zh: ENS 不会强制执行反向记录的正确性；这意味着任何人都可以注册他们的地址映射到“ethereumfoundation.eth”。为了防止这种情况发生，您应该始终对反向解析的结果进行正向名称解析，并验证它是否与原始地址匹配。
 - en: Giving Names to Our Users
   id: totrans-305
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 给我们的用户命名
 - en: ENS is a perfect match for smart accounts. Instead of requiring our users to
     remember the address of the smart contract that is their on-chain identity, we
     can allow them to assign it an Ethereum name.
   id: totrans-306
   prefs: []
   type: TYPE_NORMAL
+  zh: ENS 是智能账户的完美匹配。我们不再要求用户记住智能合约的地址，而是允许他们为其分配一个以太坊名称。
 - en: As in DNS, instead of having them purchase a second-level domain directly from
     a network information center (NIC)  , we can allocate names within our own domain.
     Email is a good analogy of this and something users are accustomed to – most people
@@ -2660,6 +2828,9 @@
   id: totrans-307
   prefs: []
   type: TYPE_NORMAL
+  zh: 正如在 DNS 中一样，我们可以在我们自己的域内分配名称，而不是直接从网络信息中心（NIC）购买二级域。电子邮件是这方面的一个很好的类比，也是用户习惯的事情
+    - 大多数人有一个由提供者管理的电子邮件帐户，比如 john@gmail.com，而不是由他们自己管理的，比如 hello@john.com。同样，在 ENS
+    中，我们可以为我们应用程序的每个用户分配一个子域，比如 *john.myapp.eth*。
 - en: To implement this, we need to set up our own registrar contract to manage our
     Ethereum domain and manage all subdomain registrations. We will use a simple FIFS  (first-in
     first-served) registrar contract that will freely accept all subdomain registrations.
@@ -2668,6 +2839,8 @@
   id: totrans-308
   prefs: []
   type: TYPE_NORMAL
+  zh: 要实现这一点，我们需要设置自己的注册器合约来管理我们的以太坊域名并管理所有子域名注册。我们将使用一个简单的 FIFS（先到先得）注册器合约，它将自由接受所有子域名注册。这和其他我们将要使用的合约的规范实现可以在
+    @ensdomains/ens@0.3.5 和 @ensdomains/resolver@0.1.3 包中找到。
 - en: 'The first step is to actually acquire a domain. While this is a non-trivial
     process on mainnet, ENS offers FIFS registrars for .test domains in the test networks,
     with the restriction that these registrations expire after 4 weeks. Let’s start
@@ -2683,11 +2856,14 @@
   id: totrans-309
   prefs: []
   type: TYPE_NORMAL
+  zh: 第一步是实际获取一个域名。虽然在主网上这是一个非平凡的过程，但ENS在测试网络中为 .test 域提供了 FIFS 注册器，限制是这些注册会在 4 周后过期。让我们从在
+    Rinkeby 测试网上注册一个测试域名开始（见[7-33](#PC49)）。// 09-ens/02-register.js
 - en: Registering the Ethereum domain “myapp.test” on Rinkeby. The hash function in
     this code snippet is keccak256
   id: totrans-310
   prefs: []
   type: TYPE_NORMAL
+  zh: 在 Rinkeby 上注册以太坊域名 “myapp.test”。此代码片段中的哈希函数是 keccak256。
 - en: 'We can now deploy our FIFS registrar contract, which will freely allocate subdomains
     of “myapp.test,” and transfer ownership of the domain to it.// Deploy new registrar
     contractlet arguments = [ensAddress, namehash(domain)];let myRegistrar = await  new
@@ -2700,37 +2876,49 @@
   id: totrans-311
   prefs: []
   type: TYPE_NORMAL
+  zh: '现在我们可以部署我们的 FIFS 注册器合约，它将自由分配“myapp.test”的子域，并将域名的所有权转让给它。// 部署新的注册器合约let arguments
+    = [ensAddress, namehash(domain)];let myRegistrar = await new web3.eth.Contract(fifsRegistrarABI)
+    .deploy({ data: fifsRegistrarBytecode, arguments }) .send({ from: owner });//
+    将我们的域名所有权转让给我们的注册器await ens.methodslet myRegistrarAddress = myRegistrar.options.address;
+    .setOwner(namehash(domain), myRegistrarAddress) .send({ from: owner });现在，我们可以通过一个方法来使用此注册器在
+    ENS 上注册我们的身份合约（清单 [7-34](#PC51)）。该方法包括三个步骤：'
 - en: '1.'
   id: totrans-312
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '1.'
 - en: Registering a custom name (i.e., “john”) in our registrar and appointing the
     Identity contract as the owner
   id: totrans-313
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 在我们的注册器中注册一个自定义名称（即“john”），并任命身份合约为所有者。
 - en: '2.'
   id: totrans-314
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '2.'
 - en: Setting a resolver in the ENS registry for the new identity name (“john.myapp.test”)
   id: totrans-315
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 在 ENS 注册表中为新的身份名称（“john.myapp.test”）设置解析器。
 - en: '3.'
   id: totrans-316
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '3.'
 - en: Setting the identity contract address in the resolver from the previous step
   id: totrans-317
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 在前一步中的解析器中设置身份合约地址。
 - en: We will be using a *public resolver* for step 2 of the process. A public resolver  is
     a public contract that accepts requests for managing the records of any address,
     but only from the owner of that address. This saves us the trouble of having to
@@ -2738,17 +2926,20 @@
   id: totrans-318
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将使用*公共解析器*来完成第二步。公共解析器是一个公共合约，接受管理任何地址记录的请求，但仅限于该地址的所有者。这样可以避免我们为应用程序部署自定义解析器的麻烦。
 - en: Note
   id: totrans-319
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 注意
 - en: An alternative is to add resolver methods to our identity contract and just
     let the identity return its own address upon a resolution request. However, this
     adds more complexity to our contract.
   id: totrans-320
   prefs: []
   type: TYPE_NORMAL
+  zh: 另一种方法是在我们的身份合约中添加解析器方法，并在解析请求时让身份返回其自身地址。然而，这会给我们的合约增加更多复杂性。
 - en: // 09-ens/contracts/IdentityWithENS.solcontract IdentityWithENS is Identity
     {  function registerENS(    bytes32 _hashLabel, bytes32 _node,    ENS ens, FIFSRegistrar
     registrar, PublicResolver resolver  ) onlyUserAccount public {    registrar.register(_hashLabel,
@@ -2757,12 +2948,18 @@
   id: totrans-321
   prefs: []
   type: TYPE_NORMAL
+  zh: // 09-ens/contracts/IdentityWithENS.sol合约 IdentityWithENS 是 Identity {  function
+    registerENS(    bytes32 _hashLabel, bytes32 _node,    ENS ens, FIFSRegistrar registrar,
+    PublicResolver resolver  ) onlyUserAccount public {    registrar.register(_hashLabel,
+    address(this));    ens.setResolver(_node, address(resolver));    resolver.setAddr(_node,
+    address(this));  }}清单 7-34
 - en: Identity contract function for registering a name and mapping it to the identity
     itself using our custom registrar and a public resolver. Code adapted from the
     UniversalLoginSDK repository^([24](#Fn24))
   id: totrans-322
   prefs: []
   type: TYPE_NORMAL
+  zh: 身份合约函数用于注册名称并将其映射到身份本身，使用我们的自定义注册器和公共解析器。 代码改编自 UniversalLoginSDK 仓库^([24](#Fn24))
 - en: 'Registering an identity contract on ENS is then just a matter of having our
     user call into this function from one of their external accounts (Listing [7-35](#PC52)).
     Note that the owner of the registered name is set to be the identity itself, so
@@ -2773,11 +2970,17 @@
   id: totrans-323
   prefs: []
   type: TYPE_NORMAL
+  zh: '然后，只需让我们的用户从他们的某个外部账户调用此函数，就可以在 ENS 上注册身份合约（见列表 [7-35](#PC52)）。 请注意，注册名称的所有者设置为身份本身，因此用户最终保留了对其子域名的控制。const
+    publicResolverAddress = ''0xb14fdee4391732ea9d2267054ead2084684c0ad8'';let userName
+    = `john`;let userDomain = `${userName}.${domain}`;await identity.methods.registerENS(
+    hash(userName), namehash(userDomain), ensAddress, myRegistrar.options.address,
+    publicResolverAddress).send({ from: user });Listing 7-35'
 - en: Registering an identity contract as john.myapp.test using our custom registrar
     and a Rinkeby public resolver
   id: totrans-324
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过我们的自定义注册器和 Rinkeby 公共解析器将身份合约注册为 john.myapp.test。
 - en: Running this process for every new user allows them to refer to their identity
     using a friendly name provided by our application – a name that can be carried
     on to other applications and be used as a global Ethereum identity, handled by
@@ -2785,11 +2988,13 @@
   id: totrans-325
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于每个新用户运行此流程，使他们可以使用我们应用提供的友好名称引用其身份 - 这个名称可以传递到其他应用程序，并用作全局以太坊身份，由 ENS 处理。
 - en: Summary
   id: totrans-326
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 摘要
 - en: 'We have gone through several tools and techniques for handling user onboarding
     and account management in general, making this one of the most content-heavy chapters
     in this book: fallback functions, forwarding contracts, single-use addresses,
@@ -2801,6 +3006,8 @@
   id: totrans-327
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们已经研究了几种处理用户入门和账户管理的工具和技术，使得这成为本书中最内容丰富的章节之一：回退函数、转发合约、一次性地址、本地账户、助记词、智能账户、可升级性、元交易、本地元交易、保留的部署地址以及以太坊名称等等。
+    所有这些技术在用户入门的不同方面都有所帮助，它们的权衡使得很难选择一个适合所有用例的解决方案。
 - en: Work on user onboarding is still a very active field of research in Ethereum,
     and new mechanics to add to your toolbelt are bound to be developed in the near
     future. At the time of this writing, it is worth highlighting the work being done
@@ -2813,6 +3020,9 @@
   id: totrans-328
   prefs: []
   type: TYPE_NORMAL
+  zh: 用户入职工作在以太坊仍然是一个非常活跃的研究领域，而且在不久的将来肯定会开发出新的机制来增加你的工具箱。在撰写本文时，值得强调的是在 Universal
+    Logins[^25] 下正在进行的工作。 Universal Logins 是一个框架，为用户创建智能账户，由每个设备上自动生成的本地账户自动管理，并支持元交易，以及为用户允许轻松连接到他们的账户的
+    ENS。 它还推动补贴早期用户行为，以简化入职流程，并奖励应用内为增加账户安全而尽最大努力的用户。
 - en: Whatever solution you implement, remember that the more steps a user must go
     through to start using your application, the most likely it is for them to drop.
     On the other hand, sacrificing security for usability is a huge risk, given that
@@ -2822,3 +3032,5 @@
   id: totrans-329
   prefs: []
   type: TYPE_NORMAL
+  zh: 无论你实施什么解决方案，记住用户必须经过更多步骤才能开始使用你的应用，他们就越有可能放弃。另一方面，为了可用性而牺牲安全性是一个巨大的风险，因为“最糟糕的用户体验是当人们失去他们的加密货币。”[^26]
+    找到在你正在构建的用例中两者之间的完美折衷是一项艰巨的任务。
