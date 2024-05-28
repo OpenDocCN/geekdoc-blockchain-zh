@@ -1,10 +1,14 @@
 - en: © Chris Dannen 2017Chris DannenIntroducing Ethereum and Solidity10.1007/978-1-4842-2535-6_6
+  id: totrans-0
   prefs: []
   type: TYPE_NORMAL
+  zh: © Chris Dannen 2017Chris Dannen介绍以太坊与Solidity10.1007/978-1-4842-2535-6_6
 - en: 6. Mining Ether
+  id: totrans-1
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 6. 挖掘以太币
 - en: Mining is the process by which the Ethereum network reaches consensus about
     the order of transactions in a given period of time, which in turn allows the
     EVM to make valid state transitionsChris Dannen^(1 )(1)Brooklyn, New York, USAWe
@@ -14,12 +18,16 @@
     which ether is created. Bitcoin also uses mining to reach consensus, but the way
     things work in Ethereum is a little bit different, owing to its ability to execute
     smart contracts.
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: 挖掘是以太坊网络在一定时间内就交易顺序达成共识的过程，这反过来使得以太虚拟机能够进行有效的状态转换。Chris Dannen^(1 )(1)美国纽约布鲁克林我们在第[3](A433414_1_En_3_Chapter.html)章学到了关于以太虚拟机如何工作的许多知识，但其功能之一——挖掘——需要单独的一章来介绍。挖掘很重要，因为它是系统中达成共识的过程，也是以太币产生的过程。比特币也使用挖掘来达成共识，但以太坊的工作方式略有不同，因为它能够执行智能合约。
 - en: What’s the Point?
+  id: totrans-3
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 目的何在？
 - en: 'In the pursuit of something as idealistic as the EVM, a world computer that
     anyone can use, it’s important to be realistic about how its advantages and disadvantages
     are assessed. At this point, you may be wondering whether such a sophisticated
@@ -32,8 +40,11 @@
     of decentralized networks are cryptographers at heart, interested in one goal:
     the creation of an accessible, trustless world computer that is much harder to
     destroy than it was to create. To quote Vitalik Buterin:'
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: 在追求像以太虚拟机这样理想化的东西时，重要的是要实事求是地评估其优点和缺点。在这一点上，您可能会想知道一个如此复杂的网络是否能够成功。接下来的章节描述了一个对一些读者来说可能看起来难以理解和压倒性的系统。然而，像我们许多现代系统一样，理解正在解决的问题是很重要的。解决方案可能会改变，实际上以太坊协议（就像比特币协议一样）会随着时间的推移而适应和改变。但是在人类社会中信任的问题是持久存在的。还要记住，去中心化网络的创建者们本质上是密码学家，他们的一个目标是创造一个可访问、无需信任的世界计算机，这比创造它要难得多。引用Vitalik
+    Buterin的话：
 - en: Cryptography is truly special in the 21st century because cryptography is one
     of the very few fields where adversarial conflict continues to heavily favor the
     defender. Cypherpunk philosophy is fundamentally about leveraging this precious
@@ -46,17 +57,25 @@
     are to use and maintain. The “cypherpunk spirit” isn’t just about idealism; making
     systems that are easier to defend than they are to attack is also simply sound
     engineering. [¹](#Fn1)
+  id: totrans-5
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 密码学在21世纪真的很特别，因为密码学是极少数几个领域之一，在这些领域中，对抗性冲突继续严重偏向防御方。 Cypherpunk 哲学基本上是利用这种珍贵的不对称性，创造一个更好地保护个体自治的世界，而
+    cryptoeconomics 在某种程度上是这个思想的延伸，只不过这一次是保护复杂的协调和合作系统的安全性和活力，而不仅仅是私人消息的完整性和保密性。认为自己是
+    cypherpunk 精神的意识形态继承者的系统应该保持这种基本属性，并且相比使用和维护来说，破坏或干扰的代价要高得多。 “cypherpunk 精神” 不仅仅是关于理想主义；制造比攻击更容易的系统也是简单而合理的工程学。[¹](#Fn1)
 - en: With that in mind, let’s begin our discussion of mining with the issuance of
     ether itself.
+  id: totrans-6
   prefs: []
   type: TYPE_NORMAL
+  zh: 考虑到这一点，让我们从以太币的发行开始讨论挖矿。
 - en: Ether’s Source
+  id: totrans-7
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 以太币的来源
 - en: Ether is considered the native token of Ethereum because it gets created out
     of thin air during the mining process, as payment for mining work performed by
     computers. Because mining is computationally intensive, it can generate large
@@ -66,12 +85,17 @@
     a block. (In order to mine, you need to pass the mining method an Ethereum address
     to pay, so that it knows whose balance to increase.)Let’s take a closer look by
     starting with some vocabulary definitions.
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 以太币被认为是以太坊的本地代币，因为它是在挖矿过程中凭空创造的，作为计算机执行挖矿工作的支付。由于挖矿需要大量计算，这可能会为您的家庭或办公室产生大额电费。矿工认真对待他们的奖励。挖矿奖励通过编程到
+    EVM 的状态转换函数中的账户余额增加来完成。它们支付给任何找到一个区块的随机矿工。（为了挖矿，您需要向挖矿方法传递一个以太坊地址以支付，这样它就知道要增加谁的余额。）让我们通过开始一些词汇定义来仔细观察一下。
 - en: Defining Mining
+  id: totrans-9
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 定义挖矿
 - en: 'In Ethereum, miners refers to a vast global network of computers, operated
     mostly by enthusiasts in their homes and offices, running Ethereum nodes that
     are paid in ether tokens for the work of executing smart contracts and validating
@@ -109,36 +133,48 @@
     pools to increase their chances of winning rewards, which they then split among
     the group.Now that we’ve defined some vocabulary, let’s talk about why mining
     is necessary in the first place and how exactly it works in Ethereum.'
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 在以太坊中，矿工指的是一个庞大的全球计算机网络，大多数由热衷者在家和办公室中运行的以太坊节点组成，他们通过执行智能合约和验证全球交易的规范顺序来获取以太币。每个个体节点都参与挖矿的过程，但这个术语也涵盖了整个网络的协作：单个节点进行挖矿，整个网络也可以说是由挖矿来保护。矿工会将交易处理成为所谓的区块。我们之前在抽象中定义了区块，即在一定时间内发生的交易的集合。然而，区块也可以指包含这些交易数据对象，存储在以太坊节点上。每次节点启动时，它必须下载其脱机时错过的区块。每个区块都包含来自上一个区块的一些元数据，以证明其是真实的，并建立在现有区块链上。网络很难确定交易的“真实”顺序。世界各地的挖矿节点可能会接收到新的交易不按顺序的。事实上，存在比正确顺序的区块更多的不正确排序的区块。一些恶意节点运营商可能会修改其机器以提交欺诈性区块，希望将免费以太币发送到其账户。因此，挖矿可以正确地定义为致力于加强作为正确历史版本的给定版本的计算努力。挖矿过程对节点来说是计算密集型的，因为它涉及执行内存密集型的散列算法，称为工作证明算法。以太坊协议的工作证明算法（或PoW算法）是Ethash，这是核心开发人员为解决比特币中的挖矿集中化问题而创建的一种新函数。有时你会听到这种算法被称为以太坊的共识算法或共识引擎。被选为规范的区块是其背后具有最大工作证明量的区块。这意味着什么将在本章末尾变得清楚；现在让我们继续定义一些关键术语。矿工能够应用到网络的计算量称为哈希能力。哈希能力反映了个人计算机的部件和规格，特别是图形处理卡的速度、功率和数量，计算机系统的总电源供应，以及墙壁插座和断路器面板的充足电压的可用性。挖矿的密码学证明可以在应用更多哈希能力时更快地完成。因此，矿工经常组成挖矿池以增加他们赢得奖励的机会，然后在群体中分配这些奖励。既然我们已经定义了一些词汇，让我们谈谈为什么挖矿首先是必要的，以及在以太坊中它是如何工作的。
 - en: Versions of the Truth
+  id: totrans-11
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 真相的版本
 - en: 'To understand why there are so many versions of transaction history, let’s
     turn to Gavin Wood, who says it best in the Ethereum Yellow Paper:'
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 要理解为什么会有这么多版本的交易历史，让我们看看加文·伍德在以太坊黄皮书中的表述：
 - en: Since the system is decentralized and all parties have an opportunity to create
     a new block on some older preexisting block, the resultant structure is necessarily
     a tree of blocks. In order to form a consensus as to which path, from root (the
     genesis block) to leaf (the block containing the most recent transactions) through
     this tree structure, known as the blockchain, there must be an agreed-upon scheme.
     [²](#Fn2)
+  id: totrans-13
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 由于系统是去中心化的，所有参与方都有机会在一些旧的先前存在的区块上创建一个新的区块，所以结果结构必然是一个区块树。为了就根（创世区块）到叶（包含最新交易的区块）之间的路径形成共识，这条穿过这个区块树结构的路径，即所谓的区块链，必须有一个约定好的方案。[²](#Fn2)
 - en: We’ll talk more about this tree structure in later sections. For now, simply
     note that when nodes disagree about which root-to-leaf path is the true blockchain,
     then a state fork happens, and that is usually disastrous—the equivalent of the
     EVM splitting into two EVMs. We’ll talk more about forks later in this chapter,
     too.
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们稍后会在后面的章节中更多地讨论这个树状结构。现在，只需注意当节点们对真正的区块链的根到叶路径发生分歧时，就会发生状态分叉，而这通常是灾难性的——相当于EVM分裂成两个EVM。我们稍后在本章中也会更多地讨论分叉。
 - en: Difficulty, Self-Regulation, and the Race for Profit
+  id: totrans-15
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 难度、自我调节和利润竞争
 - en: Mining is designed to be a money-maker for the people who engage in it; they
     are paid for providing security to the network. What exactly is drawing thousands
     of IT hobbyists and professionals to build and run these machines at their own
@@ -147,12 +183,16 @@
     in the early days, they earn more. Even better, tokens belonging to useful cryptonetworks
     usually inflate in price over their lifetime, so earning them earlier gives miners
     more opportunity to profit from appreciation.
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 挖矿旨在为参与其中的人赚取利润；他们因提供网络安全而获得报酬。是什么吸引成千上万的IT爱好者和专业人士自掏腰包建造和运行这些机器呢？首先要知道的是时间是一个因素！当一个新的加密货币推出时，矿工们急于启动他们的机器。在早期，由于费用竞争较少，他们可以赚更多。更好的是，属于有用的加密网络的代币通常会在其寿命内通胀，因此较早地赚取它们给矿工提供了更多从升值中获利的机会。
 - en: Difficulty
+  id: totrans-17
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 难度
 - en: Ethereum and Bitcoin are self-regulating networks. As a network gets more popular,
     more mining hashpower joins in search of profits, and blocks might be found too
     quickly. To stay within range of its ideal 15-second block time, a dynamically
@@ -176,32 +216,47 @@
     finds a block, it selects the heaviest block with the highest score, and pays
     the miner who nominated it. This high score is the outcome for a block that is
     supported by the most proof of work.
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: 以太坊和比特币是自我调节的网络。随着网络变得更加流行，越来越多的挖矿算力加入以寻求利润，可能会发现区块太快。为了保持其理想的 15 秒区块时间范围内，一个动态自调节的值称为难度将增加。如果区块被发现太快或太慢，系统会改变难度以使其在理想区块时间范围内。一般来说，随着时间的推移，网络难度会增加。然而，实际的难度值是使用包含多个变量的公式计算的。如果矿工开始从网络中退出或总算力减少，网络难度可能会降低或保持不变。[³](#Fn3)在
+    2016 年 10 月和 11 月，以太坊网络遭受攻击后，以太币的市场价格下跌，并且由于无法盈利的矿工关闭了他们的机器，哈希率降低。几个月后，随着以太币价格的恢复，它升至攻击前的高位。您可以将这个难度变量视为激励结构的一部分，以尽快将矿工引入网络并使其留在网络中。然而，在以太虚拟机中，难度在另一个方面也有用处，作为用于确定区块得分的几个因素之一，有时被称为其重量。交易数据结构中最重的或得分最高的路径可以说是最长的，是历史上大多数矿工认为是真实的根到叶路径。注意在以太坊和比特币中，最长或最重的链被认为是规范的链。每当网络发现一个区块时，它会选择具有最高得分的最重的区块，并支付提名它的矿工。这个高得分是由最多工作量证明支持的区块的结果。
 - en: Factors Required for Block Validation
+  id: totrans-19
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 区块验证所需的因素
 - en: 'Every candidate block that each individual miner constructs and seeks to validate
     contains four pieces of data:'
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: 每个矿工构建和尝试验证的候选区块都包含四个数据部分：
 - en: Hash of the transaction ledger for this block (as this machine heard about it)
+  id: totrans-21
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 此区块的交易分类帐哈希（根据这台机器听到的信息）
 - en: Root hash of the entire blockchain
+  id: totrans-22
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 整个区块链的根哈希
 - en: Block number since the chain started
+  id: totrans-23
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 自链启动以来的区块编号
 - en: Difficulty of this block
+  id: totrans-24
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 这个区块的难度
 - en: If all these things check out, this block is a candidate for winning block.
     However, even with this information correct, the miner must still solve the proof-of-work
     algorithm. As you’ll see, the algorithm is essentially a guessing game designed
@@ -211,12 +266,16 @@
     the proof-of-work algorithm. Recall from Chapter [3](A433414_1_En_3_Chapter.html)
     that blocks which are valid, but not the canonical winning block, are known as
     uncle blocks.
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果所有这些事情都核实了，这个区块就是获胜区块的候选。然而，即使这些信息是正确的，矿工仍然必须解决工作证明算法。正如你将看到的那样，该算法本质上是一个猜测游戏，旨在花费一定的时间，服务于理想的15秒区块时间。当猜测正确时，这个正确的值，或者说nonce，是使一个区块成为真实、规范和有效的最终条件。nonce被称为解决工作证明算法的证据。回顾第[3](A433414_1_En_3_Chapter.html)章，有效但不是获胜的规范区块被称为叔区块。
 - en: How Proof of Work Helps Regulate Block Time
+  id: totrans-26
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 工作证明如何调节区块时间
 - en: 'Anyone who can optimize for the proof-of-work algorithm can find valid blocks
     faster, causing uncles to lag further and further behind. In the Bitcoin network,
     a small group of hardware companies has acquired a disproportionately huge amount
@@ -237,12 +296,17 @@
     epoch.Directed acyclic graph is a technical term for a tree in which each node
     is allowed to have multiple parents, with ten levels including the root, and a
     total of up to 225 values.'
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: 任何能够优化工作量证明算法的人都可以更快地找到有效的区块，导致叔块越来越落后。在比特币网络中，一小群硬件公司通过创建专门用于运行比特币工作量证明算法的硬件，获得了网络的不成比例的巨大权力。挖矿力量的集中在比特币中非常有利可图，因为它允许这些大型矿工更快地找到区块，从而获得所有的区块奖励。较慢的机器永远没有机会解决一个区块，最终，即使是他们的叔块也会落后于获胜的区块。在以太坊中，叔块被要求支撑获胜的区块。随着叔块越来越落后，网络更难以找到真正的区块，因为有效的叔块是一个要求。进入Ethash算法：以太坊协议对抗挖矿硬件优化的防御。Ethash是Dagger-Hashimoto的一个衍生物，这是一个无法通过定制的应用特定集成电路（ASIC）来暴力破解的内存硬算法，就像比特币挖矿企业中流行的那种类型一样。这个算法的关键是内存硬性，它依赖于一个有向无环图（DAG）文件，这个文件基本上是每125小时或30,000个区块创建一次的一个1
+    GB数据集。这个30,000个区块的周期也被称为一个纪元。有向无环图是一个技术术语，用来表示每个节点允许具有多个父节点的树，包括根节点在内的十个级别，总共最多包含225个值。
 - en: What’s Going on with the DAG and Nonce?
+  id: totrans-28
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: DAG和Nonce发生了什么？
 - en: 'In effect, each node is playing a guessing game with itself, trying to guess
     a nonce that will validate the current block; if it guesses the right nonce, it
     wins the block reward. If not, it continues guessing until it gets word that another
@@ -268,33 +332,48 @@
     onto a version of the truth in which everyone’s ether is transferred to the hijacker’s
     accounts. Here is the process by which a node sets itself up to perform the PoW
     guessing game:'
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 实际上，每个节点都在与自己玩一个猜谜游戏，试图猜出一个能验证当前区块的随机数；如果它猜对了随机数，它就赢得了区块奖励。如果没有，它会继续猜，直到得知网络上的另一个节点已经找到了获胜者。然后，它会丢弃它正在挖掘的区块，下载新的区块，并开始在其上挖掘一个新的区块。但是，每个潜在的区块都会给该节点提供猜谜游戏的两个参数，以及一对新的“骰子”（可以这样说）。猜谜游戏的规则设计成这样是为了防止聪明的个别节点在追求更多的挖矿奖励时愚弄系统。因此，你可以把
+    DAG 文件看作是标准化工作量证明算法的解决时间的一种方式。它使矿工竞争的机会均等化，但更重要的是，通过确保即使拥有大量计算能力，你也不能比你的竞争对手更快地猜到正确的随机数，有助于将区块时间集中在大约
+    15 秒的标记上。节点参与猜谜游戏所需的所有数据都来自区块链本身。在密码学中，加密种子可以用来帮助生成伪随机数，从而增加 Ethash 算法产生的任何加密输出的随机性。在以太坊和比特币中，每个节点都通过查看上一个已知获胜区块的哈希来获取种子。通过这种方式，节点必须在正确的、规范的链上进行挖掘，才能正确地玩游戏。在错误的区块上进行工作量证明（比如说，一个叔叔）不可能产生一个获胜的区块。如果你试图减少工作量证明方案中的不公平优势，这是有帮助的，因为一个大型矿工池可能会利用这个优势，将网络劫持到一个所有以太币都转移到劫持者账户的版本中去。以下是一个节点设置自己进行
+    PoW 猜谜游戏的过程：
 - en: 1.From an encryption seed derived from the block header, the mining node creates
     a 16 MB pseudorandom cache.
+  id: totrans-30
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 1.从块头派生的加密种子，挖矿节点创建一个 16 MB 的伪随机缓存。
 - en: 2.In turn, the cache is used to generate a larger 1 GB dataset that should be
     consistent from node to node; this is the DAG. This dataset grows over time, in
     a linear fashion, and is stored by all full nodes.
+  id: totrans-31
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 2.依次，缓存用于生成一个更大的 1 GB 数据集，这个数据集应该在节点之间保持一致；这就是 DAG。这个数据集会随着时间的推移以线性方式增长，并由所有全节点存储。
 - en: 3.Guessing the nonce requires the machine to grab random slices of the DAG dataset
     and hash them together. This works similarly to using a salt with the hash function.
+  id: totrans-32
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 3.猜测随机数需要机器抓取 DAG 数据集的随机片段并将它们一起哈希。这与使用哈希函数的盐类似。
 - en: 'In cryptography, a random data chunk you toss into a one-way hash function
     is called a salt. Salts are like nonces: they make things more random, and thus
     more secure.'
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 在密码学中，你抛入单向哈希函数的随机数据块被称为盐。盐就像随机数：它们使事情更随机，因此更安全。
 - en: All This for Faster Blocks ?
+  id: totrans-34
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 为了更快的区块？
 - en: 'Believe it or not, all these modifications to the original Bitcoin paradigm
     were made in the service of faster block times. Block times as low as 3–5 seconds
     may be mathematically feasible.[⁴](#Fn4)In both Bitcoin and Ethereum, we’ve said
@@ -325,12 +404,16 @@
     conditions are unacceptable for a smart-contracts platform designed to power distributed
     software applications, so Ethereum takes a slightly different approach to mining,
     in order to achieve faster block times.'
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 相信与否，所有这些修改原始比特币范例的措施都是为了更快的区块时间。区块时间低至3-5秒在数学上是可行的。[⁴](#Fn4)在比特币和以太坊中，我们说区块时间是收集交易的理想时间段。为什么这样？系统工作以保持区块尽可能接近理想，就像人体试图保持稳态一样。比特币协议的目标是10分钟的区块时间，以太坊则是15秒。一旦发现真正的区块，其他节点需要一小段时间才能了解到它。直到它们放弃孤儿区块并开始在新的区块上进行挖掘，它们实际上是在与新区块竞争，而不是在其上进行构建。因此，在孤儿区块上消耗的努力是浪费的。可以这样想：如果延迟导致矿工平均晚了一分钟才听说新区块，而新区块每10分钟出现一次，那么整个网络大约浪费了10%的算力。增加区块之间的时间可以减少这种浪费。一些区块链理论家认为，中本聪选择这个比例是因为它似乎是一个可以接受的浪费水平。以太坊更快的区块时间很受欢迎，因为它可以更快地确认交易，但是以太坊协议在设计中必须为更快的区块时间带来的相应安全性降低作出相应的规定，您将在本章后面看到。区块时间可以与证券交易的结算时间相比较，在美国，结算时间是交易日期后的三天，也称为T+3。美国证券交易委员会正在考虑一个建议，将结算时间缩短至T+2。在比特币中，没有智能合约执行，理论上区块平均需要10分钟，但实际上，交易只有大约63%的时间可以这么快处理。大约13%的时间，交易的确认需要超过20分钟。在此期间，有可能逆转交易达到20%的可能性。[⁵](#Fn5)对于比特币爱好者和企业来说，这些条件仅令人恼火，但对于旨在为分布式软件应用提供动力的智能合约平台而言，这是不可接受的，因此以太坊对挖矿采取了略有不同的方法，以实现更快的区块时间。
 - en: Making Fast Blocks Work
+  id: totrans-36
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 让快速区块发挥作用
 - en: We’ve already discussed how faster block times are more desirable from the perspective
     of user experience. However, they can also produce undesirable effects.Because
     nodes are located all over the world, it’s hard for them to stay perfectly in
@@ -353,20 +436,27 @@
     this phraseology is confusing. These stale blocks do not have any blocks being
     built upon them—no child blocks—but they may have a perfectly valid block header.
     Thus, orphans do in fact have “parent” blocks.
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: '我们已经讨论过，从用户体验的角度来看，更快的区块时间更加可取。然而，它们也可能产生不良影响。因为节点分布在全球各地，它们很难保持完全同步。这是因为信息需要时间在互联网上从节点到节点传播，也就是所谓的延迟。虽然对人类来说这可能不像多长时间，但足以在交易记录中产生碰撞，导致账簿不平衡。平均而言，一笔交易在以太坊或比特币网络中传播大约需要12秒；实际上，这段时间大部分被用于将交易下载到节点上。在它获知新区块被找到之前的这段时间里，矿工可能会继续在旧区块上工作一小段时间，然后将其放弃给新的获胜者。正如上文所述，在网络中的其他地方找到有效区块后，接收到挖矿工作的叔块也被称为陈旧块或者已灭绝块。更快的区块时间增加了陈旧块的可能性，而陈旧块减少了网络对攻击的绝对强度。更糟糕的是，更高比率的陈旧块使得矿池更容易获胜，从而在挖矿奖励方面持续击败独立矿工，提高效率优势。最好的情况下，这是不公平的，最糟糕的情况下，它使得网络更容易受到攻击。注意：在比特币中，陈旧块有时被称为孤立块，尽管这种说法有些令人困惑。这些陈旧块没有任何子块被构建在它们之上，但它们可能有一个完全有效的块头。因此，孤块实际上有“父”块。  '
 - en: How Ethereum Uses Stale Blocks
+  id: totrans-38
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 以太坊如何使用陈旧块
 - en: 'In Ethereum, as we’ve said already, orphans or stales have yet another name:
     they are called uncles, and they are counted toward the score, or weight, of a
     block. The way this is done in the Ethereum protocol is similar to the blockchain
     scoring system proposed in the GHOST protocol, which was outlined in a paper by
     Aviv Zhoar and Yonatan Sompolinsky in December 2013.Vitalik Buterin describes
     the way he has adapted the GHOST idea for Ethereum, and how it compares to Bitcoin:'
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: 在以太坊中，就像我们已经说过的那样，孤块或者过时的块有另外一个名字：它们被称为叔叔，并且它们计入区块的分数或者权重。以太坊协议中这样做的方式类似于GHOST协议中提出的区块链评分系统，该系统在2013年12月由Aviv
+    Zhoar和Yonatan Sompolinsky在一篇论文中概述。Vitalik Buterin描述了他是如何为以太坊改编了GHOST的思想，以及它与比特币的比较：
 - en: 'The idea is that even though stale blocks are not currently counted as part
     of the total weight of the chain, they could be; hence they propose a blockchain
     scoring system which takes stale blocks into account even if they are not part
@@ -376,51 +466,71 @@
     solves the efficiency issue all the way down to 1-second block times. However,
     there is a problem: the protocol, as described, only includes stales in the scoring
     of a blockchain; it does not assign the stales a block reward.'
+  id: totrans-40
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 其思想是，即使过时的块当前并不计入链的总权重，它们也可以；因此他们提出了一个区块链评分系统，即使这些过时的块不是主链的一部分也会计入考虑。因此，即使主链只有50%的效率甚至只有5%的效率，试图进行51%攻击的攻击者仍然需要克服整个网络的权重。从理论上讲，这解决了效率问题，直到1秒区块时间。然而，存在一个问题：所描述的协议只在区块链的评分中包括过时的块；它没有给过时的块分配区块奖励。
 - en: Uncle Rules and Rewards
+  id: totrans-41
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 叔叔规则与奖励
 - en: 'The following are rules regarding uncles:'
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下是有关叔叔的规则：
 - en: In Ethereum’s implementation of GHOST, uncles that are validated along with
     a block receive 7/8 of the static block reward, or 4.375 ether.[⁸](#Fn8)
+  id: totrans-43
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在以太坊对GHOST的实现中，与一个区块一起验证的叔叔将获得静态区块奖励的7/8，或者4.375个以太币。[⁸](#Fn8)
 - en: A maximum of two uncles are allowed per block.
+  id: totrans-44
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 每个区块最多允许两个叔叔。
 - en: These two places are won on a first-come, first-served basis.
+  id: totrans-45
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 这两个位置是先到先得的。
 - en: No transaction fees are collected or paid out for uncle blocks, because users
     are paying these costs once already in the valid block, which actually executes
     their commands.
+  id: totrans-46
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 没有为叔叔块收集或支付交易费，因为用户已经在有效块中支付了这些费用，实际上执行了他们的命令。
 - en: Crucially, in order to be worthy of a reward, an uncle block must have an ancestor
     in common with the true block within the last seven generations.
+  id: totrans-47
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 关键是，为了值得奖励，叔叔块必须与真实块在最后七代之内有共同的祖先。
 - en: This implementation of GHOST solves the issue of security loss by including
     uncle blocks in the calculation of which block has the largest total proof of
     work backing it. The uncle rewards are intended to solve the second issue, centralization,
     by paying miners who contribute to the security of the network, even if they do
     not nominate a winning block.
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个GHOST的实现通过将叔叔块纳入计算范围来解决安全性损失的问题，以确定哪个区块具有最大的总工作量证明支持。叔叔奖励旨在解决第二个问题，即中心化，通过向为网络安全做出贡献的矿工支付奖励，即使他们没有提名获胜的区块。
 - en: The Difficulty Bomb
+  id: totrans-49
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 难度炸弹
 - en: It’s worth mentioning that the GHOST protocol (even as Ethereum has adapted
     it) is the subject of some criticism. Although its flaws are known, they are generally
     regarded to be harmless. Fixing the GHOST implementation may not be worthwhile
@@ -442,45 +552,65 @@
     new proof-of-stake system will work is the subject of much research and debate
     within the community. To read more about the research being done in this area,
     skip to Chapter [11](A433414_1_En_11_Chapter.html).
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: 值得一提的是，GHOST 协议（即使以太坊已经适应）受到了一些批评。尽管其缺陷是已知的，但一般认为它们是无害的。修复 GHOST 实现可能并不值得，因为当以太坊协议从工作量证明转向所谓的权益证明共识算法时，它将被弃用。[⁹](#Fn9)加密货币在市场上有价值的一个原因是它们的发行是有限的。今天，每个区块奖励12.5比特币（即，每10分钟）。此速率将持续到2020年中期，届时每个区块将奖励6.25比特币。奖励每四年减半，直到大约2110–40年，当时将发行2100万比特币。以太坊通过计划结束工作量证明期来实现其有限发行。以太坊系统在转换时将于2017–2018年结束有效挖掘期；权益证明（或
+    PoS）的一个重要卖点是它不需要挖掘（和随之而来的能源消耗）来达成共识。为了促使这一转变，并同时限制以太的发行期，核心开发人员内置了一个困难炸弹，从2017年下半年开始，逐渐使工作量证明挖掘变得不太可行，最终在2021年变得不可能。[^(10)](#Fn10)这种新何运作是社区内研究和辩论的课题。要了解更多关于这一领域的研究，请跳转到第
+    [11](A433414_1_En_11_Chapter.html) 章。
 - en: Miner’s Winning Payout Structure
+  id: totrans-51
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 矿工   矿工的获胜奖励结构
 - en: 'A successful miner of a winning block receives a flat payment, plus transaction
     fees, plus a share of the bounty of all uncles that helped it win. Thus it can
     be said the rewards in the Ethereum protocol are determined as follows:'
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个成功挖掘出获胜区块的矿工将获得固定奖励，加上交易费用，再加上所有帮助其获胜的叔叔的奖励份额。因此，可以说以太坊协议中的奖励如下确定：
 - en: 1.A set block reward of 5.0 ether (for the miner that finds the winning block)
+  id: totrans-53
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 1.设置5.0以太币的固定区块奖励（对于找到获胜区块的矿工）
 - en: 2.Fee payments of the gas expended within the block (for the miner that finds
     the winning block)
+  id: totrans-54
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 2.支付区块内花费的燃气费用（对于找到获胜区块的矿工）
 - en: 3.1/32 ether per uncle of this block (for miners that find uncles)
+  id: totrans-55
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 3.每个叔叔的奖励为本区块的1/32以太币（对于找到叔叔的矿工）
 - en: Limits on Ancestry
+  id: totrans-56
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 祖先限制
 - en: The part of the protocol requiring uncles to be within seven blocks of the winning
     block to receive a partial award exists to make block history “forgettable” after
     a small number of blocks. The number seven was picked because it offers a reasonable
     amount of time for a miner to find an uncle, but not so long that it imposes centralization
     risks.
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: 协议的一部分要求叔叔必须在获胜区块的七个区块范围内才能获得部分奖励，这是为了在少量区块后使区块历史“可遗忘”。选择数字七是因为它提供了一个合理的时间给矿工去找到一个叔叔，但不至于太长以至于带来集中化风险。
 - en: The Block Processing Play by Play
+  id: totrans-58
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 区块处理的详细过程
 - en: 'In order to escape uncle-hood and become the heaviest block, a true block (sometimes
     called a nephew) needs to pass muster with a long series of steps used in the
     processing of each block. An important component of this process is the block
@@ -495,42 +625,58 @@
     block, each and every node must independently download and validate the block
     before begining to mine in top of it. Here are all the steps the block validator
     algorithm takes, in order:'
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了逃脱叔叔身份并成为最重的区块，一个真实的区块（有时称为侄子）需要通过一系列长步骤的审核，这些步骤用于处理每个区块。这个过程的一个重要组成部分是区块验证算法。该算法旨在验证随区块一起提供的哈希，该哈希位于区块的标头中。区块处理的这一方面为区块作为数据对象的解剖提供了一个很好的起点。在编程中，数据结构通常有一个包含计算机必须首先读取的某些基本信息的标头。就像在人类文字处理器中一样，标头只是文本主体的顶部。在这个类比中，文本主体就是区块数据结构。在已完成的区块可以进行处理并被网络中的其他节点接受之前，以及在节点可以开始在新区块上进行挖矿之前，每个节点都必须独立地下载和验证区块。以下是区块验证算法按顺序执行的所有步骤：
 - en: 1.Check if the previous block referenced exists and is valid.
+  id: totrans-60
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 1.检查引用的上一个区块是否存在并且有效。
 - en: 2.Check that the timestamp of the block is greater than that of the referenced
     previous block and less than 15 minutes into the future.
+  id: totrans-61
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 2.检查区块的时间戳是否大于引用前一个区块的时间戳，并且小于未来15分钟。
 - en: 3.Check that the block number, difficulty, transaction root, uncle root and
     gas limit (various low-level Ethereum-specific concepts) are valid.
+  id: totrans-62
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 3.检查区块号、难度、交易根、叔根和燃气限制（各种与以太坊特定的底层概念）是否有效。
 - en: 4.Check that the nonce on the block is valid, showing the evidence of proof
     of work.
+  id: totrans-63
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 4.检查区块的随机数是否有效，显示出工作证明的证据。
 - en: 5.Apply all transactions in this now-validated block to the EVM state. If any
     errors are thrown, or if total gas exceeds the GASLIMIT, return an error and roll
     back the state change.
+  id: totrans-64
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 5.将所有在此经过验证的区块中的交易应用于以太坊虚拟机状态。如果出现任何错误，或者总燃气超过 GASLIMIT，则返回错误并回滚状态更改。
 - en: 6.Add the block reward to the final state change.
+  id: totrans-65
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 6.将区块奖励添加到最终状态更改中。
 - en: 7.Check that the Merkle tree root final state is equal to the final state root
     in the block header.
+  id: totrans-66
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 7.检查 Merkle 树根最终状态是否等于区块头中的最终状态根。
 - en: Only after these seven steps is a block canonized as valid and true!Why all
     this fuss about the block header? To make a blockchain, it would be theoretically
     possible to create block headers that directly contain data about every transaction,
@@ -541,12 +687,16 @@
     of the EVM, called a state tree. Global state is presented in an Ethereum block
     by another tree structure known as a Patricia tree. These tree structures are
     the subject of the next section.
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
+  zh: 只有经过这七个步骤，一个区块才被认定为有效和真实！为什么要如此关注区块头呢？要创建一个区块链，理论上可以直接在区块头中包含关于每笔交易的数据，但这将带来可扩展性挑战，并且需要运行节点的强大硬件。[^11]
 - en: Evaluating the Ancestry of Blocks and Transactions
+  id: totrans-68
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 评估区块和交易的祖先关系
 - en: 'To understand what’s in a block header, and why the contents of the block header
     are important to determining the longest, heaviest chain, you need to take a step
     back and explore how computers store data—and how they go about changing that
@@ -559,34 +709,48 @@
     in Chapter [1](A433414_1_En_1_Chapter.html). In an associative array, the association
     between keys and values can be changed. This association is called a binding.Operations
     associated with dictionaries include the following:'
+  id: totrans-69
   prefs: []
   type: TYPE_NORMAL
+  zh: 要了解区块头中包含什么，以及区块头的内容对于确定最长、最重的链至关重要，您需要退后一步，探索计算机如何存储数据——以及它们存储的数据一旦更改后如何操作。首先，树结构的作用是帮助节点验证其在区块中收到的数据，例如交易分类账。其次，它们的作用是快速完成此操作，以便各种形状和大小的计算机可以快速读取区块链。在计算机科学中，关联数组（或字典）指的是一组（[键/​值](https://en.wikipedia.org/wiki/Attribute%E2%80%93value_pair)）对。回想一下在第[1](A433414_1_En_1_Chapter.html)章关于数据对象的讨论中的键/值对的概念。在关联数组中，键和值之间的关联可以更改。这种关联称为绑定。与字典相关的操作包括以下内容：
 - en: Adding key/value pairs to the collection
+  id: totrans-70
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 将键/值对添加到集合
 - en: Removing pairs from the collection
+  id: totrans-71
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 从集合中移除成对的项目
 - en: Modifying existing pairs
+  id: totrans-72
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 修改现有的成对项目
 - en: Looking up a value associated with a given key
+  id: totrans-73
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 查找与给定键相关联的值
 - en: Hash tables, search trees, and other specialized tree structures are common
     solutions to the dictionary problem, where a dictionary is a generic term for
     a database of records. Solving dictionary problems involves methodologies for
     querying for a key (a word) and calling up its value (a definition).
+  id: totrans-74
   prefs: []
   type: TYPE_NORMAL
+  zh: 哈希表、搜索树和其他专门的树结构是解决字典问题的常见解决方案，其中字典是记录数据库的通用术语。 解决字典问题涉及查询键（单词）并调用其值（定义）的方法。
 - en: How Ethereum and Bitcoin Use Trees
+  id: totrans-75
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 以太坊和比特币如何使用树
 - en: 'In mathematics, a tree is an ordered data structure used to store an associative
     array of keys and values. A radix tree is a variant that is compressed, requiring
     less memory. In a normal radix tree, each character in the key describes a path
@@ -606,66 +770,94 @@
     the transaction in one of its Merkle trees. The Merkle root is a fingerprint of
     all the transactions, correctly ordered, that have occurred in the blockchain
     up until that block.'
+  id: totrans-76
   prefs: []
   type: TYPE_NORMAL
+  zh: 在数学中，树是一种用于存储键和值的关联数组的有序数据结构。基数树是一种压缩的变体，需要较少的内存。在普通的基数树中，键中的每个字符描述了通过数据结构的路径到达相应值的路径，就像一组方向。创建梅克尔树需要将大量的交易数据“块”哈希在一起，直到它们变成一个：根哈希。在以太坊和比特币中，梅克尔树结构用于记录每个区块中的交易分类帐。梅克尔树的根与其他元数据一起哈希，然后包含在后续区块的头中。因此，可以说每个附加交易（在每个区块内）都会不可撤销地改变梅克尔根；即使有一个错误的交易，根哈希看起来也完全不同，显然是错误的。这就是区块如何证明它们对区块验证算法的合法祖先的方式，这是整个区块处理程序的一部分。对于比特币客户端，确定单个交易的状态就像查看主链上最近区块的头一样简单。在那里，客户端应该找到梅克尔证明，显示区块的根哈希包含在其梅克尔树之一的交易中。梅克尔根是所有交易的指纹，正确排序的，直到该区块发生为止。
 - en: Merkle-Patricia Trees
+  id: totrans-77
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 梅克尔-帕特里夏树
 - en: 'Thanks to the block header, it’s quick and easy for a node to look for, read,
     or verify block data. In Bitcoin, the block header is an 80-byte chunk of data
     that includes the Merkle root as well as five other things. The Bitcoin block
     header contains:'
+  id: totrans-78
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于区块头，节点可以快速轻松地查找、读取或验证区块数据。在比特币中，区块头是一个包括梅克尔根以及其他五个东西的 80 字节数据块。比特币区块头包含：
 - en: A hash of the previous block header
+  id: totrans-79
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 前一个区块头的哈希值
 - en: A timestamp
+  id: totrans-80
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 时间戳
 - en: A mining difficulty value
+  id: totrans-81
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 挖矿难度值
 - en: A proof-of-work nonce
+  id: totrans-82
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 工作证明的随机数
 - en: A root hash for the Merkle tree containing the transactions for that block
+  id: totrans-83
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 该区块交易的梅克尔树的根哈希
 - en: Merkle trees are ideal for storing transaction ledgers, but that’s about it.
     From the perspective of the EVM, one limitation of the Merkle tree is that although
     it can prove or disprove the inclusion of transactions in the root hash, it can’t
     prove or query the current state of the network, such as a given user’s account
     holdings.
+  id: totrans-84
   prefs: []
   type: TYPE_NORMAL
+  zh: 默克尔树非常适合存储交易分类帐，但仅限于此。从以太虚拟机的角度来看，默克尔树的一个限制是，尽管它可以证明或否定事务包含在根哈希中，但它无法证明或查询网络的当前状态，例如给定用户的账户持有情况。
 - en: Contents of an Ethereum Block Header
+  id: totrans-85
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 以太坊区块头的内容
 - en: 'To remedy this shortcoming and allow the EVM to run stateful contracts, every
     block header in Ethereum contains not just one Merkle (transaction) tree, but
     three trees for three kinds of objects:'
+  id: totrans-86
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了弥补这一缺陷并允许以太虚拟机运行有状态的合约，以太坊中的每个区块头不仅包含一个默克尔（交易）树，而且包含三种对象的三棵树：
 - en: Transaction tree
+  id: totrans-87
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 交易树
 - en: Receipts tree (data showing the outcome of each transaction)
+  id: totrans-88
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 收据树（显示每笔交易结果的数据）
 - en: State tree
+  id: totrans-89
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 状态树
 - en: 'To make this possible, the Ethereum protocol combines the Merkle tree with
     the other tree structure we described above, the Patricia tree. This tree structure
     is fully deterministic: two Patricia trees with the same (key/value) bindings
@@ -673,29 +865,43 @@
     database operations such as inserts, lookups, and deletes.[^(12)](#Fn12) It is
     therefore possible for Ethereum clients to get verifiable answers to all sorts
     of queries it makes to the network, such as the following:'
+  id: totrans-90
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了实现这一点，以太坊协议将默克尔树与我们上面描述的另一种树状结构，帕特里夏树结合在一起。这种树状结构是完全确定性的：具有相同（键/值）绑定的两个帕特里夏树将始终具有相同的根哈希，从而提供了对常见数据库操作（如插入、查找和删除）的增强效率。[^(12)](#Fn12)
+    因此，以太坊客户端可以对其向网络发出的各种查询获得可验证的答案，例如以下内容：
 - en: Has transaction X been included in block? (Handled by the transaction tree.)
+  id: totrans-91
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 交易 X 是否已包含在区块中？（由交易树处理。）
 - en: Tell me all instances of event Y in the last 30 days. (Handled by the receipts
     tree.)
+  id: totrans-92
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 告诉我过去 30 天中事件 Y 的所有实例。（由收据树处理。）
 - en: What is the current balance of contract account Z? (Handled by the state tree.)
+  id: totrans-93
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 合约账户 Z 的当前余额是多少？（由状态树处理。）
 - en: For more about how these tree structures work and why they were chosen, check
     out [http://trees.eth.guide](http://trees.eth.guide) .
+  id: totrans-94
   prefs: []
   type: TYPE_NORMAL
+  zh: 关于这些树状结构是如何运作以及为什么选择它们的更多信息，请查看[http://trees.eth.guide](http://trees.eth.guide)
+    。
 - en: Forking
+  id: totrans-95
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 分叉
 - en: 'As discussed earlier in this chapter, a network of miners may split in two,
     if they cannot agree on the longest, heaviest chain. There’s much ado about forking
     in the cryptocurrency community, where it seems to imply the fracture of a community
@@ -733,12 +939,15 @@
     less prone to succeed. But this attack is still feared enough that, in practice,
     most exchanges and other institutions who use ether wait for several confirmations
     before considering the transfer complete.'
+  id: totrans-96
   prefs: []
   type: TYPE_NORMAL
 - en: Mining Tutorial
+  id: totrans-97
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 挖矿教程
 - en: Mining is a great excuse to try Geth. Because Geth is such a great tool for
     learning, and because it’s fairly easy to install, this section provides installation
     instructions for macOS, Windows, and Ubuntu.NoteBeyond installation here, the
@@ -746,30 +955,45 @@
     Terminal application in either macOS or Ubuntu 14.04 (Trusty). For links to documentation
     and tutorials about Geth, and instructions for all Ethereum clients on all platforms,
     visit clients.eth.guide.
+  id: totrans-98
   prefs: []
   type: TYPE_NORMAL
+  zh: 挖矿是尝试 Geth 的一个很好的借口。因为 Geth 是一个如此好的学习工具，而且安装相对容易，所以本节提供了 macOS、Windows 和 Ubuntu
+    的安装说明。除了安装之外，在此之后的练习假设你处于 *nix 环境中——也就是说，在 macOS 或 Ubuntu 14.04（Trusty）中运行终端应用程序。有关
+    Geth 的文档和教程链接，以及所有平台上所有以太坊客户端的说明，请访问 clients.eth.guide。
 - en: Installing Geth on macOS
+  id: totrans-99
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 在 macOS 上安装 Geth
 - en: First, open the Terminal on your Mac, located in the Applications folder. Then,
     type the following at the command line:brew updatebrew upgradeOnce updating is
     complete, and the command line returns, type the following:brew tap ethereum/ethereumbrew
     install ethereum
+  id: totrans-100
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，在 Mac 上打开终端，位于 Applications 文件夹中。然后，在命令行中输入以下内容：brew updatebrew upgrade更新完成并且命令行返回后，输入以下内容：brew
+    tap ethereum/ethereumbrew install ethereum
 - en: Installing Geth on Windows
+  id: totrans-101
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 在 Windows 上安装 Geth
 - en: Download the latest stable binary. Extract geth.exe from zip, open a command
     Terminal and type this:chdir <path to extracted binary>open geth.exe
+  id: totrans-102
   prefs: []
   type: TYPE_NORMAL
+  zh: 下载最新的稳定二进制文件。从 zip 中提取 geth.exe，打开一个命令终端并输入：chdir <提取的二进制文件路径>open geth.exe
 - en: Getting Comfortable with the Command Line
+  id: totrans-103
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 熟悉命令行
 - en: After you install Geth on Ubuntu (described next), you’ll proceed right into
     some exercises. These exercises assume the use of macOS or Ubuntu Terminal applications.
     Windows Geth commands will not be discussed here, but can be found at [http://clients.eth.guide](http://clients.eth.guide)
@@ -781,12 +1005,19 @@
     mind. When you type in a command, it may take a few seconds to complete. In the
     intervening time, text will fly by on the screen. Don’t panic; this is normal.
     You cannot break your computer by experimenting with Geth or the command line.
+  id: totrans-104
   prefs: []
   type: TYPE_NORMAL
+  zh: 在你在 Ubuntu 上安装 Geth 之后（下面描述），你将直接进行一些练习。这些练习假设使用 macOS 或 Ubuntu 终端应用程序。这里不会讨论
+    Windows Geth 命令，但可以在[http://clients.eth.guide](http://clients.eth.guide)找到。以下指南是为那些可能是第一次使用命令行的人编写的。如果你是其中之一，那么你应该立即注意到一些事情。当你首次打开你的终端应用程序时，它位于
+    macOS 和 Ubuntu 的 Applications 文件夹中，你会看到一个闪烁的光标。这表示计算机已准备好接收指令。注意在这个界面中，计算机只有一条思路。当你输入一个命令时，可能需要几秒钟才能完成。在这段时间里，屏幕上会出现文本。不要惊慌；这是正常的。通过尝试
+    Geth 或命令行，你无法损坏你的计算机。
 - en: Installing Geth on Ubuntu 14.04
+  id: totrans-105
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 在 Ubuntu 14.04 上安装 Geth
 - en: 'To install Geth on Ubuntu, first open the Terminal and type this, then hit
     Enter:sudo apt-get install software-properties-commonOne caveat to this installation,
     depending on hardware configuration, is that some Ubuntu users may need to install
@@ -821,12 +1052,18 @@
     you’ll need to take advantage of Geth’s built-in JavaScript console, which allows
     you to execute commands directly in the EVM via the Terminal on your computer.
     How cool is that?'
+  id: totrans-106
   prefs: []
   type: TYPE_NORMAL
+  zh: 要在Ubuntu上安装Geth，首先打开终端并输入以下内容，然后按回车键：sudo apt-get install software-properties-common安装过程中的一个注意事项是，根据硬件配置，一些Ubuntu用户可能需要安装字体库，否则Geth安装将会报错。你可以在[https://community.linuxmint.com/software/view/ttf-ancient-fonts](https://community.linuxmint.com/software/view/ttf-ancient-fonts)或clients.eth.guide找到这个字体库。错误信息如图[6-1](#Fig1)所示。![A433414_1_En_6_Fig1_HTML.jpg](A433414_1_En_6_Fig1_HTML.jpg)图6-1.一些Ubuntu用户可能会遇到这个错误简单地安装这个字体包，事情应该会顺利进行。然后输入以下内容并按回车键：sudo
+    add-apt-repository -y ppa:ethereum/ethereum程序会要求你输入密码。可能不会显示在屏幕上，甚至看起来像是没有输入任何内容，但请忽略并按回车键。你应该会看到类似于图[6-2](#Fig2)的结果。![A433414_1_En_6_Fig2_HTML.jpg](A433414_1_En_6_Fig2_HTML.jpg)图6-2.输入你的密码以完成安装，你会看到这个结果在终端命令前面加上sudo可以以root用户或Unix架构中最强大的用户角色的身份执行命令，该角色具有对所有文件和命令的访问权限。接下来，在提示符后，输入以下内容并按回车键：sudo
+    apt-get update然后输入以下内容并按回车键：sudo apt-get install ethereum输入计算机的管理员密码，可能是你在计算机启动后登录时使用的密码。当程序询问是否允许安装占用一些硬盘空间时，输入Y（表示是）并按回车键。接下来，让我们运行Geth。安装完成后，你可以在命令提示符处输入其名称来启动Geth:geth你会看到一些代码飞速滚动，看起来像图[6-3](#Fig3)。![A433414_1_En_6_Fig3_HTML.jpg](A433414_1_En_6_Fig3_HTML.jpg)图6-3.Geth正在同步如果让它继续下去，这将永远进行下去。按下Ctrl+C停止同步，你将回到同样的旧命令行提示符。你现在已经退出了Geth。那么这里发生了什么呢？Geth并不是在挖矿，而是通过下载过去的区块来与区块链进行同步。它这样做是为了向你显示账户的最新余额，并快速发送和接收交易，就像Mist一样。事实上，Mist也做了这种同步的事情，记得吗？它看起来像图[6-4](#Fig4)。![A433414_1_En_6_Fig4_HTML.jpg](A433414_1_En_6_Fig4_HTML.jpg)图6-4.当Geth在同步时，它执行的是你在Mist钱包中看到的同样的操作然而，Geth相当愚笨；它一次只能做一件事：同步。你不能从这里运行任何EVM代码。要获得一些控制权，你需要利用Geth内置的JavaScript控制台，在计算机的终端上直接执行命令。这是多么酷呢？
 - en: Executing Commands in the EVM via the Geth Console
+  id: totrans-107
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 通过 Geth 控制台在 EVM 中执行命令
 - en: 'You can use Geth commands in the Terminal to execute many essential functions
     on the Ethereum network. The formula for Geth commands is:geth [options] command
     [command options] [arguments...]And you can find a full list of commands, options,
@@ -892,12 +1129,15 @@
     taken in Geth. Next, you’ll learn how to get on the testnet with Geth, and finally,
     you’ll start up your miner on the main network and even attempt to mine a block
     with your own custom signature on it.'
+  id: totrans-108
   prefs: []
   type: TYPE_NORMAL
 - en: Launching Geth with Flags
+  id: totrans-109
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 带有标志启动 Geth
 - en: 'Another popular way to get things done at the Geth command line is to launch
     Geth with certain flags. A full list of options, and their corresponding flags,
     are located here: [https://github.com/ethereum/go-ethereum/wiki/Command-Line-Options](https://github.com/ethereum/go-ethereum/wiki/Command-Line-Options)
@@ -909,12 +1149,19 @@
     network difficulty is fairly high, and solo miners might take a very long time
     to find a block. But in the next section, we’ll start mining to our new wallet
     address anyway, to understand the experience of the miners who secure the network.'
+  id: totrans-110
   prefs: []
   type: TYPE_NORMAL
+  zh: 在 Geth 命令行上完成任务的另一种流行方式是使用特定标志启动 Geth。这里有一个选项的完整列表及其相应的标志：[https://github.com/ethereum/go-ethereum/wiki/Command-Line-Options](https://github.com/ethereum/go-ethereum/wiki/Command-Line-Options)。要在测试网上启动
+    Geth，请键入：geth --testnet。你将看到类似于图 [6-6](#Fig6) 中屏幕的文本输出，只是这次挖矿是在测试网上进行的。按下 Control+C
+    停止它。![A433414_1_En_6_Fig6_HTML.jpg](A433414_1_En_6_Fig6_HTML.jpg)图 6-6.测试网的输出。为了快速访问
+    CLI 选项，也可以使用这个短链接：[http://cli.eth.guide](http://cli.eth.guide)。截至目前，网络难度相当高，独立矿工可能需要很长时间才能找到一个区块。但在下一节中，我们将无论如何开始挖矿到我们的新钱包地址，以了解确保网络安全的矿工的体验。
 - en: Fire Up Your Miner!
+  id: totrans-111
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 点燃您的矿工！
 - en: 'Geth does not begin mining automatically; you will give it the command to start
     or stop mining. In these examples, you will be mining with your machine’s CPU.
     Mining with a GPU is more effective, but slightly more complicated, and is more
@@ -956,12 +1203,15 @@
     by now, you have a working understanding of mining, and you’ve see it happen before
     your own eyes. In reality, the most effective way to see how mining moves state
     transition forward, executing contracts, is to work with the testnet.'
+  id: totrans-112
   prefs: []
   type: TYPE_NORMAL
 - en: Mining on the Testnet
+  id: totrans-113
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 在测试网络上挖矿
 - en: One quick final note about mining. Recall in Chapter [5](A433414_1_En_5_Chapter.html)
     that the Mist wallet can mine on the testnet, but not the main net. Why is this?Actually,
     there is no need for Mist to mine on the main net and take up your computer’s
@@ -974,12 +1224,16 @@
     be. Because there’s no real financial incentive to leave a miner running on the
     testnet, you might find yourself in a lull, with nobody else on the testnet. This
     is why Mist allows testnet mining along with its GUI contract deployment interface.
+  id: totrans-114
   prefs: []
   type: TYPE_NORMAL
+  zh: 关于挖矿的一个快速的最终说明。回想一下第[5](A433414_1_En_5_Chapter.html)章中提到的，Mist钱包可以在测试网络上进行挖矿，但不能在主网络上进行。为什么呢？实际上，Mist没有必要在主网络上进行挖矿并占用您的计算机资源，因为您的合同将在没有您挖矿的情况下执行。这是因为当前已经有成千上万个节点在公共以太坊链上进行挖矿，并因此而获得真正的以太币。注意，如果您的合同在测试网络上没有执行，请不要变得疯狂！打开您的Mist或Geth测试网络矿工，您的合同将会执行。这是一个常见的错误。尽管在您测试合同时可能会碰巧有其他人在测试网络上进行挖矿，但也可能没有。由于在测试网络上留下一个矿工没有真正的财务激励，您可能会发现自己陷入一种停滞状态，测试网络上没有其他人。这就是为什么Mist允许在其图形界面合同部署界面上进行测试网络挖矿的原因。
 - en: GPU Mining Rigs
+  id: totrans-115
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: GPU挖矿机
 - en: Most ether mining is done with specialized GPU miners like the ones in Figure
     [6-8](#Fig8), which are operated by me. Two of the machines pictured are running
     the Claymore Dualminer, a custom mining program written by a Bitcointalk.org forum
@@ -1003,12 +1257,27 @@
     should now see your AMD graphics cards in a list. The card denoted with an asterix
     (*) is the computer’s default video output. If you see a black screen, your monitor
     may be plugged into the wrong video card.
+  id: totrans-116
   prefs: []
   type: TYPE_NORMAL
+  zh: 大多数以太坊挖矿都是使用专门的GPU矿工，就像图 [6-8](#Fig8) 中的那些一样，这些矿工是由我操作的。图中的两台机器正在运行 Claymore
+    Dualminer，这是一个由 Bitcointalk.org 论坛成员 Claymore 编写的定制挖矿程序，可以在多 GPU 配置上同时挖掘以太坊和另一种加密货币。您可以在
+    [https://bitcointalk.org/index.php?topic=1433925.0](https://bitcointalk.org/index.php?topic=1433925.0)
+    了解更多关于 Claymore Dualminer 的信息。![A433414_1_En_6_Fig8_HTML.jpg](A433414_1_En_6_Fig8_HTML.jpg)图
+    6-8. 作者地下室中运行的四台以太坊矿工这里显示的第三和第四台设备正在运行 ethOS，这是一个专门为挖掘以太坊、Zcash 或 Monero 的设备而创建的特殊
+    Linux 发行版。如果您是从头开始构建，这是一个更简单的解决方案。您可以在 [http://ethosdistro.com](http://ethosdistro.com)
+    了解更多关于 ethOS 的信息。有几个软件补丁可用于 Windows、macOS 和 Ubuntu，以实现多 GPU 挖矿。然而，这在 Ubuntu 上最容易实现。如果您正在运行
+    Ubuntu 并且想要使用多个 GPU 进行挖矿，那么最容易的方法是使用 AMD 硬件。一旦您的显卡被物理安装，只需要几个快速的命令即可。在 Ubuntu
+    14.04 中，打开您的终端并键入以下内容：sudo apt-get -y 更新sudo apt-get -y 升级 -fsudo apt-get 安装 fglrx-updatessudo
+    amdconfig --adapter=all --initial然后重新启动。接下来，通过输入以下终端命令来启用 OpenCL：export GO_OPENCL=trueexport
+    GPU_MAX_ALLOC_PERCENT=100export GPU_SINGLE_ALLOC_PERCENT=100您可以通过再次打开终端并输入以下内容来检查配置是否正确：aticonfig
+    --list-adapters现在，您应该在列表中看到您的 AMD 显卡。带星号（*）标记的卡是计算机的默认视频输出。如果您看到黑屏，则可能将显示器插入了错误的显卡。
 - en: Mining on a Pool with Multiple GPUs
+  id: totrans-117
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 在多 GPU 池上挖矿
 - en: It may be a little bit late to get serious about mining for profit. The outset
     of this chapter covered the concept of network difficulty. As we’ve discussed
     already, network difficulty is already quite high, and the effective mining period
@@ -1032,12 +1301,23 @@
     -u address.name -GTo check your earnings without opening Mist, which can take
     forever to sync, go to Ethermine.org and enter the same Ethereum address you included
     previously in the upper-right search box.
+  id: totrans-118
   prefs: []
   type: TYPE_NORMAL
+  zh: 严肃对待挖矿盈利可能已经有点晚了。本章开始介绍了网络难度的概念。正如我们之前讨论过的那样，网络难度已经相当高，以太坊的有效挖矿期将在 2017 年或 2018
+    年结束。挖矿奖励的竞争非常激烈。你可以把你的矿工找到获胜区块的机会看作是你的矿工的哈希算力与网络难度的比值。为了谋求利润，挖矿的人利用强大的硬件来提高他们的机会。随着以太坊的流行，时间的推移以及网络上的挖矿算力增加，对大多数用户来说，挖矿变得越来越不吸引人。然而，了解以太坊挖矿的工作原理仍然有趣且有用，即使没有其他理由，未来挖掘新的加密货币也是如此。如果你有可用的硬件，没有理由不去尝试挖矿，即使在某些地方直接购买以太可能比挖矿更便宜。有几个挖矿池，如果你访问
+    [http://mining.eth.guide](http://mining.eth.guide)，你会看到，但为了简单起见，我们将使用一个名为 QtMiner
+    的程序来操作 Ubuntu 14.04，你可以从 [http://ethpool.org/downloads/qtminer2.tgz](http://ethpool.org/downloads/qtminer2.tgz)
+    下载。下载后，解压缩该存档并使 qt.miner 脚本可执行：tar zxvf qtminer.tgzcd ./qtminerchmod +x qtminer.sh最后，使用以下命令启动
+    QTMiner，其中 address 是你希望收到挖矿奖励的以太坊地址，name 是这个特定挖矿设备的名称：./qtminer.sh -s us1.ethermine.org:4444
+    -u address.name -G要在不打开 Mist 的情况下检查你的收益，因为打开 Mist 可能需要很长时间来同步，去 Ethermine.org
+    并在右上角的搜索框中输入你之前包含的相同的以太坊地址。
 - en: Summary
+  id: totrans-119
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 概要
 - en: 'In this chapter you’ve tackled the most complex facet of the Ethereum protocol:
     the mining process. You learned how miners are paid, how much, and how the system
     ensures that no single mining pool with advanced equipment can dominate the network.
@@ -1069,5 +1349,11 @@
     , 2015.[12](#Fn12_source)Ethereum Wiki, “Merkle Patricia Tree Specification,”
     [https://github.com/ethereum/wiki/wiki/Patricia-Tree#merkle-patricia-tree-specification](https://github.com/ethereum/wiki/wiki/Patricia-Tree#merkle-patricia-tree-specification)
     , 2016.'
+  id: totrans-120
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本章中，你已经解决了以太坊协议中最复杂的部分：挖矿过程。你了解了矿工如何获得报酬，以及有多少报酬，以及系统如何确保没有任何一家拥有先进设备的挖矿池可以主导网络。你安装了
+    Geth，并开始在命令行中执行 JavaScript 方法。你从测试网挖矿开始，逐渐转向了在矿池上进行多 GPU 挖矿。如果你想看到所有这些因素在实时链中运作的动态图片，请访问
+    [https://ethstats.net](https://ethstats.net) 。让我们将本章学到的内容与之前的章节整合起来，用一个简短的总结从头到尾：以太坊中的一个区块是在给定的
+    12 到 15 秒间隔内发生的交易的记录。每次节点与网络同步时，它会从附近的节点下载区块，然后将它们组装成一个数据结构，该结构允许计算和验证根哈希。因此，它可以相信自己有一个准确的区块链历史记录，并且可以安全地开始挖掘新区块或发送新交易。这就是你在安装
+    Mist 和 Geth 时一窥的同步过程。在下一章中，你将了解到使工作量证明挖矿如此具有抵御攻击的经济激励和非激励。这个新兴领域被称为密码经济学。
