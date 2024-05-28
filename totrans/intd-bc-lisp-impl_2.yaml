@@ -1,32 +1,48 @@
 - en: © The Author(s), under exclusive license to APress Media, LLC, part of Springer
     Nature 2021B. SitnikovskiIntroducing Blockchain with Lisp[https://doi.org/10.1007/978-1-4842-6969-5_2](https://doi.org/10.1007/978-1-4842-6969-5_2)
+  id: totrans-0
   prefs: []
   type: TYPE_NORMAL
+  zh: © 作者，独家许可给 APress Media, LLC，Springer Nature 的一部分，2021年 B. Sitnikovski通过 [https://doi.org/10.1007/978-1-4842-6969-5_2](https://doi.org/10.1007/978-1-4842-6969-5_2)
+    发布
 - en: 2. Racket Programming Language
+  id: totrans-1
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 2. Racket 编程语言
 - en: Boro Sitnikovski^([1](#Aff2)  )(1)Skopje, North Macedonia![../images/510363_1_En_2_Chapter/510363_1_En_2_Figa_HTML.jpg](../images/510363_1_En_2_Chapter/510363_1_En_2_Figa_HTML.jpg)
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: Boro Sitnikovski^([1](#Aff2)  )(1)斯科普里，北马其顿![../images/510363_1_En_2_Chapter/510363_1_En_2_Figa_HTML.jpg](../images/510363_1_En_2_Chapter/510363_1_En_2_Figa_HTML.jpg)
 - en: '*Structure, by D. Bozhinovski*'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '*Structure, by D. Bozhinovski*'
 - en: Now that we have vaguely explained what a blockchain is and how it is useful,
     the next obvious step is to implement these calculations in a computer, so that
     they are automatically performed. In this chapter, we introduce a tool that will
     allow us to implement these calculations exactly.
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们已经模糊地解释了什么是区块链以及它如何有用，下一个显而易见的步骤是在计算机中实现这些计算，以便它们自动执行。在本章中，我们介绍一个工具，它将允许我们精确地实现这些计算。
 - en: 2.1 Introduction to Lisp
+  id: totrans-5
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 2.1 Lisp 简介
 - en: Lisp, originating from 1958, stands for *LIST Processing* and is a family of
     programming languages. Unlike standard programming languages, it has a fully parenthesized
     prefix notation. For example, instead of writing 1 + 2, one would write (+ 1 2).
+  id: totrans-6
   prefs: []
   type: TYPE_NORMAL
+  zh: Lisp，起源于1958年，代表*列表处理*，是一系列编程语言。与标准编程语言不同，它具有完全带括号的前缀表示法。例如，不是写 1 + 2，而是写成 (+
+    1 2)。
 - en: There are many Lisp implementations in the Lisp family. One such implementation
     is Racket, and we will use it in this book since this implementation is particularly
     easy for entry-level programmers. The language is used in a variety of contexts
@@ -34,8 +50,11 @@
     It has also been used for commercial projects. One notable example is the Hacker
     News^([1](#Fn1)) website, which runs on Arc, a programming language developed
     in Racket.
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 在 Lisp 家族中有许多 Lisp 实现。其中一种实现是 Racket，我们将在本书中使用它，因为这种实现对入门级程序员来说特别容易。该语言在许多情况下都被使用，如研究、计算机科学教育和通用编程。它还被用于商业项目。一个值得注意的例子是运行在
+    Arc 上的 Hacker News^([1](#Fn1)) 网站，Arc 是在 Racket 中开发的编程语言。
 - en: Lisp implementations are quite known for their minimalism. Due to this minimalism,
     building a blockchain (or anything, for that matter) in Lisp will imply that you
     can do the same in most other programming languages with ease. Lisps favor function
@@ -43,197 +62,295 @@
     one composition is *f*(*g*(*x*)). Further in the book, we will see the interesting
     properties that composition offers and how easily we can maintain and extend our
     code.
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: Lisp 实现以其极简主义而著称。由于这种极简主义，用 Lisp 构建区块链（或其他任何东西）将意味着你可以轻松地在大多数其他编程语言中完成相同的任务。Lisp
+    偏爱函数组合——将两个函数链接在一起——例如，给定 *f*(*x*) 和 *g*(*x*)，一个组合是 *f*(*g*(*x*))。在本书的后面，我们将看到组合提供的有趣特性以及我们如何轻松地维护和扩展我们的代码。
 - en: 2.1.1 Data Structures and Recursion
+  id: totrans-9
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 2.1.1 数据结构和递归
 - en: 'There are three important notions in a Lisp:'
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 在Lisp中有三个重要概念：
 - en: '*Primitives* or axioms (starting points or building blocks). As an example,
     the numbers 1, 2, and so on, are something we do not have to implement ourselves
     since they are already included in the programming language. Another example is
     operations on numbers, such as + and *.'
+  id: totrans-11
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*基元*或公理（起始点或构建块）。例如，数字1、2等等，我们不必自己实现，因为它们已经包含在编程语言中。另一个例子是对数字的操作，例如+和*。'
 - en: '*Composition* or a way to compose primitives to do complex calculations. For
     example, we can combine + and * as follows: 1 + (2 * 3) or in prefix (Lisp) notation:
     (+ 1 (* 2 3)).'
+  id: totrans-12
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*组合*或将基本元素组合起来进行复杂计算的方法。例如，我们可以将 + 和 * 结合起来如下：1 + (2 * 3) 或以前缀（Lisp）表示法：(+
+    1 (* 2 3))。'
 - en: '*Abstraction* or capturing the composition of primitives. For example, if we
     find ourselves doing a calculation over and over again, it would be good to capture
     (abstract, or wrap) it in a function that can be easily reused.'
+  id: totrans-13
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*抽象*或捕捉基本元素的组合。例如，如果我们发现自己一遍又一遍地进行计算，最好将其捕捉（抽象或封装）到一个可以轻松重用的函数中。'
 - en: We will rely on these concepts repeatedly throughout the book, as they allow
     us to build complex structures.
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将在整本书中反复依赖这些概念，因为它们允许我们构建复杂的结构。
 - en: '![../images/510363_1_En_2_Chapter/510363_1_En_2_Figb_HTML.gif](../images/510363_1_En_2_Chapter/510363_1_En_2_Figb_HTML.gif)
     Definition 2-1'
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: '![../images/510363_1_En_2_Chapter/510363_1_En_2_Figb_HTML.gif](../images/510363_1_En_2_Chapter/510363_1_En_2_Figb_HTML.gif)
+    定义 2-1'
 - en: A **data structure** is a collection of values, the relationships among them,
     and the functions or operations that can be applied to these values.
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: '**数据结构**是一组值，它们之间的关系以及可以应用于这些值的函数或操作的集合。'
 - en: An example of a data structure  is numbers together with the plus and multiplication
     functions.
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 数据结构的一个例子是数字与加法和乘法函数的组合。
 - en: From the motivation in the previous chapter we can see the need of forming such
     a data structure, where, for example, a block is a structure that contains a hash,
     an owner, and transaction amount.
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: 从上一章的动机中我们可以看到形成这样一个数据结构的需要，例如，一个块是一个包含哈希、所有者和交易金额的结构。
 - en: There are many data structures. An ordered list is one example, representing
     the numbers (1, 2, 3) in that order. Further, there are operations on lists, such
     as counting the number of elements, merging two lists, and so on.
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 有许多数据结构。一个有序列表就是一个例子，按照顺序表示数字（1，2，3）。此外，还有列表的操作，如计算元素的数量，合并两个列表等等。
 - en: We used the numbers 1, 2, and 3 in the previous example of a list—these elements
     are *primitives* . A list, together with its operations, represents an *abstraction*
     . Chaining several list operations together represents a *composition* .
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: 在上一个列表示例中，我们使用了数字1、2和3—这些元素是*原语*。列表与其操作一起代表了一种*抽象*。将几个列表操作链接在一起代表了一种*组合*。
 - en: Now that we can transform some data structure (by applying operations on it),
     it would be good to be able to repeatedly transform a data structure according
     to some specific rules. For example, if we have a blockchain data structure we
     may want to come up with a way to transform it such that, for example, a new block
     is inserted in it. This might require applying the same operation several times.
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们可以转换一些数据结构（通过对其应用操作），那么能够反复根据一些特定规则转换数据结构就很好了。例如，如果我们有一个区块链数据结构，我们可能希望想出一种方法来转换它，比如说，插入一个新区块。这可能需要多次应用相同的操作。
 - en: '![../images/510363_1_En_2_Chapter/510363_1_En_2_Figc_HTML.gif](../images/510363_1_En_2_Chapter/510363_1_En_2_Figc_HTML.gif)
     Definition 2-2'
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: '![../images/510363_1_En_2_Chapter/510363_1_En_2_Figc_HTML.gif](../images/510363_1_En_2_Chapter/510363_1_En_2_Figc_HTML.gif)
+    定义 2-2'
 - en: 'In mathematics and computer science, functions exhibit **recursive** behavior
     when they can be defined by two properties:'
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 在数学和计算机科学中，当函数能够由以下两个特性定义时，它们会展示出**递归**行为：
 - en: '1.'
+  id: totrans-24
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '1.'
 - en: A simple base case (or cases)—a terminating case that returns a value without
     using recursion
+  id: totrans-25
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 一个简单的基本情况（或几个基本情况）—返回一个值而不使用递归的终止情况
 - en: '2.'
+  id: totrans-26
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '2.'
 - en: A rule (or rules) that reduces toward the base case
+  id: totrans-27
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 一条规则（或几条规则）向基本情况减少
 - en: The most common example of a recursive function is the factorial function, defined
     as follows:![$$ fact(n)=\left\{\begin{array}{l}1,\mathrm{if}\ n=0\\ {}n\cdot fact\left(n-1\right),\mathrm{otherwise}\end{array}\right.
     $$](../images/510363_1_En_2_Chapter/510363_1_En_2_Chapter_TeX_Equa.png)
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 最常见的递归函数例子是阶乘函数，定义如下：![$$ fact(n)=\left\{\begin{array}{l}1,\mathrm{if}\ n=0\\
+    {}n\cdot fact\left(n-1\right),\mathrm{otherwise}\end{array}\right. $$](../images/510363_1_En_2_Chapter/510363_1_En_2_Chapter_TeX_Equa.png)
 - en: For example, using substitution we can see that *fact*(3) evaluates to 3 ⋅ *fact*(2),
     which is 3 ⋅ 2 ⋅ *fact*(1), and finally 3 ⋅ 2 ⋅ 1 ⋅ *fact*(0), which is just 6.
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 例如，使用替换我们可以看到*fact*(3)的求值为3 ⋅ *fact*(2)，这是3 ⋅ 2 ⋅ *fact*(1)，最终是3 ⋅ 2 ⋅ 1 ⋅ *fact*(0)，这就是6。
 - en: The recursion we just discussed applies the same operation multiple times, and
     gives the motivation for the next definition.
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们刚刚讨论的递归是多次应用相同的操作，并为下一个定义提供了动机。
 - en: '![../images/510363_1_En_2_Chapter/510363_1_En_2_Figd_HTML.gif](../images/510363_1_En_2_Chapter/510363_1_En_2_Figd_HTML.gif)
     Definition 2-3'
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: '![../images/510363_1_En_2_Chapter/510363_1_En_2_Figd_HTML.gif](../images/510363_1_En_2_Chapter/510363_1_En_2_Figd_HTML.gif)
+    定义 2-3'
 - en: 'A **tree** is a hierarchical, recursive data structure that can have two possible
     values:'
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: '**树** 是一种层级递归的数据结构，可以有两种可能的值：'
 - en: '1.'
+  id: totrans-33
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '1.'
 - en: An empty value
+  id: totrans-34
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 一个空值
 - en: '2.'
+  id: totrans-35
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '2.'
 - en: A single value, coupled with another two subtrees
+  id: totrans-36
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 一个单一的值，与另外两个子树配对
 - en: A family tree is one example of a tree. Another example of a tree is a binary
     tree, whereby the left subtree’s value is less than the current value and the
     right subtree’s value is greater than the current value:1     22    / \3   1   3
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 家谱是树的一个例子。树的另一个例子是二叉树，其中左子树的值小于当前值，右子树的值大于当前值：1     22    / \3   1   3
 - en: Trees are important in Lisps, as they are used to represent a program’s structure.
     We will discuss this more in the next section.
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: 在 Lisp 中，树是重要的，因为它们被用来表示程序的结构。我们将在下一节中更详细地讨论这个问题。
 - en: 2.1.2 Languages and Syntax
+  id: totrans-39
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 2.1.2 语言和语法
 - en: In this section, we take a quick look at the foundations of a Lisp, which will
     provide a high overview of the ideas behind Lisps.
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本节中，我们快速了解 Lisp 的基础知识，这将为 Lisp 背后的思想提供一个高层次的概述。
 - en: '![../images/510363_1_En_2_Chapter/510363_1_En_2_Fige_HTML.gif](../images/510363_1_En_2_Chapter/510363_1_En_2_Fige_HTML.gif)
     Definition 2-4'
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: '![../images/510363_1_En_2_Chapter/510363_1_En_2_Fige_HTML.gif](../images/510363_1_En_2_Chapter/510363_1_En_2_Fige_HTML.gif)
+    定义 2-4'
 - en: 'A **language** consists of:'
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 一种 **语言** 由以下组成：
 - en: '1.'
+  id: totrans-43
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '1.'
 - en: Symbols, which can be combined into sentences
+  id: totrans-44
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 符号，可以组合成句子
 - en: '2.'
+  id: totrans-45
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '2.'
 - en: Grammar, which is a set of rules that tells us which sentences are well-formed
+  id: totrans-46
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 语法，它是一组规则，告诉我们哪些句子是良构的
 - en: This definition of a language is also reflected in programming languages, which
     have a special grammar called the syntax. For example, the C programming language
     has a special syntax—you have to follow specific rules when writing program statements.
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: 这种语言的定义也反映在编程语言中，它们有一个特殊的语法叫做语法。例如，C 编程语言有一个特殊的语法—在编写程序语句时必须遵循特定的规则。
 - en: '![../images/510363_1_En_2_Chapter/510363_1_En_2_Figf_HTML.gif](../images/510363_1_En_2_Chapter/510363_1_En_2_Figf_HTML.gif)
     Definition 2-5'
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: '![../images/510363_1_En_2_Chapter/510363_1_En_2_Figf_HTML.gif](../images/510363_1_En_2_Chapter/510363_1_En_2_Figf_HTML.gif)
+    定义 2-5'
 - en: An **abstract syntax tree** is a tree representation of the abstract syntactic
     structure of source code written in a programming language.
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: '**抽象语法树** 是编程语言中源代码的抽象语法结构的树表示。'
 - en: When you write a program in a programming language, there’s an intermediate
     step that parses the program’s source code and derives an abstract syntax tree.![../images/510363_1_En_2_Chapter/510363_1_En_2_Fig1_HTML.jpg](../images/510363_1_En_2_Chapter/510363_1_En_2_Fig1_HTML.jpg)
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: 当你用编程语言写程序时，有一个中间步骤会解析程序的源代码，并生成一个抽象语法树。![../images/510363_1_En_2_Chapter/510363_1_En_2_Fig1_HTML.jpg](../images/510363_1_En_2_Chapter/510363_1_En_2_Fig1_HTML.jpg)
 - en: Figure 2-1
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: 图2-1
 - en: 'Example 1: Abstract syntax tree'
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: 例1：抽象语法树
 - en: For example, the image in Figure [2-1](#Fig1) represents an abstract syntax
     tree for the following pseudocode:1   **while** (a > b) {2       a = a - 1;3       b
     = b * 2;4   }As another example, the image in Figure [2-2](#Fig2) represents the
@@ -241,593 +358,896 @@
     = b * 2;4   } **else** a = a * b * 2;It is not important to understand what these
     codes do, rather understand how such programs are represented internally in programming
     languages.![../images/510363_1_En_2_Chapter/510363_1_En_2_Fig2_HTML.jpg](../images/510363_1_En_2_Chapter/510363_1_En_2_Fig2_HTML.jpg)
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: 例如，图 [2-1](#Fig1) 中的图像代表以下伪代码的抽象语法树：1   **while** (a > b) {2       a = a - 1;3       b
+    = b * 2;4   }另一个例子，图 [2-2](#Fig2) 中的图像代表以下伪代码：1   **if** (a == b && b == c) {2       a
+    = a - 1;3       b = b * 2;4   } **else** a = a * b * 2;重要的不是理解这些代码的功能，而是理解编程语言内部如何表示这样的程序。![../images/510363_1_En_2_Chapter/510363_1_En_2_Fig2_HTML.jpg](../images/510363_1_En_2_Chapter/510363_1_En_2_Fig2_HTML.jpg)
 - en: Figure 2-2
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: 图 2-2
 - en: 'Example 2: Abstract syntax tree'
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
+  zh: 例 2：抽象语法树
 - en: Lisps do not have the restriction of a special syntax like C has, for example.
     The code that we will write will be the actual abstract syntax tree. This is why
     Lisps rely on prefix notation. We see how Lisps are based on a minimalistic design,
     as we do not get the overhead of many other languages that have special syntax
     and sometimes functionalities that overlap.
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: Lisp 没有像 C 一样的特殊语法限制，例如。我们将编写的代码将是实际的抽象语法树。这就是为什么 Lisp 依赖前缀表示法。我们看到 Lisp 基于一种简约的设计，因为我们不会受到许多其他语言的开销，这些语言具有特殊的语法，有时功能会重叠。
 - en: '![../images/510363_1_En_2_Chapter/510363_1_En_2_Figg_HTML.gif](../images/510363_1_En_2_Chapter/510363_1_En_2_Figg_HTML.gif)
     Definition 2-6'
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: '![../images/510363_1_En_2_Chapter/510363_1_En_2_Figg_HTML.gif](../images/510363_1_En_2_Chapter/510363_1_En_2_Figg_HTML.gif)
+    定义 2-6'
 - en: 'The syntactic elements in Lisp are symbolic **expressions**  or S-expressions.
     An S-expression can be one of:'
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: Lisp 中的语法元素是符号 **表达式** 或 S-表达式。S-表达式可以是以下之一：
 - en: '1.'
+  id: totrans-59
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '1.'
 - en: A symbol (a string of characters)
+  id: totrans-60
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 一个符号（一串字符）
 - en: '2.'
+  id: totrans-61
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '2.'
 - en: A well-formed list (balanced parentheses) of S-expressions
+  id: totrans-62
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 一个 S-表达式的良好形式列表（平衡的括号）
 - en: For example, hello is a valid S-expression, and so is (hello there). But (hello(
     is not a valid S-expression, because the parentheses are not balanced. Whitespace
     is important in constructing S-expressions. Note that h ello is different from
     hello.
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: 例如，hello 是一个有效的 S-表达式，(hello there) 也是。但 (hello( 不是一个有效的 S-表达式，因为括号不平衡。在构造 S-表达式时，空白很重要。请注意
+    h ello 与 hello 是不同的。
 - en: An S-expression is well-formed if and only if the abstract syntax tree is balanced.
+  id: totrans-64
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个 S-表达式良好形式的条件是抽象语法树是平衡的。
 - en: Syntax has a special meaning in Lisps compared to other languages. With macros
     as part of the core language, it’s possible to extend this syntax.^([2](#Fn2))
     S-expressions form the syntax of a Lisp.
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
+  zh: 与其他语言相比，在 Lisp 中，语法具有特殊的含义。由于宏是核心语言的一部分，可以扩展此语法。^([2](#Fn2)) S-表达式形成 Lisp 的语法。
 - en: '![../images/510363_1_En_2_Chapter/510363_1_En_2_Figh_HTML.gif](../images/510363_1_En_2_Chapter/510363_1_En_2_Figh_HTML.gif)
     Exercise 2-1'
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
+  zh: '![../images/510363_1_En_2_Chapter/510363_1_En_2_Figh_HTML.gif](../images/510363_1_En_2_Chapter/510363_1_En_2_Figh_HTML.gif)
+    练习 2-1'
 - en: We treated numbers with the plus function as a data structure. Think of another
     data structure.
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们用加法函数处理数字作为数据结构。想想另一个数据结构。
 - en: '![../images/510363_1_En_2_Chapter/510363_1_En_2_Figi_HTML.gif](../images/510363_1_En_2_Chapter/510363_1_En_2_Figi_HTML.gif)
     Exercise 2-2'
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
+  zh: '![../images/510363_1_En_2_Chapter/510363_1_En_2_Figi_HTML.gif](../images/510363_1_En_2_Chapter/510363_1_En_2_Figi_HTML.gif)
+    练习 2-2'
 - en: 'Evaluate sum(3), sum(5), and sum(1) given the following definition:'
+  id: totrans-69
   prefs: []
   type: TYPE_NORMAL
+  zh: 在给定以下定义的情况下，求解sum(3)，sum(5)和sum(1)：
 - en: '![$$ sum(n)=\left\{\begin{array}{l}0,\mathrm{if}\ n=0\\ {}n+ sum\left(n-1\right),\mathrm{otherwise}\end{array}\right.
     $$](../images/510363_1_En_2_Chapter/510363_1_En_2_Chapter_TeX_IEq1.png)'
+  id: totrans-70
   prefs: []
   type: TYPE_IMG
+  zh: '![$$ sum(n)=\left\{\begin{array}{l}0,\mathrm{if}\ n=0\\ {}n+ sum\left(n-1\right),\mathrm{otherwise}\end{array}\right.
+    $$](../images/510363_1_En_2_Chapter/510363_1_En_2_Chapter_TeX_IEq1.png)'
 - en: What about sum(−1)?
+  id: totrans-71
   prefs: []
   type: TYPE_NORMAL
+  zh: sum(-1)是什么情况？
 - en: '![../images/510363_1_En_2_Chapter/510363_1_En_2_Figj_HTML.gif](../images/510363_1_En_2_Chapter/510363_1_En_2_Figj_HTML.gif)
     Exercise 2-3'
+  id: totrans-72
   prefs: []
   type: TYPE_NORMAL
+  zh: '![../images/510363_1_En_2_Chapter/510363_1_En_2_Figj_HTML.gif](../images/510363_1_En_2_Chapter/510363_1_En_2_Figj_HTML.gif)
+    练习 2-3'
 - en: Which of the following S-expressions is valid?
+  id: totrans-73
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下哪个S表达式是有效的？
 - en: 1.  hello
+  id: totrans-74
   prefs: []
   type: TYPE_NORMAL
+  zh: 1.  hello
 - en: 2.  123
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
+  zh: 2.  123
 - en: 3.  (hello 123)
+  id: totrans-76
   prefs: []
   type: TYPE_NORMAL
+  zh: 3.  (hello 123)
 - en: 4.  (hello (123)
+  id: totrans-77
   prefs: []
   type: TYPE_NORMAL
+  zh: 4.  (hello (123)
 - en: 5.  (+ 1 (* 2 3))
+  id: totrans-78
   prefs: []
   type: TYPE_NORMAL
+  zh: 5.  (+ 1 (* 2 3))
 - en: 6.  (+ (* 3 2) (/ 6 2))
+  id: totrans-79
   prefs: []
   type: TYPE_NORMAL
+  zh: 6.  (+ (* 3 2) (/ 6 2))
 - en: '**Hint**: Drawing an abstract syntax tree for each of the expressions might
     make it more obvious why one is or isn’t valid.'
+  id: totrans-80
   prefs: []
   type: TYPE_NORMAL
+  zh: '**提示**：为每个表达式绘制抽象语法树可能会更加明显，可以看出其中一个是有效的还是无效的。'
 - en: 2.2 Configuration and Installation
+  id: totrans-81
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 2.2 配置和安装
 - en: Racket can be downloaded and installed via [https://download.racket-lang.org](https://download.racket-lang.org/).
     There are binaries available for Windows, Linux, and Mac. This book was written
     using Racket version 7, but it may work as well with other versions. After downloading
     and installing the complete package, we can run DrRacket. If you get to the screen
     shown in Figure [2-3](#Fig3), congratulations! It means that the installation
     was successful.![../images/510363_1_En_2_Chapter/510363_1_En_2_Fig3_HTML.jpg](../images/510363_1_En_2_Chapter/510363_1_En_2_Fig3_HTML.jpg)
+  id: totrans-82
   prefs: []
   type: TYPE_NORMAL
+  zh: Racket可以通过[https://download.racket-lang.org](https://download.racket-lang.org/)下载和安装。Windows、Linux和Mac都有可用的二进制文件。这本书是使用Racket版本7编写的，但可能也适用于其他版本。下载并安装完整包后，我们可以运行DrRacket。如果你看到图[2-3](#Fig3)中显示的屏幕，恭喜！这意味着安装成功了。![../images/510363_1_En_2_Chapter/510363_1_En_2_Fig3_HTML.jpg](../images/510363_1_En_2_Chapter/510363_1_En_2_Fig3_HTML.jpg)
 - en: Figure 2-3
+  id: totrans-83
   prefs: []
   type: TYPE_NORMAL
+  zh: 图 2-3
 - en: DrRacket
+  id: totrans-84
   prefs: []
   type: TYPE_NORMAL
+  zh: DrRacket
 - en: The upper text area part of the screen is the definitions area, where we usually
     write the definitions. Alternatively, the lower part is the interactions area,
     where we interact with the definitions.
+  id: totrans-85
   prefs: []
   type: TYPE_NORMAL
+  zh: 屏幕的上部文本区域是定义区域，我们通常在这里编写定义。或者，下部是交互区域，在这里我们与定义进行交互。
 - en: The Help Desk, found under Help > Help Desk on the top menu, contains useful
     information such as a quick introduction, reference manuals, and examples.
+  id: totrans-86
   prefs: []
   type: TYPE_NORMAL
+  zh: 帮助台位于顶部菜单下的帮助 > 帮助台，包含快速介绍、参考手册和示例等有用信息。
 - en: 'There are two main approaches to working with Racket:'
+  id: totrans-87
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用 Racket 的两种主要方法：
 - en: Using the graphical user interface (GUI), which is the recommended way and what
     we use throughout this book
+  id: totrans-88
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用图形用户界面（GUI），这是推荐的方式，也是我们在整本书中使用的方式。
 - en: Using the command-line utilities (racket is the interpreter/compiler and raco
     is the package manager), which is for more advanced users
+  id: totrans-89
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用命令行实用工具（racket 是解释器/编译器，raco 是包管理器），这是给更高级用户使用的。
 - en: 2.3 Introduction to Racket
+  id: totrans-90
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 2.3 Racket 入门
 - en: The first thing that Lisp newcomers notice is that there are too many parentheses
     in Lisp programs. This is true, but it is a direct consequence of the fact that
     we are writing our abstract syntax tree in a language that has no special syntax.
+  id: totrans-91
   prefs: []
   type: TYPE_NORMAL
+  zh: 初次接触 Lisp 的新手注意到 Lisp 程序中有太多括号。这是事实，但这是因为我们在一种没有特殊语法的语言中编写我们的抽象语法树所导致的直接后果。
 - en: As we go through this book, we will see the power of expressiveness we get as
     a result. For example, one advantage is that there is no need for a special order
     of operations. In high school, we had to remember that * and / had to be evaluated
     before + and -. This is not the case with Lisps, as the order of evaluation is
     obvious by the way we’ve written our program.
+  id: totrans-92
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本书中我们将看到我们得到的表达力的力量。例如，一个优点是不需要特殊的运算顺序。在高中，我们必须记住*和/必须在+和-之前计算。但这在 Lisps 中并不适用，因为我们编写程序的方式使得计算顺序显而易见。
 - en: 'Let’s consider the expression (+ 1 (* 2 3)). As we mentioned, whitespace is
     an important part of S-expressions, so (+1 (* 2 3)) is different from (+ 1 (*
     2 3)). To convert this to a more familiar notation in our mind, we could swap
     the operators so that they are in *infix* notation instead of *prefix*: (+ 1 (*
     2 3)) is the same as (1 + (2 * 3)). We now see that the value of this expression
     is 7.'
+  id: totrans-93
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们考虑表达式 (+ 1 (* 2 3))。正如我们所提到的，空格是 S-表达式的重要部分，因此 (+1 (* 2 3)) 与 (+ 1 (* 2 3))
+    是不同的。为了将其转换为我们心中更熟悉的表示法，我们可以交换运算符，使其以*中缀*表示而不是*前缀*：(+ 1 (* 2 3)) 等同于 (1 + (2 *
+    3))。现在我们看到这个表达式的值是 7。
 - en: Next, let’s write this expression followed by the return key (Enter) in the
     interactions area (the bottom text area) of the DrRacket editor:1   > (+ 1 (*
     2 3))2   7The > sign indicates that the command that follows it must be input
     into the interactions area.![../images/510363_1_En_2_Chapter/510363_1_En_2_Fig4_HTML.jpg](../images/510363_1_En_2_Chapter/510363_1_En_2_Fig4_HTML.jpg)
+  id: totrans-94
   prefs: []
   type: TYPE_NORMAL
+  zh: 接下来，让我们在 DrRacket 编辑器的交互区（底部文本区域）中写下这个表达式，然后按回车键（Enter）：1   > (+ 1 (* 2 3))2   7“>”符号表示后面跟着的命令必须输入到交互区域。![../images/510363_1_En_2_Chapter/510363_1_En_2_Fig4_HTML.jpg](../images/510363_1_En_2_Chapter/510363_1_En_2_Fig4_HTML.jpg)
 - en: Figure 2-4
+  id: totrans-95
   prefs: []
   type: TYPE_NORMAL
+  zh: 图 2-4
 - en: DrRacket first calculation
+  id: totrans-96
   prefs: []
   type: TYPE_NORMAL
+  zh: DrRacket 的第一个计算
 - en: We get 7 as a result, as depicted in Figure [2-4](#Fig4). We’ve done our first
     calculation in Racket.
+  id: totrans-97
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们得到 7 作为结果，如图 [2-4](#Fig4) 所示。我们在 Racket 中进行了第一次计算。
 - en: After finishing an evaluation, DrRacket again waits for a new command. This
     is because in the interactions area, we are in REPL mode, which stands for Read-Evaluate-Print-Loop.
     That is, the interactions area will read what we write, try to evaluate it (come
     up with a result), print the result, and loop back to reading again.
+  id: totrans-98
   prefs: []
   type: TYPE_NORMAL
+  zh: 完成评估后，DrRacket 再次等待新命令。这是因为在交互区域，我们处于 REPL 模式，即读取-求值-打印-循环。也就是说，交互区域会读取我们写的内容，尝试评估它（得出结果），打印结果，然后循环回到读取状态。
 - en: 'Lisp evaluation is very similar to substitution in mathematics. For example,
     one way (+ 1 (* 2 3)) can be evaluated is as follows:'
+  id: totrans-99
   prefs: []
   type: TYPE_NORMAL
+  zh: Lisp 评估与数学中的替换非常相似。例如，一个表达式 (+ 1 (* 2 3)) 可以如下评估：
 - en: '1.'
+  id: totrans-100
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '1.'
 - en: (+ 1 (* 2 3))
+  id: totrans-101
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: (+ 1 (* 2 3))
 - en: '2.'
+  id: totrans-102
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '2.'
 - en: (+ 1 6)
+  id: totrans-103
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: (+ 1 6)
 - en: '3.'
+  id: totrans-104
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '3.'
 - en: '7'
+  id: totrans-105
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '7'
 - en: That is, in each step, we reduce the expression until no further reductions
     are possible. We immediately notice how powerful substitution as a concept is.
+  id: totrans-106
   prefs: []
   type: TYPE_NORMAL
+  zh: 也就是说，在每个步骤中，我们将表达式简化，直到不再有进一步的简化为止。我们立即注意到替换作为一个概念是多么强大。
 - en: 2.3.1 Primitive Types
+  id: totrans-107
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 2.3.1 原始类型
 - en: In the evaluation above  , we got a number as a result—the value 7 has a type
     of number. While types of values are implicit in Racket, we still have a way to
     check what the type of a value is, as we will see later with the help of predicates.
+  id: totrans-108
   prefs: []
   type: TYPE_NORMAL
+  zh: 在上述评估中，我们得到一个数字作为结果——值为 7 的类型是数字。虽然 Racket 中的值类型是隐式的，但我们仍然有一种方法来检查值的类型，我们稍后将在谓词的帮助下看到。
 - en: 'Racket has some primitive (built-in) types, such as:'
+  id: totrans-109
   prefs: []
   type: TYPE_NORMAL
+  zh: Racket 有一些原始（内置）类型，例如：
 - en: Symbols, such as hello, world
+  id: totrans-110
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 符号，如 hello、world
 - en: Lists, such as (1, 2, 3)
+  id: totrans-111
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 列表，如 (1, 2, 3)
 - en: Functions, such as f(x) = x + 1
+  id: totrans-112
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 函数，如 f(x) = x + 1
 - en: Numbers, such as 1, 2, 3.14
+  id: totrans-113
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 数字，如 1、2、3.14
 - en: 'Booleans, such as #t (for True) and #f (for False)'
+  id: totrans-114
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '布尔值，如 #t（表示真）和 #f（表示假）'
 - en: 'Characters or single letters: #\A, #\B, #\C'
+  id: totrans-115
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 字符或单个字母：#\A，#\B，#\C
 - en: 'Strings or lists of characters: "Hello", "World"'
+  id: totrans-116
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 字符串或字符列表："Hello"，"World"
 - en: 'Bytes: Per ASCII code, we can represent characters in terms of a number (e.g.
     72 is H)'
+  id: totrans-117
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 字节：根据 ASCII 码，我们可以用数字表示字符（例如，72 代表 H）
 - en: 'Bytes, as a list of byte: #"Hello", #"World"'
+  id: totrans-118
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 字节，作为字节列表：#"Hello"，#"World"
 - en: '1   > 123 2   123 3   > #t 4   #t 5   > #f 6   #f 7   > #\A 8   #\A 9   > "Hello  World"10   "Hello
     World"11   > (bytes 72 101 108 108 111)12   #"Hello"Each evaluation has a specific
     type attached to the produced value  :'
+  id: totrans-119
   prefs: []
   type: TYPE_NORMAL
+  zh: '1   > 123 2   123 3   > #t 4   #t 5   > #f 6   #f 7   > #\A 8   #\A 9   > "Hello  World"10   "Hello
+    World"11   > (bytes 72 101 108 108 111)12   #"Hello"每次评估都附有特定类型的产生值：'
 - en: '1.'
+  id: totrans-120
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '1.'
 - en: The first evaluation (123) has a type of number.
+  id: totrans-121
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 第一次评估（123）的类型是数字。
 - en: '2.'
+  id: totrans-122
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '2.'
 - en: The second (#t) and third (#f) evaluations have a type of boolean.
+  id: totrans-123
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 第二次（#t）和第三次（#f）评估的类型是布尔值。
 - en: '3.'
+  id: totrans-124
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '3.'
 - en: The fourth evaluation (#\A) has a type of character.
+  id: totrans-125
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 第四次评估（#\A）的类型是字符。
 - en: '4.'
+  id: totrans-126
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '4.'
 - en: The fifth evaluation ("Hello World") has a type of string.
+  id: totrans-127
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 第五次评估（"Hello World"）的类型是字符串。
 - en: '5.'
+  id: totrans-128
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '5.'
 - en: The sixth evaluation ((bytes 72 101 108 108 111)) has a type of bytes and is
     using the ASCII table for letters.
+  id: totrans-129
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 第六个评估（（字节 72 101 108 108 111））具有字节类型，并使用 ASCII 表来表示字母。
 - en: We cover symbols, lists, and functions in the following sections  .
+  id: totrans-130
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们在以下章节中介绍符号、列表和函数。
 - en: 2.3.2 Lists, Evaluation, and Quotes
+  id: totrans-131
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 2.3.2 列表、评估和引用
 - en: In order to produce the ordered list (1, 2, 3), we can ask DrRacket to evaluate
     (list 1 2 3) in the interactions area:1   > (list 1 2 3)2   '(1 2 3)
+  id: totrans-132
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了生成有序列表（1、2、3），我们可以要求 DrRacket 在交互区域评估（list 1 2 3）：1   > (list 1 2 3)2   '(1
+    2 3)
 - en: list is a built-in function, just like +, which we already used. list accepts
     any number of arguments, and as a result, returns a list generated from them.
     The returned expression '(1 2 3) is just a fancy notation, which is equivalent
     to the expression (quote (1 2 3)), where we tell Racket to return the actual list
     (1 2 3) instead of evaluating it.
+  id: totrans-133
   prefs: []
   type: TYPE_NORMAL
+  zh: list 是一个内置函数，就像 + 一样，我们已经使用过。list 接受任意数量的参数，并作为结果返回从它们生成的列表。返回的表达式 '(1 2 3)
+    只是一种花式表示法，等价于表达式 (quote (1 2 3))，在这里我们告诉 Racket 返回实际的列表 (1 2 3) 而不是评估它。
 - en: We notice how parentheses are used to denote a function call, or evaluation.
     In general, the code (f a_1 a_2 ... a_n) makes a function call to f, passing n
     arguments in that order. For example, for the function f(x) = x + 1, one example
     evaluation is f(1) and we write (f 1), where as a return value we get 2.
+  id: totrans-134
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们注意到括号是如何用来表示函数调用或评估的。一般来说，代码 (f a_1 a_2 ... a_n) 对 f 进行了函数调用，按顺序传递 n 个参数。例如，对于函数
+    f(x) = x + 1，一个例子评估是 f(1)，我们写成 (f 1)，作为返回值我们得到 2。
 - en: 'Note that (list 1 2 3) returned ''(1 2 3) as a result. Let’s try to understand
     what happened here. If (list 1 2 3) had returned (1 2 3), this wouldn’t have made
     much sense since (as we discussed) this notation would try to call the (nonexistent)
     function 1 with arguments 2 and 3\. Instead, it returned a *quoted* list: ‘(1
     2 3).'
+  id: totrans-135
   prefs: []
   type: TYPE_NORMAL
+  zh: 注意，(list 1 2 3) 作为结果返回了 '(1 2 3)。让我们试着理解这里发生了什么。如果 (list 1 2 3) 返回了 (1 2 3)，这并没有太多意义，因为（正如我们讨论过的）这种表示法会尝试调用（不存在的）函数
+    1，参数为 2 和 3。相反，它返回了一个 *引用* 列表：‘(1 2 3)。
 - en: 'To understand how this affects evaluation, let’s consider an example where
     you say either of these statements to someone:'
+  id: totrans-136
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了理解这如何影响评估，让我们考虑一个例子，你对某人说了以下其中之一的陈述：
 - en: Say your name
+  id: totrans-137
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 说出你的名字
 - en: Say “your name”
+  id: totrans-138
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 说“你的名字”
 - en: In the first example, you expect the person to tell you their name. In the second
     example, you expect them to say the words “your name,” rather than their actual
     name.
+  id: totrans-139
   prefs: []
   type: TYPE_NORMAL
+  zh: 在第一个例子中，你期望对方告诉你他们的名字。在第二个例子中，你期望他们说出“你的名字”，而不是他们的真实名字。
 - en: Similar to this example, there is a built-in syntax called quote , and we can
     use it on any set of symbols:1   > (**quote** hello)2   'hello
+  id: totrans-140
   prefs: []
   type: TYPE_NORMAL
+  zh: 与这个例子类似，有一个内置的句法称为引用，我们可以在任何一组符号上使用它：1   > (**引用** 你好)2   '你好
 - en: This allows for the creation of new symbols and is especially important for
     the creation of macros. There is a special list, called the *empty list,* and
     is denoted as (list), or (quote ()), or simply '(). We will later see why this
     list is special when we start using recursion.
+  id: totrans-141
   prefs: []
   type: TYPE_NORMAL
+  zh: 这允许创建新的符号，对于宏的创建尤其重要。 有一个特殊的列表，称为 *空列表*，表示为 (list)，或 (quote ())，或简单地 '()。 当我们开始使用递归时，我们稍后将看到为什么这个列表很特别。
 - en: For additional information on list (or any other function), you can click the
     word using the mouse and press the F1 button. This will open Racket’s manuals
     screen, which will allow you to pick a function that you want information about.
     Usually, it’s the first match on this list. Clicking it should show something
     similar to Figure [2-5](#Fig5).![../images/510363_1_En_2_Chapter/510363_1_En_2_Fig5_HTML.jpg](../images/510363_1_En_2_Chapter/510363_1_En_2_Fig5_HTML.jpg)
+  id: totrans-142
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于列表（或任何其他函数）的其他信息，您可以单击鼠标使用 F1 按钮点击单词。 这将打开 Racket 的手册屏幕，允许您选择要获取信息的函数。 通常，这是列表中的第一个匹配项。
+    单击它应该显示类似于图 [2-5](#Fig5) 的内容。![../images/510363_1_En_2_Chapter/510363_1_En_2_Fig5_HTML.jpg](../images/510363_1_En_2_Chapter/510363_1_En_2_Fig5_HTML.jpg)
 - en: Figure 2-5
+  id: totrans-143
   prefs: []
   type: TYPE_NORMAL
+  zh: 图 2-5
 - en: Racket manual for list
+  id: totrans-144
   prefs: []
   type: TYPE_NORMAL
+  zh: Racket 列表的手册
 - en: In Racket, parentheses, brackets, and braces have the same effect. Thus, (list
     1 2 3) is the same as [list 1 2 3] and {list 1 2 3}. This visual distinction may
     be useful to group evaluations when there are a lot of parentheses.
+  id: totrans-145
   prefs: []
   type: TYPE_NORMAL
+  zh: 在 Racket 中，括号、方括号和大括号具有相同的效果。 因此，(list 1 2 3) 和 [list 1 2 3] 以及 {list 1 2 3}
+    是相同的。 在有很多括号时，这种视觉区别可能有用于分组评估。
 - en: Recall that S-expressions can be either a symbol or a list. Since we discussed
     evaluation, lists, and symbols in this section, at this point in the book we have
     covered what makes the core of a Lisp.
+  id: totrans-146
   prefs: []
   type: TYPE_NORMAL
+  zh: 回想一下 S 表达式可以是符号或列表。 由于我们在本节中讨论了评估、列表和符号，在本书的这一部分，我们已经涵盖了 Lisp 核心的内容。
 - en: '![../images/510363_1_En_2_Chapter/510363_1_En_2_Figk_HTML.gif](../images/510363_1_En_2_Chapter/510363_1_En_2_Figk_HTML.gif)
     Exercise 2-4'
+  id: totrans-147
   prefs: []
   type: TYPE_NORMAL
+  zh: '![../images/510363_1_En_2_Chapter/510363_1_En_2_Figk_HTML.gif](../images/510363_1_En_2_Chapter/510363_1_En_2_Figk_HTML.gif)
+    练习 2-4'
 - en: Create a list in Racket that contains a mixture of different types (numbers,
     strings). The list should have at least two elements.
+  id: totrans-148
   prefs: []
   type: TYPE_NORMAL
+  zh: 在 Racket 中创建一个包含不同类型（数字、字符串）混合的列表。 列表应至少包含两个元素。
 - en: '![../images/510363_1_En_2_Chapter/510363_1_En_2_Figl_HTML.gif](../images/510363_1_En_2_Chapter/510363_1_En_2_Figl_HTML.gif)
     Exercise 2-5'
+  id: totrans-149
   prefs: []
   type: TYPE_NORMAL
+  zh: '![../images/510363_1_En_2_Chapter/510363_1_En_2_Figl_HTML.gif](../images/510363_1_En_2_Chapter/510363_1_En_2_Figl_HTML.gif)
+    练习 2-5'
 - en: Note that list is a function and quote is a syntax. Read the manual for both
     using the F1 key.
+  id: totrans-150
   prefs: []
   type: TYPE_NORMAL
+  zh: 注意列表是一个函数，引用是一种语法。 使用 F1 键阅读手册了解两者。
 - en: 2.3.3 Dotted Pairs
+  id: totrans-151
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 2.3.3 点对
 - en: 'Another built-in function is cons, which stands for *construct* . This function
     accepts only two arguments, and as a result, it returns a (quoted) pair:1   >
     (cons 1 2)2   ''(1 . 2)Think of ''(1 . 2) as a sequence of two numbers: 1 and
     2.![../images/510363_1_En_2_Chapter/510363_1_En_2_Fig6_HTML.jpg](../images/510363_1_En_2_Chapter/510363_1_En_2_Fig6_HTML.jpg)'
+  id: totrans-152
   prefs: []
   type: TYPE_NORMAL
+  zh: 另一个内置函数是 cons，它代表 *构造*。这个函数只接受两个参数，因此它返回一个 (引用的) 对：1   > (cons 1 2)2   '(1 .
+    2)将 '(1 . 2) 理解为两个数字的序列：1 和 2。![../images/510363_1_En_2_Chapter/510363_1_En_2_Fig6_HTML.jpg](../images/510363_1_En_2_Chapter/510363_1_En_2_Fig6_HTML.jpg)
 - en: Figure 2-6
+  id: totrans-153
   prefs: []
   type: TYPE_NORMAL
+  zh: 图 2-6
 - en: The (cons 'some-value 'nil) pair
+  id: totrans-154
   prefs: []
   type: TYPE_NORMAL
+  zh: (cons 'some-value 'nil) 对
 - en: There are two other built-in functions, called car and cdr, which are used to
     retrieve the first and the second element of a pair, respectively:1   > (car (cons
     1 2))2   13   > (cdr (cons 1 2))4   25   > (car '(1 . 2))6   17   > (cdr '(1 .
     2))8   2
+  id: totrans-155
   prefs: []
   type: TYPE_NORMAL
+  zh: 还有两个内置函数，称为 car 和 cdr，分别用于检索对的第一个和第二个元素：1   > (car (cons 1 2))2   13   > (cdr
+    (cons 1 2))4   25   > (car '(1 . 2))6   17   > (cdr '(1 . 2))8   2
 - en: Note how we used function composition here, namely, we “composed” car and cons
     in the first example, and cdr and cons in the second example.
+  id: totrans-156
   prefs: []
   type: TYPE_NORMAL
+  zh: 注意我们在这里如何使用函数组合，即我们在第一个示例中“组合”了 car 和 cons，在第二个示例中“组合”了 cdr 和 cons。
 - en: Pairs are so important that we can encode any data structure with them. In fact,
     lists are a special kind of pair, where (list 1 2 3) is equal to (cons 1 (cons
     2 (cons 3 '()))). See Figure [2-7](#Fig7).![../images/510363_1_En_2_Chapter/510363_1_En_2_Fig7_HTML.jpg](../images/510363_1_En_2_Chapter/510363_1_En_2_Fig7_HTML.jpg)
+  id: totrans-157
   prefs: []
   type: TYPE_NORMAL
+  zh: 对偶很重要，我们可以用它们编码任何数据结构。事实上，列表是一种特殊类型的对，其中 (list 1 2 3) 等同于 (cons 1 (cons 2 (cons
+    3 '())))。参见图 [2-7](#Fig7)。![../images/510363_1_En_2_Chapter/510363_1_En_2_Fig7_HTML.jpg](../images/510363_1_En_2_Chapter/510363_1_En_2_Fig7_HTML.jpg)
 - en: Figure 2-7
+  id: totrans-158
   prefs: []
   type: TYPE_NORMAL
+  zh: 图 2-7
 - en: An example of a list
+  id: totrans-159
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个列表的示例
 - en: The motivation for using a list is that it will allow us, for example, to link
     several blocks together to make a blockchain.
+  id: totrans-160
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用列表的动机是它将允许我们，例如，将几个块链接在一起以形成区块链。
 - en: Racket also supports sets. In a list/pair there can be repeated elements, but
     in a set all elements are unique. Additionally, there are operations that we can
     use on sets, such as union (merges two sets), subtraction (removes the elements
     in set 1 that are found in set 2), and so on.
+  id: totrans-161
   prefs: []
   type: TYPE_NORMAL
+  zh: Racket 还支持集合。在列表/对中可能存在重复的元素，但在集合中所有元素都是唯一的。此外，我们可以在集合上使用操作，例如并集（合并两个集合），减法（删除在集合
+    2 中找到的集合 1 中的元素）等。
 - en: For example, consider the following code where the built-in functions list->set,
     set-union, and set-subtract are used:1   > (list->set '(1 2 3 4 4))2   (set 1
     3 2 4)3   > '(1 2 3 4 4)4   '(1 2 3 4 4)5   > (set-union (list->set '(1 2 3))
     (list->set '(3 4 5)))6   (set 1 5 3 2 4)7   > (set-subtract (list->set '(1 2 3))
     (list->set '(3 4 5)))8   (set 1 2)
+  id: totrans-162
   prefs: []
   type: TYPE_NORMAL
+  zh: 例如，考虑以下代码，其中使用了内置函数 list->set、set-union 和 set-subtract：1   > (list->set '(1
+    2 3 4 4))2   (set 1 3 2 4)3   > '(1 2 3 4 4)4   '(1 2 3 4 4)5   > (set-union (list->set
+    '(1 2 3)) (list->set '(3 4 5)))6   (set 1 5 3 2 4)7   > (set-subtract (list->set
+    '(1 2 3)) (list->set '(3 4 5)))8   (set 1 2)
 - en: We notice how in Lisp, depending only on a few primitive notions (function calls,
     pairs, and quote), we can capture abstraction. We will talk more about this in
     Section 2.3.13.
+  id: totrans-163
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们注意到在 Lisp 中，仅依赖于几个原始概念（函数调用、对、和引用），我们就可以捕捉抽象。我们将在第 2.3.13 节中更多地讨论这个问题。
 - en: '![../images/510363_1_En_2_Chapter/510363_1_En_2_Figm_HTML.gif](../images/510363_1_En_2_Chapter/510363_1_En_2_Figm_HTML.gif)
     Exercise 2-6'
+  id: totrans-164
   prefs: []
   type: TYPE_NORMAL
+  zh: '![../images/510363_1_En_2_Chapter/510363_1_En_2_Figm_HTML.gif](../images/510363_1_En_2_Chapter/510363_1_En_2_Figm_HTML.gif)
+    练习 2-6'
 - en: Represent the same list you created in Exercise 2-4 using cons.
+  id: totrans-165
   prefs: []
   type: TYPE_NORMAL
+  zh: 用 cons 表示您在练习 2-4 中创建的相同列表。
 - en: '![../images/510363_1_En_2_Chapter/510363_1_En_2_Fign_HTML.gif](../images/510363_1_En_2_Chapter/510363_1_En_2_Fign_HTML.gif)
     Exercise 2-7'
+  id: totrans-166
   prefs: []
   type: TYPE_NORMAL
+  zh: '![../images/510363_1_En_2_Chapter/510363_1_En_2_Fign_HTML.gif](../images/510363_1_En_2_Chapter/510363_1_En_2_Fign_HTML.gif)
+    练习 2-7'
 - en: Use a combination of car and cdr for the list in Exercise 2-6 to get the second
     element in the list.
+  id: totrans-167
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用 car 和 cdr 的组合获取练习 2-6 中列表中的第二个元素。
 - en: 2.3.4 Adding Definitions
+  id: totrans-168
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 2.3.4 添加定义
 - en: So far we’ve worked only with the interactions area in DrRacket. Let’s try to
     do something useful with the definitions area.![../images/510363_1_En_2_Chapter/510363_1_En_2_Fig8_HTML.jpg](../images/510363_1_En_2_Chapter/510363_1_En_2_Fig8_HTML.jpg)
+  id: totrans-169
   prefs: []
   type: TYPE_NORMAL
+  zh: 到目前为止，我们只在 DrRacket 的交互区域中工作过。让我们尝试在定义区域中做一些有用的事情。![../images/510363_1_En_2_Chapter/510363_1_En_2_Fig8_HTML.jpg](../images/510363_1_En_2_Chapter/510363_1_En_2_Fig8_HTML.jpg)
 - en: Figure 2-8
+  id: totrans-170
   prefs: []
   type: TYPE_NORMAL
+  zh: 图 2-8
 - en: Adding definitions in DrRacket
+  id: totrans-171
   prefs: []
   type: TYPE_NORMAL
+  zh: 在 DrRacket 中添加定义
 - en: 'We can notice a couple of things in the screenshot in Figure [2-8](#Fig8):'
+  id: totrans-172
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以在图[2-8](#Fig8)的截图中注意到几件事：
 - en: In the definitions area, we added some code. We notice that we used another
     built-in syntax named define to attach a value (123) to a symbol/variable (a-number).
+  id: totrans-173
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在定义区域中，我们添加了一些代码。我们注意到我们使用了另一个名为 define 的内置语法，将一个值（123）附加到一个符号/变量（a-number）上。
 - en: In the interactions area, we interacted with something that was already defined
     in the definitions area. In this case, the interaction was to just display the
     definition’s value by referring to its symbol.
+  id: totrans-174
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在交互区域中，我们与已在定义区域中定义的内容进行了交互。在这种情况下，交互是仅通过引用其符号来显示定义的值。
 - en: 'In this book, every Racket program will start with #lang racket. This means
     that we will be dealing with Racket’s ordinary syntax. There are different values
     this can accept; for example, we can work with a language specialized in drawing
     graphics, but that is out of context for this book.'
+  id: totrans-175
   prefs: []
   type: TYPE_NORMAL
+  zh: '在本书中，每个 Racket 程序都将以 #lang racket 开始。这意味着我们将处理 Racket 的普通语法。这可以接受不同的值；例如，我们可以使用专门用于绘制图形的语言，但这超出了本书的范围。'
 - en: Everything that we write in the definitions area we can also write in the interactions
     area and vice versa. To have the definitions available in the interactions area,
     we need to run the program by choosing Racket > Run from the top menu. Note that
     when we run a program, the interactions area gets cleared.
+  id: totrans-176
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们在定义区域中写的所有内容也可以在交互区域中写，反之亦然。要使定义在交互区域中可用，我们需要通过选择 Racket > Run 从顶部菜单运行程序。请注意，当我们运行程序时，交互区域会被清除。
 - en: If our definitions have references to other definitions, we can hover over the
     symbol’s name using the mouse and DrRacket will draw a line pointing to the definition
     of that reference (Figure [2-9](#Fig9)). For big and complex programs, this will
     be useful for uncovering details of a function.![../images/510363_1_En_2_Chapter/510363_1_En_2_Fig9_HTML.jpg](../images/510363_1_En_2_Chapter/510363_1_En_2_Fig9_HTML.jpg)
+  id: totrans-177
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果我们的定义引用了其他定义，我们可以使用鼠标悬停在符号名称上，DrRacket 将绘制一条指向该引用定义的线条（图 [2-9](#Fig9)）。对于大型复杂的程序，这对于揭示函数的细节将非常有用。![../images/510363_1_En_2_Chapter/510363_1_En_2_Fig9_HTML.jpg](../images/510363_1_En_2_Chapter/510363_1_En_2_Fig9_HTML.jpg)
 - en: Figure 2-9
+  id: totrans-178
   prefs: []
   type: TYPE_NORMAL
+  zh: 图 2-9
 - en: Following references in DrRacket
+  id: totrans-179
   prefs: []
   type: TYPE_NORMAL
+  zh: 在 DrRacket 中跟踪引用
 - en: Definitions can be saved to a file for later usage by choosing File > Save Definitions
     from the top menu.
+  id: totrans-180
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过选择顶部菜单中的 File > Save Definitions 可将定义保存到文件中以供以后使用。
 - en: '![../images/510363_1_En_2_Chapter/510363_1_En_2_Figo_HTML.gif](../images/510363_1_En_2_Chapter/510363_1_En_2_Figo_HTML.gif)
     Exercise 2-8'
+  id: totrans-181
   prefs: []
   type: TYPE_NORMAL
+  zh: '![../images/510363_1_En_2_Chapter/510363_1_En_2_Figo_HTML.gif](../images/510363_1_En_2_Chapter/510363_1_En_2_Figo_HTML.gif)
+    练习 2-8'
 - en: Store the list from Exercise 2-7 in the definitions area and then use car and
     cdr on that list in the interactions area.
+  id: totrans-182
   prefs: []
   type: TYPE_NORMAL
+  zh: 将练习 2-7 中的列表存储在定义区域中，然后在交互区域使用 car 和 cdr 对该列表进行操作。
 - en: 2.3.5 Procedures and Functions
+  id: totrans-183
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 2.3.5 过程与函数
 - en: In Lisp, a procedure  is essentially a mathematical function. When called, it
     returns some data. However, unlike mathematical functions, some Lisp expressions
     and procedures have side effects.
+  id: totrans-184
   prefs: []
   type: TYPE_NORMAL
+  zh: 在 Lisp 中，过程本质上是一个数学函数。调用时，它返回一些数据。然而，与数学函数不同，一些 Lisp 表达式和过程具有副作用。
 - en: 'For example, consider two functions: add-1 increases a number by one and get-current-weather
     gets the current weather from an external service. The first function will always
     return the same value at any point in time, whereas the second “function” can
     return different values at different points in time.'
+  id: totrans-185
   prefs: []
   type: TYPE_NORMAL
+  zh: 例如，考虑两个函数：add-1 将数字增加一，get-current-weather 从外部服务获取当前天气。第一个函数在任何时间点都将返回相同的值，而第二个“函数”在不同时间点可能返回不同的值。
 - en: Thus Lisp procedures are not always functions in the “pure” sense of mathematics,
     but in practice, they are frequently referred to as “functions” anyway (even those
     that may have side effects), to emphasize that a computed result is always returned.
+  id: totrans-186
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，在实践中，Lisp 过程并不总是在数学“纯”意义上的函数，但通常会被称为“函数”（即使可能具有副作用），以强调总是返回计算结果。
 - en: Given the reasoning in the previous paragraph, from this point, we will refrain
     from using the word “function” and stick with “procedure.”
+  id: totrans-187
   prefs: []
   type: TYPE_NORMAL
+  zh: 鉴于前段的推理，从这一点开始，我们将避免使用“函数”一词，而坚持使用“过程”。
 - en: There is special built-in syntax called lambda , which accepts two arguments
     and produces a procedure as a result. The first argument is a list of arguments
     that the procedure will accept, and the second argument is an expression (body)
     that acts on the arguments from the list.
+  id: totrans-188
   prefs: []
   type: TYPE_NORMAL
+  zh: 有一个特殊的内置语法叫做 lambda ，它接受两个参数并产生一个过程作为结果。第一个参数是过程将接受的参数列表，第二个参数是一个表达式（主体），它作用于列表中的参数。
 - en: 'For example, (lambda (x) (+ x 1)) returns a procedure that accepts a single
     argument x, such that when this procedure is called with an argument, it increases
     this argument’s value by one: (+ x 1).'
+  id: totrans-189
   prefs: []
   type: TYPE_NORMAL
+  zh: 例如，(lambda (x) (+ x 1)) 返回一个过程，它接受一个单一参数 x，当这个过程被调用时，它会将这个参数的值增加一：(+ x 1)。
 - en: Evaluating this expression gives us:1   > (**lambda** (x) (+ x 1))2   #<procedure>In
     order to call the procedure, we can try to pass an argument:1   > ((**lambda**
     (x) (+ x 1)) 1)2   2Of course, writing and evaluating procedures this way is hard.
@@ -839,17 +1259,29 @@
     <=> (define (add-one x) (+ x 1))Procedures can also take more than one argument:(define
     add (lambda (x y) (+ x y))) <=> (define (add x y) (+ x y))![../images/510363_1_En_2_Chapter/510363_1_En_2_Figp_HTML.gif](../images/510363_1_En_2_Chapter/510363_1_En_2_Figp_HTML.gif)
     Exercise 2-9
+  id: totrans-190
   prefs: []
   type: TYPE_NORMAL
+  zh: 求值这个表达式给了我们：1   > (**lambda** (x) (+ x 1))2   #<procedure>为了调用这个过程，我们可以尝试传递一个参数：1   >
+    ((**lambda** (x) (+ x 1)) 1)2   2当然，用这种方式编写和评估过程是困难的。相反，我们可以在定义区域定义过程，然后在交互区域与之交互：1   (**define**
+    add-one (**lambda** (x) (+ x 1)))交互：1   > (add-one 1)2   23   > (add-one 2)4   35   >
+    (add-one (add-one 1))6   3为了使事情变得稍微简单些，Racket 有一种特殊的语法来定义过程，所以这两者是等价的：(define
+    add-one (lambda (x) (+ x 1))) <=> (define (add-one x) (+ x 1))过程也可以接受多个参数：(define
+    add (lambda (x y) (+ x y))) <=> (define (add x y) (+ x y))![../images/510363_1_En_2_Chapter/510363_1_En_2_Figp_HTML.gif](../images/510363_1_En_2_Chapter/510363_1_En_2_Figp_HTML.gif)
+    练习 2-9
 - en: In Exercise 2-7 you retrieved the second element from a list with (car (cdr
     l)). Define a procedure that accepts a list and returns the second element from
     that list.
+  id: totrans-191
   prefs: []
   type: TYPE_NORMAL
+  zh: 在练习 2-7 中，您使用 (car (cdr l)) 从列表中检索了第二个元素。定义一个接受列表并返回该列表中第二个元素的过程。
 - en: 2.3.6 Conditional Procedures
+  id: totrans-192
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 2.3.6 条件过程
 - en: 'There are useful built-in procedures  such as checking whether a value is a
     number, whether one number is greater than another, and so on. 1   > (number?
     1) 2   #t 3   > (number? "hello") 4   #f 5   > (character? #\A) 6   #t 7   > (string?
@@ -858,30 +1290,48 @@
     (> 1 2)20   #f21   > (= 1 2)22   #f23   > (= 1 1)24   #tif is a built-in syntax
     that allows the evaluation of expressions based on the *truthiness* of some predicate.
     It accepts three arguments:'
+  id: totrans-193
   prefs: []
   type: TYPE_NORMAL
+  zh: '存在一些有用的内置过程，比如检查一个值是否为数字，一个数字是否大于另一个数字等等。 1   > (number? 1) 2   #t 3   > (number?
+    "hello") 4   #f 5   > (character? #\A) 6   #t 7   > (string? "hello") 8   #t 9   >
+    (byte? 72)10   #t11   > (bytes? #"Hello")12   #t13   > (procedure? add-one)14   #t15   >
+    (symbol? (quote hey))16   #t17   > (symbol? 1)18   #f19   > (> 1 2)20   #f21   >
+    (= 1 2)22   #f23   > (= 1 1)24   #tif 是一种内置语法，允许根据某个断言的*真值*来评估表达式。它接受三个参数：'
 - en: Conditional to check
+  id: totrans-194
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 用于检查的条件
 - en: Expression to evaluate if the conditional is true
+  id: totrans-195
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果条件为真，则评估的表达式
 - en: Expression to evaluate if the conditional is false
+  id: totrans-196
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果条件为假，则评估的表达式
 - en: Here’s example usage:1   > (**if** (= 1 1) "It is true" "It is not true")2   "It
     is true"3   > (**if** (= 1 2) "It is true" "It is not true")4   "It is not true"The
     more general syntax for if is cond:1   (**cond** (test-1 action-1)2         (test-2
     action-2)3         ...4         (test-n action-n))
+  id: totrans-197
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是示例用法：1   > (**if** (= 1 1) "It is true" "It is not true")2   "It is true"3   >
+    (**if** (= 1 2) "It is true" "It is not true")4   "It is not true"if 的更一般语法是 cond：1   (**cond**
+    (test-1 action-1)2         (test-2 action-2)3         ...4         (test-n action-n))
 - en: Optionally, the last test can be an else to use the specific action  if none
     of the conditions match.
+  id: totrans-198
   prefs: []
   type: TYPE_NORMAL
+  zh: 可选地，最后一个测试可以是 else，以在没有任何条件匹配时使用特定的动作。
 - en: 'As an example, here is one way to use cond in a definition:1   (**define**
     (is-large x)2     (**cond** ((> x 10) #t)3           (**else** #f)))Interacting
     with it:1   > (is-large 5)2   #f3   > (is-large 10)4   #f5   > (is-large 11)6   #tAs
@@ -889,65 +1339,101 @@
     However, it only works on numbers, and it will raise an error if we use it on
     anything else  :1   > (= 1 2)2   #f3   > (= 3.14 3.14)4   #t5   > (= ''() ''())6   =:
     **contract** violationThere are three other important equality predicates:'
+  id: totrans-199
   prefs: []
   type: TYPE_NORMAL
+  zh: '例如，这是一种在定义中使用 cond 的方式：1   (**define** (is-large x)2     (**cond** ((> x 10)
+    #t)3           (**else** #f)))与之交互：1   > (is-large 5)2   #f3   > (is-large 10)4   #f5   >
+    (is-large 11)6   #t正如我们所见，= 是一个等号谓词，用于检查两个数字是否相等。然而，它只适用于数字，如果我们将其用于其他任何东西，它将引发错误：1   >
+    (= 1 2)2   #f3   > (= 3.14 3.14)4   #t5   > (= ''() ''())6   =: **contract** violation还有其他三个重要的等价谓词：'
 - en: eq? checks whether two arguments refer to the same object in memory.
+  id: totrans-200
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: eq? 检查两个参数是否指向内存中的同一对象。
 - en: eqv? is the same as eq?, except that it can also be used for primitive types
     (e.g. numbers, strings).
+  id: totrans-201
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: eqv? 与 eq? 相同，只是它还可以用于原始类型（例如数字、字符串）。
 - en: equal? is the same as eqv?, except that it can also be used to check if the
     arguments have the same recursive structure (e.g. lists).
+  id: totrans-202
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: equal? 与 eqv? 相同，只是它还可以用于检查参数是否具有相同的递归结构（例如列表）。
 - en: Note that there’s only one empty list '() in memory,^([3](#Fn3)) so all three
     predicates will return the same value when checking against empty lists.
+  id: totrans-203
   prefs: []
   type: TYPE_NORMAL
+  zh: 请注意，内存中只有一个空列表 '()，^([3](#Fn3)) 因此当检查空列表时，所有三个谓词都将返回相同的值。
 - en: To show where eq? fails, we will use a built-in procedure called integer->char
     that converts a number to a character  , per ASCII.1   > (integer->char 65)2   #\A3   >
     (eq? '() '())4   #t5   > (eq? (integer->char 65) (integer->char 65))6   #f7   >
     (eq? '(1) '(1))8   #f
+  id: totrans-204
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了展示 eq? 失败的地方，我们将使用一个名为 integer->char 的内置过程，它将数字转换为字符，按 ASCII 表示。1   > (integer->char
+    65)2   #\A3   > (eq? '() '())4   #t5   > (eq? (integer->char 65) (integer->char
+    65))6   #f7   > (eq? '(1) '(1))8   #f
 - en: As expected, this will return true for the empty list but cannot compare objects
     that aren’t referring to the same memory location or lists that actually have
     elements.
+  id: totrans-205
   prefs: []
   type: TYPE_NORMAL
+  zh: 如预期，这将对空列表返回 true，但无法比较不引用相同内存位置的对象或实际上具有元素的列表。
 - en: Note how eqv? differs in this case:1   > (eqv? '() '())2   #t3   > (eqv? (integer->char
     65) (integer->char 65))4   #t5   > (eqv? '(1) '(1))6   #fFinally, equal? will
     compare structures recursively, supporting lists  :1   > (equal? '() '())2   #t3   >
     (equal? (integer->char 65) (integer->char 65))4   #t5   > (equal? '(1) '(1))6   #t![../images/510363_1_En_2_Chapter/510363_1_En_2_Figq_HTML.gif](../images/510363_1_En_2_Chapter/510363_1_En_2_Figq_HTML.gif)
     Exercise 2-10
+  id: totrans-206
   prefs: []
   type: TYPE_NORMAL
+  zh: 请注意，在这种情况下 eqv? 的不同之处：1   > (eqv? '() '())2   #t3   > (eqv? (integer->char 65)
+    (integer->char 65))4   #t5   > (eqv? '(1) '(1))6   #f最后，equal? 将递归地比较结构，支持列表：1   >
+    (equal? '() '())2   #t3   > (equal? (integer->char 65) (integer->char 65))4   #t5   >
+    (equal? '(1) '(1))6   #t![../images/510363_1_En_2_Chapter/510363_1_En_2_Figq_HTML.gif](../images/510363_1_En_2_Chapter/510363_1_En_2_Figq_HTML.gif)
+    练习 2-10
 - en: We already defined is-large using the cond syntax. Represent it using the if
     syntax.
+  id: totrans-207
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们已经使用 cond 语法定义了 is-large。请使用 if 语法表示它。
 - en: '![../images/510363_1_En_2_Chapter/510363_1_En_2_Figr_HTML.gif](../images/510363_1_En_2_Chapter/510363_1_En_2_Figr_HTML.gif)
     Exercise 2-11'
+  id: totrans-208
   prefs: []
   type: TYPE_NORMAL
+  zh: '![../images/510363_1_En_2_Chapter/510363_1_En_2_Figr_HTML.gif](../images/510363_1_En_2_Chapter/510363_1_En_2_Figr_HTML.gif)
+    练习 2-11'
 - en: 'Represent the following logic using cond: return ''foo if the value is a string
     or a number, and ''bar otherwise.'
+  id: totrans-209
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用 cond 来表示以下逻辑：如果值是字符串或数字，则返回'foo，否则返回'bar。
 - en: 2.3.7 Recursive Procedures
+  id: totrans-210
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 2.3.7 递归过程
 - en: Procedures, just like data structures  (e.g. trees), can be recursive. We already
     saw an example with the factorial procedure, in that it called itself to make
     a computation or a loop.
+  id: totrans-211
   prefs: []
   type: TYPE_NORMAL
+  zh: 过程就像数据结构一样（例如树）可以是递归的。我们已经看到了一个例子，阶乘过程就是一个例子，在其中调用自身进行计算或循环。
 - en: 'For example, here’s how we could define a factorial in Racket:1   (**define**
     (fact n)2     (**if** (= n 0)3         14         (* n (fact (- n 1)))))Calling
     it will produce the following:1   > (fact 3)2   63   > (fact 0)4   1For a more
@@ -956,24 +1442,37 @@
     ''()) 0)3           (**else** (+ 1 (list-length (cdr x))))))We defined a procedure
     called list-length that accepts a single argument x and the body of the procedure
     has the condition  :'
+  id: totrans-212
   prefs: []
   type: TYPE_NORMAL
+  zh: 例如，这是我们如何在 Racket 中定义阶乘的方法：1   (**define** (fact n)2     (**if** (= n 0)3         14         (*
+    n (fact (- n 1)))))调用它将产生以下结果：1   > (fact 3)2   63   > (fact 0)4   1对于一个更高级的示例，我们将定义一个计算列表长度（元素数量）的过程：1   (**define**
+    (list-length x)2     (**cond** ((eq? x '()) 0)3           (**else** (+ 1 (list-length
+    (cdr x))))))我们定义了一个叫做 list-length 的过程，它接受一个参数 x，过程的主体具有条件 ：
 - en: '1.'
+  id: totrans-213
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '1.'
 - en: For the empty list, just return 0 since the length of an empty list is 0.
+  id: totrans-214
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 对于空列表，只需返回0，因为空列表的长度为0。
 - en: '2.'
+  id: totrans-215
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '2.'
 - en: Otherwise, return the value of one plus (list-length (cdr x)).
+  id: totrans-216
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 否则，返回一个加一的值加上 (list-length (cdr x)) 的值。
 - en: Testing it with a few values:1   > (list-length '(1 2 3))2   33   > (list-length
     '())4   05   > (list-length '(1))6   1Recall that lists are represented in terms
     of pairs:1   > (car '(1 2 3))2   13   > (cdr '(1 2 3))4   '(2 3)5   > (car (cdr
@@ -982,136 +1481,215 @@
     (list-length '(1 2 3)):1   (list-length '(1 2 3))2   = (+ 1 (list-length '(2 3)))3   =
     (+ 1 (+ 1 (list-length '(3))))4   = (+ 1 (+ 1 (+ 1 (list-length '()))))5   = (+
     1 (+ 1 (+ 1 0)))6   = (+ 1 (+ 1 1))7   = (+ 1 2)8   = 3
+  id: totrans-217
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用几个值进行测试：1   > (list-length '(1 2 3))2   33   > (list-length '())4   05   >
+    (list-length '(1))6   1记住列表是用对来表示的：1   > (car '(1 2 3))2   13   > (cdr '(1 2 3))4   '(2
+    3)5   > (car (cdr '(1 2 3)))6   27   > (cdr (cdr '(1 2 3)))8   '(3)换句话说，列表的cdr将返回没有第一个元素的相同列表。
+    这是 Racket 如何计算 (list-length '(1 2 3)) 的方式：1   (list-length '(1 2 3))2   = (+ 1
+    (list-length '(2 3)))3   = (+ 1 (+ 1 (list-length '(3))))4   = (+ 1 (+ 1 (+ 1
+    (list-length '()))))5   = (+ 1 (+ 1 (+ 1 0)))6   = (+ 1 (+ 1 1))7   = (+ 1 2)8   =
+    3
 - en: We just saw an example of a recursive behavior, since the recursive cases were
     reduced to the base case to get a result. With this example, we can see the power
     of recursion and how it allows us to process values in a repeating manner.
+  id: totrans-218
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们刚刚看到了递归行为的一个例子，因为递归情况被减少到基本情况以获得结果。 通过这个例子，我们可以看到递归的强大之处，以及它如何允许我们以重复的方式处理值。
 - en: There is another way that we can write list-length:1   > (**define** (list-length-iter
     x n)2       (**cond** ((eq? x '()) n)3             (**else** (list-length-iter
     (cdr x) (+ n 1)))))4   > (list-length-iter '(1 2  3) 0)5   3Here’s how it evaluates:1   (list-length-iter
     '(1 2 3) 0)2   = (list-length-iter '(2 3) 1)3   = (list-length-iter '(3) 2)4   =
     (list-length-iter  '() 3)5   = 3
+  id: totrans-219
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以另一种方式编写 list-length：1   > (**define** (list-length-iter x n)2       (**cond**
+    ((eq? x '()) n)3             (**else** (list-length-iter (cdr x) (+ n 1)))))4   >
+    (list-length-iter '(1 2  3) 0)5   3这是它的计算过程：1   (list-length-iter '(1 2 3) 0)2   =
+    (list-length-iter '(2 3) 1)3   = (list-length-iter '(3) 2)4   = (list-length-iter  '()
+    3)5   = 3
 - en: Both procedures  are recursive, in that they generate the same result. However,
     the nature of the evaluation is very different.
+  id: totrans-220
   prefs: []
   type: TYPE_NORMAL
+  zh: 这两种过程都是递归的，因为它们生成相同的结果。但是，评估的性质非常不同。
 - en: '![../images/510363_1_En_2_Chapter/510363_1_En_2_Figs_HTML.gif](../images/510363_1_En_2_Chapter/510363_1_En_2_Figs_HTML.gif)
     Definition 2-7'
+  id: totrans-221
   prefs: []
   type: TYPE_NORMAL
+  zh: '![../images/510363_1_En_2_Chapter/510363_1_En_2_Figs_HTML.gif](../images/510363_1_En_2_Chapter/510363_1_En_2_Figs_HTML.gif)
+    定义 2-7'
 - en: 'Recursive procedures can generate an **iterative** or a **recursive** process:'
+  id: totrans-222
   prefs: []
   type: TYPE_NORMAL
+  zh: 递归过程可以生成**迭代**或**递归**过程：
 - en: '1.'
+  id: totrans-223
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '1.'
 - en: A recursive process is one where the current state of calculation is not captured
     by the arguments, and so it relies on “deferred” evaluations
+  id: totrans-224
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 递归过程是指当前计算状态不由参数捕获，因此它依赖于“延迟”的评估。
 - en: '2.'
+  id: totrans-225
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '2.'
 - en: An iterative process is where the current state of calculation is captured completely
     by its arguments
+  id: totrans-226
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: 迭代过程是指当前计算状态完全由其参数来捕获。
 - en: In the previous examples, list-length generates a recursive process since it
     needs to go down to the base case and then build its way back up to do the calculations
     that were “deferred.” In contrast, list-length-iter generates  an iterative process,
     since the results are captured in the arguments.
+  id: totrans-227
   prefs: []
   type: TYPE_NORMAL
+  zh: 在前面的例子中，list-length 生成一个递归过程，因为它需要下降到基本情况，然后再建立起来执行被“延迟”的计算。相反，list-length-iter
+    生成一个迭代过程，因为结果被捕获在参数中。
 - en: This distinction is important because the very different nature of evaluation
     implies a few things. For example, iterative processes evaluate faster than recursive
     ones.
+  id: totrans-228
   prefs: []
   type: TYPE_NORMAL
+  zh: 这种区别很重要，因为评估的性质不同意味着一些事情。例如，迭代过程比递归过程评估更快。
 - en: In contrast, some algorithms cannot be written using iterative processes, as
     we will see later with left and right folds.
+  id: totrans-229
   prefs: []
   type: TYPE_NORMAL
+  zh: 相反，一些算法无法使用迭代过程编写，正如我们稍后将在左右折叠中看到的那样。
 - en: '![../images/510363_1_En_2_Chapter/510363_1_En_2_Figt_HTML.gif](../images/510363_1_En_2_Chapter/510363_1_En_2_Figt_HTML.gif)
     Exercise 2-12'
+  id: totrans-230
   prefs: []
   type: TYPE_NORMAL
+  zh: '![../images/510363_1_En_2_Chapter/510363_1_En_2_Figt_HTML.gif](../images/510363_1_En_2_Chapter/510363_1_En_2_Figt_HTML.gif)
+    练习 2-12'
 - en: The way we implemented fact represents a recursive procedure that generates
     a recursive process. Rework it so that it is still a recursive procedure and generates
     an iterative process.
+  id: totrans-231
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们实现 fact 的方式代表了生成递归过程的递归过程。重新设计它，使其仍然是一个递归过程，并生成一个迭代过程。
 - en: 2.3.8 Procedures That Return Procedures
+  id: totrans-232
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 2.3.8 返回过程的过程
 - en: We can construct procedures that return other procedures as a result. For example:1   >
     (**define** (f x) (**lambda** (y) (+ x y)))2   > f3   #<procedure:f>4   > (f 1)5   #<procedure>6   >
     ((f 1) 2)7   3
+  id: totrans-233
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以构建返回其他过程作为结果的过程。例如：1   > (**define** (f x) (**lambda** (y) (+ x y)))2   >
+    f3   #<procedure:f>4   > (f 1)5   #<procedure>6   > ((f 1) 2)7   3
 - en: Note the new syntax on line 3\. It states that the return value of the expression
     on the previous line is a procedure named f. However, on line 4, when we execute
     (f 1), we get an unnamed procedure. That is because lambdas are anonymous functions
     without a name.
+  id: totrans-234
   prefs: []
   type: TYPE_NORMAL
+  zh: 请注意第 3 行的新语法。它说明了前一行表达式的返回值是一个名为 f 的过程。然而，在第 4 行，当我们执行 (f 1) 时，我们得到了一个无名过程。这是因为
+    lambda 是没有名称的匿名函数。
 - en: This concept is so powerful that we can implement our own cons, car, and cdr:1   (**define**
     (my-cons x y) (**lambda** (z) (**if** (= z 1) x y)))2   (**define** (my-car z)
     (z 1))3   (**define** (my-cdr z) (z 2))Evaluating:1   > (my-cons 1 2)2   #<procedure>3   >
     (my-car (my-cons 1 2))4   15   > (my-cdr (my-cons 1 2))6   2
+  id: totrans-235
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个概念非常强大，以至于我们可以实现自己的 cons、car 和 cdr：1   (**define** (my-cons x y) (**lambda**
+    (z) (**if** (= z 1) x y)))2   (**define** (my-car z) (z 1))3   (**define** (my-cdr
+    z) (z 2))求值：1   > (my-cons 1 2)2   #<procedure>3   > (my-car (my-cons 1 2))4   15   >
+    (my-cdr (my-cons 1 2))6   2
 - en: Note how we define my-cons to return another procedure that accepts an argument
     z, and then based on that argument’s value, we return either the first or the
     second element.
+  id: totrans-236
   prefs: []
   type: TYPE_NORMAL
+  zh: 请注意我们如何定义 my-cons 以返回另一个接受参数 z 的过程，然后根据该参数的值返回第一个或第二个元素。
 - en: Using the substitution method, (my-cons 1 2) evaluates to (lambda (z) (if (=
     z1 2)). So, this lambda (procedure) “captures” data in a sense. Then, when we
     call my-car or my-cdr on this procedure, we just pass 1 or 2 to get the first
     or the second value, respectively.
+  id: totrans-237
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用替换方法，(my-cons 1 2) 求值为 (lambda (z) (if (= z 1 2))。因此，这个 lambda（过程）在某种意义上“捕获”数据。然后，当我们在这个过程上调用
+    my-car 或 my-cdr 时，我们只需传递 1 或 2 来分别获取第一个或第二个值。
 - en: '![../images/510363_1_En_2_Chapter/510363_1_En_2_Figu_HTML.gif](../images/510363_1_En_2_Chapter/510363_1_En_2_Figu_HTML.gif)
     Exercise 2-13'
+  id: totrans-238
   prefs: []
   type: TYPE_NORMAL
+  zh: '![../images/510363_1_En_2_Chapter/510363_1_En_2_Figu_HTML.gif](../images/510363_1_En_2_Chapter/510363_1_En_2_Figu_HTML.gif)
+    练习 2-13'
 - en: Implement a procedure so that when it’s evaluated, it returns a procedure that
     returns a constant number.
+  id: totrans-239
   prefs: []
   type: TYPE_NORMAL
+  zh: 实现一个过程，当它被求值时，它返回一个返回常数的过程。
 - en: '**Hint**: (lambda () 1) is a procedure that accepts no arguments and returns
     a constant number.'
+  id: totrans-240
   prefs: []
   type: TYPE_NORMAL
+  zh: '**提示**：(lambda () 1) 是一个不接受参数并返回一个常数的过程。'
 - en: 2.3.9 General Higher-Order Procedures
+  id: totrans-241
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 2.3.9 通用高阶过程
 - en: With the example above, we’ve seen how Racket can return procedures as return
     values (output). However, it can also accept procedures as arguments (input).
+  id: totrans-242
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过上面的例子，我们已经看到了 Racket 如何将过程作为返回值（输出）返回。但是，它也可以接受过程作为参数（输入）。
 - en: '![../images/510363_1_En_2_Chapter/510363_1_En_2_Figv_HTML.gif](../images/510363_1_En_2_Chapter/510363_1_En_2_Figv_HTML.gif)
     Definition 2-8'
+  id: totrans-243
   prefs: []
   type: TYPE_NORMAL
+  zh: '![../images/510363_1_En_2_Chapter/510363_1_En_2_Figv_HTML.gif](../images/510363_1_En_2_Chapter/510363_1_En_2_Figv_HTML.gif)
+    定义 2-8'
 - en: A **higher-order procedure** takes one or more procedures as arguments or returns
     a procedure as a result.
+  id: totrans-244
   prefs: []
   type: TYPE_NORMAL
+  zh: '**高阶过程**接受一个或多个过程作为参数或返回一个过程作为结果。'
 - en: 'There are three common built-in higher-order procedures: map, filter and fold.'
+  id: totrans-245
   prefs: []
   type: TYPE_NORMAL
+  zh: 有三种常见的内置高阶过程：map、filter 和 fold。
 - en: 'For the purpose of this example, we will rely on these definitions:1   (**define**
     my-test-list ''(1 2 3))2   (**define** (add-one x) (+ x 1))3   (**define** (gt-1
     x) (> x 1))map takes as input a procedure with a single argument and a list, and
@@ -1121,39 +1699,60 @@
     1) (add-one 2) (add-one 3)). However, it is best to implement these procedures
     ourselves to understand how they work. map takes a transformation procedure f,
     together with a list l. We have two cases to cover:'
+  id: totrans-246
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于本示例，我们将依赖于以下定义：1   (**定义** my-test-list '(1 2 3))2   (**定义** (add-one x) (+
+    x 1))3   (**定义** (gt-1 x) (> x 1))map 接受一个带有单个参数的过程和一个列表作为输入，并返回一个列表，其中列表的所有成员都应用了这个过程：1   >
+    (map (**lambda** (x) (+ x 1)) my-test-list)2   '(2 3 4)3   > (map  add-one  my-test-list)4   '(2
+    3 4)如果我们对 (map add-one my-test-list) 进行替换，我们会得到 (list (add-one 1) (add-one 2)
+    (add-one 3))。然而，最好是自己实现这些过程以了解它们的工作原理。map 接受一个转换过程 f，以及一个列表 l。我们有两种情况需要考虑：
 - en: For the empty list, we just return the empty list.
+  id: totrans-247
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 对于空列表，我们只需返回空列表。
 - en: Otherwise, we extract the first element, apply the transformation procedure,
     and reconstruct the list by recursively mapping the remainder of the elements.
+  id: totrans-248
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 否则，我们提取第一个元素，应用转换过程，并通过递归映射其余元素来重构列表。
 - en: '1   (**define** (my-map f l)2     (**cond** ((eq? l ''()) ''())3           (**else**
     (cons (f (car l)) (my-map f (cdr l))))))Another higher-order procedure, filter,
     takes as input a predicate with a single argument and a list, and it only returns
     those members in the list whose predicate evaluates to true  :1   > (filter gt-1
     my-test-list)2   ''(2 3)To reimplement filter, note that it takes a predicate
     p, together with a list l. There are three cases:'
+  id: totrans-249
   prefs: []
   type: TYPE_NORMAL
+  zh: 1   (**定义** (my-map f l)2     (**cond** ((eq? l '()) '())3           (**else**
+    (cons (f (car l)) (my-map f (cdr l))))))另一个高阶过程 filter，接受一个带有单个参数的谓词和一个列表作为输入，并且它仅返回那些谓词求值为
+    true 的列表成员：1   > (filter gt-1 my-test-list)2   '(2 3)要重新实现 filter，注意它接受一个谓词 p，以及一个列表
+    l。有三种情况：
 - en: For the empty list, just as before, we just return the empty list.
+  id: totrans-250
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 对于空列表，与之前一样，我们只需返回空列表。
 - en: Otherwise, if a predicate matches the current element, we include it in the
     generation of the new list, recursively filtering the remainder of the elements.
+  id: totrans-251
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 否则，如果谓词匹配当前元素，则将其包含在新列表的生成中，递归地过滤其余元素。
 - en: Otherwise, we recursively filter the remainder of the elements, skipping the
     addition of the current one to the list.
+  id: totrans-252
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 否则，我们递归地过滤其余元素，跳过将当前元素添加到列表中。
 - en: '1   (**define** (my-filter p l)2     (**cond** ((eq? l ''()) ''())3           ((p
     (car l)) (cons (car l) (my-filter p (cdr l))))4           (**else** (my-filter
     p (cdr l)))))Finally, fold takes as input a combining procedure that accepts two
@@ -1163,93 +1762,146 @@
     (foldr cons ''() ''(1 2 3))2   ''(1 2 3)3   > (foldl cons ''() ''(1 2 3))4   ''(3
     2 1)foldr takes a combining operator (procedure) op, together with an initial
     value i and list l. The two cases we need to cover are as follows:'
+  id: totrans-253
   prefs: []
   type: TYPE_NORMAL
+  zh: 1   (**define** (my-filter p l)2     (**cond** ((eq? l '()) '())3           ((p
+    (car l)) (cons (car l) (my-filter p (cdr l))))4           (**else** (my-filter
+    p (cdr l)))))最后，fold接受一个接受两个参数（当前值和累加器）、一个初始值和一个列表的组合过程作为输入。然后，fold返回与此过程组合的值。有两种类型的折叠，右折叠和左折叠，它们分别从右和左组合：1   >
+    (foldr cons '() '(1 2 3))2   '(1 2 3)3   > (foldl cons '() '(1 2 3))4   '(3 2
+    1)foldr接受一个组合操作符（过程）op，以及一个初始值i和一个列表l。我们需要覆盖的两种情况如下：
 - en: For the empty list, we return the initial value.
+  id: totrans-254
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 对于空列表，我们返回初始值。
 - en: Otherwise, we use the combining operator to the current element, applied to
     the folded remainder of the list.
+  id: totrans-255
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 否则，我们使用组合操作符应用于列表的折叠余数的当前元素。
 - en: '1   (**define** (my-foldr op i l)2     (**cond** ((eq? ''() l) i)3           (**else**
     (op (car l)4                     (my-foldr op i (cdr l))))))foldl is a bit different.
     We start by defining a procedure that has two cases:'
+  id: totrans-256
   prefs: []
   type: TYPE_NORMAL
+  zh: 1   (**define** (my-foldr op i l)2     (**cond** ((eq? '() l) i)3           (**else**
+    (op (car l)4                     (my-foldr op i (cdr l))))))foldl有点不同。我们首先定义一个具有两种情况的过程：
 - en: For the empty list, we return the initial value.
+  id: totrans-257
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 对于空列表，我们返回初始值。
 - en: Otherwise, we call the fold again, changing the initial value to be combined
     with the current element and the remainder of the list.
+  id: totrans-258
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 否则，我们再次调用折叠函数，将初始值更改为与当前元素和列表的剩余部分结合。
 - en: 1   (**define** (my-foldl op i l)2     (**cond** ((eq? '() l) i)3           (**else**
     (my-foldl op (op (car l) i) (cdr l)))))This procedure  works in a similar way
     to foldr, except that the result is captured in the procedure’s argument. For
     example, here’s how it unfolds for (my-foldl + 0 '(1 2 3)):1   (my-foldl + 0 '(1
     2 3))2   = (my-foldl + 1 '(2 3))3   = (my-foldl + 3 '(3))4   = (my-foldl + 6 '())5   =
     6
+  id: totrans-259
   prefs: []
   type: TYPE_NORMAL
+  zh: 1   (**define** (my-foldl op i l)2     (**cond** ((eq? '() l) i)3           (**else**
+    (my-foldl op (op (car l) i) (cdr l)))))这个过程的工作方式与foldr类似，只是结果被捕获在过程的参数中。例如，这是它对（my-foldl
+    + 0 '(1 2 3)）展开的方式：1   (my-foldl + 0 '(1 2 3))2   = (my-foldl + 1 '(2 3))3   =
+    (my-foldl + 3 '(3))4   = (my-foldl + 6 '())5   = 6
 - en: Note that the right fold exhibits a recursive process (think my-length), while
     the left one exhibits an iterative process (think my-length-iter).
+  id: totrans-260
   prefs: []
   type: TYPE_NORMAL
+  zh: 注意，右折叠展示了一个递归过程（想想我的长度），而左折叠展示了一个迭代过程（想想我的长度-迭代）。
 - en: '![../images/510363_1_En_2_Chapter/510363_1_En_2_Figw_HTML.gif](../images/510363_1_En_2_Chapter/510363_1_En_2_Figw_HTML.gif)
     Exercise 2-14'
+  id: totrans-261
   prefs: []
   type: TYPE_NORMAL
+  zh: '![../images/510363_1_En_2_Chapter/510363_1_En_2_Figw_HTML.gif](../images/510363_1_En_2_Chapter/510363_1_En_2_Figw_HTML.gif)
+    练习2-14'
 - en: Implement a procedure so that it calls a procedure that’s passed in the arguments.
+  id: totrans-262
   prefs: []
   type: TYPE_NORMAL
+  zh: 实现一个过程，使其调用在参数中传递的过程。
 - en: '**Hint**: (... (lambda () 1)) should return 1.'
+  id: totrans-263
   prefs: []
   type: TYPE_NORMAL
+  zh: '**提示**：(... (lambda () 1)) 应返回 1。'
 - en: '![../images/510363_1_En_2_Chapter/510363_1_En_2_Figx_HTML.gif](../images/510363_1_En_2_Chapter/510363_1_En_2_Figx_HTML.gif)
     Exercise 2-15'
+  id: totrans-264
   prefs: []
   type: TYPE_NORMAL
+  zh: '![../images/510363_1_En_2_Chapter/510363_1_En_2_Figx_HTML.gif](../images/510363_1_En_2_Chapter/510363_1_En_2_Figx_HTML.gif)
+    练习 2-15'
 - en: Use DrRacket’s feature to follow definitions on my-map, my-filter, my-foldr,
     and my-foldl to get a better understanding of how they work.
+  id: totrans-265
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用DrRacket的功能跟踪`my-map`、`my-filter`、`my-foldr`和`my-foldl`上的定义，以更好地了解它们的工作原理。
 - en: '![../images/510363_1_En_2_Chapter/510363_1_En_2_Figy_HTML.gif](../images/510363_1_En_2_Chapter/510363_1_En_2_Figy_HTML.gif)
     Exercise 2-16'
+  id: totrans-266
   prefs: []
   type: TYPE_NORMAL
+  zh: '![../images/510363_1_En_2_Chapter/510363_1_En_2_Figy_HTML.gif](../images/510363_1_En_2_Chapter/510363_1_En_2_Figy_HTML.gif)
+    练习 2-16'
 - en: Pick some operators and predicates and use my-map, my-filter, my-foldr, and
     my-foldl with them on lists to see what they evaluate to.
+  id: totrans-267
   prefs: []
   type: TYPE_NORMAL
+  zh: 选择一些运算符和谓词，然后使用`my-map`、`my-filter`、`my-foldr`和`my-foldl`在列表上对它们进行操作，看看它们会评估为何值。
 - en: 2.3.10 Packages
+  id: totrans-268
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 2.3.10 包
 - en: '![../images/510363_1_En_2_Chapter/510363_1_En_2_Figz_HTML.gif](../images/510363_1_En_2_Chapter/510363_1_En_2_Figz_HTML.gif)
     Definition 2-9'
+  id: totrans-269
   prefs: []
   type: TYPE_NORMAL
+  zh: '![../images/510363_1_En_2_Chapter/510363_1_En_2_Figz_HTML.gif](../images/510363_1_En_2_Chapter/510363_1_En_2_Figz_HTML.gif)
+    定义 2-9'
 - en: A **package** in Racket resembles a set of definitions someone has written for
     others to use.
+  id: totrans-270
   prefs: []
   type: TYPE_NORMAL
+  zh: Racket中的**包**类似于某人为他人编写的一组定义，供他人使用。
 - en: For example, if we want to use hashing procedures, we would pick a package that
     implements these and use them. This allows us to put our focus on the system design
     instead of defining everything from scratch.
+  id: totrans-271
   prefs: []
   type: TYPE_NORMAL
+  zh: 例如，如果我们想要使用散列过程，我们会选择一个实现这些过程的包并使用它们。这样可以使我们把重点放在系统设计上，而不是从零开始定义所有内容。
 - en: Packages can be browsed at [https://pkgs.racket-lang.org](https://pkgs.racket-lang.org/).
     They can be installed from the DrRacket GUI. When we try to use a package, we
     will be provided with an option to install it, given it is available in the packages
     repository. Alternatively, packages can be installed using raco pkg install <package_name>
     from the command line. We will take advantage of packages later.
+  id: totrans-272
   prefs: []
   type: TYPE_NORMAL
+  zh: 包可以在[https://pkgs.racket-lang.org](https://pkgs.racket-lang.org/)上浏览。它们可以从DrRacket
+    GUI安装。当我们尝试使用一个包时，如果它在包存储库中可用，我们将会收到一个安装选项。或者，可以使用命令行从`raco pkg install <package_name>`安装包。我们稍后会利用包。
 - en: 'To export objects (variables, procedures, etc.) from a package, we use the
     provide syntax. As an example, let’s create a few procedures and then save their
     definitions in a file called utils.rkt by choosing File > Save Definitions from
@@ -1258,39 +1910,64 @@
     in the same folder as utils.rkt. We will use the require syntax:1   (**require**
     "utils.rkt")23   (**define** (add-two x) (+ x 2))We can now interact with test.rkt:1   >
     (sum-list ''(1 2 3))2   63   > (add-two 1)4   35   > (add-one 1)6   add-one: undefined;'
+  id: totrans-273
   prefs: []
   type: TYPE_NORMAL
+  zh: '要从包中导出对象（变量、过程等），我们使用 provide 语法。例如，让我们创建一些过程，然后通过选择顶部菜单中的文件 > 保存定义将它们的定义保存在名为
+    utils.rkt 的文件中。1   (**define** (sum-list l) (foldl + 0 l))2   (**define** (add-one
+    x) (+ x 1))34   (**provide** sum-list)我们将在与 utils.rkt 相同的文件夹中创建另一个名为 test.rkt
+    的文件。我们将使用 require 语法：1   (**require** "utils.rkt")23   (**define** (add-two x)
+    (+ x 2))现在我们可以与 test.rkt 交互：1   > (sum-list ''(1 2 3))2   63   > (add-two 1)4   35   >
+    (add-one 1)6   add-one: undefined;'
 - en: Note that add-one was undefined because only the procedures we provide in the
     special syntax (provide ...) will be available for use by those that require the
     package  .
+  id: totrans-274
   prefs: []
   type: TYPE_NORMAL
+  zh: 注意，add-one 是未定义的，因为只有我们在特殊语法中提供的过程（provide ...）才能被那些需要该包的内容使用。
 - en: 2.3.11 Scope
+  id: totrans-275
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 2.3.11 作用域
 - en: As a start, let’s consider the following definitions:1   (**define** my-number
     123)2   (**define** (add-to-my-number x) (+ my-number x))
+  id: totrans-276
   prefs: []
   type: TYPE_NORMAL
+  zh: 一开始，让我们考虑以下定义：1   (**define** my-number 123)2   (**define** (add-to-my-number
+    x) (+ my-number x))
 - en: We created a variable called my-number and assigned the number 123 to it. We
     also created a procedure called add-to-my-number, which adds a number (that’s
     passed to it as an argument) to my-number.
+  id: totrans-277
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们创建了一个名为 my-number 的变量，并将数字 123 赋给它。我们还创建了一个名为 add-to-my-number 的过程，它会将一个数字（作为参数传递给它）加到
+    my-number 上。
 - en: '![../images/510363_1_En_2_Chapter/510363_1_En_2_Figaa_HTML.gif](../images/510363_1_En_2_Chapter/510363_1_En_2_Figaa_HTML.gif)
     Definition 2-10'
+  id: totrans-278
   prefs: []
   type: TYPE_NORMAL
+  zh: '![../images/510363_1_En_2_Chapter/510363_1_En_2_Figaa_HTML.gif](../images/510363_1_En_2_Chapter/510363_1_En_2_Figaa_HTML.gif)
+    定义 2-10'
 - en: '**Scope** refers to the visibility of some specific definitions, or to which
     parts of the program can use these definitions.'
+  id: totrans-279
   prefs: []
   type: TYPE_NORMAL
+  zh: '**作用域** 指的是某些特定定义的可见性，或者是程序的哪些部分可以使用这些定义。'
 - en: my-number is defined at the same “level” as add-to-my-number, so it is in the
     scope of add-to-my-number. But the x in add-to-my-number is only accessible in
     the body of the procedure definition and not accessible to anything outside it.
+  id: totrans-280
   prefs: []
   type: TYPE_NORMAL
+  zh: my-number 被定义在与 add-to-my-number 相同的“级别”上，因此它在 add-to-my-number 的作用域内。但是 add-to-my-number
+    中的 x 只能在过程定义的主体中访问，而不能被外部任何东西访问。
 - en: 'Using the let syntax, we can introduce variables that are visible only in a
     certain section:1   (**let** ([var-1 value-1]2         [var-2 value-2])3   ...
     our code ...)This creates variables var-1 and var-2, which are visible only in
@@ -1299,156 +1976,249 @@
     to let, where in addition the variables will be visible in the variable scope:1   >
     (**letrec** ((x 1) (y (+ x 1))) y)2   2![../images/510363_1_En_2_Chapter/510363_1_En_2_Figab_HTML.gif](../images/510363_1_En_2_Chapter/510363_1_En_2_Figab_HTML.gif)
     Definition 2-11'
+  id: totrans-281
   prefs: []
   type: TYPE_NORMAL
+  zh: '使用 let 语法，我们可以引入仅在某个部分可见的变量：1   (**let** ([var-1 value-1]2         [var-2 value-2])3   ...
+    我们的代码 ...)这会创建变量 var-1 和 var-2，它们仅在我们的代码部分可见。1   > (**let** ((x 1) (y 2)) (+ x
+    y))2   33   > x4   . . x: undefined;5   > y6   . . y: undefined;letrec 语法与 let
+    非常相似，不过额外的是变量将在变量作用域中可见：1   > (**letrec** ((x 1) (y (+ x 1))) y)2   2![../images/510363_1_En_2_Chapter/510363_1_En_2_Figab_HTML.gif](../images/510363_1_En_2_Chapter/510363_1_En_2_Figab_HTML.gif)
+    定义 2-11'
 - en: '**Variable “shadowing**  **”** occurs when a variable defined in scope has
     the same name as a variable defined in an outer scope.'
+  id: totrans-282
   prefs: []
   type: TYPE_NORMAL
+  zh: '**变量“屏蔽”** 是指在作用域内定义的变量与外部作用域中定义的变量同名时发生的情况。'
 - en: For example, compare the result of these two evaluations:1   > (**let** ((x
     1)) x)2   13   > (**let** ((x 1)) (**let** ((x 2)) x))4   2
+  id: totrans-283
   prefs: []
   type: TYPE_NORMAL
+  zh: 例如，比较这两个评估的结果：1   > (**let** ((x 1)) x)2   13   > (**let** ((x 1)) (**let**
+    ((x 2)) x))4   2
 - en: In the second example, we have a let within a let. The inner let is defining
     an x and so is the outer let. However, the x within the inner let will be used
     in the inner let’s body.
+  id: totrans-284
   prefs: []
   type: TYPE_NORMAL
+  zh: 在第二个例子中，我们有一个 let 嵌套在另一个 let 中。内部 let 定义了一个 x，外部 let 也定义了一个 x。然而，内部 let 中的 x
+    将在内部 let 的主体中使用。
 - en: Finally, let’s consider another example:1   (**define** a-number 3)2   (**define**
     (test-1 x) (+ a-number x))3   (**define** (test-2 a-number) (+ a-number a-number))Interacting:1   >
     (test-1 4)2   73   > (test-2 4)4   8
+  id: totrans-285
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后，让我们考虑另一个例子：1   (**定义** a-number 3)2   (**定义** (test-1 x) (+ a-number x))3   (**定义**
+    (test-2 a-number) (+ a-number a-number))交互：1   > (test-1 4)2   73   > (test-2
+    4)4   8
 - en: test-1 is using a-number from the global scope. test-2 is using variable shadowing
     for my-number, so it is the same as saying (define (test-2 x) (+ x x)).
+  id: totrans-286
   prefs: []
   type: TYPE_NORMAL
+  zh: test-1 使用全局范围的 a-number。test-2 使用变量屏蔽来定义 my-number，因此它等同于 (define (test-2 x)
+    (+ x x))。
 - en: '![../images/510363_1_En_2_Chapter/510363_1_En_2_Figac_HTML.gif](../images/510363_1_En_2_Chapter/510363_1_En_2_Figac_HTML.gif)
     Exercise 2-17'
+  id: totrans-287
   prefs: []
   type: TYPE_NORMAL
+  zh: '![../images/510363_1_En_2_Chapter/510363_1_En_2_Figac_HTML.gif](../images/510363_1_En_2_Chapter/510363_1_En_2_Figac_HTML.gif)
+    练习 2-17'
 - en: Use DrRacket’s feature to follow definitions on test-1 and test-2.
+  id: totrans-288
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用 DrRacket 的功能可以跟踪 test-1 和 test-2 的定义。
 - en: 2.3.12 Mutation
+  id: totrans-289
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 2.3.12 Mutation
 - en: '![../images/510363_1_En_2_Chapter/510363_1_En_2_Figad_HTML.gif](../images/510363_1_En_2_Chapter/510363_1_En_2_Figad_HTML.gif)
     Definition 2-12'
+  id: totrans-290
   prefs: []
   type: TYPE_NORMAL
+  zh: '![../images/510363_1_En_2_Chapter/510363_1_En_2_Figad_HTML.gif](../images/510363_1_En_2_Chapter/510363_1_En_2_Figad_HTML.gif)
+    定义 2-12'
 - en: '**Mutation** allows a variable to be redefined with a different value.'
+  id: totrans-291
   prefs: []
   type: TYPE_NORMAL
+  zh: '**Mutation（变异）** 允许变量用不同的值重新定义。'
 - en: 'Mutation can be achieved using the set! syntax. Consider the following definition:1   (**define**
     x 123)2   x3   (**define** x 1234)4   xThis definition will produce an error that
     says module: identifier already defined in: x. However, the next definition:1   (**define**
     x 123)2   x3   (**set**! x 1234)4   x'
+  id: totrans-292
   prefs: []
   type: TYPE_NORMAL
+  zh: 可以使用 set! 语法来实现变异。考虑以下定义：1   (**define** x 123)2   x3   (**define** x 1234)4   x这个定义将产生一个错误，指出模块：标识符在这里已经定义：x。然而，下一个定义：1   (**define**
+    x 123)2   x3   (**set**! x 1234)4   x
 - en: Will happily print 123 followed by 1234.
+  id: totrans-293
   prefs: []
   type: TYPE_NORMAL
+  zh: 将愉快地打印出 123 接着是 1234。
 - en: Even though mutation looks powerful, good Lisp practice says to avoid mutation
     when possible. The reason for that is that mutation causes side effects, and side
     effects make reasoning about programs harder. To demonstrate this issue, consider
     this definition:1   (**define** some-number 123)23   (**define** (add-one)4     (+
     1 some-number))56   (**define** (add-one-mutation)7     (**begin**8       (**set!**
     some-number (+ 1 some-number))9       some-number))
+  id: totrans-294
   prefs: []
   type: TYPE_NORMAL
+  zh: 尽管变异看起来很强大，但良好的 Lisp 实践建议尽可能避免使用变异。这样做的原因是变异会引起副作用，而副作用会使得对程序进行推理变得更加困难。为了证明这个问题，考虑这个定义：1   (**define**
+    some-number 123)23   (**define** (add-one)4     (+ 1 some-number))56   (**define**
+    (add-one-mutation)7     (**begin**8       (**set!** some-number (+ 1 some-number))9       some-number))
 - en: begin allows us to sequence multiple expressions, executing them in order  .
+  id: totrans-295
   prefs: []
   type: TYPE_NORMAL
+  zh: begin 允许我们对多个表达式进行排序，按顺序执行它们。
 - en: Now let’s interact with it:1   > (add-one)2   1243   > (add-one)4   124So far,
     so good. No side effects, since add-one returns the same value every time it’s
     called. However:1   > (add-one-mutation)2   1243   > (add-one-mutation)4   1255   >
     (add-one)6   126
+  id: totrans-296
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在让我们与它互动：1   > (add-one)2   1243   > (add-one)4   124到目前为止一切顺利。没有副作用，因为每次调用
+    add-one 时它都返回相同的值。然而：1   > (add-one-mutation)2   1243   > (add-one-mutation)4   1255   >
+    (add-one)6   126
 - en: This is what makes it hard to reason about programs—when some of the values
     are modified, some procedures might return different values for the same inputs.
     Thus, care must be taken when using mutation. However, we will use mutation in
     the peer- to-peer implementation later, which will make things slightly simpler  .
+  id: totrans-297
   prefs: []
   type: TYPE_NORMAL
+  zh: 这正是使得对程序进行推理变得困难的原因之一——当某些值被修改时，一些过程可能会对相同的输入返回不同的值。因此，在使用变异时必须小心。但是，我们将在后面的点对点实现中使用变异，这将使事情稍微简单一些。
 - en: 2.3.13 Structures
+  id: totrans-298
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 2.3.13 结构
 - en: '![../images/510363_1_En_2_Chapter/510363_1_En_2_Figae_HTML.gif](../images/510363_1_En_2_Chapter/510363_1_En_2_Figae_HTML.gif)
     Definition 2-13'
+  id: totrans-299
   prefs: []
   type: TYPE_NORMAL
+  zh: '![../images/510363_1_En_2_Chapter/510363_1_En_2_Figae_HTML.gif](../images/510363_1_En_2_Chapter/510363_1_En_2_Figae_HTML.gif)
+    定义 2-13'
 - en: A **structure** is a composite data type that defines a grouped list of variables
     to be placed under one name.
+  id: totrans-300
   prefs: []
   type: TYPE_NORMAL
+  zh: '**结构**是一种复合数据类型，它定义了一组变量的分组列表，以便将它们放在一个名称下。'
 - en: In Racket, the special syntax struct allows us to capture data structures and
     come up with a new kind of abstraction. In a sense, we already know how we can
     capture abstractions with car, cons, and cdr. However, struct is much more convenient
     since it automatically provides procedures to construct a data type and retrieve
     its values.
+  id: totrans-301
   prefs: []
   type: TYPE_NORMAL
+  zh: 在Racket中，特殊的语法结构struct允许我们捕获数据结构并提出一种新的抽象。在某种意义上，我们已经知道如何使用car、cons和cdr来捕获抽象。然而，struct更加方便，因为它自动提供了构造数据类型和检索其值的程序。
 - en: 'Consider the following example code:1   (**struct** document (author title
     content))2   (**define** a-document3     (document4      "Boro Sitnikovski"5      "Introducing
     Blockchain with Lisp"6      "Hello  World"))From the expression on line 1, we
     automatically get the following procedures:'
+  id: totrans-302
   prefs: []
   type: TYPE_NORMAL
+  zh: 考虑以下示例代码：1   (**struct** document (author title content))2   (**define** a-document3     (document4      "Boro
+    Sitnikovski"5      "Introducing Blockchain with Lisp"6      "Hello  World"))从第1行的表达式中，我们自动得到以下程序：
 - en: document-author, document-title, document-content extracts values from objects.
+  id: totrans-303
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: document-author、document-title、document-content从对象中提取值。
 - en: document constructs an object of such type.
+  id: totrans-304
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: document构造了一个这种类型的对象。
 - en: document? checks whether a given object is of such type.
+  id: totrans-305
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: document?检查给定对象是否为此类型。
 - en: Then, using document on line 3, we can construct an object that is using this
     data structure.
+  id: totrans-306
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后，使用第3行的document，我们可以构造一个使用此数据结构的对象。
 - en: Next  , we can use the automatically generated procedures to extract values
     from objects that are using this data structure: 1   > (document-author a-document) 2   "Boro
     Sitnikovski" 3   > (document-title a-document) 4   "Introducing Blockchain with
     Lisp" 5   > (document-content a-document) 6   "Hello World" 7   > (document? a-document) 8   #t 9   >
     (document? "test")10   #fThere is also a way to declare mutable structures as
     follows:1   (**struct** document (author title content) **#:mutable**)
+  id: totrans-307
   prefs: []
   type: TYPE_NORMAL
+  zh: 接下来，我们可以使用自动生成的程序从使用此数据结构的对象中提取值：1   > (document-author a-document) 2   "Boro
+    Sitnikovski" 3   > (document-title a-document) 4   "Introducing Blockchain with
+    Lisp" 5   > (document-content a-document) 6   "Hello World" 7   > (document? a-document) 8   #t 9   >
+    (document? "test")10   #f还有一种声明可变结构的方法如下：1   (**struct** document (author title
+    content) **#:mutable**)
 - en: 'The #:mutable keyword will automatically generate set-<field>! procedures for
     every property in the structure.'
+  id: totrans-308
   prefs: []
   type: TYPE_NORMAL
+  zh: '#:mutable关键字将为结构中的每个属性自动生成set-<field>!程序。'
 - en: Now we can interact as follows:1   > (document-author a-document)2   "Boro Sitnikovski"3   >
     (set-document-author! a-document "Boro")4   > (document-author  a-document)5   "Boro"![../images/510363_1_En_2_Chapter/510363_1_En_2_Figaf_HTML.gif](../images/510363_1_En_2_Chapter/510363_1_En_2_Figaf_HTML.gif)
     Exercise 2-18
+  id: totrans-309
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们可以进行交互如下：1   > (document-author a-document)2   "Boro Sitnikovski"3   > (set-document-author!
+    a-document "Boro")4   > (document-author  a-document)5   "Boro"![../images/510363_1_En_2_Chapter/510363_1_En_2_Figaf_HTML.gif](../images/510363_1_En_2_Chapter/510363_1_En_2_Figaf_HTML.gif)
+    练习 2-18
 - en: Create a person structure that contains a first name, last name, and age.
+  id: totrans-310
   prefs: []
   type: TYPE_NORMAL
+  zh: 创建一个包含名字、姓氏和年龄的人员结构。
 - en: 2.3.14 Threads
+  id: totrans-311
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 2.3.14 线程
 - en: '![../images/510363_1_En_2_Chapter/510363_1_En_2_Figag_HTML.gif](../images/510363_1_En_2_Chapter/510363_1_En_2_Figag_HTML.gif)Definition
     2-14'
+  id: totrans-312
   prefs: []
   type: TYPE_NORMAL
+  zh: '![../images/510363_1_En_2_Chapter/510363_1_En_2_Figag_HTML.gif](../images/510363_1_En_2_Chapter/510363_1_En_2_Figag_HTML.gif)
+    定义 2-14'
 - en: A **thread** is a sequence of instructions that can execute in parallel.
+  id: totrans-313
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个 **线程** 是一系列可以并行执行的指令。
 - en: Racket has a built-in procedure thread that accepts a procedure that will run
     in parallel without blocking the next instruction in order.
+  id: totrans-314
   prefs: []
   type: TYPE_NORMAL
+  zh: Racket 有一个内置过程 `thread`，它接受一个过程，该过程将在并行执行而不阻塞下一条指令。
 - en: We will show an example of demonstrating threads. We will implement a procedure
     called detailed-fact that will be similar to fact, but also print whatever it
     is currently processing.1   (**define** (detailed-fact n)2     (**begin**3       (display
@@ -1462,98 +2232,144 @@
     (**lambda** () (detailed-fact 1))) (thread (**lambda** ()2     (detailed-fact
     2))))3   Calculating factorial of 24   Calculating factorial of 15   Calculating
     factorial of 06   Calculating factorial of 17   Calculating factorial of 0
+  id: totrans-315
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将展示一个演示线程的例子。我们将实现一个称为 `detailed-fact` 的过程，它类似于 `fact`，但还会打印当前正在处理的内容。`display`
+    是一个打印文本的过程，而 `displayln` 是相同的，但它还会打印一个换行符。
 - en: Note how we used (thread (lambda () ...)) instead of just (thread ...). As we
     said, thread expects a procedure, but at the end of the evaluation, there would
     be the output of factorial of some number (for example 3), so (thread 3) does
     not make sense.
+  id: totrans-316
   prefs: []
   type: TYPE_NORMAL
+  zh: 请注意我们使用了 `(thread (lambda () ...))` 而不是仅仅的 `(thread ...)`。正如我们所说，`thread` 需要一个过程，但在评估结束时，会得到某个数的阶乘的输出（例如
+    3），所以 `(thread 3)` 没有意义。
 - en: In this parallel execution, the output is not ordered as it was in the previous
     case. This means that the lambdas within thread are being executed in parallel,
     so the order of execution cannot be guaranteed.
+  id: totrans-317
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这种并行执行中，输出不像前面的情况那样有序。这意味着 `thread` 内部的 lambda 正在并行执行，因此不能保证执行顺序。
 - en: We will use threads for parallel processing in the peer-to-peer implementation
     later  , where we will have one thread per peer so that when we are serving one
     peer we don’t block the serving of other peers.
+  id: totrans-318
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将在后面的点对点实现中使用线程进行并行处理，其中我们将为每个对等体使用一个线程，以便在为一个对等体提供服务时不会阻塞其他对等体的服务。
 - en: 2.4 Creating an Executable
+  id: totrans-319
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 2.4 创建一个可执行文件
 - en: The idea behind producing an executable is so that you can run it on other computers
     without requiring a DrRacket installation, and also without having to share the
     original code. In the later chapters, we will create an executable so that the
     blockchain can be used and shared by others.
+  id: totrans-320
   prefs: []
   type: TYPE_NORMAL
+  zh: 创建可执行文件的想法是，您可以在其他计算机上运行它，而不需要安装 DrRacket，也不需要共享原始代码。在后面的章节中，我们将创建一个可执行文件，以便其他人可以使用和共享区块链。
 - en: To create an example executable, we start with the following code:1   **#lang
     racket**2   (print "Hello")3   (read-bytes-line)
+  id: totrans-321
   prefs: []
   type: TYPE_NORMAL
+  zh: 要创建一个示例可执行文件，我们从以下代码开始：1   **#lang racket**2   (print "Hello")3   (read-bytes-line)
 - en: This code will just print the text Hello. The print procedure prints some text
     (similar to display), and read-bytes-line waits for user input. If we did not
     use read-bytes-line, it would just print and exit right away, before we could
     read the text.
+  id: totrans-322
   prefs: []
   type: TYPE_NORMAL
+  zh: 这段代码只会打印文本 Hello。打印过程打印一些文本（类似于显示），而 read-bytes-line 则等待用户输入。如果我们不使用 read-bytes-line，它会立即打印并退出，而在我们读取文本之前。
 - en: Next, we choose Racket > Create Executable. Select Distribution and choose Create.
     After doing that, the executable should be created in the target folder.![../images/510363_1_En_2_Chapter/510363_1_En_2_Fig10_HTML.jpg](../images/510363_1_En_2_Chapter/510363_1_En_2_Fig10_HTML.jpg)
+  id: totrans-323
   prefs: []
   type: TYPE_NORMAL
+  zh: 接下来，我们选择 Racket > 创建可执行文件。选择分发并选择创建。这样做之后，可执行文件应该会在目标文件夹中创建。![../images/510363_1_En_2_Chapter/510363_1_En_2_Fig10_HTML.jpg](../images/510363_1_En_2_Chapter/510363_1_En_2_Fig10_HTML.jpg)
 - en: Figure 2-10
+  id: totrans-324
   prefs: []
   type: TYPE_NORMAL
+  zh: 图2-10
 - en: Running an executable
+  id: totrans-325
   prefs: []
   type: TYPE_NORMAL
+  zh: 运行可执行文件
 - en: Running the executable should show something similar to Figure [2-10](#Fig10).
     Pressing the Return key will exit the program.
+  id: totrans-326
   prefs: []
   type: TYPE_NORMAL
+  zh: 运行可执行文件应该显示类似于图[2-10](#Fig10)的内容。按下回车键将退出程序。
 - en: 2.5 Summary
+  id: totrans-327
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 2.5 摘要
 - en: 'The point of this chapter is to get a basic understanding of the Racket programming
     language. Here’s what we learned in this chapter:'
+  id: totrans-328
   prefs: []
   type: TYPE_NORMAL
+  zh: 本章的重点是对 Racket 编程语言有一个基本的理解。以下是本章的学习内容：
 - en: Lisp is a family of programming languages and Racket belongs to the Lisp family.
+  id: totrans-329
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Lisp 是一系列编程语言的家族，Racket 属于 Lisp 家族。
 - en: Lisps have no special syntax compared to standard programming languages and
     syntax is defined differently in Lisp, through S-expressions.
+  id: totrans-330
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Lisp与标准编程语言相比没有特殊的语法，语法是通过S表达式在Lisp中定义的。
 - en: Lisp evaluation is very similar to substitution in mathematics.
+  id: totrans-331
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Lisp 的评估非常类似于数学中的替换。
 - en: 'There are several primitive types: symbols, booleans, characters, strings,
     and lists.'
+  id: totrans-332
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 有几种原始类型：符号、布尔值、字符、字符串和列表。
 - en: Lists are special kinds of pairs.
+  id: totrans-333
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 列表是一种特殊的配对。
 - en: Procedures are a way to capture abstraction. They can accept and return any
     kind of type, including procedures themselves. They can also be recursive.
+  id: totrans-334
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 过程是捕捉抽象的一种方式。它们可以接受并返回任何类型的值，包括过程本身。它们也可以是递归的。
 - en: Packages allow us to reuse code, written either by ourselves or by someone else.
+  id: totrans-335
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 包允许我们重用代码，无论是自己编写的还是他人编写的。
 - en: Produced executables can be shared with friends so that everyone can use them.
+  id: totrans-336
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 生产出的可执行文件可以与朋友共享，以便每个人都可以使用它们。
