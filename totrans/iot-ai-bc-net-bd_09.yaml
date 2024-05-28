@@ -45,6 +45,9 @@
   id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: 尼希斯·帕塔克^(1)和阿努拉格·班达里²(1)印度波里加尔瓦尔县科特瓦拉(2)印度旁遮普邦贾兰达尔到了这一步，你现在掌握了如何创建下一代 AI 2.0
+    应用的知识。在你的工具库中，你拥有像认知服务、物联网中心和区块链这样的武器，可以帮助你为客户、顾客或你自己的组织创建真正尖端的智能解决方案。从开发者的角度来看，你已经全副武装。然而，开发解决方案只是更大图景的一部分，无论它有多么庞大。虽然解决方案解决了问题，但它们通常会在此过程中生成大量数据，其中一些被应用程序本身用来做即时决策。现在，一个应用程序生成大量数据（比如每小时几个
+    gigabytes）已经不再罕见，而应用程序本身并不总能够同时消耗和分析这些数据。这在涉及物联网的情况下尤其
 - en: Create, configure, start, and stop an Azure Stream Analytics job
   id: totrans-3
   prefs:
@@ -164,6 +167,15 @@
   id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: Azure Stream Analytics 是专为处理流数据而设计的。因此，在需要实时分析的情况下，它表现出色。与其他 Azure 服务一样，ASA
+    具有高度可扩展性，并且能够处理高达每秒 1GB 的数据。它提供了一种易于使用的类 SQL 声明性语言，称为流分析查询语言，用于对流数据进行简单到复杂的分析。您编写的查询与
+    SQL 中的编写方式完全相同——SELECT、GROUP、JOIN——一切都以相同的方式工作。这里唯一的主要区别在于，由于您正在处理永无止境的流数据，因此需要定义特定于时间的边界以选择要分析的确切数据集。换句话说，由于静态数据变化非常缓慢或根本不变，因此对整个数据进行分析。流数据是连续的，没有预定义的结束。在大多数情况下，执行分析的系统无法预测数据何时结束。因此，必须选择小的、时间范围有限的数据流片段进行分析。时间窗口越短，分析越接近实时。请注意，进行大规模大数据复杂分析需要大量时间。因此，不建议使用流分析解决方案（ASA、Apache
+    Storm 等）进行非常复杂的分析。对于运行分析可能需要几分钟到几小时的情况，首先应将流数据存储在临时或永久存储中，然后像静态数据一样进行处理。ASA 中的典型工作流程始于定义一个或多个数据输入源。ASA
+    可以开箱即用地处理 IoT Hub、事件中心和 Blob 存储。ASA 可以使用来自中心的流数据以及参考静态数据来执行分析。此外，还可以在 ASA 作业中使用
+    Azure 机器学习中定义的函数对正在分析的数据进行实时预测。您将在第 [10](A458845_1_En_10_Chapter.html) 章中了解更多关于机器学习的内容。ASA
+    作业的输出可以存储在永久存储（Blob、SQL 数据库、数据湖等）中，也可以直接发送到 Power BI 以生成仪表板，或者两者兼而有之。IoT Hub 解决方案后端也可以订阅
+    ASA 作业的输出，以根据接收到的输出发送命令给设备。图 [9-1](#Fig1) 总结了此工作流程。![A458845_1_En_9_Fig1_HTML.png](A458845_1_En_9_Fig1_HTML.png)图
+    9-1 Azure Stream Analytics 工作流程
 - en: Performing IoT Stream Data Analysis
   id: totrans-15
   prefs:
@@ -232,11 +244,16 @@
   id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: 默认情况下，ASA 作业以停止模式创建。在启动作业之前，我们将首先通过指定输入和输出来配置它。一旦作业开始，您将无法编辑输入和输出设置。从 Azure
+    门户中新创建的 ASA 作业概述页面转到作业拓扑 ➤ 输入。您将看到两个选项来添加输入——添加流输入和添加引用输入。后一种选项允许您添加参考数据，即我们可以用来补充流数据的静态数据。在许多情况下，它可能是元数据，可以与流数据连接以帮助分析。例如，参考输入可能是所有患者的列表，以及他们的姓名、年龄和其他属性。这些是不在流数据记录中的东西，以减少冗余并节省网络带宽。在运行实时流分析查询时，我们可能需要患者的年龄以更准确地确定疾病。选择添加流输入
+    ➤ 物联网中心。填写生成的表单，如图[9-3](#Fig3)所示。选择现有的物联网中心的最简单方法是从同一 Azure 订阅中选择一个。如果您的中心位于与
+    ASA 作业不同的订阅中，则可以选择指定中心的连接字符串的选项。输入别名可以是在作业上下文中唯一描述您的输入的任何内容。点击保存将添加输入到您的作业，并立即执行测试以检查与指定中心的连接。您应该会收到“连接测试成功”的通知。
 - en: Testing Your Input
   id: totrans-21
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 测试您的输入
 - en: 'Before moving to the next step—specifying an output in our ASA job—it’s a good
     idea to run a sample SA query on the input data stream just to ensure that the
     job is configured correctly. We’ll run the query directly on real-time data received
@@ -350,6 +367,20 @@
   id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们尝试一个更复杂的查询，以适应真实场景。在[第 3 章](A458845_1_En_3_Chapter.html)中，我们编写了解决方案后端来检测高体温情况。沿着类似的思路，我们将编写一个查询来检测高脉搏率条件。我们的解决方案后端在检查每条从医疗设备接收到的高温度时非常基础和天真。我们不会用同样的方式来检测高脉搏率。相反，我们将检查从每个时间间隔内平均脉搏率中得出的高值。换句话说，我们想要在
+    30 秒内连续高于某个阈值（比如 90）的情况下标记脉搏率为高。这种条件的查询将如下所示：SELECT    System.Timestamp AS Time,    Avg(PatientPulseRate)
+    AS AvgPulseRateINTO    [YourOutputAlias]FROM    [your-iothub-input-alias]    TIMESTAMP
+    BY EventEnqueuedUtcTime    GROUP BY TumblingWindow(second, 30), DeviceId    HAVING
+    Avg(PatientPulseRate) > 90如果你运行这个查询，可能会得到零到三个结果，这取决于样本数据。在这种情况下，我们收到了一个结果，如图 [9-6](#Fig6)
+    所示。![A458845_1_En_9_Fig6_HTML.jpg](A458845_1_En_9_Fig6_HTML.jpg)图 9-6 运行约束约束 SA
+    查询的结果在现实世界中，ASA 作业将处理来自数百或数千台设备的数据，这使得这个查询具有真正的价值。让我们拆解一下这个查询以便更好地理解。整个查询中最不寻常的事情是关键字
+    TumblingWindow。Stream Analytics 处理流数据。与静态数据不同，流数据没有开始或结束；它只是一连串连续的传入数据记录，可能近期内会结束，也可能不会。一个问题就是：从何时开始以及多长时间应该连续分析流数据？在本章的前一部分，我们谈到了分析流数据的时间限定窗口。TumblingWindow
+    为我们提供了这些时间限定窗口，同时使用 GROUP BY 执行聚合操作。我们在 JOIN 中使用的等效关键字是 DATEDIFF。TumblingWindow
+    接受两个参数——时间单位和其度量——以便在该时间间隔内对数据进行分组。在我们的查询中，我们每 30 秒对传入的数据记录进行分组，并检查该时间间隔内患者的平均脉搏率。提示如果你仍然感到困惑，请不要忘记，我们在样本数据上运行了这个查询，这已经是一个快照——一个三分钟的窗口——了。因此，ASA
+    创建了六个 30 秒的组，并在分析它们后显示最终结果。当我们启动 ASA 作业时，它将开始处理实际的流。每 30 秒进行分析，并将结果吐出（到指定的输出）。TIMESTAMP
+    BY 提供了一种指定在创建时间限定窗口时要考虑哪个时间的方法。默认情况下，Stream Analytics 将考虑数据记录到达的时间。在某些情况下，这可能是可以接受的，但这不是我们想要的。在医疗保健应用程序中，数据由物联网设备记录的时间比数据由
+    Azure（IoT Hub 或 Stream Analytics）接收的时间更重要，因为两个事件之间可能会有几毫秒到几秒的延迟。这就是为什么在我们的查询中，我们选择按
+    EventEnqueuedUtcTime 时间戳，这比数据接收的时间更接近。选择 System.Timestamp 为每个窗口提供了结束时间。
 - en: Adding an Output to an ASA Job
   id: totrans-27
   prefs:
@@ -449,6 +480,21 @@
   id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: 回到你的 ASA 工作的查询编辑器，并粘贴我们之前使用的相同查询，但这次在 `INTO` 之后指定你的 blob 的输出别名。点击保存以保存查询。转到概览页面并启动作业。作业启动可能需要几分钟的时间。启动时会通知您。当作业运行时，您可能无法编辑查询或添加/编辑输入和输出。从
+    Visual Studio 中重新启动模拟设备（如果您之前停止了它）。您可能希望将其更新频率增加到 10 或 20 秒，以反映更真实的值。在重复之前等待 10
+    秒。让它运行一段时间以满足我们指定的高脉搏率条件。与此同时，从 [http://storageexplorer.com](http://storageexplorer.com)
+    下载并安装 Azure Storage Explorer。这是一个很棒的小型桌面应用程序，用于访问 Azure 存储帐户，如 blob、数据湖、Cosmos
+    DB 等。当您首次打开 Azure Storage Explorer 时，您将看到“连接到 Azure 存储”的向导。如果没有，请通过在左侧的资源管理器窗格中右键单击“存储帐户”，然后选择“连接到
+    Azure 存储”来手动打开向导。在向导中，选择“使用连接字符串或共享访问签名 URI”选项，然后单击“下一步”。从 Azure 门户中复制您的 Blob
+    的连接字符串 ➤ <your-blob> ➤ 设置 ➤ 访问密钥 ➤ key1 ➤ 连接字符串，并将其粘贴到向导的“连接字符串”文本框中，如图 [9-9](#Fig9)
+    所示。![A458845_1_En_9_Fig9_HTML.jpg](A458845_1_En_9_Fig9_HTML.jpg)图 9-9从 Azure 门户复制
+    blob 存储的连接字符串到 Azure 存储资源管理器一旦应用程序成功连接到您的 blob 存储，您将在资源管理器窗格下看到其名称。展开它并转到 Blob
+    容器 ➤ <your blob container name>。在右侧的详细信息窗格中，您应该看到与 .json 文件 相对应的列表。如果您在那里没有看到任何内容，则高脉搏率条件从未满足。您可以再等待几分钟，或者通过设置
+    Avg(PatientPulseRate) > 80 来放宽条件（您需要停止 ASA 作业，编辑查询，然后再次启动作业）。双击 .json 文件 在默认文本编辑器中将其在本地打开。您应该会看到类似以下的内容。{"time":"2018-03-03T05:55:30.0000000Z","avgpulserate":91.907351640320385}{"time":"2018-03-03T05:56:00.0000000Z","avgpulserate":94.212707023856254}{"time":"2018-03-03T06:05:00.0000000Z","avgpulserate":94.652964749677551}{"time":"2018-03-03T06:06:00.0000000Z","avgpulserate":93.091244986168064}{"time":"2018-03-03T06:14:00.0000000Z","avgpulserate":91.6573497614159}{"time":"2018-03-03T06:14:30.0000000Z","avgpulserate":90.980160983425321}{"time":"2018-03-03T06:15:00.0000000Z","avgpulserate":92.107636040126735}注：每次停止
+    ASA 作业并重新启动后，作业的后续输出都将写入一个新的 .json 文件（blob）中，该文件与相同的 blob 容器中。您将在 Azure 存储资源管理器中看到与
+    ASA 作业启动次数相同的 blob。您可以使用 blob 存储的全面 REST API 在 web 和移动应用程序中以编程方式访问这些结果。查看 [https://docs.microsoft.com/en-us/rest/api/storageservices/list-blobs](https://docs.microsoft.com/en-us/rest/api/storageservices/list-blobs)
+    和 [https://docs.microsoft.com/en-us/rest/api/storageservices/get-blob](https://docs.microsoft.com/en-us/rest/api/storageservices/get-blob)
+    获取更多详情。让您的模拟设备运行更长时间，并在 Azure 存储资源管理器中保持刷新详细信息窗格，以查看流分析如何实时处理流输入并生成输出。
 - en: Visualizing ASA Results Using Power BI
   id: totrans-31
   prefs:
@@ -566,11 +612,15 @@
   id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: 前往[https://powerbi.com](https://powerbi.com)并使用您的工作账户登录。如果您在左侧边栏的“我的工作区”中展开并查看数据集，您应该可以看到您之前指定的数据集名称，如果ASA作业至少生成了一个结果。从侧边栏菜单导航到工作区➤我的工作区。我们将从创建显示我们患者所有高脉搏率实例计数的仪表板开始。选择创建➤仪表板。为您的仪表板取一个名称并点击创建。在您新创建的仪表板中，点击添加图块并选择自定义流数据，如图[9-11](#Fig11)所示。点击下一步。![A458845_1_En_9_Fig11_HTML.jpg](A458845_1_En_9_Fig11_HTML.jpg)图9-11在Power
+    BI中仪表板中添加新图块在选择流数据集屏幕中，选择您的数据集名称并点击下一步。在可视化设计屏幕中，选择卡片作为可视化类型，然后在字段中添加highprinstances。在下一个名为图块详细信息的屏幕上，填写标题和副标题并点击应用。您的新图块将立即生效。同样，让我们添加一个新的图块以跟踪高脉搏率在10分钟时间段内的情况。添加图块➤自定义流数据➤<您的数据集>。在可视化设计屏幕中，选择线状图作为类型，时间作为轴，avgpulserate作为数值，并选择最近10分钟作为显示时间窗口。一旦该图块生效，您应该能够看到您选择的数据的线状图。此时，您的仪表板应该看起来像图[9-12](#Fig12)所示。![A458845_1_En_9_Fig12_HTML.jpg](A458845_1_En_9_Fig12_HTML.jpg)图9-12一个拥有两个图块的Power
+    BI仪表板随意创建更多的标题，使用手头的数据，并观察它们实时更新。
 - en: Next Steps
   id: totrans-39
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 下一步
 - en: 'With the power of Stream Analytics and Power BI in your hands, we encourage
     you to try slightly more complex scenarios. Try solving the problem mentioned
     in the following exercise, or take hints from it to solve a different problem.Real-Time
@@ -652,54 +702,65 @@
   id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个人的位置可以通过GPS轻易被追踪。至于确定疼痛分数，市场上有设备可以做到这一点。查看这个链接：[http://gomerblog.com/2014/06/pain-detector](http://gomerblog.com/2014/06/pain-detector)。另外，适当测量功能性磁共振成像（fMRI）脑部扫描也可以给出疼痛水平的指示，正如在这里报道的：[https://www.medicalnewstoday.com/articles/234450.php](https://www.medicalnewstoday.com/articles/234450.php)。你的任务起初不是使用这些复杂的医疗设备来进行测量，而是为这项工作创建大约十几个模拟设备，这些设备会为每个患者报告遥测数据。然后，你可以编写一个SA查询，对流入的数据流进行聚合操作，并计算出在相同位置遥测值高于某个阈值的情况数量。如果你在同一时间收到多个地点报告了一堆登革热病例，你就找到了暴发模式。
 - en: Recap
   id: totrans-50
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 复盘
 - en: 'In this chapter, you learned how to perform complex real-time analyses on streaming
     data, such as that received by an IoT Hub from hundreds or thousands of connected
     devices. You learned how to:'
   id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本章中，您学会了如何对来自物联网中心的数百甚至数千台连接设备接收的流式数据进行复杂实时分析。您学会了如何：
 - en: Create a new Stream Analytics job in the Azure Portal
   id: totrans-52
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在Azure Portal中创建一个新的流分析作业
 - en: Add (and test) an input (hub) to an ASA job
   id: totrans-53
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 将输入（中心）添加（并测试）到ASA作业
 - en: Write queries that work on time-bound windows of streaming data
   id: totrans-54
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 编写在流式数据的时间限制窗口上工作的查询
 - en: Add (and test) a blob storage output to an ASA job
   id: totrans-55
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 将一个ASA工作添加（并测试）到blob存储输出
 - en: Access Stream Analytics results stored in a blob using Azure Storage Explorer
   id: totrans-56
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用Azure Storage Explorer访问存储在blob中的流分析结果
 - en: Add Power BI as an output to an ASA job
   id: totrans-57
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 将Power BI添加为ASA工作的输出
 - en: Create a dashboard with multiple tiles in Power BI to visualize ASA results
   id: totrans-58
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在Power BI中创建一个具有多个瓷砖的仪表板，以可视化ASA的结果
 - en: In the next chapter, you will take data analytics to the next level by using
     Azure machine learning.
   id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: 在下一章中，您将通过使用Azure机器学习将数据分析提升到新的水平。
