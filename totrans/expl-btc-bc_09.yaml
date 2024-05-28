@@ -1,16 +1,22 @@
 - en: '[CHAPTER 7](toc.xhtml#c07)'
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: '[第7章](toc.xhtml#c07)'
 - en: '[Node Communication](toc.xhtml#c07)'
+  id: totrans-1
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: '[节点通信](toc.xhtml#c07)'
 - en: In the previous chapter, you learned about the structure of data stored at the
     nodes and their method of verification, creation, and versioning. In this chapter,
     we are investigating communication between nodes.
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: 在上一章中，您学习了节点存储的数据结构以及它们的验证、创建和版本化方法。在本章中，我们研究节点之间的通信。
 - en: The Bitcoin network is a peer-to-peer network where there is no master or server
     and no slave or client. To establish communication, a TCP connection is established,
     which is based on the server-client model. Once a connection is established, there
@@ -20,12 +26,16 @@
     nodes can choose their peers. The decision depends on the version or services
     the peer is going to offer. Once both sides agree, the connection is established,
     and they can then exchange information.
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: 比特币网络是一个点对点的网络，其中没有主服务器或客户端，也没有从服务器或奴隶。为了建立通信，需要建立一个基于服务器-客户端模型的TCP连接。一旦建立了连接，节点就无法区分是它发起的连接还是接受了连接请求。一旦建立了TCP连接，就需要建立比特币网络连接。比特币网络是一个非常民主的网络，节点可以选择它们的同伴。这个决定取决于对等方将要提供的版本或服务。一旦双方达成一致，连接就建立起来了，然后它们就可以交换信息了。
 - en: There are nearly 10,000 known active nodes at almost any time, which is enough
     to allow most nodes to find and choose multiple suitable peers.
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: 在任何时候几乎都有近10,000个已知活跃节点，这足以允许大多数节点找到并选择多个合适的同伴。
 - en: Being an open peer-to-peer network, each node relies on its peers to get information
     about other available peers so that it can connect with them too. It also needs
     to broadcast transactions and blocks and help propagate them across the network.
@@ -33,110 +43,154 @@
     to having the blockchain updated with the latest blocks and mempool with the latest
     transactions. And it needs to verify transactions and blocks and help SPVs verify
     transactions.
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: 作为一个开放的点对点网络，每个节点都依赖其同伴获取有关其他可用同伴的信息，以便它也可以与它们建立连接。它还需要广播交易和区块，并帮助它们在网络上传播。此外，它还需要与网络保持同步，这意味着拥有带有最新块的最新区块链和带有最新交易的最新内存池。它还需要验证交易和区块，并帮助SPV验证交易。
 - en: In this chapter, you will understand the Bitcoin network topology, network nodes,
     and detailed information about how these nodes communicate with each other.
+  id: totrans-6
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本章中，您将了解比特币网络拓扑、网络节点以及这些节点之间如何进行详细通信的信息。
 - en: '[Structure](toc.xhtml#s129a)'
+  id: totrans-7
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: '[结构](toc.xhtml#s129a)'
 - en: 'The following topics will be covered in this chapter:'
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 本章将涵盖以下主题：
 - en: Bitcoin network topology
+  id: totrans-9
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 比特币网络拓扑
 - en: Node bootstrapping
+  id: totrans-10
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 节点引导
 - en: Network messaging
+  id: totrans-11
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 网络消息传递
 - en: Message format
+  id: totrans-12
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 消息格式
 - en: Establishing connection
+  id: totrans-13
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 建立连接
 - en: Disconnecting with inactive peer
+  id: totrans-14
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 与不活跃的对等体断开连接
 - en: Node discovery
+  id: totrans-15
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 节点发现
 - en: Receiving full blockchain
+  id: totrans-16
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 接收完整区块链
 - en: Synchronizing blockchain
+  id: totrans-17
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 同步区块链
 - en: Transaction broadcasting
+  id: totrans-18
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 交易广播
 - en: Block broadcasting
+  id: totrans-19
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 区块广播
 - en: Unsolicited Block Push
+  id: totrans-20
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 无请求的区块推送
 - en: Direct Headers Announcements
+  id: totrans-21
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 直接头部公告
 - en: Compact Block Announcements
+  id: totrans-22
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 紧凑区块公告
 - en: '![](images/ent.jpg) High Bandwidth Compact Block Announcements'
+  id: totrans-23
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '![](images/ent.jpg) 高带宽紧凑区块公告'
 - en: '![](images/ent.jpg) Low Bandwidth Compact Block Announcements'
+  id: totrans-24
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '![](images/ent.jpg) 低带宽紧凑区块公告'
 - en: '[Objectives](toc.xhtml#s130a)'
+  id: totrans-25
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: '[目标](toc.xhtml#s130a)'
 - en: The objective of this chapter is to help you learn about the Bitcoin network,
     which includes network topology and node communication as well as the progression
     of protocol messages.
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: 本章的目标是帮助您了解比特币网络，包括网络拓扑和节点通信以及协议消息的进展。
 - en: In this chapter, you will learn about the different types of nodes and their
     role in the Bitcoin network. You will learn about the mechanism by which each
     node discovers other nodes. You will also understand how to create and establish
@@ -145,274 +199,371 @@
     the expected sequence of message types. Further on in the chapter, we will discuss
     node versions and their role in establishing connection and communication with
     peers, and you will understand connection termination.
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本章中，你将学习到比特币网络中不同类型节点的角色。你将了解到每个节点如何发现其他节点的方法。你还将理解如何与其他节点创建和建立连接以及交换协议消息。此外，你将了解协议消息携带的不同类型的有效载荷、它们的目的以及消息类型的预期序列。在本章的后面部分，我们将讨论节点版本及其在建立与对等节点连接和通信中的作用，并且你将理解连接终止。
 - en: '[Bitcoin network topology](toc.xhtml#s131a)'
+  id: totrans-28
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: '[比特币网络拓扑](toc.xhtml#s131a)'
 - en: The Bitcoin network allows nodes running different versions of code to communicate
     and find peers who are fine with their version and the services they offer or
     request. For instance, a node may be an SPV and may need to communicate with only
     full nodes. A full node may not be interested in connection with SPV and so, may
     be disconnected. The following figure shows how the nodes are distributed. We
     can see that most nodes are in the US and Germany.
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 比特币网络允许运行不同版本代码的节点进行通信并找到与他们版本和服务提供或请求相匹配的对等节点。例如，一个节点可能是一个SPV，并且只需要与全节点通信。一个全节点可能对与SPV的连接不感兴趣，所以可能会断开连接。以下图表显示了节点的分布情况。我们可以看到，大多数节点位于美国和德国。
 - en: '![](images/Figure-7.1.jpg)'
+  id: totrans-30
   prefs: []
   type: TYPE_IMG
+  zh: '![](images/Figure-7.1.jpg)'
 - en: '**Figure 7.1:** Illustration of global node distribution'
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: '**图7.1:** 全球节点分布的说明'
 - en: 'A Bitcoin node establishes a connection with its peer using a TCP handshake.
     It can have IPv4 or IPv6 IP Addresses. A node can even connect with its peer on
     the Tor network, which is an anonymous network and protects the node against surveillance
     and tracking. If we are running Tor in our system at port 9050, then our node
     can connect or accept connection using the Tor network with the following command-line
     option:'
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个比特币节点使用TCP握手与其对等节点建立连接。它可以有IPv4或IPv6 IP地址。节点甚至可以连接到Tor网络上的对等节点，Tor是一个匿名网络，可以保护节点免受监视和追踪。如果我们在我们系统中运行Tor，端口为9050，那么我们的节点可以使用以下命令行选项通过Tor网络连接或接受连接：
 - en: '`-proxy=127.0.0.1:9050`'
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: '`-proxy=127.0.0.1:9050`'
 - en: 'The following chart shows the distribution of Bitcoin network connections based
     on the connection type and the address type:'
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下图表显示了基于连接类型和地址类型比特币网络连接的分布：
 - en: '![](images/Figure-7.2.jpg)'
+  id: totrans-35
   prefs: []
   type: TYPE_IMG
+  zh: '![](images/Figure-7.2.jpg)'
 - en: '**Figure 7.2:** Chart showing the distribution of nodes based on connection
     type and address type'
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: '**图7.2:** 显示基于连接类型和地址类型节点分布的图表'
 - en: 'We have different kind of nodes in the network, some of which are as follows:'
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们在网络中有不同类型的节点，其中一些如下：
 - en: A Full node with complete blockchain, which is also called archival node.
+  id: totrans-38
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 一个拥有完整区块链的全节点，也称为归档节点。
 - en: A Full node verifies all the blocks but does not maintain the full blockchain.
     It is still full node because, by definition, full node verifies the full blockchain,
     which this node does. These are also called pruned nodes.
+  id: totrans-39
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 一个全节点验证所有区块，但不会维护完整的区块链。它仍然被称为全节点，因为，按定义，全节点验证完整的区块链，这个节点确实做到了。这些也被称为修剪节点。
 - en: A SPV node maintains a chain of block headers with only the required transactions.
     It needs to talk to full nodes, which can help it verify blocks, but since it
     does not verify blocks themselves, they also do not relay transactions.
+  id: totrans-40
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 一个SPV节点维护带有所需交易的区块头链。它需要与全节点通信，这些全节点可以帮助它验证区块，但由于它不验证区块本身，所以也不会传递交易。
 - en: A Full node that does not communicate with SPV nodes.
+  id: totrans-41
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 一个不与SPV节点通信的全节点。
 - en: A Full node that only accepts blocks and not transactions.
+  id: totrans-42
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 一个只接受区块而不接受交易的全节点。
 - en: So, there are quite a few variations among nodes. In addition, they can have
     different versions of software running. There could be an attacker node or group
     of attacker nodes that network or targeted nodes need to identify and blacklist.
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，节点之间有很多变化。此外，它们可以运行不同版本的软件。可能存在一个攻击节点或一群攻击节点，网络或目标节点需要识别并将其列入黑名单。
 - en: '[Node bootstrapping](toc.xhtml#s132a)'
+  id: totrans-44
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: '[节点引导](toc.xhtml#s132a)'
 - en: As you have learned, Bitcoin doesn’t have a centralized server, so finding a
     node to connect is a challenge. To solve this problem, Bitcoin Core has hard-coded
     DNS Seeder addresses. These are called seed servers. These servers provide a list
     of addresses that may or may not be active. We need to iteratively find active
     address that we can connect with. The seed servers may get updated in the future.
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
 - en: 'Here are the hardcoded DNS seeds:'
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
 - en: '![](images/187.jpg)'
+  id: totrans-47
   prefs: []
   type: TYPE_IMG
 - en: '**Table 7.1:** List of hardcoded DNS seeds'
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
 - en: 'We are going to use following package to get the addresses from DNS seed node:'
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
 - en: '![](images/Figure-7.3.jpg)'
+  id: totrans-50
   prefs: []
   type: TYPE_IMG
 - en: '**Figure 7.3:** Python package to communicate with DNS servers'
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
 - en: 'The following program generates addresses from DNS seeds:'
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
 - en: '`import dns.name`'
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
 - en: '`import dns.message`'
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
 - en: '`import dns.query`'
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
 - en: '`import dns.flags`'
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
 - en: '`import ipaddress`'
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
 - en: '`def getNodeAddresses(dnsseed: str):`'
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
 - en: '`dest = ‘8.8.8.8’`'
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
 - en: '`rdclass = 65535`'
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
 - en: '`domain = dns.name.from_text(dnsseed)`'
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
 - en: '`if not domain.is_absolute():`'
+  id: totrans-62
   prefs: []
   type: TYPE_NORMAL
 - en: '`domain = domain.concatenate(dns.name.root)`'
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
 - en: '`request = dns.message.make_query(`'
+  id: totrans-64
   prefs: []
   type: TYPE_NORMAL
 - en: '`domain,`'
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
 - en: '`dns.rdatatype.A,`'
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
 - en: '`dns.rdataclass.IN)`'
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
 - en: '`request.flags |= dns.flags.RD|dns.flags.RA|dns.flags.AD`'
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
 - en: '`request.find_rrset(request.additional, dns.name.root, rdclass, dns.rdatatype.OPT,
     create=True, force_unique=True)`'
+  id: totrans-69
   prefs: []
   type: TYPE_NORMAL
 - en: '`responseudp = dns.query.udp(request, dest)`'
+  id: totrans-70
   prefs: []
   type: TYPE_NORMAL
 - en: '`rrset = responseudp.answer`'
+  id: totrans-71
   prefs: []
   type: TYPE_NORMAL
 - en: '`rrset_l = []`'
+  id: totrans-72
   prefs: []
   type: TYPE_NORMAL
 - en: '`for rrset_val in rrset:`'
+  id: totrans-73
   prefs: []
   type: TYPE_NORMAL
 - en: '`rrset_l.extend(str(rrset_val).split(“\n”))`'
+  id: totrans-74
   prefs: []
   type: TYPE_NORMAL
 - en: '`ipaddr_l = []`'
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
 - en: '`for rrset_s in rrset_l:`'
+  id: totrans-76
   prefs: []
   type: TYPE_NORMAL
 - en: '`ipaddr_l.append(rrset_s.split(“ “)[4])`'
+  id: totrans-77
   prefs: []
   type: TYPE_NORMAL
 - en: '`return ipaddr_l`'
+  id: totrans-78
   prefs: []
   type: TYPE_NORMAL
 - en: '`def getTestnetPeers():`'
+  id: totrans-79
   prefs: []
   type: TYPE_NORMAL
 - en: '`port = 18333`'
+  id: totrans-80
   prefs: []
   type: TYPE_NORMAL
 - en: '`dns_seeds = [`'
+  id: totrans-81
   prefs: []
   type: TYPE_NORMAL
 - en: '`“testnet-seed.bitcoin.jonasschnelli.ch”,`'
+  id: totrans-82
   prefs: []
   type: TYPE_NORMAL
 - en: '`“seed.tbtc.petertodd.org”,`'
+  id: totrans-83
   prefs: []
   type: TYPE_NORMAL
 - en: '`“seed.testnet.bitcoin.sprovoost.nl”,`'
+  id: totrans-84
   prefs: []
   type: TYPE_NORMAL
 - en: '`“testnet-seed.bluematt.me”`'
+  id: totrans-85
   prefs: []
   type: TYPE_NORMAL
 - en: '`]`'
+  id: totrans-86
   prefs: []
   type: TYPE_NORMAL
 - en: '`ipaddr_l = []`'
+  id: totrans-87
   prefs: []
   type: TYPE_NORMAL
 - en: '`for seed in dns_seeds:`'
+  id: totrans-88
   prefs: []
   type: TYPE_NORMAL
 - en: xwi
+  id: totrans-89
   prefs: []
   type: TYPE_NORMAL
 - en: '``ipaddr_l.extend(getNodeAddresses(seed))``'
+  id: totrans-90
   prefs: []
   type: TYPE_NORMAL
 - en: '``peers = []``'
+  id: totrans-91
   prefs: []
   type: TYPE_NORMAL
 - en: '`for ipaddr in ipaddr_l:`'
+  id: totrans-92
   prefs: []
   type: TYPE_NORMAL
 - en: '`peers.append((ipaddr, port))`'
+  id: totrans-93
   prefs: []
   type: TYPE_NORMAL
 - en: '`return peers`'
+  id: totrans-94
   prefs: []
   type: TYPE_NORMAL
 - en: '**Program 7.1:** Program to get list of addresses from DNS seed'
+  id: totrans-95
   prefs: []
   type: TYPE_NORMAL
 - en: 'We call the preceding method as follows to get the list of the first five address
     and port numbers:'
+  id: totrans-96
   prefs: []
   type: TYPE_NORMAL
 - en: '`if __name__ == ‘__main__’:`'
+  id: totrans-97
   prefs: []
   type: TYPE_NORMAL
 - en: '`peers = getTestnetPeers()`'
+  id: totrans-98
   prefs: []
   type: TYPE_NORMAL
 - en: '`for index in range(5):`'
+  id: totrans-99
   prefs: []
   type: TYPE_NORMAL
 - en: '`print(peers[index])`'
+  id: totrans-100
   prefs: []
   type: TYPE_NORMAL
 - en: 'This gives us the following first five IP addresses and port numbers:'
+  id: totrans-101
   prefs: []
   type: TYPE_NORMAL
 - en: '![](images/Figure-7.4.jpg)'
+  id: totrans-102
   prefs: []
   type: TYPE_IMG
 - en: '**Figure 7.4:** List of a few IP addresses and port numbers generated using
     DNS seed'
+  id: totrans-103
   prefs: []
   type: TYPE_NORMAL
 - en: 'There are also hardcoded IP Addresses in the Bitcoin Core source, which are
     used only as the last resort if the govt. blocks the connection to the known DNS
     seeds. These addresses are in the following file:'
+  id: totrans-104
   prefs: []
   type: TYPE_NORMAL
 - en: '`chainparamsseeds.h`'
+  id: totrans-105
   prefs: []
   type: TYPE_NORMAL
 - en: Bitcoin Core also maintains the `**peers.dat**` file, which maintains active
@@ -420,147 +571,194 @@
     nodes after the connection is broken. Bitcoin Core daemon also has an `**addnode**`
     command option to specify a peer for connecting. This peer is treated at par with
     other peers.
+  id: totrans-106
   prefs: []
   type: TYPE_NORMAL
 - en: This information is specific to Bitcoin Core. In addition to utilizing the Bitcoin
     node bootstrapping method, we can connect to addresses available from other websites,
     such as **[https://bitnodes.io/api/v1/snapshots/latest](https://bitnodes.io/api/v1/snapshots/latest)**.
+  id: totrans-107
   prefs: []
   type: TYPE_NORMAL
 - en: 'The following code gets lists of nodes from this URL:'
+  id: totrans-108
   prefs: []
   type: TYPE_NORMAL
 - en: '`import requests`'
+  id: totrans-109
   prefs: []
   type: TYPE_NORMAL
 - en: '`import socket`'
+  id: totrans-110
   prefs: []
   type: TYPE_NORMAL
 - en: '`from urllib.parse import urlparse`'
+  id: totrans-111
   prefs: []
   type: TYPE_NORMAL
 - en: '`def isValidIPv6Addr(addr: str):`'
+  id: totrans-112
   prefs: []
   type: TYPE_NORMAL
 - en: '`try:`'
+  id: totrans-113
   prefs: []
   type: TYPE_NORMAL
 - en: '`socket.inet_pton(socket.AF_INET6, addr)`'
+  id: totrans-114
   prefs: []
   type: TYPE_NORMAL
 - en: '`except socket.error:`'
+  id: totrans-115
   prefs: []
   type: TYPE_NORMAL
 - en: '`return False`'
+  id: totrans-116
   prefs: []
   type: TYPE_NORMAL
 - en: '`return True`'
+  id: totrans-117
   prefs: []
   type: TYPE_NORMAL
 - en: '`def parseNodeInfo(ip_port: str, nodeinfo: dict):`'
+  id: totrans-118
   prefs: []
   type: TYPE_NORMAL
 - en: '`node = {}`'
+  id: totrans-119
   prefs: []
   type: TYPE_NORMAL
 - en: '`node[‘selected’] = False`'
+  id: totrans-120
   prefs: []
   type: TYPE_NORMAL
 - en: '`node[‘port’] = int(ip_port.split(‘:’)[-1])`'
+  id: totrans-121
   prefs: []
   type: TYPE_NORMAL
 - en: '`val = ip_port.rsplit(‘:’, 1)[0]`'
+  id: totrans-122
   prefs: []
   type: TYPE_NORMAL
 - en: '`parsed = urlparse(‘//{}’.format(val))`'
+  id: totrans-123
   prefs: []
   type: TYPE_NORMAL
 - en: '`addr = parsed.hostname`'
+  id: totrans-124
   prefs: []
   type: TYPE_NORMAL
 - en: '`if isValidIPv6Addr(addr) == False:`'
+  id: totrans-125
   prefs: []
   type: TYPE_NORMAL
 - en: '`return node`'
+  id: totrans-126
   prefs: []
   type: TYPE_NORMAL
 - en: '`node[‘selected’] = True`'
+  id: totrans-127
   prefs: []
   type: TYPE_NORMAL
 - en: '`node[‘ipaddr’] = addr`'
+  id: totrans-128
   prefs: []
   type: TYPE_NORMAL
 - en: '`node[‘type’] = nodeinfo[11]`'
+  id: totrans-129
   prefs: []
   type: TYPE_NORMAL
 - en: '`node[‘time’] = nodeinfo[2]`'
+  id: totrans-130
   prefs: []
   type: TYPE_NORMAL
 - en: '`return node`'
+  id: totrans-131
   prefs: []
   type: TYPE_NORMAL
 - en: '`def getMainnetPeers():`'
+  id: totrans-132
   prefs: []
   type: TYPE_NORMAL
 - en: '`url = ‘https://bitnodes.io/api/v1/snapshots/latest/’`'
+  id: totrans-133
   prefs: []
   type: TYPE_NORMAL
 - en: '`headers = {‘Accept’: ‘application/json’}`'
+  id: totrans-134
   prefs: []
   type: TYPE_NORMAL
 - en: '`r = requests.get(url=url, headers=headers)`'
+  id: totrans-135
   prefs: []
   type: TYPE_NORMAL
 - en: '`jsonobj = r.json()`'
+  id: totrans-136
   prefs: []
   type: TYPE_NORMAL
 - en: '`peers = []`'
+  id: totrans-137
   prefs: []
   type: TYPE_NORMAL
 - en: '`for k, v in jsonobj[‘nodes’].items():`'
+  id: totrans-138
   prefs: []
   type: TYPE_NORMAL
 - en: '`node = parseNodeInfo(k, v)`'
+  id: totrans-139
   prefs: []
   type: TYPE_NORMAL
 - en: '`if node[‘selected’] == True:`'
+  id: totrans-140
   prefs: []
   type: TYPE_NORMAL
 - en: '`peers.append(node)`'
+  id: totrans-141
   prefs: []
   type: TYPE_NORMAL
 - en: '`return peers`'
+  id: totrans-142
   prefs: []
   type: TYPE_NORMAL
 - en: '**Program 7.2:** Program to get the list of nodes using an external URL'
+  id: totrans-143
   prefs: []
   type: TYPE_NORMAL
 - en: 'We call the above-mentioned methods to get peers as follows:'
+  id: totrans-144
   prefs: []
   type: TYPE_NORMAL
 - en: '`if __name__ == ‘__main__’:`'
+  id: totrans-145
   prefs: []
   type: TYPE_NORMAL
 - en: '`peers = getMainnetPeers()`'
+  id: totrans-146
   prefs: []
   type: TYPE_NORMAL
 - en: '`for peer in peers:`'
+  id: totrans-147
   prefs: []
   type: TYPE_NORMAL
 - en: '`print(‘%s\t\t\t%d’ % (peer[‘ipaddr’], peer[‘port’]))`'
+  id: totrans-148
   prefs: []
   type: TYPE_NORMAL
 - en: 'This gives us the following first five peers:'
+  id: totrans-149
   prefs: []
   type: TYPE_NORMAL
 - en: '![](images/Figure-7.5.jpg)'
+  id: totrans-150
   prefs: []
   type: TYPE_IMG
 - en: '**Figure 7.5:** List of IP addresses and port numbers of peers obtained from
     an external website'
+  id: totrans-151
   prefs: []
   type: TYPE_NORMAL
 - en: '[Network messaging](toc.xhtml#s133a)'
+  id: totrans-152
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
@@ -569,168 +767,214 @@
     to help other nodes to sync with itself, or ask for missing blocks, or to broadcast
     any new received block or transaction. In this topic, you will learn in detail
     about the messaging and its format, and program it by writing a client.
+  id: totrans-153
   prefs: []
   type: TYPE_NORMAL
 - en: '[Message format](toc.xhtml#s134a)'
+  id: totrans-154
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
 - en: Messages exchanged over the network have headers and payload, and the payload
     is dependent on the command.
+  id: totrans-155
   prefs: []
   type: TYPE_NORMAL
 - en: 'Here’s the message format:'
+  id: totrans-156
   prefs: []
   type: TYPE_NORMAL
 - en: '![](images/Figure-7.6.jpg)'
+  id: totrans-157
   prefs: []
   type: TYPE_IMG
 - en: '**Figure 7.6:** Illustration of protocol message format'
+  id: totrans-158
   prefs: []
   type: TYPE_NORMAL
 - en: '*The following is the explanation of each field of the message format:*'
+  id: totrans-159
   prefs: []
   type: TYPE_NORMAL
 - en: '**Magic** is the same as we learned in the block structure in ***[Chapter 6,
     Blockchain, Transactions, and Mining](c06.xhtml)*** and we can look at its values
     in [table 6.3](c06.xhtml#tab6_3).'
+  id: totrans-160
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '**Command** is the command sent in ASCII padded with all zeroes i.e. b’\0’.'
+  id: totrans-161
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '**Length** is the length of the payload.'
+  id: totrans-162
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '**Checksum** is the checksum of the payload.'
+  id: totrans-163
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '**Payload** is the parameters of the command sent.'
+  id: totrans-164
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: 'The following is the method that creates this message:'
+  id: totrans-165
   prefs: []
   type: TYPE_NORMAL
 - en: '`def createMessage(command, payload):`'
+  id: totrans-166
   prefs: []
   type: TYPE_NORMAL
 - en: '`magic = 0x0709110B`'
+  id: totrans-167
   prefs: []
   type: TYPE_NORMAL
 - en: '`checksum = hashlib.sha256(hashlib.sha256(payload).digest()).digest()[0:4]`'
+  id: totrans-168
   prefs: []
   type: TYPE_NORMAL
 - en: '`magic_b = struct.pack(‘<L’, magic)`'
+  id: totrans-169
   prefs: []
   type: TYPE_NORMAL
 - en: '`cmd_b = struct.pack(‘<12s’, command.encode(‘ascii’))`'
+  id: totrans-170
   prefs: []
   type: TYPE_NORMAL
 - en: '`payload_len_b = struct.pack(‘<L’, len(payload))`'
+  id: totrans-171
   prefs: []
   type: TYPE_NORMAL
 - en: '`checksum_b = struct.pack(‘<4s’, checksum)`'
+  id: totrans-172
   prefs: []
   type: TYPE_NORMAL
 - en: '`msg = magic_b + cmd_b + payload_len_b + checksum + payload`'
+  id: totrans-173
   prefs: []
   type: TYPE_NORMAL
 - en: '`return msg`'
+  id: totrans-174
   prefs: []
   type: TYPE_NORMAL
 - en: '**Program 7.3:** A method for creating protocol message'
+  id: totrans-175
   prefs: []
   type: TYPE_NORMAL
 - en: '[Establishing connection](toc.xhtml#s135a)'
+  id: totrans-176
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
 - en: 'Bitcoin establishes a connection by first exchanging versions and then acknowledging
     their acceptance. Before acknowledging the version, a node needs to send its own
     version. So, the network handshake looks as follows:'
+  id: totrans-177
   prefs: []
   type: TYPE_NORMAL
 - en: '![](images/Figure-7.7.jpg)'
+  id: totrans-178
   prefs: []
   type: TYPE_IMG
 - en: '**Figure 7.7:** An illustration of the sequence of message transfers to establish
     Bitcoin connection'
+  id: totrans-179
   prefs: []
   type: TYPE_NORMAL
 - en: 'The f*ollowing is the* `**version**` *message payload* structure:'
+  id: totrans-180
   prefs: []
   type: TYPE_NORMAL
 - en: '![](images/Figure-7.8.jpg)'
+  id: totrans-181
   prefs: []
   type: TYPE_IMG
 - en: '**Figure 7.8:** Version message payload structure'
+  id: totrans-182
   prefs: []
   type: TYPE_NORMAL
 - en: '*The following is the explanation of each field of the `**version**` message:*'
+  id: totrans-183
   prefs: []
   type: TYPE_NORMAL
 - en: '`**Version**` is the Protocol version running on a host.'
+  id: totrans-184
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '**Service** is the service supported by the sending node. Here’s the list of
     service codes:'
+  id: totrans-185
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '| **Byte Code** | **Service Offered** | **Description** |'
+  id: totrans-186
   prefs: []
   type: TYPE_TB
 - en: '| 1 | NODE_NETWORK | Full Node |'
+  id: totrans-187
   prefs: []
   type: TYPE_TB
 - en: '| 2 | NODE_GETUTXO | BIP 0064: Supports getutxos and utxos |'
+  id: totrans-188
   prefs: []
   type: TYPE_TB
 - en: '| 4 | NODE_BLOOM | BIP 0111: Supports Bloom filters |'
+  id: totrans-189
   prefs: []
   type: TYPE_TB
 - en: '| 8 | NODE_WITNESS | BIP 0144: Supports Segregated Witness |'
+  id: totrans-190
   prefs: []
   type: TYPE_TB
 - en: '| 1024 | NODE_NETWORK_LIMITED | BIP 0159: Pruned node |'
+  id: totrans-191
   prefs: []
   type: TYPE_TB
 - en: '**Table 7.2:** List of service codes required by Version message'
+  id: totrans-192
   prefs: []
   type: TYPE_NORMAL
 - en: '**Timestamp** is the Unix epoch time of the payload.'
+  id: totrans-193
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '**Addr Recv** is the address of the connection receiving node. So, the node
     sending the `**version**` payload will have the address and port of the peer it
     is connecting to. The Services field is normally set to zeroes.'
+  id: totrans-194
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '**Addr from** is the address of the connection originating node. So, the node
     sending the `**version**` payload will have its own address and port. It also
     includes services offered by the sender.'
+  id: totrans-195
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '**Nonce** is a random number that is useful in identifying whether we are not
     connected to ourselves.'
+  id: totrans-196
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '**User Agent** is used to identify the software running at the node. It is
     defined in BIP-0014.'
+  id: totrans-197
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '**Start Height** is the current block height at the node blockchain.'
+  id: totrans-198
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
@@ -738,1026 +982,1318 @@
     that the node will not participate in relaying a message. This means it does not
     want peers to advertise `**inv**` messages with MSG_BLOCK. This protects the node
     from getting flooded by `**inv**` messages. This is defined in BIP 0037.'
+  id: totrans-199
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: 'The following is the distribution of version of nodes at the time of writing:'
+  id: totrans-200
   prefs: []
   type: TYPE_NORMAL
 - en: '![](images/Figure-7.9.jpg)'
+  id: totrans-201
   prefs: []
   type: TYPE_IMG
 - en: '**Figure 7.9:** Chart showing the distribution of the version of nodes on the
     Bitcoin network'
+  id: totrans-202
   prefs: []
   type: TYPE_NORMAL
 - en: 'The following is the distribution of User Agents in the Bitcoin network:'
+  id: totrans-203
   prefs: []
   type: TYPE_NORMAL
 - en: '![](images/Figure-7.10.jpg)'
+  id: totrans-204
   prefs: []
   type: TYPE_IMG
 - en: '**Figure 7.10:** Bar chart showing the distribution of user agents in the Bitcoin
     network'
+  id: totrans-205
   prefs: []
   type: TYPE_NORMAL
 - en: 'The following is the program that creates `**version**` payload:'
+  id: totrans-206
   prefs: []
   type: TYPE_NORMAL
 - en: '`from bitcoinrpc.authproxy import AuthServiceProxy, JSONRPCException`'
+  id: totrans-207
   prefs: []
   type: TYPE_NORMAL
 - en: '`import struct`'
+  id: totrans-208
   prefs: []
   type: TYPE_NORMAL
 - en: '`import random`'
+  id: totrans-209
   prefs: []
   type: TYPE_NORMAL
 - en: '`rpc_connection = AuthServiceProxy(“http://%s:%s@127.0.0.1:18332”%(‘test’,
     ‘test’))`'
+  id: totrans-210
   prefs: []
   type: TYPE_NORMAL
 - en: '`def setVarInt(n: int):`'
+  id: totrans-211
   prefs: []
   type: TYPE_NORMAL
 - en: '`if n < 0xfd:`'
+  id: totrans-212
   prefs: []
   type: TYPE_NORMAL
 - en: '`n_h = ‘%02x’ % n`'
+  id: totrans-213
   prefs: []
   type: TYPE_NORMAL
 - en: '`elif n > 0xfd and n < 0xffff:`'
+  id: totrans-214
   prefs: []
   type: TYPE_NORMAL
 - en: '`n_h = ‘fd%04x’ % n`'
+  id: totrans-215
   prefs: []
   type: TYPE_NORMAL
 - en: '`elif n > 0xffff and n < 0xFFFFFFFF:`'
+  id: totrans-216
   prefs: []
   type: TYPE_NORMAL
 - en: '`n_h = ‘fe%08x’ % n`'
+  id: totrans-217
   prefs: []
   type: TYPE_NORMAL
 - en: '`else:`'
+  id: totrans-218
   prefs: []
   type: TYPE_NORMAL
 - en: '`n_h = ‘ff%016x’ % n`'
+  id: totrans-219
   prefs: []
   type: TYPE_NORMAL
 - en: '`return bytes.fromhex(n_h)`'
+  id: totrans-220
   prefs: []
   type: TYPE_NORMAL
 - en: '`def getLastBlockHeight():`'
+  id: totrans-221
   prefs: []
   type: TYPE_NORMAL
 - en: '`height = rpc_connection.getblockcount()`'
+  id: totrans-222
   prefs: []
   type: TYPE_NORMAL
 - en: '`return height`'
+  id: totrans-223
   prefs: []
   type: TYPE_NORMAL
 - en: '`def createUserAgent():`'
+  id: totrans-224
   prefs: []
   type: TYPE_NORMAL
 - en: '`sub_version = “/MyTestAgent:0.0.1/”`'
+  id: totrans-225
   prefs: []
   type: TYPE_NORMAL
 - en: '`sub_version_b = sub_version.encode()`'
+  id: totrans-226
   prefs: []
   type: TYPE_NORMAL
 - en: '`len_b = setVarInt(len(sub_version_b))`'
+  id: totrans-227
   prefs: []
   type: TYPE_NORMAL
 - en: '`return len_b + sub_version_b`'
+  id: totrans-228
   prefs: []
   type: TYPE_NORMAL
 - en: '`def createRecvIPAddress(ip, port):`'
+  id: totrans-229
   prefs: []
   type: TYPE_NORMAL
 - en: '`service_b = struct.pack(‘<Q’, 1)`'
+  id: totrans-230
   prefs: []
   type: TYPE_NORMAL
 - en: '`ip_b = socket.inet_aton(ip)`'
+  id: totrans-231
   prefs: []
   type: TYPE_NORMAL
 - en: '`ipv4_to_ipv6 = bytearray.fromhex(“00000000000000000000ffff”) + ip_b`'
+  id: totrans-232
   prefs: []
   type: TYPE_NORMAL
 - en: '`ipv6addr_b = struct.pack(‘>16s’, ipv4_to_ipv6)`'
+  id: totrans-233
   prefs: []
   type: TYPE_NORMAL
 - en: '`port_b = struct.pack(‘>H’, port)`'
+  id: totrans-234
   prefs: []
   type: TYPE_NORMAL
 - en: '`addr_b = service_b + ipv6addr_b + port_b`'
+  id: totrans-235
   prefs: []
   type: TYPE_NORMAL
 - en: '`return(addr_b)`'
+  id: totrans-236
   prefs: []
   type: TYPE_NORMAL
 - en: '`def createTransIPAddress():`'
+  id: totrans-237
   prefs: []
   type: TYPE_NORMAL
 - en: '`service_b = struct.pack(‘<Q’, 1)`'
+  id: totrans-238
   prefs: []
   type: TYPE_NORMAL
 - en: '`ip_b = socket.inet_aton(“0.0.0.0”)`'
+  id: totrans-239
   prefs: []
   type: TYPE_NORMAL
 - en: '`ipv4_to_ipv6 = bytearray.fromhex(“000000000000000000000000”) + ip_b`'
+  id: totrans-240
   prefs: []
   type: TYPE_NORMAL
 - en: '`ipv6addr_b = struct.pack(‘>16s’, ipv4_to_ipv6)`'
+  id: totrans-241
   prefs: []
   type: TYPE_NORMAL
 - en: '`port_b = struct.pack(‘>H’, 0)`'
+  id: totrans-242
   prefs: []
   type: TYPE_NORMAL
 - en: '`addr_b = service_b + ipv6addr_b + port_b`'
+  id: totrans-243
   prefs: []
   type: TYPE_NORMAL
 - en: '`return(addr_b)`'
+  id: totrans-244
   prefs: []
   type: TYPE_NORMAL
 - en: '`def createVersionPayload(s: socket, version: int):`'
+  id: totrans-245
   prefs: []
   type: TYPE_NORMAL
 - en: '`version_b = struct.pack(‘<L’, version)`'
+  id: totrans-246
   prefs: []
   type: TYPE_NORMAL
 - en: '`services_b = struct.pack(‘<Q’, 1)`'
+  id: totrans-247
   prefs: []
   type: TYPE_NORMAL
 - en: '`timestamp_b = struct.pack(‘<Q’, int(time.time()))`'
+  id: totrans-248
   prefs: []
   type: TYPE_NORMAL
 - en: '`myip, myport = s.getsockname()`'
+  id: totrans-249
   prefs: []
   type: TYPE_NORMAL
 - en: '`addr_recv_b = struct.pack(‘<26s’, createRecvIPAddress(myip, myport))`'
+  id: totrans-250
   prefs: []
   type: TYPE_NORMAL
 - en: '`addr_trans_b = struct.pack(‘<26s’, createTransIPAddress())`'
+  id: totrans-251
   prefs: []
   type: TYPE_NORMAL
 - en: '`nonce_b = struct.pack(‘<Q’, random.getrandbits(64))`'
+  id: totrans-252
   prefs: []
   type: TYPE_NORMAL
 - en: '`user_agent = createUserAgent()`'
+  id: totrans-253
   prefs: []
   type: TYPE_NORMAL
 - en: '`user_agent_b = struct.pack(‘<%ds’ % len(user_agent), user_agent)`'
+  id: totrans-254
   prefs: []
   type: TYPE_NORMAL
 - en: '`start_height_b = struct.pack(‘<L’, getLastBlockHeight())`'
+  id: totrans-255
   prefs: []
   type: TYPE_NORMAL
 - en: '`payload = version_b \`'
+  id: totrans-256
   prefs: []
   type: TYPE_NORMAL
 - en: '`+ services_b \`'
+  id: totrans-257
   prefs: []
   type: TYPE_NORMAL
 - en: '`+ timestamp_b \`'
+  id: totrans-258
   prefs: []
   type: TYPE_NORMAL
 - en: '`+ addr_recv_b \`'
+  id: totrans-259
   prefs: []
   type: TYPE_NORMAL
 - en: '`+ addr_trans_b \`'
+  id: totrans-260
   prefs: []
   type: TYPE_NORMAL
 - en: '`+ nonce_b \`'
+  id: totrans-261
   prefs: []
   type: TYPE_NORMAL
 - en: '`+ user_agent_b \`'
+  id: totrans-262
   prefs: []
   type: TYPE_NORMAL
 - en: '`+ start_height_b`'
+  id: totrans-263
   prefs: []
   type: TYPE_NORMAL
 - en: '`return payload`'
+  id: totrans-264
   prefs: []
   type: TYPE_NORMAL
 - en: '**Program 7.4:** Program for creating Version message payload'
+  id: totrans-265
   prefs: []
   type: TYPE_NORMAL
 - en: 'To create the message payload, we use the Python struct pack. The following
     are the symbols and their meanings:'
+  id: totrans-266
   prefs: []
   type: TYPE_NORMAL
 - en: '| **Symbols** | **Represents** |'
+  id: totrans-267
   prefs: []
   type: TYPE_TB
 - en: '| < | Little Endian |'
+  id: totrans-268
   prefs: []
   type: TYPE_TB
 - en: '| > | Big Endian |'
+  id: totrans-269
   prefs: []
   type: TYPE_TB
 - en: '| B | 1-byte Unsigned Integer |'
+  id: totrans-270
   prefs: []
   type: TYPE_TB
 - en: '| H | 2-byte Unsigned Integer |'
+  id: totrans-271
   prefs: []
   type: TYPE_TB
 - en: '| L | 4-byte Unsigned Integer |'
+  id: totrans-272
   prefs: []
   type: TYPE_TB
 - en: '| Q | 8-byte Unsigned Integer |'
+  id: totrans-273
   prefs: []
   type: TYPE_TB
 - en: '| xs | Byte array of size x |'
+  id: totrans-274
   prefs: []
   type: TYPE_TB
 - en: '**Table 7.3:** List of Python struct pack symbols and their meanings'
+  id: totrans-275
   prefs: []
   type: TYPE_NORMAL
 - en: 'You can check out the Python docs for more details:'
+  id: totrans-276
   prefs: []
   type: TYPE_NORMAL
 - en: '**[https://docs.python.org/3.8/library/struct.html](https://docs.python.org/3.8/library/struct.html)**'
+  id: totrans-277
   prefs: []
   type: TYPE_NORMAL
 - en: IP address and port are in big endian, while the rest of the message is in the
     little-endian format. When we pack an ASCII string, it converts it into a byte
     array and pads it with zeroes.
+  id: totrans-278
   prefs: []
   type: TYPE_NORMAL
 - en: 'We call the preceding methods as follows:'
+  id: totrans-279
   prefs: []
   type: TYPE_NORMAL
 - en: '`if __name__ == ‘__main__’:`'
+  id: totrans-280
   prefs: []
   type: TYPE_NORMAL
 - en: '`peers = getTestnetPeers()`'
+  id: totrans-281
   prefs: []
   type: TYPE_NORMAL
 - en: '`p = random.choice(peers)`'
+  id: totrans-282
   prefs: []
   type: TYPE_NORMAL
 - en: '`s = None`'
+  id: totrans-283
   prefs: []
   type: TYPE_NORMAL
 - en: '`peerinfo = {}`'
+  id: totrans-284
   prefs: []
   type: TYPE_NORMAL
 - en: '`print(“Trying to connect to “, p)`'
+  id: totrans-285
   prefs: []
   type: TYPE_NORMAL
 - en: '`s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)`'
+  id: totrans-286
   prefs: []
   type: TYPE_NORMAL
 - en: '`err = s.connect(p)`'
+  id: totrans-287
   prefs: []
   type: TYPE_NORMAL
 - en: '`print(‘TCP Connection Established’)`'
+  id: totrans-288
   prefs: []
   type: TYPE_NORMAL
 - en: '`payload = createVersionPayload(s, 70015)`'
+  id: totrans-289
   prefs: []
   type: TYPE_NORMAL
 - en: '`print(‘Version payload: ‘, payload.hex())`'
+  id: totrans-290
   prefs: []
   type: TYPE_NORMAL
 - en: '`s.close()`'
+  id: totrans-291
   prefs: []
   type: TYPE_NORMAL
 - en: 'This creates the following payload in hex string:'
+  id: totrans-292
   prefs: []
   type: TYPE_NORMAL
 - en: '![](images/Figure-7.11.jpg)'
+  id: totrans-293
   prefs: []
   type: TYPE_IMG
 - en: '**Figure 7.11:** Shows version payload created by the CreateVersionPayload
     program'
+  id: totrans-294
   prefs: []
   type: TYPE_NORMAL
 - en: 'When we receive the `***version***` message, we do the following:'
+  id: totrans-295
   prefs: []
   type: TYPE_NORMAL
 - en: 'We first receive the message header, verify the magic number and checksum,
     and identify the command:'
+  id: totrans-296
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
 - en: '`flog = open(‘communication.log’, ‘wt+’)`'
+  id: totrans-297
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`def calculateChecksum(b: bytes):`'
+  id: totrans-298
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`checksum = hashlib.sha256(hashlib.sha256(b).digest()).digest()[0:4]`'
+  id: totrans-299
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`return checksum`'
+  id: totrans-300
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`def checkMessage(msghdr: dict, payload_b: bytes):`'
+  id: totrans-301
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`if msghdr[‘magic’] == ‘0709110b’:`'
+  id: totrans-302
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`print(‘Magic check passed’, file=flog)`'
+  id: totrans-303
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`else:`'
+  id: totrans-304
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`print(‘Magic check failed’, file=flog)`'
+  id: totrans-305
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`print(‘magic = %s’ % msghdr[‘magic’], file=flog)`'
+  id: totrans-306
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`raise Exception(‘Invalid Magic’, file=flog)`'
+  id: totrans-307
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`checksum_calc = calculateChecksum(payload_b)`'
+  id: totrans-308
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`if msghdr[‘checksum’] == checksum_calc:`'
+  id: totrans-309
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`print(‘checksum check passed’, file=flog)`'
+  id: totrans-310
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`else:`'
+  id: totrans-311
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`print(‘checksum check failed’, file=flog)`'
+  id: totrans-312
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`print(‘payload = %s’ % payload_b.hex(), file=flog)`'
+  id: totrans-313
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`print(‘expected checksum = %s’ % msghdr[‘checksum’].hex(), file=flog)`'
+  id: totrans-314
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`print(‘received checksum = %s’ % checksum_calc.hex(), file=flog)`'
+  id: totrans-315
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`raise Exception(‘Invalid Checksum’)`'
+  id: totrans-316
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`def parseMsgHdr(msghdr_b: bytes):`'
+  id: totrans-317
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`msghdr = {}`'
+  id: totrans-318
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`msghdr[‘magic’] = msghdr_b[0:4][::-1].hex()`'
+  id: totrans-319
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`msghdr[‘command’] = msghdr_b[4:16].decode(“ascii”).strip(‘\0’)`'
+  id: totrans-320
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`msghdr[‘length’] = int.from_bytes(msghdr_b[16:20], byteorder=’little’)`'
+  id: totrans-321
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`msghdr[‘checksum’] = msghdr_b[20:24]`'
+  id: totrans-322
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`return msghdr`'
+  id: totrans-323
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '**Program 7.5:** Program for parsing message header'
+  id: totrans-324
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: We can see that the program checksum only contains the first 4 bytes of the
     double SHA256 hash; to get the command, we strip it.
+  id: totrans-325
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: 'Next, we receive a message again from the socket and call the parser of the
     `***version***` payload. To do this, we call the method by name. We will create
     dummy methods for the ones not required by the subsequent programs:'
+  id: totrans-326
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
 - en: '`MSGHDR_SIZE = 24`'
+  id: totrans-327
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`CMD_FN_MAP = {`'
+  id: totrans-328
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`‘version’: parseVersionPayload,`'
+  id: totrans-329
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`‘addr’: parseAddrPayload,`'
+  id: totrans-330
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`‘filterload’: parseFilterLoadPayload,`'
+  id: totrans-331
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`‘filteradd’: parseFilterAddPayload,`'
+  id: totrans-332
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`‘merkleblock’: parseMerkleBlockPayload,`'
+  id: totrans-333
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`‘ping’: parsePingPongPayload,`'
+  id: totrans-334
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`‘pong’: parsePingPongPayload,`'
+  id: totrans-335
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`‘feefilter’: parseFeeFilterPayload,`'
+  id: totrans-336
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`‘inv’: parseInvPayload,`'
+  id: totrans-337
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`‘getdata’: parseInvPayload,`'
+  id: totrans-338
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`‘notfound’: parseInvPayload,`'
+  id: totrans-339
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`‘tx’: parseTxPayload,`'
+  id: totrans-340
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`‘block’: parseBlockPayload,`'
+  id: totrans-341
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`‘getblocks’: parseGetBlocksGetHeadersPayload,`'
+  id: totrans-342
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`‘getheaders’: parseGetBlocksGetHeadersPayload,`'
+  id: totrans-343
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`‘headers’: parseHeadersPayload,`'
+  id: totrans-344
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`‘reject’: parseRejectPayload,`'
+  id: totrans-345
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`‘sendcmpct’: parseSendCompactPayload,`'
+  id: totrans-346
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`‘cmpctblock’: parseCompactBlockPayload,`'
+  id: totrans-347
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`‘getblocktxn’: parseGetBlockTxnPayload,`'
+  id: totrans-348
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`‘blocktxn’: parseBlockTxnPayload`'
+  id: totrans-349
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`}`'
+  id: totrans-350
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`def recvAll(s: socket, payloadlen: int):`'
+  id: totrans-351
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`payload_b = b’’`'
+  id: totrans-352
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`length = payloadlen`'
+  id: totrans-353
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`while True:`'
+  id: totrans-354
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`recvd_b = s.recv(length)`'
+  id: totrans-355
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`payload_b += recvd_b`'
+  id: totrans-356
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`if len(payload_b) == payloadlen:`'
+  id: totrans-357
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`break`'
+  id: totrans-358
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`length = payloadlen - len(payload_b)`'
+  id: totrans-359
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`return payload_b`'
+  id: totrans-360
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`def recvMsg(s: socket):`'
+  id: totrans-361
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`msghdr_b = s.recv(MSGHDR_SIZE)`'
+  id: totrans-362
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`msg = parseMsgHdr(msghdr_b)`'
+  id: totrans-363
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`payloadlen = msg[‘length’]`'
+  id: totrans-364
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`payload_b = recvAll(s, payloadlen)`'
+  id: totrans-365
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '``checkMessage(msg, payload_b)``'
+  id: totrans-366
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`payload_m = mmap.mmap(-1, payloadlen + 1)`'
+  id: totrans-367
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`payload_m.write(payload_b)`'
+  id: totrans-368
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`payload_m.seek(0)`'
+  id: totrans-369
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`msg[‘payload’] = {}`'
+  id: totrans-370
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`if payloadlen > 0:`'
+  id: totrans-371
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`msg[‘payload’] = CMD_FN_MAP[msg[‘command’]](payload_m, payloadlen)`'
+  id: totrans-372
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`print(‘<== msg = %s’ % msg, file=flog)`'
+  id: totrans-373
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`return msg`'
+  id: totrans-374
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '**Program 7.6:** Program to receive and process messages based on command'
+  id: totrans-375
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: 'The following code parses the `***version***` payload:'
+  id: totrans-376
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
 - en: '`import ipaddress`'
+  id: totrans-377
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`import datetime`'
+  id: totrans-378
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`def parseIPAddress(ip_m: mmap):`'
+  id: totrans-379
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`addr = {}`'
+  id: totrans-380
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`addr[‘service’] = int.from_bytes(ip_m.read(8), byteorder=’little’)`'
+  id: totrans-381
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`parseServices(addr[‘service’])`'
+  id: totrans-382
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`ip = ip_m.read(16)`'
+  id: totrans-383
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`if ip[0:12].hex() == “00000000000000000000ffff”:`'
+  id: totrans-384
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`addr[‘version’] = ‘IPv4’`'
+  id: totrans-385
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`addr[‘address’] = str(ipaddress.IPv4Address(ip[12:16]))`'
+  id: totrans-386
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`else:`'
+  id: totrans-387
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`addr[‘version’] = ‘IPv6’`'
+  id: totrans-388
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`addr[‘address’] = str(ipaddress.IPv6Address(ip[0:16]))`'
+  id: totrans-389
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`addr[‘port’] = int.from_bytes(ip_m.read(2), byteorder=’big’)`'
+  id: totrans-390
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`return addr`'
+  id: totrans-391
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`def parseServices(services: int):`'
+  id: totrans-392
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`service_l = []`'
+  id: totrans-393
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`if services == 0x00:`'
+  id: totrans-394
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`service_l.append(‘Unnamed’)`'
+  id: totrans-395
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`if services & 0x01 == 0x01:`'
+  id: totrans-396
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`service_l.append(‘NODE_NETWORK’)`'
+  id: totrans-397
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`if services & 0x02:`'
+  id: totrans-398
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`service_l.append(‘NODE_GETUTXO’)`'
+  id: totrans-399
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`if services & 0x04:`'
+  id: totrans-400
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`service_l.append(‘NODE_BLOOM’)`'
+  id: totrans-401
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`if services & 0x08:`'
+  id: totrans-402
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`service_l.append(‘NODE_WITNESS’)`'
+  id: totrans-403
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`if services & 1024:`'
+  id: totrans-404
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`service_l.append(‘NODE_NETWORK_LIMITED’)`'
+  id: totrans-405
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`print(‘Services: %d implies: %s’ % (services, service_l), file=flog)`'
+  id: totrans-406
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`def parseVersionPayload(payload_m: mmap, payloadlen: int):`'
+  id: totrans-407
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`payload = {}`'
+  id: totrans-408
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`start = payload_m.tell()`'
+  id: totrans-409
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`payload[‘version’] = int.from_bytes(payload_m.read(4), byteorder=’little’)`'
+  id: totrans-410
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`payload[‘services’] = int.from_bytes(payload_m.read(8), byteorder=’little’)`'
+  id: totrans-411
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`parseServices(payload[‘services’])`'
+  id: totrans-412
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`payload[‘timestamp’] = int.from_bytes(payload_m.read(8), byteorder=’little’)`'
+  id: totrans-413
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`payload[‘dt’] = datetime.datetime.fromtimestamp(payload[‘timestamp’]).strftime(‘%Y-%m-%d
     %H:%M:%S’)`'
+  id: totrans-414
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`payload[‘addr_recv’] = parseIPAddress(payload_m)`'
+  id: totrans-415
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`payload[‘addr_trans’] = parseIPAddress(payload_m)`'
+  id: totrans-416
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`payload[‘nonce’] = int.from_bytes(payload_m.read(8), byteorder=’little’)`'
+  id: totrans-417
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`payload[‘user_agent_size’] = getVarInt(payload_m)`'
+  id: totrans-418
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`payload[‘user_agent’] = payload_m.read(payload[‘user_agent_size’])`'
+  id: totrans-419
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`payload[‘block_height’] = int.from_bytes(payload_m.read(4), byteorder=’little’)`'
+  id: totrans-420
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`if payload_m.tell() - start != payloadlen:`'
+  id: totrans-421
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`payload[‘relay’] = int.from_bytes(payload_m.read(1), byteorder=’little’)`'
+  id: totrans-422
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`return payload`'
+  id: totrans-423
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '**Program 7.7:** Program to parse version payload'
+  id: totrans-424
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: Bitcoin network messaging uses the same variable integer format as we had discussed
     in *[Chapter 6, Blockchain, Transactions, and Mining](c06.xhtml), [figure 6.25](c06.xhtml#fig6_25)*.
+  id: totrans-425
   prefs: []
   type: TYPE_NORMAL
 - en: The `**verack**` message has no payload. It is an acknowledgment of the `***version***`
     received.
+  id: totrans-426
   prefs: []
   type: TYPE_NORMAL
 - en: Once the `***version***` message is sent and received and `**verack**` message
     is sent and received, we consider the connection to have been established and
     are ready to send and receive other types of messages.
+  id: totrans-427
   prefs: []
   type: TYPE_NORMAL
 - en: 'The following is the code for establishing a Bitcoin connection:'
+  id: totrans-428
   prefs: []
   type: TYPE_NORMAL
 - en: '`def sendVersionMessage(s: socket, version: int):`'
+  id: totrans-429
   prefs: []
   type: TYPE_NORMAL
 - en: '`sndcmd = ‘version’`'
+  id: totrans-430
   prefs: []
   type: TYPE_NORMAL
 - en: '`payload = createVersionPayload(s, version)`'
+  id: totrans-431
   prefs: []
   type: TYPE_NORMAL
 - en: '``sndmsg = createMessage(sndcmd, payload)``'
+  id: totrans-432
   prefs: []
   type: TYPE_NORMAL
 - en: '``s.send(sndmsg)``'
+  id: totrans-433
   prefs: []
   type: TYPE_NORMAL
 - en: '`print(‘==> cmd = %s, msg = %s’ % (sndcmd, sndmsg.hex()), file=flog)`'
+  id: totrans-434
   prefs: []
   type: TYPE_NORMAL
 - en: '`return True`'
+  id: totrans-435
   prefs: []
   type: TYPE_NORMAL
 - en: '`def waitForVersion(s: socket):`'
+  id: totrans-436
   prefs: []
   type: TYPE_NORMAL
 - en: '`recvmsg = recvMsg(s)`'
+  id: totrans-437
   prefs: []
   type: TYPE_NORMAL
 - en: '`vers_recvd = False`'
+  id: totrans-438
   prefs: []
   type: TYPE_NORMAL
 - en: '`if recvmsg[‘command’] != ‘version’:`'
+  id: totrans-439
   prefs: []
   type: TYPE_NORMAL
 - en: '`print(‘Invalid Response’)`'
+  id: totrans-440
   prefs: []
   type: TYPE_NORMAL
 - en: '`return False`'
+  id: totrans-441
   prefs: []
   type: TYPE_NORMAL
 - en: '`services = recvmsg[‘payload’][‘services’]`'
+  id: totrans-442
   prefs: []
   type: TYPE_NORMAL
 - en: '`if services & 1 == 0x00:`'
+  id: totrans-443
   prefs: []
   type: TYPE_NORMAL
 - en: '`print(‘Peer is not full node’)`'
+  id: totrans-444
   prefs: []
   type: TYPE_NORMAL
 - en: '`return False`'
+  id: totrans-445
   prefs: []
   type: TYPE_NORMAL
 - en: '`return True`'
+  id: totrans-446
   prefs: []
   type: TYPE_NORMAL
 - en: '`def sendVerackMessage(s: socket):`'
+  id: totrans-447
   prefs: []
   type: TYPE_NORMAL
 - en: '`sndcmd = ‘verack’`'
+  id: totrans-448
   prefs: []
   type: TYPE_NORMAL
 - en: '`payload = b’’`'
+  id: totrans-449
   prefs: []
   type: TYPE_NORMAL
 - en: '`sndmsg = createMessage(sndcmd, payload)`'
+  id: totrans-450
   prefs: []
   type: TYPE_NORMAL
 - en: '``s.send(sndmsg)``'
+  id: totrans-451
   prefs: []
   type: TYPE_NORMAL
 - en: '`print(‘==> cmd = %s, msg = %s’ % (sndcmd, sndmsg.hex()), file=flog)`'
+  id: totrans-452
   prefs: []
   type: TYPE_NORMAL
 - en: '`return True`'
+  id: totrans-453
   prefs: []
   type: TYPE_NORMAL
 - en: '`def waitForVerack(s: socket):`'
+  id: totrans-454
   prefs: []
   type: TYPE_NORMAL
 - en: '``recvmsg = recvMsg(s)``'
+  id: totrans-455
   prefs: []
   type: TYPE_NORMAL
 - en: '`verack_recvd = False`'
+  id: totrans-456
   prefs: []
   type: TYPE_NORMAL
 - en: '`if recvmsg[‘command’] != ‘verack’:`'
+  id: totrans-457
   prefs: []
   type: TYPE_NORMAL
 - en: '`return False`'
+  id: totrans-458
   prefs: []
   type: TYPE_NORMAL
 - en: '`return True`'
+  id: totrans-459
   prefs: []
   type: TYPE_NORMAL
 - en: '`def establishConnection(s: socket, version: int):`'
+  id: totrans-460
   prefs: []
   type: TYPE_NORMAL
 - en: '`vers_sent = sendVersionMessage(s, version)`'
+  id: totrans-461
   prefs: []
   type: TYPE_NORMAL
 - en: '`vers_recvd = waitForVersion(s)`'
+  id: totrans-462
   prefs: []
   type: TYPE_NORMAL
 - en: '`if vers_recvd == False:`'
+  id: totrans-463
   prefs: []
   type: TYPE_NORMAL
 - en: '`return False`'
+  id: totrans-464
   prefs: []
   type: TYPE_NORMAL
 - en: '`verack_sent = sendVerackMessage(s)`'
+  id: totrans-465
   prefs: []
   type: TYPE_NORMAL
 - en: '`verack_recvd = waitForVerack(s)`'
+  id: totrans-466
   prefs: []
   type: TYPE_NORMAL
 - en: '`if vers_sent and vers_recvd and verack_sent and verack_recvd:`'
+  id: totrans-467
   prefs: []
   type: TYPE_NORMAL
 - en: '`print(‘Connection is established’, file=flog)`'
+  id: totrans-468
   prefs: []
   type: TYPE_NORMAL
 - en: '`return True`'
+  id: totrans-469
   prefs: []
   type: TYPE_NORMAL
 - en: '`return False`'
+  id: totrans-470
   prefs: []
   type: TYPE_NORMAL
 - en: '**Program 7.8:** Program to establish Bitcoin connection'
+  id: totrans-471
   prefs: []
   type: TYPE_NORMAL
 - en: 'We call the preceding method using the following program:'
+  id: totrans-472
   prefs: []
   type: TYPE_NORMAL
 - en: '`if __name__ == ‘__main__’:`'
+  id: totrans-473
   prefs: []
   type: TYPE_NORMAL
 - en: '`peers = getTestnetPeers()`'
+  id: totrans-474
   prefs: []
   type: TYPE_NORMAL
 - en: '`p = random.choice(peers)`'
+  id: totrans-475
   prefs: []
   type: TYPE_NORMAL
 - en: '`s = None`'
+  id: totrans-476
   prefs: []
   type: TYPE_NORMAL
 - en: '`peerinfo = {}`'
+  id: totrans-477
   prefs: []
   type: TYPE_NORMAL
 - en: '`print(“Trying to connect to “, p, file=flog)`'
+  id: totrans-478
   prefs: []
   type: TYPE_NORMAL
 - en: '`s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)`'
+  id: totrans-479
   prefs: []
   type: TYPE_NORMAL
 - en: '`err = s.connect(p)`'
+  id: totrans-480
   prefs: []
   type: TYPE_NORMAL
 - en: '`print(‘connected’, file=flog)`'
+  id: totrans-481
   prefs: []
   type: TYPE_NORMAL
 - en: '`if establishConnection(s, 70015) == False:`'
+  id: totrans-482
   prefs: []
   type: TYPE_NORMAL
 - en: '`print(‘Establish connection failed’, file=flog)`'
+  id: totrans-483
   prefs: []
   type: TYPE_NORMAL
 - en: '`s.close()`'
+  id: totrans-484
   prefs: []
   type: TYPE_NORMAL
 - en: '`flog.close()`'
+  id: totrans-485
   prefs: []
   type: TYPE_NORMAL
 - en: 'We get the following communication log:'
+  id: totrans-486
   prefs: []
   type: TYPE_NORMAL
 - en: '![](images/Figure-7.12.jpg)'
+  id: totrans-487
   prefs: []
   type: TYPE_IMG
 - en: '**Figure 7.12:** Communication log of message exchange during Bitcoin connection
     establishment'
+  id: totrans-488
   prefs: []
   type: TYPE_NORMAL
 - en: In this subtopic, you learned to establish a Bitcoin connection.
+  id: totrans-489
   prefs: []
   type: TYPE_NORMAL
 - en: '[Disconnecting with inactive peer](toc.xhtml#s136a)'
+  id: totrans-490
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
@@ -1766,283 +2302,413 @@
     response. The `**ping**` message contains an 8-byte nonce, which is a random number.
     In the response `**pong**` message, the receiving node sends back the same nonce
     message that it had received as part of the `**ping**` message.
+  id: totrans-491
   prefs: []
   type: TYPE_NORMAL
+  zh: TCP/IP连接可能会在没有对端知识的情况下变为不活跃。为了断开一个不活跃的连接，节点发送`**ping**`消息并期待`**pong**`作为响应。`**ping**`消息包含一个8字节的随机数nonce。在`**pong**`响应消息中，接收节点会回传它作为`**ping**`消息一部分收到的相同nonce消息。
 - en: 'The following method parses the `**ping**` message and respond with the `**pong**`
     message:'
+  id: totrans-492
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下方法解析`**ping**`消息并响应`**pong**`消息：
 - en: '`def parsePingPongPayload(payload_m: mmap, payloadlen = 0):`'
+  id: totrans-493
   prefs: []
   type: TYPE_NORMAL
+  zh: '`def parsePingPongPayload(payload_m: mmap, payloadlen = 0):`'
 - en: '`payload = {}`'
+  id: totrans-494
   prefs: []
   type: TYPE_NORMAL
+  zh: '`payload = {}`'
 - en: '`payload[‘nonce’] = int.from_bytes(payload_m.read(8), byteorder=’little’)`'
+  id: totrans-495
   prefs: []
   type: TYPE_NORMAL
+  zh: '`payload[‘nonce’] = int.from_bytes(payload_m.read(8), byteorder=’little’)`'
 - en: '`return payload`'
+  id: totrans-496
   prefs: []
   type: TYPE_NORMAL
+  zh: '`return payload`'
 - en: '`def createPongPayload(nonce: int):`'
+  id: totrans-497
   prefs: []
   type: TYPE_NORMAL
+  zh: '`def createPongPayload(nonce: int):`'
 - en: '`nonce_b = struct.pack(‘<Q’, nonce)`'
+  id: totrans-498
   prefs: []
   type: TYPE_NORMAL
+  zh: '`nonce_b = struct.pack(‘<Q'', nonce)`'
 - en: '`return nonce_b`'
+  id: totrans-499
   prefs: []
   type: TYPE_NORMAL
+  zh: '`return nonce_b`'
 - en: '`def sendPongMessage(s: socket, recvmsg: dict):`'
+  id: totrans-500
   prefs: []
   type: TYPE_NORMAL
+  zh: '`def sendPongMessage(s: socket, recvmsg: dict):`'
 - en: '`# send pong message`'
+  id: totrans-501
   prefs: []
   type: TYPE_NORMAL
+  zh: '`# 发送pong消息`'
 - en: '`sndcmd = ‘pong’`'
+  id: totrans-502
   prefs: []
   type: TYPE_NORMAL
+  zh: '`sndcmd = ‘pong’`'
 - en: '`nonce = recvmsg[‘payload’][‘nonce’]`'
+  id: totrans-503
   prefs: []
   type: TYPE_NORMAL
+  zh: '`nonce = recvmsg[‘payload’][‘nonce’]`'
 - en: '`payload = createPongPayload(nonce)`'
+  id: totrans-504
   prefs: []
   type: TYPE_NORMAL
+  zh: '`payload = createPongPayload(nonce)`'
 - en: '``sndmsg = createMessage(sndcmd, payload)``'
+  id: totrans-505
   prefs: []
   type: TYPE_NORMAL
+  zh: '`sndmsg = createMessage(sndcmd, payload)`'
 - en: '``s.send(sndmsg)``'
+  id: totrans-506
   prefs: []
   type: TYPE_NORMAL
+  zh: '`s.send(sndmsg)`'
 - en: '`print(‘==> cmd = %s, msg = %s’ % (sndcmd, sndmsg.hex()), file=flog)`'
+  id: totrans-507
   prefs: []
   type: TYPE_NORMAL
+  zh: '`print(‘==> cmd = %s, msg = %s’ % (sndcmd, sndmsg.hex()), file=flog)`'
 - en: '**Program 7.9:** Program for sending ping and receiving pong messages'
+  id: totrans-508
   prefs: []
   type: TYPE_NORMAL
+  zh: '**程序7.9：** 发送ping和接收pong消息的程序'
 - en: If the peer responds with a different nonce or does not respond, then we can
     safely assume that it is not active, and we can disconnect the connection.
+  id: totrans-509
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果对等节点响应了一个不同的nonce或者没有响应，那么我们可以安全地假设它不活跃，我们可以断开连接。
 - en: '[Node discovery](toc.xhtml#s137a)'
+  id: totrans-510
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: '[节点发现](toc.xhtml#s137a)'
 - en: As you have learned, there are almost 10,000 active nodes on average, it is
     important to distribute load across the network. Almost 95% of the full nodes
     run Bitcoin Core, which has some hardcoded DNS seeds, so if these nodes only depend
     on addresses from the DNS seeds, then those addresses can get overloaded. This
     will hamper the decentralized nature of the Bitcoin network, will affect performance,
     and will be prone to **Denial-of-Service** (**DoS**) *attacks*.
+  id: totrans-511
   prefs: []
   type: TYPE_NORMAL
+  zh: 正如你所学习的，平均几乎有10,000个活跃节点，重要的是要在网络上分配负载。几乎95%的全节点运行Bitcoin Core，它有一些硬编码的DNS种子，所以如果这些节点只依赖DNS种子提供的地址，那么这些地址可能会过载。这会损害比特币网络的去中心化特性，会影响性能，并且容易受到**服务拒绝**（**DoS**）*攻击*。
 - en: 'To find new peers, we have the following sequence diagram:'
+  id: totrans-512
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了找到新的对等节点，我们有一个以下顺序图：
 - en: '![](images/Figure-7.13.jpg)'
+  id: totrans-513
   prefs: []
   type: TYPE_IMG
+  zh: '![](images/Figure-7.13.jpg)'
 - en: '**Figure 7.13:** Sequence diagram showing the steps to receive addresses of
     nodes from peer'
+  id: totrans-514
   prefs: []
   type: TYPE_NORMAL
+  zh: '**图7.13：** 显示从对等节点接收节点地址步骤的顺序图'
 - en: 'As in `**verack**`, `**getaddr**` doesn’t have a payload. Here’s the payload
     structure of the `**addr**` message:'
+  id: totrans-515
   prefs: []
   type: TYPE_NORMAL
+  zh: 正如`**verack**`一样，`**getaddr**`没有负载。以下是`**addr**`消息的负载结构：
 - en: '![](images/Figure-7.14.jpg)'
+  id: totrans-516
   prefs: []
   type: TYPE_IMG
+  zh: '![](images/Figure-7.14.jpg)'
 - en: '**Figure 7.14:** Payload structure of addr'
+  id: totrans-517
   prefs: []
   type: TYPE_NORMAL
+  zh: '**图7.14：** addr的负载结构'
 - en: 'Now, we will try to get the `**addr**` message from a peer. To get an `**addr**`
     message, we will need to handle a few more messages as these might be sent by
     the peer. Also, we will send a lower version to avoid getting the `**sendcmpct**`
     request. We will use version *70013*. The following is the program that sends
     `**getaddr**` and receives `**addr**`:'
+  id: totrans-518
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，我们将尝试从一个对等节点获取`**addr**`消息。为了获取`**addr**`消息，我们需要处理一些更多的消息，因为这些可能由对等节点发送。此外，我们将发送一个较低版本以避免`**sendcmpct**`请求。我们将使用版本*70013*。以下是将发送`**getaddr**`并接收`**addr**`的程序：
 - en: '`def parseAddrPayload(payload_m: mmap, payloadlen = 0):`'
+  id: totrans-519
   prefs: []
   type: TYPE_NORMAL
+  zh: '`def parseAddrPayload(payload_m: mmap, payloadlen = 0):`'
 - en: '`payload = {}`'
+  id: totrans-520
   prefs: []
   type: TYPE_NORMAL
+  zh: '`payload = {}`'
 - en: '`payload[‘count’] = getVarInt(payload_m)`'
+  id: totrans-521
   prefs: []
   type: TYPE_NORMAL
+  zh: '`payload[‘count’] = getVarInt(payload_m)`'
 - en: '`payload[‘addrs’] = []`'
+  id: totrans-522
   prefs: []
   type: TYPE_NORMAL
+  zh: '`payload[‘addrs’] = []`'
 - en: '`for i in range(payload[‘count’]):`'
+  id: totrans-523
   prefs: []
   type: TYPE_NORMAL
+  zh: '`for i in range(payload[‘count’]):`'
 - en: '`addr = {}`'
+  id: totrans-524
   prefs: []
   type: TYPE_NORMAL
+  zh: '`addr = {}`'
 - en: '`addr[‘timestamp’] = int.from_bytes(payload_m.read(4), byteorder=’little’)`'
+  id: totrans-525
   prefs: []
   type: TYPE_NORMAL
+  zh: '`addr[‘timestamp’] = int.from_bytes(payload_m.read(4), byteorder=’little’)`'
 - en: '`addr[‘addr’] = parseIPAddress(payload_m)`'
+  id: totrans-526
   prefs: []
   type: TYPE_NORMAL
+  zh: '`addr[‘addr’] = parseIPAddress(payload_m)`'
 - en: '`payload[‘addrs’].append(addr)`'
+  id: totrans-527
   prefs: []
   type: TYPE_NORMAL
+  zh: '`payload[‘addrs’].append(addr)`'
 - en: '`return payload`'
+  id: totrans-528
   prefs: []
   type: TYPE_NORMAL
+  zh: '`return payload`'
 - en: '`def sendrecvHandler(s: socket, version: int):`'
+  id: totrans-529
   prefs: []
   type: TYPE_NORMAL
+  zh: '`def sendrecvHandler(s: socket, version: int):`'
 - en: '`if establishConnection(s, version) == False:`'
+  id: totrans-530
   prefs: []
   type: TYPE_NORMAL
+  zh: '`if establishConnection(s, version) == False:`'
 - en: '`print(‘Establish connection failed’, file=flog)`'
+  id: totrans-531
   prefs: []
   type: TYPE_NORMAL
+  zh: '`print(‘建立连接失败’, file=flog)`'
 - en: '`return`'
+  id: totrans-532
   prefs: []
   type: TYPE_NORMAL
+  zh: '`return`'
 - en: '`# send getaddr message`'
+  id: totrans-533
   prefs: []
   type: TYPE_NORMAL
 - en: '`sndcmd = ‘getaddr’`'
+  id: totrans-534
   prefs: []
   type: TYPE_NORMAL
 - en: '`payload = b’’`'
+  id: totrans-535
   prefs: []
   type: TYPE_NORMAL
 - en: '`sndmsg = createMessage(sndcmd, payload)`'
+  id: totrans-536
   prefs: []
   type: TYPE_NORMAL
 - en: '``s.send(sndmsg)``'
+  id: totrans-537
   prefs: []
   type: TYPE_NORMAL
 - en: '`print(‘==> cmd = %s, msg = %s’ % (sndcmd, sndmsg.hex()), file=flog)`'
+  id: totrans-538
   prefs: []
   type: TYPE_NORMAL
 - en: '`while True:`'
+  id: totrans-539
   prefs: []
   type: TYPE_NORMAL
 - en: '`recvmsg = recvMsg(s)`'
+  id: totrans-540
   prefs: []
   type: TYPE_NORMAL
 - en: '`if recvmsg[‘command’] == ‘addr’:`'
+  id: totrans-541
   prefs: []
   type: TYPE_NORMAL
 - en: '`break`'
+  id: totrans-542
   prefs: []
   type: TYPE_NORMAL
 - en: '`elif recvmsg[‘command’] == ‘ping’:`'
+  id: totrans-543
   prefs: []
   type: TYPE_NORMAL
 - en: '`# send pong message`'
+  id: totrans-544
   prefs: []
   type: TYPE_NORMAL
 - en: '`sndcmd = ‘pong’`'
+  id: totrans-545
   prefs: []
   type: TYPE_NORMAL
 - en: '`nonce = recvmsg[‘payload’][‘nonce’]`'
+  id: totrans-546
   prefs: []
   type: TYPE_NORMAL
 - en: '`payload = createPongPayload(nonce)`'
+  id: totrans-547
   prefs: []
   type: TYPE_NORMAL
 - en: '`elif recvmsg[‘command’] == ‘getheaders’:`'
+  id: totrans-548
   prefs: []
   type: TYPE_NORMAL
 - en: '`# send header message`'
+  id: totrans-549
   prefs: []
   type: TYPE_NORMAL
 - en: '`sndcmd = ‘headers’`'
+  id: totrans-550
   prefs: []
   type: TYPE_NORMAL
 - en: '`hashes = recvmsg[‘payload’][‘block locator hashes’]`'
+  id: totrans-551
   prefs: []
   type: TYPE_NORMAL
 - en: '`stophash = recvmsg[‘payload’][‘hash_stop’]`'
+  id: totrans-552
   prefs: []
   type: TYPE_NORMAL
 - en: '`payload = createHeadersPayload(hashes, stophash)`'
+  id: totrans-553
   prefs: []
   type: TYPE_NORMAL
 - en: '``sndmsg = createMessage(sndcmd, payload)``'
+  id: totrans-554
   prefs: []
   type: TYPE_NORMAL
 - en: '``s.send(sndmsg)``'
+  id: totrans-555
   prefs: []
   type: TYPE_NORMAL
 - en: '`print(‘==> cmd = %s, msg = %s’ % (sndcmd, sndmsg.hex()), file=flog)`'
+  id: totrans-556
   prefs: []
   type: TYPE_NORMAL
 - en: '`if recvmsg[‘command’] == ‘addr’:`'
+  id: totrans-557
   prefs: []
   type: TYPE_NORMAL
 - en: '`print(‘Received Addr’, file=flog)`'
+  id: totrans-558
   prefs: []
   type: TYPE_NORMAL
 - en: '**Program 7.10:** Program for sending getaddr and receiving addr'
+  id: totrans-559
   prefs: []
   type: TYPE_NORMAL
 - en: We need to also handle the `**getheaders**` requests, which you will understand
     in the next and upcoming subtopics.
+  id: totrans-560
   prefs: []
   type: TYPE_NORMAL
 - en: 'We use following code to call the preceding methods. The same calling code
     will be used to call the upcoming methods:'
+  id: totrans-561
   prefs: []
   type: TYPE_NORMAL
 - en: '`if __name__ == ‘__main__’:`'
+  id: totrans-562
   prefs: []
   type: TYPE_NORMAL
 - en: '`peers = getTestnetPeers()`'
+  id: totrans-563
   prefs: []
   type: TYPE_NORMAL
 - en: '`print(peers)`'
+  id: totrans-564
   prefs: []
   type: TYPE_NORMAL
 - en: '``p = random.choice(peers)``'
+  id: totrans-565
   prefs: []
   type: TYPE_NORMAL
 - en: '`s = None`'
+  id: totrans-566
   prefs: []
   type: TYPE_NORMAL
 - en: '``peerinfo = {}``'
+  id: totrans-567
   prefs: []
   type: TYPE_NORMAL
 - en: '`print(“Trying to connect to “, p, file=flog)`'
+  id: totrans-568
   prefs: []
   type: TYPE_NORMAL
 - en: '`s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)`'
+  id: totrans-569
   prefs: []
   type: TYPE_NORMAL
 - en: '``err = s.connect(p)``'
+  id: totrans-570
   prefs: []
   type: TYPE_NORMAL
 - en: '`print(‘connected’, file=flog)`'
+  id: totrans-571
   prefs: []
   type: TYPE_NORMAL
 - en: '`sendrecvHandler(s, 70013)`'
+  id: totrans-572
   prefs: []
   type: TYPE_NORMAL
 - en: '``s.close()``'
+  id: totrans-573
   prefs: []
   type: TYPE_NORMAL
 - en: '``flog.close()``'
+  id: totrans-574
   prefs: []
   type: TYPE_NORMAL
 - en: 'We get the following communication log:'
+  id: totrans-575
   prefs: []
   type: TYPE_NORMAL
 - en: '![](images/Figure-7.15.jpg)'
+  id: totrans-576
   prefs: []
   type: TYPE_IMG
 - en: '**Figure 7.15:** Communication log of receiving addr from peer'
+  id: totrans-577
   prefs: []
   type: TYPE_NORMAL
 - en: '[Receiving full blockchain](toc.xhtml#s138a)'
+  id: totrans-578
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
@@ -2051,15 +2717,19 @@
     is zero and requests its peers to give blocks. This is called **Initial Block
     Download** (**IBD**). Since Bitcoin Core version 0.10.0, we are using the IBD
     method called **Headers First**.
+  id: totrans-579
   prefs: []
   type: TYPE_NORMAL
 - en: 'The following figure shows the steps involved in this:'
+  id: totrans-580
   prefs: []
   type: TYPE_NORMAL
 - en: '![](images/Figure-7.16.jpg)'
+  id: totrans-581
   prefs: []
   type: TYPE_IMG
 - en: '**Figure 7.16:** Sequence diagram showing steps involved in IBD'
+  id: totrans-582
   prefs: []
   type: TYPE_NORMAL
 - en: The new node initially only has a genesis block. It sends this block’s hash
@@ -2073,20 +2743,25 @@
     a `**getdata**` request with a list of received block hashes. This process continues
     till the node receives all the blocks and the node’s blockchain is fully synchronized
     with the network.
+  id: totrans-583
   prefs: []
   type: TYPE_NORMAL
 - en: 'The following is the structure of the `**getheaders**`, `**headers**`*,* and
     `**getdata**` messages:'
+  id: totrans-584
   prefs: []
   type: TYPE_NORMAL
 - en: '![](images/Figure-7.17.jpg)'
+  id: totrans-585
   prefs: []
   type: TYPE_IMG
 - en: '**Figure 7.17:** Payload structure of getheaders and getdata'
+  id: totrans-586
   prefs: []
   type: TYPE_NORMAL
 - en: The structure of the `**block**` is the same as we discussed in *[Chapter 6,
     Blockchain, Transactions, and Mining](c06.xhtml)* in *[figure 6.6](c06.xhtml#fig6_6)*.
+  id: totrans-587
   prefs: []
   type: TYPE_NORMAL
 - en: 'In the following code, we are only sending two `**getheaders**` requests: the
@@ -2094,617 +2769,834 @@
     32 received blocks. This means we expect to receive two sets of 2000 blocks. We
     are making multiple `**getdata**` requests for each `headers` response. In the
     following code, each `**getdata**` request contains 16 block header hashes.'
+  id: totrans-588
   prefs: []
   type: TYPE_NORMAL
 - en: '`def getGenesisBlockHash():`'
+  id: totrans-589
   prefs: []
   type: TYPE_NORMAL
 - en: '`blkhash = rpc_connection.getblockhash(0)`'
+  id: totrans-590
   prefs: []
   type: TYPE_NORMAL
 - en: '`return blkhash`'
+  id: totrans-591
   prefs: []
   type: TYPE_NORMAL
 - en: '`def parseSendCompactPayload(payload_m: mmap, payloadlen = 0):`'
+  id: totrans-592
   prefs: []
   type: TYPE_NORMAL
 - en: '`payload = {}`'
+  id: totrans-593
   prefs: []
   type: TYPE_NORMAL
 - en: '`payload[‘announce’] = int.from_bytes(payload_m.read(1), byteorder=’little’)`'
+  id: totrans-594
   prefs: []
   type: TYPE_NORMAL
 - en: '`payload[‘version’] = int.from_bytes(payload_m.read(8), byteorder=’little’)`'
+  id: totrans-595
   prefs: []
   type: TYPE_NORMAL
 - en: '`return payload`'
+  id: totrans-596
   prefs: []
   type: TYPE_NORMAL
 - en: '`def parseFeeFilterPayload(payload_m: mmap, payloadlen = 0):`'
+  id: totrans-597
   prefs: []
   type: TYPE_NORMAL
 - en: '`payload = {}`'
+  id: totrans-598
   prefs: []
   type: TYPE_NORMAL
 - en: '`payload[‘feerate’] = int.from_bytes(payload_m.read(8), byteorder=’little’)`'
+  id: totrans-599
   prefs: []
   type: TYPE_NORMAL
 - en: '`return payload`'
+  id: totrans-600
   prefs: []
   type: TYPE_NORMAL
 - en: '``mempool_l_g = []``'
+  id: totrans-601
   prefs: []
   type: TYPE_NORMAL
 - en: '`def parseInvPayload(payload_m: mmap, payloadlen = 0):`'
+  id: totrans-602
   prefs: []
   type: TYPE_NORMAL
 - en: '`MSG_TX = 1`'
+  id: totrans-603
   prefs: []
   type: TYPE_NORMAL
 - en: '`payload = {}`'
+  id: totrans-604
   prefs: []
   type: TYPE_NORMAL
 - en: '`payload[‘count’] = getVarInt(payload_m)`'
+  id: totrans-605
   prefs: []
   type: TYPE_NORMAL
 - en: '`payload[‘inventory’] = []`'
+  id: totrans-606
   prefs: []
   type: TYPE_NORMAL
 - en: '`for i in range(payload[‘count’]):`'
+  id: totrans-607
   prefs: []
   type: TYPE_NORMAL
 - en: '`inv = {}`'
+  id: totrans-608
   prefs: []
   type: TYPE_NORMAL
 - en: '`inv[‘type’] = int.from_bytes(payload_m.read(4), byteorder=’little’)`'
+  id: totrans-609
   prefs: []
   type: TYPE_NORMAL
 - en: '`if inv[‘type’] == MSG_TX:`'
+  id: totrans-610
   prefs: []
   type: TYPE_NORMAL
 - en: '`mempool = rpc_connection.getrawmempool(True)`'
+  id: totrans-611
   prefs: []
   type: TYPE_NORMAL
 - en: '`if (len(mempool_l_g) > 0):`'
+  id: totrans-612
   prefs: []
   type: TYPE_NORMAL
 - en: '`new_tx = set(mempool.keys()) ^ set(mempool_l_g[-1].keys())`'
+  id: totrans-613
   prefs: []
   type: TYPE_NORMAL
 - en: '`if len(new_tx) > 0:`'
+  id: totrans-614
   prefs: []
   type: TYPE_NORMAL
 - en: '``mempool_l_g.append(mempool)``'
+  id: totrans-615
   prefs: []
   type: TYPE_NORMAL
 - en: '`print(‘inserted mempool’, file=flog)`'
+  id: totrans-616
   prefs: []
   type: TYPE_NORMAL
 - en: '`else:`'
+  id: totrans-617
   prefs: []
   type: TYPE_NORMAL
 - en: '`mempool_l_g.append(mempool)`'
+  id: totrans-618
   prefs: []
   type: TYPE_NORMAL
 - en: '`print(‘inserted mempool’, file=flog)`'
+  id: totrans-619
   prefs: []
   type: TYPE_NORMAL
 - en: '`inv[‘hash’] = payload_m.read(32)[::-1].hex()`'
+  id: totrans-620
   prefs: []
   type: TYPE_NORMAL
 - en: '`payload[‘inventory’].append(inv)`'
+  id: totrans-621
   prefs: []
   type: TYPE_NORMAL
 - en: '`return payload`'
+  id: totrans-622
   prefs: []
   type: TYPE_NORMAL
 - en: '`def parseBlockHeader(payload_m: mmap):`'
+  id: totrans-623
   prefs: []
   type: TYPE_NORMAL
 - en: '`hdr = {}`'
+  id: totrans-624
   prefs: []
   type: TYPE_NORMAL
 - en: '`hdr[‘version’] = int.from_bytes(payload_m.read(4), byteorder=’little’)`'
+  id: totrans-625
   prefs: []
   type: TYPE_NORMAL
 - en: '`hdr[‘prev_blockhash’] = payload_m.read(32)[::-1].hex()`'
+  id: totrans-626
   prefs: []
   type: TYPE_NORMAL
 - en: '`hdr[‘merkle_root’] = payload_m.read(32)[::-1].hex()`'
+  id: totrans-627
   prefs: []
   type: TYPE_NORMAL
 - en: '`hdr[‘timestamp’] = int.from_bytes(payload_m.read(4), byteorder=’little’)`'
+  id: totrans-628
   prefs: []
   type: TYPE_NORMAL
 - en: '`hdr[‘bits’] = payload_m.read(4)[::-1].hex()`'
+  id: totrans-629
   prefs: []
   type: TYPE_NORMAL
 - en: '`hdr[‘nonce’] = payload_m.read(4)[::-1].hex()`'
+  id: totrans-630
   prefs: []
   type: TYPE_NORMAL
 - en: '`return hdr`'
+  id: totrans-631
   prefs: []
   type: TYPE_NORMAL
 - en: '`def parseGetBlocksGetHeadersPayload(payload_m: mmap, payloadlen = 0):`'
+  id: totrans-632
   prefs: []
   type: TYPE_NORMAL
 - en: '`payload = {}`'
+  id: totrans-633
   prefs: []
   type: TYPE_NORMAL
 - en: '`payload[‘version’] = int.from_bytes(payload_m.read(4), byteorder=’little’)`'
+  id: totrans-634
   prefs: []
   type: TYPE_NORMAL
 - en: '`payload[‘hash count’] = getVarInt(payload_m)`'
+  id: totrans-635
   prefs: []
   type: TYPE_NORMAL
 - en: '`payload[‘block locator hashes’] = []`'
+  id: totrans-636
   prefs: []
   type: TYPE_NORMAL
 - en: '`for i in range(payload[‘hash count’]):`'
+  id: totrans-637
   prefs: []
   type: TYPE_NORMAL
 - en: '`h = payload_m.read(32)[::-1].hex()`'
+  id: totrans-638
   prefs: []
   type: TYPE_NORMAL
 - en: '`payload[‘block locator hashes’].append(h)`'
+  id: totrans-639
   prefs: []
   type: TYPE_NORMAL
 - en: '`payload[‘hash_stop’] = payload_m.read(32)[::-1].hex()`'
+  id: totrans-640
   prefs: []
   type: TYPE_NORMAL
 - en: '`return payload`'
+  id: totrans-641
   prefs: []
   type: TYPE_NORMAL
 - en: '`def parseHeadersPayload(payload_m: mmap, payloadlen = 0):`'
+  id: totrans-642
   prefs: []
   type: TYPE_NORMAL
 - en: '`payload = {}`'
+  id: totrans-643
   prefs: []
   type: TYPE_NORMAL
 - en: '`payload[‘count’] = getVarInt(payload_m)`'
+  id: totrans-644
   prefs: []
   type: TYPE_NORMAL
 - en: '`payload[‘headers’] = []`'
+  id: totrans-645
   prefs: []
   type: TYPE_NORMAL
 - en: '`for i in range(payload[‘count’]):`'
+  id: totrans-646
   prefs: []
   type: TYPE_NORMAL
 - en: '`hdr = {}`'
+  id: totrans-647
   prefs: []
   type: TYPE_NORMAL
 - en: '``start = payload_m.tell()``'
+  id: totrans-648
   prefs: []
   type: TYPE_NORMAL
 - en: '`h_b = hashlib.sha256(payload_m.read(80)).digest()`'
+  id: totrans-649
   prefs: []
   type: TYPE_NORMAL
 - en: '`hdr[‘blkhash’] = hashlib.sha256(h_b).digest()[::-1].hex()`'
+  id: totrans-650
   prefs: []
   type: TYPE_NORMAL
 - en: '`payload_m.seek(start)`'
+  id: totrans-651
   prefs: []
   type: TYPE_NORMAL
 - en: '`hdr[‘header’] = parseBlockHeader(payload_m)`'
+  id: totrans-652
   prefs: []
   type: TYPE_NORMAL
 - en: '`hdr[‘txn_count’] = getVarInt(payload_m)`'
+  id: totrans-653
   prefs: []
   type: TYPE_NORMAL
 - en: '`payload[‘headers’].append(hdr)`'
+  id: totrans-654
   prefs: []
   type: TYPE_NORMAL
 - en: '`return payload`'
+  id: totrans-655
   prefs: []
   type: TYPE_NORMAL
 - en: '`def parseTxPayload(payload_m: mmap, payloadlen = 0):`'
+  id: totrans-656
   prefs: []
   type: TYPE_NORMAL
 - en: '``payload = {}``'
+  id: totrans-657
   prefs: []
   type: TYPE_NORMAL
 - en: '`payload[‘version’] = int.from_bytes(payload_m.read(4), byteorder=’little’)`'
+  id: totrans-658
   prefs: []
   type: TYPE_NORMAL
 - en: '`payload[‘tx_in count’] = getVarInt(payload_m)`'
+  id: totrans-659
   prefs: []
   type: TYPE_NORMAL
 - en: '`payload[‘tx_in’] = []`'
+  id: totrans-660
   prefs: []
   type: TYPE_NORMAL
 - en: '`for i in range(payload[‘tx_in count’]):`'
+  id: totrans-661
   prefs: []
   type: TYPE_NORMAL
 - en: '``txin = {}``'
+  id: totrans-662
   prefs: []
   type: TYPE_NORMAL
 - en: '`txin[‘prev_tx_hash’] = payload_m.read(32)[::-1].hex()`'
+  id: totrans-663
   prefs: []
   type: TYPE_NORMAL
 - en: '`txin[‘prev_tx_out_index’] = int.from_bytes(payload_m.read(4),`'
+  id: totrans-664
   prefs: []
   type: TYPE_NORMAL
 - en: '`byteorder=’little’)`'
+  id: totrans-665
   prefs: []
   type: TYPE_NORMAL
 - en: '`txin[‘bytes_scriptsig’] = getVarInt(payload_m)`'
+  id: totrans-666
   prefs: []
   type: TYPE_NORMAL
 - en: '`txin[‘sriptsig’] = payload_m.read(txin[‘bytes_scriptsig’]).hex()`'
+  id: totrans-667
   prefs: []
   type: TYPE_NORMAL
 - en: '`txin[‘sequence’] = payload_m.read(4)[::-1].hex()`'
+  id: totrans-668
   prefs: []
   type: TYPE_NORMAL
 - en: '`payload[‘tx_in’].append(txin)`'
+  id: totrans-669
   prefs: []
   type: TYPE_NORMAL
 - en: '`payload[‘tx_out count’] = getVarInt(payload_m)`'
+  id: totrans-670
   prefs: []
   type: TYPE_NORMAL
 - en: '`payload[‘tx_out’] = []`'
+  id: totrans-671
   prefs: []
   type: TYPE_NORMAL
 - en: '`for i in range(payload[‘tx_out count’]):`'
+  id: totrans-672
   prefs: []
   type: TYPE_NORMAL
 - en: '``txout = {}``'
+  id: totrans-673
   prefs: []
   type: TYPE_NORMAL
 - en: '`txout[‘satoshis’] = int.from_bytes(payload_m.read(8), byteorder=’little’)`'
+  id: totrans-674
   prefs: []
   type: TYPE_NORMAL
 - en: '`txout[‘bytes_scriptpubkey’] = getVarInt(payload_m)`'
+  id: totrans-675
   prefs: []
   type: TYPE_NORMAL
 - en: '`txout[‘scriptpubkey’] = payload_m.read(txout[‘bytes_scriptpubkey’]).hex()`'
+  id: totrans-676
   prefs: []
   type: TYPE_NORMAL
 - en: '`payload[‘tx_out’].append(txout)`'
+  id: totrans-677
   prefs: []
   type: TYPE_NORMAL
 - en: '`payload[‘locktime’] = int.from_bytes(payload_m.read(4), byteorder=’little’)`'
+  id: totrans-678
   prefs: []
   type: TYPE_NORMAL
 - en: '`return payload`'
+  id: totrans-679
   prefs: []
   type: TYPE_NORMAL
 - en: '`def parseBlockPayload(payload_m: mmap, payloadlen = 0):`'
+  id: totrans-680
   prefs: []
   type: TYPE_NORMAL
 - en: '``payload = {}``'
+  id: totrans-681
   prefs: []
   type: TYPE_NORMAL
 - en: '`payload[‘version’] = int.from_bytes(payload_m.read(4), byteorder=’little’)`'
+  id: totrans-682
   prefs: []
   type: TYPE_NORMAL
 - en: '`payload[‘prev_blockhash’] = payload_m.read(32)[::-1].hex()`'
+  id: totrans-683
   prefs: []
   type: TYPE_NORMAL
 - en: '`payload[‘merkle_root’] = payload_m.read(32)[::-1].hex()`'
+  id: totrans-684
   prefs: []
   type: TYPE_NORMAL
 - en: '`payload[‘timestamp’] = int.from_bytes(payload_m.read(4), byteorder=’little’)`'
+  id: totrans-685
   prefs: []
   type: TYPE_NORMAL
 - en: '`payload[‘bits’] = payload_m.read(4)[::-1].hex()`'
+  id: totrans-686
   prefs: []
   type: TYPE_NORMAL
 - en: '`payload[‘nonce’] = payload_m.read(4)[::-1].hex()`'
+  id: totrans-687
   prefs: []
   type: TYPE_NORMAL
 - en: '`payload[‘txn_count’] = getVarInt(payload_m)`'
+  id: totrans-688
   prefs: []
   type: TYPE_NORMAL
 - en: '`payload[‘txns’] = []`'
+  id: totrans-689
   prefs: []
   type: TYPE_NORMAL
 - en: '`for i in range(payload[‘txn_count’]):`'
+  id: totrans-690
   prefs: []
   type: TYPE_NORMAL
 - en: '`payload[‘txns’].append(parseTxPayload(payload_m))`'
+  id: totrans-691
   prefs: []
   type: TYPE_NORMAL
 - en: '`return payload`'
+  id: totrans-692
   prefs: []
   type: TYPE_NORMAL
 - en: '`def createGetHeadersPayload(hdr_info_l: list, version: int):`'
+  id: totrans-693
   prefs: []
   type: TYPE_NORMAL
 - en: '`version_b = struct.pack(‘<L’, version)`'
+  id: totrans-694
   prefs: []
   type: TYPE_NORMAL
 - en: '`blk_locator_hashes_b = b’’`'
+  id: totrans-695
   prefs: []
   type: TYPE_NORMAL
 - en: '`count = 0`'
+  id: totrans-696
   prefs: []
   type: TYPE_NORMAL
 - en: '`for i in range(len(hdr_info_l) - 1, len(hdr_info_l) - 32, -1):`'
+  id: totrans-697
   prefs: []
   type: TYPE_NORMAL
 - en: '`if i < 1: # assuming first block is genesis`'
+  id: totrans-698
   prefs: []
   type: TYPE_NORMAL
 - en: '`break`'
+  id: totrans-699
   prefs: []
   type: TYPE_NORMAL
 - en: '`blk_locator_hashes_b += bytes.fromhex(hdr_info_l[i][‘blkhash’])[::-1]`'
+  id: totrans-700
   prefs: []
   type: TYPE_NORMAL
 - en: '`count += 1`'
+  id: totrans-701
   prefs: []
   type: TYPE_NORMAL
 - en: '`blk_locator_hashes_b += bytes.fromhex(getGenesisBlockHash())[::-1]`'
+  id: totrans-702
   prefs: []
   type: TYPE_NORMAL
 - en: '`count += 1`'
+  id: totrans-703
   prefs: []
   type: TYPE_NORMAL
 - en: '``hash_count_b = setVarInt(count)``'
+  id: totrans-704
   prefs: []
   type: TYPE_NORMAL
 - en: '`stop_hash_b = bytes(32)`'
+  id: totrans-705
   prefs: []
   type: TYPE_NORMAL
 - en: '`payload = version_b \`'
+  id: totrans-706
   prefs: []
   type: TYPE_NORMAL
 - en: '`+ hash_count_b \`'
+  id: totrans-707
   prefs: []
   type: TYPE_NORMAL
 - en: '`+ blk_locator_hashes_b \`'
+  id: totrans-708
   prefs: []
   type: TYPE_NORMAL
 - en: '`+ stop_hash_b`'
+  id: totrans-709
   prefs: []
   type: TYPE_NORMAL
 - en: '`return payload`'
+  id: totrans-710
   prefs: []
   type: TYPE_NORMAL
 - en: '`def waitForBlock(s: socket):`'
+  id: totrans-711
   prefs: []
   type: TYPE_NORMAL
 - en: '`while True:`'
+  id: totrans-712
   prefs: []
   type: TYPE_NORMAL
 - en: '``recvmsg = recvMsg(s)``'
+  id: totrans-713
   prefs: []
   type: TYPE_NORMAL
 - en: '`if recvmsg[‘command’] == ‘block’:`'
+  id: totrans-714
   prefs: []
   type: TYPE_NORMAL
 - en: '`break`'
+  id: totrans-715
   prefs: []
   type: TYPE_NORMAL
 - en: '`elif recvmsg[‘command’] == ‘ping’:`'
+  id: totrans-716
   prefs: []
   type: TYPE_NORMAL
 - en: '``sendPongMessage(s, recvmsg)``'
+  id: totrans-717
   prefs: []
   type: TYPE_NORMAL
 - en: '`return recvmsg`'
+  id: totrans-718
   prefs: []
   type: TYPE_NORMAL
 - en: '`def sendGetHeadersMessage(s: socket, hdr_info_l: list, version: int):`'
+  id: totrans-719
   prefs: []
   type: TYPE_NORMAL
 - en: '`sndcmd = ‘getheaders’`'
+  id: totrans-720
   prefs: []
   type: TYPE_NORMAL
 - en: '``payload = createGetHeadersPayload(hdr_info_l, version)``'
+  id: totrans-721
   prefs: []
   type: TYPE_NORMAL
 - en: '``sndmsg = createMessage(sndcmd, payload)``'
+  id: totrans-722
   prefs: []
   type: TYPE_NORMAL
 - en: '``s.send(sndmsg)``'
+  id: totrans-723
   prefs: []
   type: TYPE_NORMAL
 - en: '`print(‘==> cmd = %s, msg = %s’ % (sndcmd, sndmsg.hex()), file=flog)`'
+  id: totrans-724
   prefs: []
   type: TYPE_NORMAL
 - en: '`def waitForHeaders(s: socket):`'
+  id: totrans-725
   prefs: []
   type: TYPE_NORMAL
 - en: '`while True:`'
+  id: totrans-726
   prefs: []
   type: TYPE_NORMAL
 - en: '``recvmsg = recvMsg(s)``'
+  id: totrans-727
   prefs: []
   type: TYPE_NORMAL
 - en: '`if recvmsg[‘command’] == ‘headers’:`'
+  id: totrans-728
   prefs: []
   type: TYPE_NORMAL
 - en: '`break`'
+  id: totrans-729
   prefs: []
   type: TYPE_NORMAL
 - en: '`elif recvmsg[‘command’] == ‘ping’:`'
+  id: totrans-730
   prefs: []
   type: TYPE_NORMAL
 - en: '``sendPongMessage(s, recvmsg)``'
+  id: totrans-731
   prefs: []
   type: TYPE_NORMAL
 - en: '`return recvmsg`'
+  id: totrans-732
   prefs: []
   type: TYPE_NORMAL
 - en: '`def createGetDataPayload(count: int, hash_l: list):`'
+  id: totrans-733
   prefs: []
   type: TYPE_NORMAL
 - en: '`MSG_BLOCK = 2`'
+  id: totrans-734
   prefs: []
   type: TYPE_NORMAL
 - en: '`hash_count_b = setVarInt(count)`'
+  id: totrans-735
   prefs: []
   type: TYPE_NORMAL
 - en: '`hashes_b = b’’`'
+  id: totrans-736
   prefs: []
   type: TYPE_NORMAL
 - en: '`for i in range(count):`'
+  id: totrans-737
   prefs: []
   type: TYPE_NORMAL
 - en: '`type_b = struct.pack(‘<L’, MSG_BLOCK)`'
+  id: totrans-738
   prefs: []
   type: TYPE_NORMAL
 - en: '`hashes_b += type_b + bytes.fromhex(hash_l[i][‘blkhash’])[::-1]`'
+  id: totrans-739
   prefs: []
   type: TYPE_NORMAL
 - en: '`payload_b = hash_count_b + hashes_b`'
+  id: totrans-740
   prefs: []
   type: TYPE_NORMAL
 - en: '`return payload_b`'
+  id: totrans-741
   prefs: []
   type: TYPE_NORMAL
 - en: '`def sendGetDataMessage(s: socket, count: int, hash_l: list):`'
+  id: totrans-742
   prefs: []
   type: TYPE_NORMAL
 - en: '`sndcmd = ‘getdata’`'
+  id: totrans-743
   prefs: []
   type: TYPE_NORMAL
 - en: '``payload = createGetDataPayload(count, hash_l)``'
+  id: totrans-744
   prefs: []
   type: TYPE_NORMAL
 - en: '``sndmsg = createMessage(sndcmd, payload)``'
+  id: totrans-745
   prefs: []
   type: TYPE_NORMAL
 - en: '``s.send(sndmsg)``'
+  id: totrans-746
   prefs: []
   type: TYPE_NORMAL
 - en: '`print(‘==> cmd = %s, msg = %s’ % (sndcmd, sndmsg.hex()), file=flog)`'
+  id: totrans-747
   prefs: []
   type: TYPE_NORMAL
 - en: '`def sendAndHandleGetHeaders(s: socket, hdr_info_l: list, version: int):`'
+  id: totrans-748
   prefs: []
   type: TYPE_NORMAL
 - en: '``sendGetHeadersMessage(s, hdr_info_l, version)``'
+  id: totrans-749
   prefs: []
   type: TYPE_NORMAL
 - en: '``recvmsg = waitForHeaders(s)``'
+  id: totrans-750
   prefs: []
   type: TYPE_NORMAL
 - en: '`count = recvmsg[‘payload’][‘count’]`'
+  id: totrans-751
   prefs: []
   type: TYPE_NORMAL
 - en: '`for i in range(0, count, 16):`'
+  id: totrans-752
   prefs: []
   type: TYPE_NORMAL
 - en: '`lindex = i + 16 if i + 16 < count else count`'
+  id: totrans-753
   prefs: []
   type: TYPE_NORMAL
 - en: '`print(i, lindex)`'
+  id: totrans-754
   prefs: []
   type: TYPE_NORMAL
 - en: '`blk_l = recvmsg[‘payload’][‘headers’][i:lindex]`'
+  id: totrans-755
   prefs: []
   type: TYPE_NORMAL
 - en: '`sendGetDataMessage(s, lindex - i, blk_l)`'
+  id: totrans-756
   prefs: []
   type: TYPE_NORMAL
 - en: '`for j in range(i, lindex):`'
+  id: totrans-757
   prefs: []
   type: TYPE_NORMAL
 - en: '``waitForBlock(s)``'
+  id: totrans-758
   prefs: []
   type: TYPE_NORMAL
 - en: '`return recvmsg`'
+  id: totrans-759
   prefs: []
   type: TYPE_NORMAL
 - en: '`def sendrecvHeadersData(s: socket, version: int):`'
+  id: totrans-760
   prefs: []
   type: TYPE_NORMAL
 - en: '``recvmsg = sendAndHandleGetHeaders(s, [], version)``'
+  id: totrans-761
   prefs: []
   type: TYPE_NORMAL
 - en: '`sendAndHandleGetHeaders(s, recvmsg[‘payload’][‘headers’], version)`'
+  id: totrans-762
   prefs: []
   type: TYPE_NORMAL
 - en: '`def sendrecvHandler(s: socket, version: int):`'
+  id: totrans-763
   prefs: []
   type: TYPE_NORMAL
 - en: '`if establishConnection(s, version) == False:`'
+  id: totrans-764
   prefs: []
   type: TYPE_NORMAL
 - en: '`print(‘Establish connection failed’, file=flog)`'
+  id: totrans-765
   prefs: []
   type: TYPE_NORMAL
 - en: '``return``'
+  id: totrans-766
   prefs: []
   type: TYPE_NORMAL
 - en: '``sendrecvHeadersData(s, version)``'
+  id: totrans-767
   prefs: []
   type: TYPE_NORMAL
 - en: '**Program 7.11:** Program for making IBD request to peer and receiving blocks'
+  id: totrans-768
   prefs: []
   type: TYPE_NORMAL
 - en: 'This gives the following output. First, we send the `**getheaders**` request
     with genesis block hash and no hash stop:'
+  id: totrans-769
   prefs: []
   type: TYPE_NORMAL
 - en: '![](images/Figure-7.18.jpg)'
+  id: totrans-770
   prefs: []
   type: TYPE_IMG
 - en: '**Figure 7.18:** getheaders request sent to the peer'
+  id: totrans-771
   prefs: []
   type: TYPE_NORMAL
 - en: 'The following is the truncated ***headers*** response containing 2,000 headers:'
+  id: totrans-772
   prefs: []
   type: TYPE_NORMAL
 - en: '![](images/Figure-7.19.jpg)'
+  id: totrans-773
   prefs: []
   type: TYPE_IMG
 - en: '**Figure 7.19:** Received headers response from the peer'
+  id: totrans-774
   prefs: []
   type: TYPE_NORMAL
+  zh: '**图 7.19:** 从对等节点接收到头部响应'
 - en: 'We responded with `**getdata**` requesting 16 blocks. Here’s the request:'
+  id: totrans-775
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们回应了一个 `**getdata**` 请求，请求 16 个区块。请求内容如下：
 - en: '![](images/Figure-7.20.jpg)'
+  id: totrans-776
   prefs: []
   type: TYPE_IMG
+  zh: '![](images/Figure-7.20.jpg)'
 - en: '**Figure 7.20:** Sent getdata request to the peer'
+  id: totrans-777
   prefs: []
   type: TYPE_NORMAL
+  zh: '**图 7.20:** 向对等节点发送 getdata 请求'
 - en: 'We got 16 blocks, and the following is one of them:'
+  id: totrans-778
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们获得了 16 个区块，以下是其中之一：
 - en: '![](images/Figure-7.21.jpg)'
+  id: totrans-779
   prefs: []
   type: TYPE_IMG
+  zh: '![](images/Figure-7.21.jpg)'
 - en: '**Figure 7.21:** Received block in response from the peer'
+  id: totrans-780
   prefs: []
   type: TYPE_NORMAL
+  zh: '**图 7.21:** 从对等节点接收到的区块'
 - en: After 16 blocks are received, we requested the next 16 blocks and again got
     16 blocks. This continued till all 2,000 blocks are received. A node also needs
     to verify each block according to the consensus rules. Some of these consensus
     rules were covered in *[Chapter 6, Blockchain, Transactions, and Mining](c06.xhtml)*.
+  id: totrans-781
   prefs: []
   type: TYPE_NORMAL
+  zh: 在接收到 16 个区块后，我们请求下一个 16 个区块，并再次获得 16 个区块。这个过程一直持续，直到我们接收到所有的 2,000 个区块。节点还需要根据共识规则验证每个区块。这些共识规则中的一些在
+    *[第 6 章，区块链、交易和挖矿](c06.xhtml)* 中已经介绍过。
 - en: 'After receiving 2,000 blocks, we again send `**getheaders**` requests with
     a list of the last 31 block hashes and the genesis block hash, making it 32 hashes.
     The following is the part of the request:'
+  id: totrans-782
   prefs: []
   type: TYPE_NORMAL
+  zh: 在接收到 2,000 个区块后，我们再次发送 `**getheaders**` 请求，包含最后 31 个区块哈希列表和创世区块哈希，共计 32 个哈希。以下是请求的部分内容：
 - en: '![](images/Figure-7.22.jpg)'
+  id: totrans-783
   prefs: []
   type: TYPE_IMG
+  zh: '![](images/Figure-7.22.jpg)'
 - en: '**Figure 7.22:** Truncated getheaders request made to the peer'
+  id: totrans-784
   prefs: []
   type: TYPE_NORMAL
+  zh: '**图 7.22:** 向对等节点发送截断的 getheaders 请求'
 - en: We again got the next 2,000 block `**headers**`*,* and we repeated the process.
     This can be continued till we receive all the blocks. Once less than 2,000 `**headers**`
     are received, we can also send `**getheaders**` request to other peers. By sending
     `**getheaders**` requests to other peers, we can guess the best blockchain and
     keep blocks in different chains to be able to undo blocks.
+  id: totrans-785
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们再次获取了下一个 2,000 个区块的 `**headers**`*，并重复了该过程。这个过程可以一直持续，直到我们接收到所有的区块。一旦接收到的
+    `**headers**` 少于 2,000 个，我们也可以向其他对等节点发送 `**getheaders**` 请求。通过向其他对等节点发送 `**getheaders**`
+    请求，我们可以猜测最优质的区块链，并保持不同链上的区块，以便能够撤销区块。
 - en: The IBD method is also used to synchronize blocks if blockchain is more than
     24 hours behind.
+  id: totrans-786
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果区块链落后于 24 小时以上，还可以使用 IBD 方法同步区块。
 - en: '[Synchronizing blockchain](toc.xhtml#s139a)'
+  id: totrans-787
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: '[同步区块链](toc.xhtml#s139a)'
 - en: If our node is less than 24 hours behind, we must consider the possibility that
     there may be competing chains. In this case, we need to get blocks from different
     peers and keep the blocks in competing chains to undo them if the other chain
@@ -2712,223 +3604,299 @@
     the only difference here is that we are getting blocks from multiple peers. Our
     node also needs to decide which chain it needs to consider best and generally,
     the longer chain is preferred.
+  id: totrans-788
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果我们的节点落后于 24 小时以内，我们必须考虑可能存在竞争链的情况。在这种情况下，我们需要从不同的对等节点获取区块，并保持竞争链上的区块，以便如果另一条链更长时可以撤销它们。我们使用与上一个小节相同的方法获取区块，唯一的区别是我们现在是从多个对等节点获取区块。我们的节点还需要决定哪个链是最优的，通常情况下，更长的链是被优先考虑的。
 - en: '[Transaction broadcasting](toc.xhtml#s140a)'
+  id: totrans-789
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: '[交易广播](toc.xhtml#s140a)'
 - en: As we know, to spend an unspent output available as UTXO, we create a transaction
     and send it to the peer. We may also receive a transaction from our peers, which
     we may need to send to other peers. In this subtopic, we will understand how a
     node receives a transaction.
+  id: totrans-790
   prefs: []
   type: TYPE_NORMAL
+  zh: 正如我们所知，要花费作为 UTXO 存在的未花费输出，我们需要创建一个交易并发送给对等节点。我们可能还需要从对等节点接收交易，然后发送给其他对等节点。在本小节中，我们将了解节点是如何接收交易的。
 - en: 'The following figure shows the steps involved in getting transactions:'
+  id: totrans-791
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下图表展示了获取交易步骤的过程：
 - en: '![](images/Figure-7.23.jpg)'
+  id: totrans-792
   prefs: []
   type: TYPE_IMG
+  zh: '![](images/Figure-7.23.jpg)'
 - en: '**Figure 7.23:** Sequence diagram showing the steps involved in transaction
     broadcast'
+  id: totrans-793
   prefs: []
   type: TYPE_NORMAL
+  zh: '**图 7.23:** 显示交易广播步骤的序列图'
 - en: When a node receives a transaction, it sends an `**inv**` message to its peer.
     The peer node checks whether it has seen the transaction earlier. If not, it sends
     back `**getdata**` requests with option `**MSG_TX**` and the `**txid**`. The node
     that had sent the `**inv**` message responds with the actual raw transaction.
+  id: totrans-794
   prefs: []
   type: TYPE_NORMAL
+  zh: 当一个节点接收到一个交易时，它会将其发送给对等节点的 `**inv**` 消息。对等节点检查它是否之前见过这个交易。如果没有，它会返回带有 `**MSG_TX**`
+    选项和 `**txid**` 的 `**getdata**` 请求。发送 `**inv**` 消息的节点回应实际的原始交易。
 - en: '`**inv**` has the same payload structure as `**getdata**`. The `**tx**` message
     has the same message structure as the Bitcoin transaction we discussed in *[Chapter
     6, Blockchain, Transactions, and Mining](c06.xhtml), [figure 6.30](c06.xhtml#fig6_30)*.'
+  id: totrans-795
   prefs: []
   type: TYPE_NORMAL
 - en: 'The following code processes the `**inv**` message if it has the option `**MSG_TX**`:'
+  id: totrans-796
   prefs: []
   type: TYPE_NORMAL
 - en: '`def createGetDataTxPayload(payload: dict):`'
+  id: totrans-797
   prefs: []
   type: TYPE_NORMAL
 - en: '`MSG_TX = 1`'
+  id: totrans-798
   prefs: []
   type: TYPE_NORMAL
 - en: '`data_b = b’’`'
+  id: totrans-799
   prefs: []
   type: TYPE_NORMAL
 - en: '`count = 0`'
+  id: totrans-800
   prefs: []
   type: TYPE_NORMAL
 - en: '`for i in range(payload[‘count’]):`'
+  id: totrans-801
   prefs: []
   type: TYPE_NORMAL
 - en: '`# we only request data for tx`'
+  id: totrans-802
   prefs: []
   type: TYPE_NORMAL
 - en: '`if payload[‘inventory’][i][‘type’] == MSG_TX:`'
+  id: totrans-803
   prefs: []
   type: TYPE_NORMAL
 - en: '`type_b = struct.pack(‘<L’, payload[‘inventory’][i][‘type’])`'
+  id: totrans-804
   prefs: []
   type: TYPE_NORMAL
 - en: '`hash_b = bytes.fromhex(payload[‘inventory’][i][‘hash’])[::-1]`'
+  id: totrans-805
   prefs: []
   type: TYPE_NORMAL
 - en: '``data_b += type_b + hash_b``'
+  id: totrans-806
   prefs: []
   type: TYPE_NORMAL
 - en: '`count += 1`'
+  id: totrans-807
   prefs: []
   type: TYPE_NORMAL
 - en: '``count_b = setVarInt(count)``'
+  id: totrans-808
   prefs: []
   type: TYPE_NORMAL
 - en: '``payload_b = count_b + data_b``'
+  id: totrans-809
   prefs: []
   type: TYPE_NORMAL
 - en: '``return count, payload_b``'
+  id: totrans-810
   prefs: []
   type: TYPE_NORMAL
 - en: '`def waitForInvMessage(s: socket):`'
+  id: totrans-811
   prefs: []
   type: TYPE_NORMAL
 - en: '`while True:`'
+  id: totrans-812
   prefs: []
   type: TYPE_NORMAL
 - en: '``recvmsg = recvMsg(s)``'
+  id: totrans-813
   prefs: []
   type: TYPE_NORMAL
 - en: '`if recvmsg[‘command’] == ‘inv’:`'
+  id: totrans-814
   prefs: []
   type: TYPE_NORMAL
 - en: '`break`'
+  id: totrans-815
   prefs: []
   type: TYPE_NORMAL
 - en: '`elif recvmsg[‘command’] == ‘ping’:`'
+  id: totrans-816
   prefs: []
   type: TYPE_NORMAL
 - en: '``sendPongMessage(s, recvmsg)``'
+  id: totrans-817
   prefs: []
   type: TYPE_NORMAL
 - en: '`print(‘Received INV’, file=flog)`'
+  id: totrans-818
   prefs: []
   type: TYPE_NORMAL
 - en: '`return recvmsg`'
+  id: totrans-819
   prefs: []
   type: TYPE_NORMAL
 - en: '`def waitForTxMsg(s: socket):`'
+  id: totrans-820
   prefs: []
   type: TYPE_NORMAL
 - en: '`while True:`'
+  id: totrans-821
   prefs: []
   type: TYPE_NORMAL
 - en: '``recvmsg = recvMsg(s)``'
+  id: totrans-822
   prefs: []
   type: TYPE_NORMAL
 - en: '`if recvmsg[‘command’] == ‘tx’:`'
+  id: totrans-823
   prefs: []
   type: TYPE_NORMAL
 - en: '``break``'
+  id: totrans-824
   prefs: []
   type: TYPE_NORMAL
 - en: '`elif recvmsg[‘command’] == ‘ping’:`'
+  id: totrans-825
   prefs: []
   type: TYPE_NORMAL
 - en: '`sendPongMessage(s, recvmsg)`'
+  id: totrans-826
   prefs: []
   type: TYPE_NORMAL
 - en: '`def sendGetDataMessageWithTx(s: socket, recvmsg: dict):`'
+  id: totrans-827
   prefs: []
   type: TYPE_NORMAL
 - en: '`sndcmd = ‘getdata’`'
+  id: totrans-828
   prefs: []
   type: TYPE_NORMAL
 - en: '`count, payload = createGetDataTxPayload(recvmsg[‘payload’])`'
+  id: totrans-829
   prefs: []
   type: TYPE_NORMAL
 - en: '``sndmsg = createMessage(sndcmd, payload)``'
+  id: totrans-830
   prefs: []
   type: TYPE_NORMAL
 - en: '``s.send(sndmsg)``'
+  id: totrans-831
   prefs: []
   type: TYPE_NORMAL
 - en: '`print(‘==> cmd = %s, msg = %s’ % (sndcmd, sndmsg.hex()), file=flog)`'
+  id: totrans-832
   prefs: []
   type: TYPE_NORMAL
 - en: '`return count`'
+  id: totrans-833
   prefs: []
   type: TYPE_NORMAL
 - en: '`def waitAndHandleInvTxnMessage(s: socket):`'
+  id: totrans-834
   prefs: []
   type: TYPE_NORMAL
 - en: '``recvmsg = waitForInvMessage(s)``'
+  id: totrans-835
   prefs: []
   type: TYPE_NORMAL
 - en: '``count = sendGetDataMessageWithTx(s, recvmsg)``'
+  id: totrans-836
   prefs: []
   type: TYPE_NORMAL
 - en: '`for i in range(count):`'
+  id: totrans-837
   prefs: []
   type: TYPE_NORMAL
 - en: '``waitForTxMsg(s)``'
+  id: totrans-838
   prefs: []
   type: TYPE_NORMAL
 - en: '`def sendrecvHeadersData(s: socket):`'
+  id: totrans-839
   prefs: []
   type: TYPE_NORMAL
 - en: '``waitAndHandleInvTxnMessage(s)``'
+  id: totrans-840
   prefs: []
   type: TYPE_NORMAL
 - en: '`def sendrecvHandler(s: socket, version: int):`'
+  id: totrans-841
   prefs: []
   type: TYPE_NORMAL
 - en: '`if establishConnection(s, version) == False:`'
+  id: totrans-842
   prefs: []
   type: TYPE_NORMAL
 - en: '`print(‘Establish connection failed’, file=flog)`'
+  id: totrans-843
   prefs: []
   type: TYPE_NORMAL
 - en: '``return``'
+  id: totrans-844
   prefs: []
   type: TYPE_NORMAL
 - en: '``sendrecvHeadersData(s)``'
+  id: totrans-845
   prefs: []
   type: TYPE_NORMAL
 - en: '**Program 7.12:** Program for receiving and processing inv messages for transactions'
+  id: totrans-846
   prefs: []
   type: TYPE_NORMAL
 - en: 'The following are the communication logs showing the received `**inv**` message
     and the sent `**getdata**` message with a request for two transactions:'
+  id: totrans-847
   prefs: []
   type: TYPE_NORMAL
 - en: '![](images/Figure-7.24.jpg)'
+  id: totrans-848
   prefs: []
   type: TYPE_IMG
 - en: '**Figure 7.24:** The inv message received from peer and the getdata request
     made to the peer in response'
+  id: totrans-849
   prefs: []
   type: TYPE_NORMAL
 - en: 'We received two transactions as requested by our node:'
+  id: totrans-850
   prefs: []
   type: TYPE_NORMAL
 - en: '![](images/Figure-7.25.jpg)'
+  id: totrans-851
   prefs: []
   type: TYPE_IMG
 - en: '**Figure 7.25:** tx messages containing transactions received from the peer
     in response to the getdata request'
+  id: totrans-852
   prefs: []
   type: TYPE_NORMAL
 - en: Our node can send a received transaction to other connected nodes by first sending
     an `**inv**` message with the transaction IDs of the received transactions. This
     process continues till all active nodes have received the transaction.
+  id: totrans-853
   prefs: []
   type: TYPE_NORMAL
 - en: In this subtopic, you learned how a transaction is broadcast on the Bitcoin
     network.
+  id: totrans-854
   prefs: []
   type: TYPE_NORMAL
 - en: '[Block broadcasting](toc.xhtml#s141a)'
+  id: totrans-855
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
@@ -2938,97 +3906,129 @@
     blocks, we need to synchronize our node with the connected peer so that the peer
     is aware that our node is not lagging, and our node will be able to verify the
     recently received block.
+  id: totrans-856
   prefs: []
   type: TYPE_NORMAL
+  zh: 区块也需要在网络上尽快传播，以便即使最远的节点也能在合理的时间内收到它，从而不会创建太多或太长的竞争分支。在我们能够接收到最新的区块之前，我们需要与连接的节点同步，以便同伴知道我们的节点没有落后，我们的节点将能够验证最近接收的区块。
 - en: Once blockchain is synchronized, we are ready for live updates from peers.
+  id: totrans-857
   prefs: []
   type: TYPE_NORMAL
+  zh: 一旦区块链同步完成，我们就准备好接收同伴的实时更新。
 - en: 'Here are the different methods to broadcast blocks:'
+  id: totrans-858
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下是广播区块的不同方法：
 - en: A miner that has mined a new block instead just broadcasts the new block via
     `**block**` message. This is called **Unsolicited Block Push**.
+  id: totrans-859
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 矿工挖出新区块时，只需通过`**block**`消息广播新区块。这被称为**未请求区块推送**。
 - en: 'For a normal node, there are three methods to receive new blocks. These methods
     are called **Direct Headers Announcements**. This is enabled either by the `**sendheaders**`
     method or the `**sendcmpct**` message. The `**sendheaders**` method is the legacy
     Direct headers announcement method, which is available since 70012, while the
     `**sendcmpct**` method was introduced in 70014\. The following sub-points explain
     them:'
+  id: totrans-860
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 对于一个普通节点，有三种方法可以接收新区块。这些方法被称为**直接头部声明**。这可以通过`**sendheaders**`方法或`**sendcmpct**`消息来实现。`**sendheaders**`方法是传统的直接头部声明方法，自70012以来一直可用，而`**sendcmpct**`方法是在70014中引入的。以下子点解释了它们：
 - en: The node sends `**sendheaders**` immediately after the connection is established.
     This indicates to the peer that whenever it receives a new block, it can send
     *headers*. Based on `**headers**`, we can request `**getdata**`. And as a response
     to `**getdata**`*,* the peer sends blocks.
+  id: totrans-861
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 节点在连接建立后立即发送`**sendheaders**`。这告诉同伴，每当它接收到一个新的区块时，它可以发送*headers*。基于`**headers**`，我们可以请求`**getdata**`。作为对`**getdata**`的响应，同伴发送区块。
 - en: 'Relay latency can be further reduced by requesting compact blocks. The `**sendcmpct**`
     message can be sent immediately after the connection is established. There are
     two methods:'
+  id: totrans-862
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 通过请求紧凑区块，可以进一步减少中继延迟。可以在连接建立后立即发送`**sendcmpct**`消息。有两种方法：
 - en: '**High Bandwidth Relay:** Whenever the peer receives a block, it sends `**cmpctblock**`.
     It contains a header and a list of short IDs. We look at `**mempool**` for a list
     of transaction IDs based on short IDs and reconstruct the block. If there are
     missing transactions in `**mempool**`, we request only those missing transactions
     by sending `**getblocktxn**`. And the peer responds with a `**blocktxn**` message
     containing the transactions.'
+  id: totrans-863
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**高带宽中继：** 每当同伴接收到一个区块时，它会发送`**cmpctblock**`。它包含一个头部和一个短ID列表。我们查看`**mempool**`，根据短ID获取交易ID列表，并重建区块。如果在`**mempool**`中缺少交易，我们通过发送`**getblocktxn**`仅请求那些缺失的交易。同伴用包含交易的`**blocktxn**`消息响应。'
 - en: '**Low Bandwidth Relay:** Whenever the peer receives a block, it sends a `headers`
     message. We send a `**getdata**` *message with the* `**MSG_CMPCT_BLOCK**` type
     as a response. The peer responds with `**cmpctblock**`, and further processing
     is like in **high bandwidth relay**.'
+  id: totrans-864
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**低带宽中继：** 每当同伴接收到一个区块时，它会发送一个`headers`消息。我们发送一个`**getdata**`消息作为响应，带有`**MSG_CMPCT_BLOCK**`类型。同伴用`**cmpctblock**`响应，进一步处理类似于**高带宽中继**。'
 - en: '[Unsolicited Block Push](toc.xhtml#s142a)'
+  id: totrans-865
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: '**未请求区块推送](toc.xhtml#s142a)'
 - en: The following figure shows an **unsolicited block push** by the miner, which
     has successfully mined a block. A miner does not need to first send ***headers***
     messages as it knows the peer will not have it. It also does not need to synchronize
     its node with peers as it can only mine a block if it is aware of the previous
     node in the chain.
+  id: totrans-866
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下图显示了矿工成功挖出区块后的**未请求区块推送**。矿工不需要首先发送*headers*消息，因为它知道同伴不会有它。它也不需要与同伴同步节点，因为它只有在知道链中前一个节点的情况下才能挖出区块。
 - en: '![](images/Figure-7.26.jpg)'
+  id: totrans-867
   prefs: []
   type: TYPE_IMG
+  zh: '![](images/Figure-7.26.jpg)'
 - en: '**Figure 7.26:** Illustration of miner broadcasting newly generated block to
     peers using Unsolicited Block Push'
+  id: totrans-868
   prefs: []
   type: TYPE_NORMAL
+  zh: '**图7.26：** 矿工使用未请求区块推送向同伴广播新生成区块的说明。'
 - en: We can see that in the figure, a miner just pushes the newly mined block to
     all the connected peers. A miner does not require any other communication.
+  id: totrans-869
   prefs: []
   type: TYPE_NORMAL
+  zh: 从图中我们可以看到，矿工刚刚将新挖出的区块推送给所有连接的同伴。矿工不需要进行其他通信。
 - en: '[Direct Headers Announcements](toc.xhtml#s143a)'
+  id: totrans-870
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
 - en: 'The following figure shows Direct headers announcements (Legacy):'
+  id: totrans-871
   prefs: []
   type: TYPE_NORMAL
 - en: '![](images/Figure-7.27.jpg)'
+  id: totrans-872
   prefs: []
   type: TYPE_IMG
 - en: '**Figure 7.27:** Sequence diagram of the steps involved in Direct headers announcements
     (Legacy)'
+  id: totrans-873
   prefs: []
   type: TYPE_NORMAL
 - en: After a connection is established, we immediately send the `**sendheaders**`
@@ -3041,351 +4041,461 @@
     subtopic. As a response, the peer sends all the missing blocks in the blockchain.
     If there are no new blocks with the peer, then it sends a **headers** message
     as a response with count zero.
+  id: totrans-874
   prefs: []
   type: TYPE_NORMAL
 - en: Once the peer is aware of the blockchain we are holding and has all the blocks
     in sync with the peer, we can receive new blocks from the peer. Note that our
     best blockchain may be different from peers’ best blockchain, so we need to be
     receiving blocks from different peers.
+  id: totrans-875
   prefs: []
   type: TYPE_NORMAL
 - en: 'In the following piece of code, the connection is already established and now
     we are sending and handling requests required for receiving new blocks:'
+  id: totrans-876
   prefs: []
   type: TYPE_NORMAL
 - en: '`def sendSendHeadersMessage(s: socket):`'
+  id: totrans-877
   prefs: []
   type: TYPE_NORMAL
 - en: '`sndcmd = ‘sendheaders’`'
+  id: totrans-878
   prefs: []
   type: TYPE_NORMAL
 - en: '`payload = b’’`'
+  id: totrans-879
   prefs: []
   type: TYPE_NORMAL
 - en: '``sndmsg = createMessage(sndcmd, payload)``'
+  id: totrans-880
   prefs: []
   type: TYPE_NORMAL
 - en: '``s.send(sndmsg)``'
+  id: totrans-881
   prefs: []
   type: TYPE_NORMAL
 - en: '`print(‘==> cmd = %s, msg = %s’ % (sndcmd, sndmsg.hex()), file=flog)`'
+  id: totrans-882
   prefs: []
   type: TYPE_NORMAL
 - en: '`def createHeadersPayloadNoHeaders():`'
+  id: totrans-883
   prefs: []
   type: TYPE_NORMAL
 - en: '`cnt_b = setVarInt(0)`'
+  id: totrans-884
   prefs: []
   type: TYPE_NORMAL
 - en: '`headers_b = b’’`'
+  id: totrans-885
   prefs: []
   type: TYPE_NORMAL
 - en: '``payload = cnt_b + headers_b``'
+  id: totrans-886
   prefs: []
   type: TYPE_NORMAL
 - en: '``return payload``'
+  id: totrans-887
   prefs: []
   type: TYPE_NORMAL
 - en: '`def createHeadersPayload(hashes, stophash):`'
+  id: totrans-888
   prefs: []
   type: TYPE_NORMAL
 - en: '`b_cnt_d = {‘fd’: 2, ‘fe’: 4, ‘ff’: 8}`'
+  id: totrans-889
   prefs: []
   type: TYPE_NORMAL
 - en: '`found = False`'
+  id: totrans-890
   prefs: []
   type: TYPE_NORMAL
 - en: '`for blk_hash in hashes:`'
+  id: totrans-891
   prefs: []
   type: TYPE_NORMAL
 - en: '``try:``'
+  id: totrans-892
   prefs: []
   type: TYPE_NORMAL
 - en: '`blk = rpc_connection.getblock(blk_hash)`'
+  id: totrans-893
   prefs: []
   type: TYPE_NORMAL
 - en: '`found = True`'
+  id: totrans-894
   prefs: []
   type: TYPE_NORMAL
 - en: '``break``'
+  id: totrans-895
   prefs: []
   type: TYPE_NORMAL
 - en: '`except Exception as e:`'
+  id: totrans-896
   prefs: []
   type: TYPE_NORMAL
 - en: '``continue``'
+  id: totrans-897
   prefs: []
   type: TYPE_NORMAL
 - en: '`if found == True:`'
+  id: totrans-898
   prefs: []
   type: TYPE_NORMAL
 - en: '`txcnt = 0`'
+  id: totrans-899
   prefs: []
   type: TYPE_NORMAL
 - en: '``txcnt_b = setVarInt(txcnt)``'
+  id: totrans-900
   prefs: []
   type: TYPE_NORMAL
 - en: '`headers_b = b’’`'
+  id: totrans-901
   prefs: []
   type: TYPE_NORMAL
 - en: '`count = 0`'
+  id: totrans-902
   prefs: []
   type: TYPE_NORMAL
 - en: '`while True:`'
+  id: totrans-903
   prefs: []
   type: TYPE_NORMAL
 - en: '``# returns block hex``'
+  id: totrans-904
   prefs: []
   type: TYPE_NORMAL
 - en: '`print(‘block_hash = %s’ % blk_hash, file=flog)`'
+  id: totrans-905
   prefs: []
   type: TYPE_NORMAL
 - en: '`blk = rpc_connection.getblock(blk_hash, False)`'
+  id: totrans-906
   prefs: []
   type: TYPE_NORMAL
 - en: '`blk_b = bytes.fromhex(blk)`'
+  id: totrans-907
   prefs: []
   type: TYPE_NORMAL
 - en: '`blkhdr_b = blk_b[:80]`'
+  id: totrans-908
   prefs: []
   type: TYPE_NORMAL
 - en: '``headers_b += blkhdr_b + txcnt_b``'
+  id: totrans-909
   prefs: []
   type: TYPE_NORMAL
 - en: '``blk = rpc_connection.getblock(blk_hash)``'
+  id: totrans-910
   prefs: []
   type: TYPE_NORMAL
 - en: '`count += 1`'
+  id: totrans-911
   prefs: []
   type: TYPE_NORMAL
 - en: '`if count == 2000 or ‘nextblockhash’ not in blk or stophash == blk_hash:`'
+  id: totrans-912
   prefs: []
   type: TYPE_NORMAL
 - en: '`print(count, file=flog)`'
+  id: totrans-913
   prefs: []
   type: TYPE_NORMAL
 - en: '`print(stophash, file=flog)`'
+  id: totrans-914
   prefs: []
   type: TYPE_NORMAL
 - en: '``break``'
+  id: totrans-915
   prefs: []
   type: TYPE_NORMAL
 - en: '`blk_hash = blk[‘nextblockhash’]`'
+  id: totrans-916
   prefs: []
   type: TYPE_NORMAL
 - en: '``cnt_b = setVarInt(count)``'
+  id: totrans-917
   prefs: []
   type: TYPE_NORMAL
 - en: '``payload = cnt_b + headers_b``'
+  id: totrans-918
   prefs: []
   type: TYPE_NORMAL
 - en: '``else:``'
+  id: totrans-919
   prefs: []
   type: TYPE_NORMAL
 - en: '`cnt_b = setVarInt(0)`'
+  id: totrans-920
   prefs: []
   type: TYPE_NORMAL
 - en: '`headers_b = b’’`'
+  id: totrans-921
   prefs: []
   type: TYPE_NORMAL
 - en: '``payload = cnt_b + headers_b``'
+  id: totrans-922
   prefs: []
   type: TYPE_NORMAL
 - en: '``return payload``'
+  id: totrans-923
   prefs: []
   type: TYPE_NORMAL
 - en: '`def waitForHeaders(s: socket):`'
+  id: totrans-924
   prefs: []
   type: TYPE_NORMAL
 - en: '`while True:`'
+  id: totrans-925
   prefs: []
   type: TYPE_NORMAL
 - en: '``recvmsg = recvMsg(s)``'
+  id: totrans-926
   prefs: []
   type: TYPE_NORMAL
 - en: '`if recvmsg[‘command’] == ‘headers’:`'
+  id: totrans-927
   prefs: []
   type: TYPE_NORMAL
 - en: '``break``'
+  id: totrans-928
   prefs: []
   type: TYPE_NORMAL
 - en: '`elif recvmsg[‘command’] == ‘ping’:`'
+  id: totrans-929
   prefs: []
   type: TYPE_NORMAL
 - en: '``sendPongMessage(s, recvmsg)``'
+  id: totrans-930
   prefs: []
   type: TYPE_NORMAL
 - en: '`elif recvmsg[‘command’] == ‘getheaders’:`'
+  id: totrans-931
   prefs: []
   type: TYPE_NORMAL
 - en: '``sendHeadersMessage(s)``'
+  id: totrans-932
   prefs: []
   type: TYPE_NORMAL
 - en: '``return recvmsg``'
+  id: totrans-933
   prefs: []
   type: TYPE_NORMAL
 - en: '`def waitAndHandleHeaderResponse(s: socket):`'
+  id: totrans-934
   prefs: []
   type: TYPE_NORMAL
 - en: '``recvmsg = waitForHeaders(s)``'
+  id: totrans-935
   prefs: []
   type: TYPE_NORMAL
 - en: '`count = recvmsg[‘payload’][‘count’]`'
+  id: totrans-936
   prefs: []
   type: TYPE_NORMAL
 - en: '`for i in range(0, count, 16):`'
+  id: totrans-937
   prefs: []
   type: TYPE_NORMAL
 - en: '`lindex = i + 16 if i + 16 < count else count`'
+  id: totrans-938
   prefs: []
   type: TYPE_NORMAL
 - en: '`blk_l = recvmsg[‘payload’][‘headers’][i:lindex]`'
+  id: totrans-939
   prefs: []
   type: TYPE_NORMAL
 - en: '``sendGetDataMessage(s, lindex - i, blk_l)``'
+  id: totrans-940
   prefs: []
   type: TYPE_NORMAL
 - en: '`for j in range(i, lindex):`'
+  id: totrans-941
   prefs: []
   type: TYPE_NORMAL
 - en: '``waitForBlock(s)``'
+  id: totrans-942
   prefs: []
   type: TYPE_NORMAL
 - en: '`def getBlockHashListFromCoreClient():`'
+  id: totrans-943
   prefs: []
   type: TYPE_NORMAL
 - en: '``blkhash_l = []``'
+  id: totrans-944
   prefs: []
   type: TYPE_NORMAL
 - en: '``height = getLastBlockHeight()``'
+  id: totrans-945
   prefs: []
   type: TYPE_NORMAL
 - en: '`for i in range(31, -1, -1):`'
+  id: totrans-946
   prefs: []
   type: TYPE_NORMAL
 - en: '``d = {}``'
+  id: totrans-947
   prefs: []
   type: TYPE_NORMAL
 - en: '`d[‘blkhash’] = rpc_connection.getblockhash(height - i)`'
+  id: totrans-948
   prefs: []
   type: TYPE_NORMAL
 - en: '``blkhash_l.append(d)``'
+  id: totrans-949
   prefs: []
   type: TYPE_NORMAL
 - en: '``return blkhash_l``'
+  id: totrans-950
   prefs: []
   type: TYPE_NORMAL
 - en: '`def sendrecvHeadersData(s: socket, version: int):`'
+  id: totrans-951
   prefs: []
   type: TYPE_NORMAL
 - en: '``sendSendHeadersMessage(s)``'
+  id: totrans-952
   prefs: []
   type: TYPE_NORMAL
 - en: '``blkhash_l = getBlockHashListFromCoreClient()``'
+  id: totrans-953
   prefs: []
   type: TYPE_NORMAL
 - en: '``sendAndHandleGetHeaders(s, blkhash_l, version)``'
+  id: totrans-954
   prefs: []
   type: TYPE_NORMAL
 - en: '``waitAndHandleHeaderResponse(s)``'
+  id: totrans-955
   prefs: []
   type: TYPE_NORMAL
 - en: '`def sendrecvHandler(s: socket, version: int):`'
+  id: totrans-956
   prefs: []
   type: TYPE_NORMAL
 - en: '`if establishConnection(s, version) == False:`'
+  id: totrans-957
   prefs: []
   type: TYPE_NORMAL
 - en: '`print(‘Establish connection failed’, file=flog)`'
+  id: totrans-958
   prefs: []
   type: TYPE_NORMAL
 - en: '`return`'
+  id: totrans-959
   prefs: []
   type: TYPE_NORMAL
 - en: '``sendrecvHeadersData(s, version)``'
+  id: totrans-960
   prefs: []
   type: TYPE_NORMAL
 - en: '**Program 7.13:** Program to receive blocks using Direct Header Announcements
     (Legacy)'
+  id: totrans-961
   prefs: []
   type: TYPE_NORMAL
 - en: This gives us the following sequence of message exchanges between our node and
     the peer.
+  id: totrans-962
   prefs: []
   type: TYPE_NORMAL
 - en: 'First, we send `**sendheaders**` to the peer to indicate that we expect `***headers***`
     message instead of `**inv**` to receive blocks:'
+  id: totrans-963
   prefs: []
   type: TYPE_NORMAL
 - en: '![](images/Figure-7.28.jpg)'
+  id: totrans-964
   prefs: []
   type: TYPE_IMG
 - en: '**Figure 7.28:** The getheaders message sent to the peer indicating that our
     node accepts direct header announcements'
+  id: totrans-965
   prefs: []
   type: TYPE_NORMAL
 - en: 'We then sync the blockchain by sending the `**getheaders**` message with a
     list of recent blocks of best chain:'
+  id: totrans-966
   prefs: []
   type: TYPE_NORMAL
 - en: '![](images/Figure-7.29.jpg)'
+  id: totrans-967
   prefs: []
   type: TYPE_IMG
 - en: '**Figure 7.29:** getheaders request made to sync with the peer'
+  id: totrans-968
   prefs: []
   type: TYPE_NORMAL
 - en: 'Since the peer didn’t have any recent block, it responds with the following
     empty `**headers**` message:'
+  id: totrans-969
   prefs: []
   type: TYPE_NORMAL
 - en: '![](images/Figure-7.30.jpg)'
+  id: totrans-970
   prefs: []
   type: TYPE_IMG
 - en: '**Figure 7.30:** Peer responds with headers message with a list of headers'
+  id: totrans-971
   prefs: []
   type: TYPE_NORMAL
 - en: The peer sends us an empty `***headers***` response as it does not have any
     new blocks.
+  id: totrans-972
   prefs: []
   type: TYPE_NORMAL
 - en: 'After this, we wait for the peer to send us new blocks whenever it receives
     them:'
+  id: totrans-973
   prefs: []
   type: TYPE_NORMAL
 - en: '![](images/Figure-7.31.jpg)'
+  id: totrans-974
   prefs: []
   type: TYPE_IMG
 - en: '**Figure 7.31:** Peer sends a list of headers to our node after receiving a
     new block'
+  id: totrans-975
   prefs: []
   type: TYPE_NORMAL
 - en: If we don’t have the block already, we request the peer to send the missing
     block. This is done by sending a `**getblock**` message to the peer with the block
     header hash which we received in the `**headers**` message.
+  id: totrans-976
   prefs: []
   type: TYPE_NORMAL
 - en: '![](images/Figure-7.32.jpg)'
+  id: totrans-977
   prefs: []
   type: TYPE_IMG
 - en: '**Figure 7.32:** Our node sends a getdata request to peer for blocks'
+  id: totrans-978
   prefs: []
   type: TYPE_NORMAL
 - en: 'The peer responds with the raw block in a `**block**` message. The following
     is the truncated `**block**` message:'
+  id: totrans-979
   prefs: []
   type: TYPE_NORMAL
 - en: '![](images/Figure-7.33.jpg)'
+  id: totrans-980
   prefs: []
   type: TYPE_IMG
 - en: '**Figure 7.33:** Peer responds with the block message containing full block'
+  id: totrans-981
   prefs: []
   type: TYPE_NORMAL
 - en: In this subtopic, you learned how the original direct headers announcements
     method worked. In the next subtopic, you will understand the improved method of
     broadcasting recently received blocks.
+  id: totrans-982
   prefs: []
   type: TYPE_NORMAL
 - en: '[Compact Block Announcements](toc.xhtml#s144a)'
+  id: totrans-983
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
@@ -3395,14 +4505,17 @@
     list along with the block header. This is the idea behind the compact Block announcement.
     So, since, version 70014, Direct Headers Broadcasting has been replaced with `**cmpctblock**`*.*
     and now two methods are used:'
+  id: totrans-984
   prefs: []
   type: TYPE_NORMAL
 - en: 'For high bandwidth communication: This method is normally enabled for only
     a few peers as it requires more processing.'
+  id: totrans-985
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
 - en: 'For low bandwidth communication: This method is enabled for other peers.'
+  id: totrans-986
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
@@ -3412,61 +4525,77 @@
     a `**sendcmpct**` message to make our peer aware that for both segregated witness
     and non-segregated witness transactions, we expect `**headers**` or `**cmpctblock**`
     messages.
+  id: totrans-987
   prefs: []
   type: TYPE_NORMAL
 - en: 'The following is the structure of the `**sendcmpct**` payload:'
+  id: totrans-988
   prefs: []
   type: TYPE_NORMAL
 - en: '![](images/Figure-7.34.jpg)'
+  id: totrans-989
   prefs: []
   type: TYPE_IMG
 - en: '**Figure 7.34:** Structure of a sendcmpct message'
+  id: totrans-990
   prefs: []
   type: TYPE_NORMAL
 - en: 'In the `**sendcmpct**` message, there are two fields:'
+  id: totrans-991
   prefs: []
   type: TYPE_NORMAL
 - en: '**Announce** is a one-byte Boolean value. Value **0** indicates support for
     low bandwidth relay, while value **1** indicates support for high bandwidth relay.'
+  id: totrans-992
   prefs: []
   type: TYPE_NORMAL
 - en: '**Version** is an 8-byte field; currently, it can have either of the following:'
+  id: totrans-993
   prefs: []
   type: TYPE_NORMAL
 - en: Value 1, which indicates support for `**wtxid**`, which is witness transaction
     ID in segregated witness.
+  id: totrans-994
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Value 0, which indicates support for other transactions that have transaction
     IDs as this.
+  id: totrans-995
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: We will cover segregated witness transactions in an upcoming chapter.
+  id: totrans-996
   prefs: []
   type: TYPE_NORMAL
 - en: The next subtopic covers each of these relay methods.
+  id: totrans-997
   prefs: []
   type: TYPE_NORMAL
 - en: High Bandwidth Compact Block Announcements
+  id: totrans-998
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
 - en: 'The following is the sequence of message exchanges in the activity diagram:'
+  id: totrans-999
   prefs: []
   type: TYPE_NORMAL
 - en: '![](images/Figure-7.35.jpg)'
+  id: totrans-1000
   prefs: []
   type: TYPE_IMG
 - en: '**Figure 7.35:** Sequence Diagram of Compact Block Announcement for High Bandwidth
     Relay'
+  id: totrans-1001
   prefs: []
   type: TYPE_NORMAL
 - en: After receiving `**sendcmpct**` request for both segregated witness and non-segregated
     witness transactions, we send a `**getheaders**` request with a list of recent
     blocks and genesis block and synchronize our node with the peer, as we did in
     the previous subtopic with heading **synchronizing blocks**.
+  id: totrans-1002
   prefs: []
   type: TYPE_NORMAL
 - en: Once the peer is aware that we have all the blocks in the blockchain which it
@@ -3477,520 +4606,687 @@
     adding the difficulty recorded in each block in the chain. The difficulty adjustment
     happens only after every 2016 blocks, so the chain with the highest accumulated
     proof-of-work is generally the chain with more blocks.
+  id: totrans-1003
   prefs: []
   type: TYPE_NORMAL
 - en: 'When the peer receives a new block, it sends a `**cmpctblock**` message containing
     compressed or short IDs of all the transactions in the block. To parse and generate
     short IDs, we need to install the following Python package:'
+  id: totrans-1004
   prefs: []
   type: TYPE_NORMAL
 - en: '![](images/Figure-7.36.jpg)'
+  id: totrans-1005
   prefs: []
   type: TYPE_IMG
 - en: '**Figure 7.36:** pip package to generate and parse short IDs'
+  id: totrans-1006
   prefs: []
   type: TYPE_NORMAL
 - en: 'The following are the structures of the `**cmpctblock**`, `**getblocktxn**`,
     and `**blocktxn**` messages:'
+  id: totrans-1007
   prefs: []
   type: TYPE_NORMAL
 - en: '![](images/Figure-7.37.jpg)'
+  id: totrans-1008
   prefs: []
   type: TYPE_IMG
 - en: '**Figure 7.37:** Payload structure of cmpctblock, getblocktxn and blocktxn'
+  id: totrans-1009
   prefs: []
   type: TYPE_NORMAL
 - en: 'The following are the details of these message payloads:'
+  id: totrans-1010
   prefs: []
   type: TYPE_NORMAL
 - en: '![](images/233.jpg)'
+  id: totrans-1011
   prefs: []
   type: TYPE_IMG
 - en: '**Table 7.4:** List of compact messages and their description'
+  id: totrans-1012
   prefs: []
   type: TYPE_NORMAL
 - en: 'In the following code, the connection is already established, and now we are
     sending and handling requests required for receiving new blocks:'
+  id: totrans-1013
   prefs: []
   type: TYPE_NORMAL
 - en: '`def parseShortIds(payload_m: mmap, shortids_len: int):`'
+  id: totrans-1014
   prefs: []
   type: TYPE_NORMAL
 - en: '`shortids = []`'
+  id: totrans-1015
   prefs: []
   type: TYPE_NORMAL
 - en: '`for i in range(shortids_len):`'
+  id: totrans-1016
   prefs: []
   type: TYPE_NORMAL
 - en: '`shortids.append(payload_m.read(6).hex())`'
+  id: totrans-1017
   prefs: []
   type: TYPE_NORMAL
 - en: '`return shortids`'
+  id: totrans-1018
   prefs: []
   type: TYPE_NORMAL
 - en: '`def parsePrefilledTxn(payload_m: mmap, prefilledtxn_len: int):`'
+  id: totrans-1019
   prefs: []
   type: TYPE_NORMAL
 - en: '`prefilledtxn_l = []`'
+  id: totrans-1020
   prefs: []
   type: TYPE_NORMAL
 - en: '`for i in range(prefilledtxn_len):`'
+  id: totrans-1021
   prefs: []
   type: TYPE_NORMAL
 - en: '`prefilledtxn = {}`'
+  id: totrans-1022
   prefs: []
   type: TYPE_NORMAL
 - en: '`prefilledtxn[‘index’] = getVarInt(payload_m)`'
+  id: totrans-1023
   prefs: []
   type: TYPE_NORMAL
 - en: '`prefilledtxn[‘tx’] = parseTxPayload(payload_m)`'
+  id: totrans-1024
   prefs: []
   type: TYPE_NORMAL
 - en: '`prefilledtxn_l.append(prefilledtxn)`'
+  id: totrans-1025
   prefs: []
   type: TYPE_NORMAL
 - en: '`return prefilledtxn_l`'
+  id: totrans-1026
   prefs: []
   type: TYPE_NORMAL
 - en: '`def parseCmpctBlockPayload(payload_m: mmap, payloadlen = 0):`'
+  id: totrans-1027
   prefs: []
   type: TYPE_NORMAL
 - en: '`payload = {}`'
+  id: totrans-1028
   prefs: []
   type: TYPE_NORMAL
 - en: '`pos = payload_m.tell()`'
+  id: totrans-1029
   prefs: []
   type: TYPE_NORMAL
 - en: '`payload[‘hdr_nonce’] = payload_m.read(88).hex()`'
+  id: totrans-1030
   prefs: []
   type: TYPE_NORMAL
 - en: '`payload_m.seek(pos)`'
+  id: totrans-1031
   prefs: []
   type: TYPE_NORMAL
 - en: '`payload[‘header’] = parseBlockHeader(payload_m)`'
+  id: totrans-1032
   prefs: []
   type: TYPE_NORMAL
 - en: '`payload[‘nonce’] = payload_m.read(8)[::-1].hex()`'
+  id: totrans-1033
   prefs: []
   type: TYPE_NORMAL
 - en: '`payload[‘shortids_length’] = getVarInt(payload_m)`'
+  id: totrans-1034
   prefs: []
   type: TYPE_NORMAL
 - en: '`payload[‘shortids’] = parseShortIds(payload_m, payload[‘shortids_length’])`'
+  id: totrans-1035
   prefs: []
   type: TYPE_NORMAL
 - en: '`payload[‘prefilledtxn_length’] = getVarInt(payload_m)`'
+  id: totrans-1036
   prefs: []
   type: TYPE_NORMAL
 - en: '`payload[‘prefilledtxn’] = parsePrefilledTxn(payload_m, payload[‘prefilledtxn_length’])`'
+  id: totrans-1037
   prefs: []
   type: TYPE_NORMAL
 - en: '`return payload`'
+  id: totrans-1038
   prefs: []
   type: TYPE_NORMAL
 - en: '`def parseBlockTxnPayload(payload_m: mmap, payloadlen = 0):`'
+  id: totrans-1039
   prefs: []
   type: TYPE_NORMAL
 - en: '`payload = {}`'
+  id: totrans-1040
   prefs: []
   type: TYPE_NORMAL
 - en: '`payload[‘blkhash’] = payload_m.read(32)[::-1].hex()`'
+  id: totrans-1041
   prefs: []
   type: TYPE_NORMAL
 - en: '`payload[‘txn_len’] = getVarInt(payload_m)`'
+  id: totrans-1042
   prefs: []
   type: TYPE_NORMAL
 - en: '`payload[‘txn’] = []`'
+  id: totrans-1043
   prefs: []
   type: TYPE_NORMAL
 - en: '`for i in range(payload[‘txn_len’]):`'
+  id: totrans-1044
   prefs: []
   type: TYPE_NORMAL
 - en: '`txn = parseTxPayload(payload_m)`'
+  id: totrans-1045
   prefs: []
   type: TYPE_NORMAL
 - en: '`payload[‘txn’].append(txn)`'
+  id: totrans-1046
   prefs: []
   type: TYPE_NORMAL
 - en: '`return payload`'
+  id: totrans-1047
   prefs: []
   type: TYPE_NORMAL
 - en: '`def createSendCompactPayload(announce: int, version: int):`'
+  id: totrans-1048
   prefs: []
   type: TYPE_NORMAL
 - en: '`announce_b = struct.pack(‘<B’, announce)`'
+  id: totrans-1049
   prefs: []
   type: TYPE_NORMAL
 - en: '`version_b = struct.pack(‘<Q’, version)`'
+  id: totrans-1050
   prefs: []
   type: TYPE_NORMAL
 - en: '`payload = announce_b + version_b`'
+  id: totrans-1051
   prefs: []
   type: TYPE_NORMAL
 - en: '`return payload`'
+  id: totrans-1052
   prefs: []
   type: TYPE_NORMAL
 - en: '`def createHeadersPayloadNoHeaders():`'
+  id: totrans-1053
   prefs: []
   type: TYPE_NORMAL
 - en: '`cnt_b = setVarInt(0)`'
+  id: totrans-1054
   prefs: []
   type: TYPE_NORMAL
 - en: '`headers_b = b’’`'
+  id: totrans-1055
   prefs: []
   type: TYPE_NORMAL
 - en: '`payload = cnt_b + headers_b`'
+  id: totrans-1056
   prefs: []
   type: TYPE_NORMAL
 - en: '`return payload`'
+  id: totrans-1057
   prefs: []
   type: TYPE_NORMAL
 - en: '`def createGetBlockTxnPayload(payload: dict, shortIDs_index_l: list):`'
+  id: totrans-1058
   prefs: []
   type: TYPE_NORMAL
 - en: '`hdr_b = bytes.fromhex(payload[‘hdr_nonce’])[0:80] #header`'
+  id: totrans-1059
   prefs: []
   type: TYPE_NORMAL
 - en: '`blkhash_b = hashlib.sha256(hashlib.sha256(hdr_b).digest()).digest()`'
+  id: totrans-1060
   prefs: []
   type: TYPE_NORMAL
 - en: '`print(‘blkhash = %s’ % blkhash_b[::-1].hex())`'
+  id: totrans-1061
   prefs: []
   type: TYPE_NORMAL
 - en: '`indexes_len_b = setVarInt(len(shortIDs_index_l))`'
+  id: totrans-1062
   prefs: []
   type: TYPE_NORMAL
 - en: '`indexes_b = b’’`'
+  id: totrans-1063
   prefs: []
   type: TYPE_NORMAL
 - en: '`for shortIDs_index in shortIDs_index_l:`'
+  id: totrans-1064
   prefs: []
   type: TYPE_NORMAL
 - en: '`indexes_b += setVarInt(shortIDs_index)`'
+  id: totrans-1065
   prefs: []
   type: TYPE_NORMAL
 - en: '`payload = blkhash_b + indexes_len_b + indexes_b`'
+  id: totrans-1066
   prefs: []
   type: TYPE_NORMAL
 - en: '`return payload`'
+  id: totrans-1067
   prefs: []
   type: TYPE_NORMAL
 - en: '`def sendSendCompactMessage(s: socket):`'
+  id: totrans-1068
   prefs: []
   type: TYPE_NORMAL
 - en: '`# send sendcmpct message for Segwit`'
+  id: totrans-1069
   prefs: []
   type: TYPE_NORMAL
 - en: '`sndcmd = ‘sendcmpct’`'
+  id: totrans-1070
   prefs: []
   type: TYPE_NORMAL
 - en: '`payload = createSendCompactPayload(1, 2)`'
+  id: totrans-1071
   prefs: []
   type: TYPE_NORMAL
 - en: '`sndmsg = createMessage(sndcmd, payload)`'
+  id: totrans-1072
   prefs: []
   type: TYPE_NORMAL
 - en: '`s.send(sndmsg)`'
+  id: totrans-1073
   prefs: []
   type: TYPE_NORMAL
 - en: '`print(‘==> cmd = %s, msg = %s’ % (sndcmd, sndmsg.hex()), file=flog)`'
+  id: totrans-1074
   prefs: []
   type: TYPE_NORMAL
 - en: '`# send sendcmpct message for others`'
+  id: totrans-1075
   prefs: []
   type: TYPE_NORMAL
 - en: '`sndcmd = ‘sendcmpct’`'
+  id: totrans-1076
   prefs: []
   type: TYPE_NORMAL
 - en: '`payload = createSendCompactPayload(1, 1)`'
+  id: totrans-1077
   prefs: []
   type: TYPE_NORMAL
 - en: '`sndmsg = createMessage(sndcmd, payload)`'
+  id: totrans-1078
   prefs: []
   type: TYPE_NORMAL
 - en: '`s.send(sndmsg)`'
+  id: totrans-1079
   prefs: []
   type: TYPE_NORMAL
 - en: '`print(‘==> cmd = %s, msg = %s’ % (sndcmd, sndmsg.hex()), file=flog)`'
+  id: totrans-1080
   prefs: []
   type: TYPE_NORMAL
 - en: '`def sendHeadersMessage(s: socket):`'
+  id: totrans-1081
   prefs: []
   type: TYPE_NORMAL
 - en: '`# send header message`'
+  id: totrans-1082
   prefs: []
   type: TYPE_NORMAL
 - en: '`sndcmd = ‘headers’`'
+  id: totrans-1083
   prefs: []
   type: TYPE_NORMAL
 - en: '`payload = createHeadersPayloadNoHeaders()`'
+  id: totrans-1084
   prefs: []
   type: TYPE_NORMAL
 - en: '`sndmsg = createMessage(sndcmd, payload)`'
+  id: totrans-1085
   prefs: []
   type: TYPE_NORMAL
 - en: '`s.send(sndmsg)`'
+  id: totrans-1086
   prefs: []
   type: TYPE_NORMAL
 - en: '`print(‘==> cmd = %s, msg = %s’ % (sndcmd, sndmsg.hex()), file=flog)`'
+  id: totrans-1087
   prefs: []
   type: TYPE_NORMAL
 - en: '`def convertTxIDs2ShortIDs(payload: dict, txid_l: list):`'
+  id: totrans-1088
   prefs: []
   type: TYPE_NORMAL
 - en: '`hdr_nonce_b = bytes.fromhex(payload[‘hdr_nonce’])`'
+  id: totrans-1089
   prefs: []
   type: TYPE_NORMAL
 - en: '`shortids_l = []`'
+  id: totrans-1090
   prefs: []
   type: TYPE_NORMAL
 - en: '`for txid in txid_l:`'
+  id: totrans-1091
   prefs: []
   type: TYPE_NORMAL
 - en: '`txid_b = bytes.fromhex(txid)[::-1]`'
+  id: totrans-1092
   prefs: []
   type: TYPE_NORMAL
 - en: '`h_b = hashlib.sha256(hdr_nonce_b).digest()[0:16]`'
+  id: totrans-1093
   prefs: []
   type: TYPE_NORMAL
 - en: '`sip = siphash.SipHash_2_4(h_b, txid_b)`'
+  id: totrans-1094
   prefs: []
   type: TYPE_NORMAL
 - en: '`siphash_b = sip.digest()`'
+  id: totrans-1095
   prefs: []
   type: TYPE_NORMAL
 - en: '`shortid = siphash_b[:-2].hex()`'
+  id: totrans-1096
   prefs: []
   type: TYPE_NORMAL
 - en: '`shortid_l = siphash_b[2:].hex()`'
+  id: totrans-1097
   prefs: []
   type: TYPE_NORMAL
 - en: '`shortids_l.append(shortid)`'
+  id: totrans-1098
   prefs: []
   type: TYPE_NORMAL
 - en: '`return shortids_l`'
+  id: totrans-1099
   prefs: []
   type: TYPE_NORMAL
 - en: '`def findMissingShortIDs(payload: dict):`'
+  id: totrans-1100
   prefs: []
   type: TYPE_NORMAL
 - en: '`for i in range(len(mempool_l_g)):`'
+  id: totrans-1101
   prefs: []
   type: TYPE_NORMAL
 - en: '`stored_mempool = mempool_l_g[-1-i]`'
+  id: totrans-1102
   prefs: []
   type: TYPE_NORMAL
 - en: '`txid_l = []`'
+  id: totrans-1103
   prefs: []
   type: TYPE_NORMAL
 - en: '`for k, v in stored_mempool.items():`'
+  id: totrans-1104
   prefs: []
   type: TYPE_NORMAL
 - en: '``if ‘wtxid’ in v:``'
+  id: totrans-1105
   prefs: []
   type: TYPE_NORMAL
 - en: '`txid_l.append(v[‘wtxid’])`'
+  id: totrans-1106
   prefs: []
   type: TYPE_NORMAL
 - en: '`else:`'
+  id: totrans-1107
   prefs: []
   type: TYPE_NORMAL
 - en: '`txid_l.append(k)`'
+  id: totrans-1108
   prefs: []
   type: TYPE_NORMAL
 - en: '`shortIDs = convertTxIDs2ShortIDs(payload, txid_l)`'
+  id: totrans-1109
   prefs: []
   type: TYPE_NORMAL
 - en: '`shortIDs_index_l = []`'
+  id: totrans-1110
   prefs: []
   type: TYPE_NORMAL
 - en: '`for recvd_shortID in payload[‘shortids’]:`'
+  id: totrans-1111
   prefs: []
   type: TYPE_NORMAL
 - en: '`if recvd_shortID not in shortIDs:`'
+  id: totrans-1112
   prefs: []
   type: TYPE_NORMAL
 - en: '`shortIDs_index_l.append(payload[‘shortids’].index(recvd_shortID) + 1)`'
+  id: totrans-1113
   prefs: []
   type: TYPE_NORMAL
 - en: '`if len(shortIDs_index_l) > 0:`'
+  id: totrans-1114
   prefs: []
   type: TYPE_NORMAL
 - en: '`break`'
+  id: totrans-1115
   prefs: []
   type: TYPE_NORMAL
 - en: '`return shortIDs_index_l`'
+  id: totrans-1116
   prefs: []
   type: TYPE_NORMAL
 - en: '`def waitForCmpctBlock(s: socket):`'
+  id: totrans-1117
   prefs: []
   type: TYPE_NORMAL
 - en: '`while True:`'
+  id: totrans-1118
   prefs: []
   type: TYPE_NORMAL
 - en: '`recvmsg = recvMsg(s)`'
+  id: totrans-1119
   prefs: []
   type: TYPE_NORMAL
 - en: '`if recvmsg[‘command’] == ‘cmpctblock’:`'
+  id: totrans-1120
   prefs: []
   type: TYPE_NORMAL
 - en: '`return recvmsg`'
+  id: totrans-1121
   prefs: []
   type: TYPE_NORMAL
 - en: '`elif recvmsg[‘command’] == ‘ping’:`'
+  id: totrans-1122
   prefs: []
   type: TYPE_NORMAL
 - en: '`sendPongMessage(s, recvmsg)`'
+  id: totrans-1123
   prefs: []
   type: TYPE_NORMAL
 - en: '`return recvmsg`'
+  id: totrans-1124
   prefs: []
   type: TYPE_NORMAL
 - en: '`def sendGetBlockTxn(s: socket, recvmsg: dict, shortIDs_index_l):`'
+  id: totrans-1125
   prefs: []
   type: TYPE_NORMAL
 - en: '`sndcmd = ‘getblocktxn’`'
+  id: totrans-1126
   prefs: []
   type: TYPE_NORMAL
 - en: '`payload = createGetBlockTxnPayload(recvmsg[‘payload’], shortIDs_index_l)`'
+  id: totrans-1127
   prefs: []
   type: TYPE_NORMAL
 - en: '`sndmsg = createMessage(sndcmd, payload)`'
+  id: totrans-1128
   prefs: []
   type: TYPE_NORMAL
 - en: '`s.send(sndmsg)`'
+  id: totrans-1129
   prefs: []
   type: TYPE_NORMAL
 - en: '`print(‘==> cmd = %s, msg = %s’ % (sndcmd, sndmsg.hex()), file=flog)`'
+  id: totrans-1130
   prefs: []
   type: TYPE_NORMAL
 - en: '`def waitForBlockTxn(s: socket):`'
+  id: totrans-1131
   prefs: []
   type: TYPE_NORMAL
 - en: '`while True:`'
+  id: totrans-1132
   prefs: []
   type: TYPE_NORMAL
 - en: '`recvmsg = recvMsg(s)`'
+  id: totrans-1133
   prefs: []
   type: TYPE_NORMAL
 - en: '`if recvmsg[‘command’] == ‘blocktxn’:`'
+  id: totrans-1134
   prefs: []
   type: TYPE_NORMAL
 - en: '`return recvmsg`'
+  id: totrans-1135
   prefs: []
   type: TYPE_NORMAL
 - en: '`elif recvmsg[‘command’] == ‘ping’:`'
+  id: totrans-1136
   prefs: []
   type: TYPE_NORMAL
 - en: '`sendPongMessage(s, recvmsg)`'
+  id: totrans-1137
   prefs: []
   type: TYPE_NORMAL
 - en: '`def waitAndHandleHeaderResponse(s: socket):`'
+  id: totrans-1138
   prefs: []
   type: TYPE_NORMAL
 - en: '`recvmsg = waitForCmpctBlock(s)`'
+  id: totrans-1139
   prefs: []
   type: TYPE_NORMAL
 - en: '`shortIDs_index_l = findMissingShortIDs(recvmsg[‘payload’])`'
+  id: totrans-1140
   prefs: []
   type: TYPE_NORMAL
 - en: '`if len(shortIDs_index_l) > 0:`'
+  id: totrans-1141
   prefs: []
   type: TYPE_NORMAL
 - en: '`sendGetBlockTxn(s, recvmsg, shortIDs_index_l)`'
+  id: totrans-1142
   prefs: []
   type: TYPE_NORMAL
 - en: '`waitForBlockTxn(s)`'
+  id: totrans-1143
   prefs: []
   type: TYPE_NORMAL
 - en: '`def sendrecvHeadersData(s: socket, version: int):`'
+  id: totrans-1144
   prefs: []
   type: TYPE_NORMAL
 - en: '`sendSendHeadersMessage(s)`'
+  id: totrans-1145
   prefs: []
   type: TYPE_NORMAL
 - en: '`sendSendCompactMessage(s)`'
+  id: totrans-1146
   prefs: []
   type: TYPE_NORMAL
 - en: '`blkhash_l = getBlockHashListFromCoreClient()`'
+  id: totrans-1147
   prefs: []
   type: TYPE_NORMAL
 - en: '`sendAndHandleGetHeaders(s, blkhash_l, version)`'
+  id: totrans-1148
   prefs: []
   type: TYPE_NORMAL
 - en: '`waitAndHandleHeaderResponse(s)`'
+  id: totrans-1149
   prefs: []
   type: TYPE_NORMAL
 - en: '`def sendrecvHandler(s: socket, version: int):`'
+  id: totrans-1150
   prefs: []
   type: TYPE_NORMAL
 - en: '`if establishConnection(s, version) == False:`'
+  id: totrans-1151
   prefs: []
   type: TYPE_NORMAL
 - en: '`print(‘Establish connection failed’, file=flog)`'
+  id: totrans-1152
   prefs: []
   type: TYPE_NORMAL
 - en: '`return`'
+  id: totrans-1153
   prefs: []
   type: TYPE_NORMAL
 - en: '`sendrecvHeadersData(s, version)`'
+  id: totrans-1154
   prefs: []
   type: TYPE_NORMAL
 - en: '**Program 7.14:** Program for receiving and processing compact messages for
     High Bandwidth relay'
+  id: totrans-1155
   prefs: []
   type: TYPE_NORMAL
 - en: We executed the above-mentioned code and got the following communication messages.
     I have ignored other messages, such as `**ping**` or `**addr**` or `**inv**`.
+  id: totrans-1156
   prefs: []
   type: TYPE_NORMAL
 - en: 'First, we sent `**sendheaders**` and `**sendcpmct**` for segwit and `**sendcmpct**`
     for non-segwit:'
+  id: totrans-1157
   prefs: []
   type: TYPE_NORMAL
 - en: '![](images/Figure-7.38.jpg)'
+  id: totrans-1158
   prefs: []
   type: TYPE_IMG
 - en: '**Figure 7.38:** Messages sent to peer that our node accepts compact messages
     for both segwit and non-segwit payload'
+  id: totrans-1159
   prefs: []
   type: TYPE_NORMAL
 - en: 'Then, we sent a `**getheaders**` message and received **headers** message.
     The following is the truncated `**getheaders**` message and received `***headers***`
     message:'
+  id: totrans-1160
   prefs: []
   type: TYPE_NORMAL
 - en: '![](images/Figure-7.39.jpg)'
+  id: totrans-1161
   prefs: []
   type: TYPE_IMG
 - en: '**Figure 7.39:** Truncated getheaders request sent to peer with a list of block
     hashes'
+  id: totrans-1162
   prefs: []
   type: TYPE_NORMAL
 - en: 'We get a list of headers in response, which is empty, in the following incoming
     message:'
+  id: totrans-1163
   prefs: []
   type: TYPE_NORMAL
 - en: '![](images/Figure-7.40.jpg)'
+  id: totrans-1164
   prefs: []
   type: TYPE_IMG
 - en: '**Figure 7.40:** Peer responds with a list of recent headers, not in getheaders
     request'
+  id: totrans-1165
   prefs: []
   type: TYPE_NORMAL
 - en: The peer responded with `***headers***` messages without any *headers* with
     count zero.
+  id: totrans-1166
   prefs: []
   type: TYPE_NORMAL
 - en: 'Next, we waited for the peer to send us a `**cmpctblock**` message. Meanwhile,
     we received `**inv**` messages having transactions. The following is the truncated
     `**cmpctblock**` message we received:'
+  id: totrans-1167
   prefs: []
   type: TYPE_NORMAL
 - en: '![](images/Figure-7.41.jpg)'
+  id: totrans-1168
   prefs: []
   type: TYPE_IMG
 - en: '**Figure 7.41:** Peer sends cmpctblock message on receiving a new block'
+  id: totrans-1169
   prefs: []
   type: TYPE_NORMAL
 - en: 'On receiving the `**cmpctblock**` message, we search received short IDs in
@@ -3998,40 +5294,50 @@
     are any missing transactions, we send a `**getblocktxn**` request message to a
     peer with the index of missing short IDs in the `**cmpctblock**` message. The
     following is the transaction message we sent:'
+  id: totrans-1170
   prefs: []
   type: TYPE_NORMAL
 - en: '![](images/Figure-7.42.jpg)'
+  id: totrans-1171
   prefs: []
   type: TYPE_IMG
 - en: '**Figure 7.42:** Our node sends getblocktxn request to peer with a list of
     missing short ID indexes'
+  id: totrans-1172
   prefs: []
   type: TYPE_NORMAL
 - en: 'On receiving the `**getblocktxn**`*,* the peer sends a `**blocktxn**` message
     with only the missing transaction it received in the `**getblocktxn**` message.
     The following is the truncated `**blocktxn**` message received from a peer:'
+  id: totrans-1173
   prefs: []
   type: TYPE_NORMAL
 - en: '![](images/Figure-7.43.jpg)'
+  id: totrans-1174
   prefs: []
   type: TYPE_IMG
 - en: '**Figure 7.43:** Peer responds with blocktxn message containing the missing
     transaction'
+  id: totrans-1175
   prefs: []
   type: TYPE_NORMAL
 - en: Low Bandwidth Compact Block Announcements
+  id: totrans-1176
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
 - en: 'The following is the sequence of message exchanges between the host and its
     peer in the form of an activity diagram:'
+  id: totrans-1177
   prefs: []
   type: TYPE_NORMAL
 - en: '![](images/Figure-7.44.jpg)'
+  id: totrans-1178
   prefs: []
   type: TYPE_IMG
 - en: '**Figure 7.44:** Sequence Diagram of Compact Block Announcement for Low Bandwith
     Relay'
+  id: totrans-1179
   prefs: []
   type: TYPE_NORMAL
 - en: In the low bandwidth compact block announcement method, we set to announce as
@@ -4039,203 +5345,266 @@
     witness and non-segregated witness transactions. Once the blockchain is synchronized,
     we wait for the `**headers**` message from the peer. In response to the `***headers***`
     message, we send a `**getdata**` message with `**MSG_CMPCT_BLOCK**` as the response.
+  id: totrans-1180
   prefs: []
   type: TYPE_NORMAL
 - en: 'The following code does this:'
+  id: totrans-1181
   prefs: []
   type: TYPE_NORMAL
 - en: '`def sendSendCompactMessage(s: socket):`'
+  id: totrans-1182
   prefs: []
   type: TYPE_NORMAL
 - en: '`# send sendcmpct message for Segwit`'
+  id: totrans-1183
   prefs: []
   type: TYPE_NORMAL
 - en: '`sndcmd = ‘sendcmpct’`'
+  id: totrans-1184
   prefs: []
   type: TYPE_NORMAL
 - en: '`payload = createSendCompactPayload(0, 2)`'
+  id: totrans-1185
   prefs: []
   type: TYPE_NORMAL
 - en: '`sndmsg = createMessage(sndcmd, payload)`'
+  id: totrans-1186
   prefs: []
   type: TYPE_NORMAL
 - en: '``s.send(sndmsg)``'
+  id: totrans-1187
   prefs: []
   type: TYPE_NORMAL
 - en: '`print(‘==> cmd = %s, msg = %s’ % (sndcmd, sndmsg.hex()), file=flog)`'
+  id: totrans-1188
   prefs: []
   type: TYPE_NORMAL
 - en: '`# send sendcmpct message for others`'
+  id: totrans-1189
   prefs: []
   type: TYPE_NORMAL
 - en: '`sndcmd = ‘sendcmpct’`'
+  id: totrans-1190
   prefs: []
   type: TYPE_NORMAL
 - en: '`payload = createSendCompactPayload(0, 1)`'
+  id: totrans-1191
   prefs: []
   type: TYPE_NORMAL
 - en: '``sndmsg = createMessage(sndcmd, payload)``'
+  id: totrans-1192
   prefs: []
   type: TYPE_NORMAL
 - en: '``s.send(sndmsg)``'
+  id: totrans-1193
   prefs: []
   type: TYPE_NORMAL
 - en: '`print(‘==> cmd = %s, msg = %s’ % (sndcmd, sndmsg.hex()), file=flog)`'
+  id: totrans-1194
   prefs: []
   type: TYPE_NORMAL
 - en: '`def createGetDataPayloadCMPCTBlock(hash_l: list):`'
+  id: totrans-1195
   prefs: []
   type: TYPE_NORMAL
 - en: '`MSG_CMPCT_BLOCK = 4`'
+  id: totrans-1196
   prefs: []
   type: TYPE_NORMAL
 - en: '`count = len(hash_l)`'
+  id: totrans-1197
   prefs: []
   type: TYPE_NORMAL
 - en: '``hash_count_b = setVarInt(count)``'
+  id: totrans-1198
   prefs: []
   type: TYPE_NORMAL
 - en: '`hashes_b = b’’`'
+  id: totrans-1199
   prefs: []
   type: TYPE_NORMAL
 - en: '`for i in range(count):`'
+  id: totrans-1200
   prefs: []
   type: TYPE_NORMAL
 - en: '`type_b = struct.pack(‘<L’, MSG_CMPCT_BLOCK)`'
+  id: totrans-1201
   prefs: []
   type: TYPE_NORMAL
 - en: '`hashes_b += type_b + bytes.fromhex(hash_l[i][‘blkhash’])[::-1]`'
+  id: totrans-1202
   prefs: []
   type: TYPE_NORMAL
 - en: '``payload_b = hash_count_b + hashes_b``'
+  id: totrans-1203
   prefs: []
   type: TYPE_NORMAL
 - en: '``return payload_b``'
+  id: totrans-1204
   prefs: []
   type: TYPE_NORMAL
 - en: '`def sendGetDataMessage(s: socket, recvmsg: dict):`'
+  id: totrans-1205
   prefs: []
   type: TYPE_NORMAL
 - en: '`sndcmd = ‘getdata’`'
+  id: totrans-1206
   prefs: []
   type: TYPE_NORMAL
 - en: '`blk_l = recvmsg[‘payload’][‘headers’]`'
+  id: totrans-1207
   prefs: []
   type: TYPE_NORMAL
 - en: '``payload = createGetDataPayloadCMPCTBlock(blk_l)``'
+  id: totrans-1208
   prefs: []
   type: TYPE_NORMAL
 - en: '``sndmsg = createMessage(sndcmd, payload)``'
+  id: totrans-1209
   prefs: []
   type: TYPE_NORMAL
 - en: '``s.send(sndmsg)``'
+  id: totrans-1210
   prefs: []
   type: TYPE_NORMAL
 - en: '`print(‘==> cmd = %s, msg = %s’ % (sndcmd, sndmsg.hex()), file=flog)`'
+  id: totrans-1211
   prefs: []
   type: TYPE_NORMAL
 - en: '`def waitAndHandleHeaderResponse(s: socket):`'
+  id: totrans-1212
   prefs: []
   type: TYPE_NORMAL
 - en: '``recvmsg = waitForHeaders(s)``'
+  id: totrans-1213
   prefs: []
   type: TYPE_NORMAL
 - en: '``sendGetDataMessage(s, recvmsg)``'
+  id: totrans-1214
   prefs: []
   type: TYPE_NORMAL
 - en: '``recvmsg = waitForCmpctBlock(s)``'
+  id: totrans-1215
   prefs: []
   type: TYPE_NORMAL
 - en: '`shortIDs_index_l = findMissingShortIDs(recvmsg[‘payload’])`'
+  id: totrans-1216
   prefs: []
   type: TYPE_NORMAL
 - en: '`if len(shortIDs_index_l) > 0:`'
+  id: totrans-1217
   prefs: []
   type: TYPE_NORMAL
 - en: '`sendGetBlockTxn(s, recvmsg, shortIDs_index_l)`'
+  id: totrans-1218
   prefs: []
   type: TYPE_NORMAL
 - en: '``waitForBlockTxn(s)``'
+  id: totrans-1219
   prefs: []
   type: TYPE_NORMAL
 - en: '`def sendrecvHandler(s: socket, version: int):`'
+  id: totrans-1220
   prefs: []
   type: TYPE_NORMAL
 - en: '`if establishConnection(s, version) == False:`'
+  id: totrans-1221
   prefs: []
   type: TYPE_NORMAL
 - en: '`print(‘Establish connection failed’, file=flog)`'
+  id: totrans-1222
   prefs: []
   type: TYPE_NORMAL
 - en: '``return``'
+  id: totrans-1223
   prefs: []
   type: TYPE_NORMAL
 - en: '``sendrecvHeadersData(s, version)``'
+  id: totrans-1224
   prefs: []
   type: TYPE_NORMAL
 - en: '**Program 7.15:** Program for receiving and processing compact messages for
     low bandwith relay'
+  id: totrans-1225
   prefs: []
   type: TYPE_NORMAL
 - en: 'We execute the preceding code and get the communication log. First, our node
     sends `**sendheader**` and `**sendcmpct**` messages to let it know that our node
     supports Direct Header Announcements. When the peer receives a new block, it sends
     our node the following `***headers***` message:'
+  id: totrans-1226
   prefs: []
   type: TYPE_NORMAL
 - en: '![](images/Figure-7.45.jpg)'
+  id: totrans-1227
   prefs: []
   type: TYPE_IMG
 - en: '**Figure 7.45:** Received headers message from a peer with a list of blockhash
     and header'
+  id: totrans-1228
   prefs: []
   type: TYPE_NORMAL
 - en: 'We respond with the following `**getdata**` message containing the `**MSG_CMPCT_BLOCK**`
     flag and a list of blockhash we expect from the peer:'
+  id: totrans-1229
   prefs: []
   type: TYPE_NORMAL
 - en: '![](images/Figure-7.46.jpg)'
+  id: totrans-1230
   prefs: []
   type: TYPE_IMG
 - en: '**Figure 7.46:** getdata request sent to the peer with a list of blockhash'
+  id: totrans-1231
   prefs: []
   type: TYPE_NORMAL
 - en: 'The peer responds with the following `**cmpctblock**` message containing block
     header and list of short IDs for included transactions:'
+  id: totrans-1232
   prefs: []
   type: TYPE_NORMAL
 - en: '![](images/Figure-7.47.jpg)'
+  id: totrans-1233
   prefs: []
   type: TYPE_IMG
 - en: '**Figure 7.47:** Peer sends cmpctblock message with a list of short IDs'
+  id: totrans-1234
   prefs: []
   type: TYPE_NORMAL
 - en: 'After receiving the list of short IDs and block header, our node responds to
     the peer with the following `**getblocktxn**` message with a list of short IDs
     representing the missing transaction in our node’s mempool:'
+  id: totrans-1235
   prefs: []
   type: TYPE_NORMAL
 - en: '![](images/Figure-7.48.jpg)'
+  id: totrans-1236
   prefs: []
   type: TYPE_IMG
 - en: '**Figure 7.48:** getblocktxn request sent to the peer with a list of missing
     short IDs indexes'
+  id: totrans-1237
   prefs: []
   type: TYPE_NORMAL
 - en: 'The peer then responds with a `**blocktxn**` message containing only the required
     transactions:'
+  id: totrans-1238
   prefs: []
   type: TYPE_NORMAL
 - en: '![](images/Figure-7.49.jpg)'
+  id: totrans-1239
   prefs: []
   type: TYPE_IMG
 - en: '**Figure 7.49:** Peer sent blocktxn message with a requested list of transactions'
+  id: totrans-1240
   prefs: []
   type: TYPE_NORMAL
 - en: This brings us to the end of this chapter.
+  id: totrans-1241
   prefs: []
   type: TYPE_NORMAL
 - en: '[Conclusion](toc.xhtml#s145a)'
+  id: totrans-1242
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
@@ -4248,160 +5617,192 @@
     to all the remaining nodes. We did not cover network communication done by the
     SPV node to receive the required transactions and verify blocks. We also did not
     cover segregated witness transactions.
+  id: totrans-1243
   prefs: []
   type: TYPE_NORMAL
 - en: In the next chapter, you will understand the limitations of technology, its
     impact on nature, and the potential risks, and vulnerabilities that exist because
     of the design. We will thoroughly look at them and gauge whether they are real,
     risky, or just a myth.
+  id: totrans-1244
   prefs: []
   type: TYPE_NORMAL
 - en: '[Points to remember](toc.xhtml#s146a)'
+  id: totrans-1245
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
 - en: Bitcoin is a peer-to-peer network that needs a TCP connection or a tor network
     to connect to a peer.
+  id: totrans-1246
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Bitcoin network is nonhierarchical, which means all nodes are equal, and there
     are no masters or servers. There will be TCP servers but not Bitcoin network servers.
+  id: totrans-1247
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Nodes can connect and disconnect anytime and can choose which nodes they need
     to connect.
+  id: totrans-1248
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Nodes require an initial set of addresses, or we need to provide initial addresses
     so that they can make the initial connection to peers.
+  id: totrans-1249
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '`**Version**` message is the first message each node sends. If a node is fine
     with the information it received in the `**version**` message, it responds with
     `**verack**`.'
+  id: totrans-1250
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Once `**version**` and `**verack**` messages are exchanged, the connection is
     considered established. Before that, nodes do not receive any other message.
+  id: totrans-1251
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: A node can send a `**ping**` message to a peer anytime to know if a peer is
     still connected.
+  id: totrans-1252
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: A node should reduce dependency on hardcoded DNS seeds by storing active addresses
     locally and requesting new addresses from its peer.
+  id: totrans-1253
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: The first time a node is starting, it fetches a list of all block headers till
     the 24 hours older block. After it has received them, it needs to get headers
     from all the connected nodes to get all the competing chains.
+  id: totrans-1254
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Once the node’s blockchain is synchronized with all the peers, it is ready to
     receive new blocks and transactions.
+  id: totrans-1255
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '[Questions](toc.xhtml#s147a)'
+  id: totrans-1256
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
 - en: How do we understand that the peer is sending Bitcoin blocks or blocks in a
     different network?
+  id: totrans-1257
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
 - en: Why does a node need to receive recent blocks from multiple peers?
+  id: totrans-1258
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
 - en: How does the Initial Block Download method differ from Blockchain synchronization?
+  id: totrans-1259
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
 - en: When do you think we should use pruned node instead of an archival node?
+  id: totrans-1260
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
 - en: When does a node send `***sendheaders***` and `***sendcmpct***` messages?
+  id: totrans-1261
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
 - en: 'Programming questions:'
+  id: totrans-1262
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
 - en: Write a program that connects with multiple peers and sends the address of one
     peer to another.
+  id: totrans-1263
   prefs:
   - PREF_IND
   - PREF_OL
   type: TYPE_NORMAL
 - en: Write a program to receive multiple TCP connections and limit active connections.
+  id: totrans-1264
   prefs:
   - PREF_IND
   - PREF_OL
   type: TYPE_NORMAL
 - en: Write a program to relay blocks to other connected nodes.
+  id: totrans-1265
   prefs:
   - PREF_IND
   - PREF_OL
   type: TYPE_NORMAL
 - en: Create a raw transaction using Bitcoin Core wallet and publish it using your
     own program.
+  id: totrans-1266
   prefs:
   - PREF_IND
   - PREF_OL
   type: TYPE_NORMAL
 - en: 'True/False:'
+  id: totrans-1267
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
 - en: It is necessary for a node to respond to `***cmpctblock***` message to the sending
     peer.
+  id: totrans-1268
   prefs:
   - PREF_IND
   - PREF_OL
   type: TYPE_NORMAL
 - en: Transaction `***inv***` messages need the node blockchain to be synchronized
     with the peer blockchain.
+  id: totrans-1269
   prefs:
   - PREF_IND
   - PREF_OL
   type: TYPE_NORMAL
 - en: During the initial block download, we send `***getdata***` request to multiple
     peers to improve download performance.
+  id: totrans-1270
   prefs:
   - PREF_IND
   - PREF_OL
   type: TYPE_NORMAL
 - en: 'Fill in the blanks:'
+  id: totrans-1271
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
 - en: In high bandwidth compact block announcements, a node sends __________ message
     after receiving block instead of __________ message.
+  id: totrans-1272
   prefs:
   - PREF_IND
   - PREF_OL
   type: TYPE_NORMAL
 - en: The `***inv***` messages are not used for broadcasting _________ anymore.
+  id: totrans-1273
   prefs:
   - PREF_IND
   - PREF_OL
   type: TYPE_NORMAL
 - en: Unsolicited block push method is only ffused by the _______ node to publish
     _______.
+  id: totrans-1274
   prefs:
   - PREF_IND
   - PREF_OL
