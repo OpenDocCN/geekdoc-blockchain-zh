@@ -1,49 +1,70 @@
 - en: © Santiago Palladino 2019S. PalladinoEthereum for Web Developers[https://doi.org/10.1007/978-1-4842-5278-9_2](https://doi.org/10.1007/978-1-4842-5278-9_2)
+  id: totrans-0
   prefs: []
   type: TYPE_NORMAL
+  zh: © Santiago Palladino 2019S. PalladinoWeb 开发者的以太坊[https://doi.org/10.1007/978-1-4842-5278-9_2](https://doi.org/10.1007/978-1-4842-5278-9_2)
 - en: 2. A Sample DApp
+  id: totrans-1
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 2. 一个示例 DApp
 - en: Santiago Palladino^([1](#Aff2) )(1)Ciudad Autónoma de Buenos Aires, Argentina
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: Santiago Palladino^([1](#Aff2) )(1)阿根廷布宜诺斯艾利斯自治城
 - en: In this chapter, we will build a full DApp from scratch. While we will not be
     going in-depth on the steps involved, this chapter will help you identify all
     the components involved in the construction of a decentralized application. In
     the upcoming chapters, we will focus on each of the different parts, but you can
     always refer back to these pages to understand how each section fits within the
     bigger picture.
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这一章中，我们将从头开始构建一个完整的 DApp。虽然我们不会深入探讨所涉及的步骤，但这一章将帮助您识别构建分布式应用程序所涉及的所有组件。在接下来的章节中，我们将重点关注每个不同部分，但您始终可以参考这些页面，了解每个部分如何在整体中起作用。
 - en: About Our DApp
+  id: totrans-4
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 关于我们的 DApp
 - en: We will be creating a global **counter** implemented as a DApp. Users should
     be able to view the value of the counter and increase it by sending a transaction
     to it. Even though this application has no practical uses, it will be of help
     to go through each of the components of a DApp.
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将创建一个全局**计数器**，它作为一个 DApp 实现。用户应该能够查看计数器的值，并通过向其发送交易来增加它。尽管这个应用没有实际用途，但逐个组件地了解
+    DApp 的每个部分将会有所帮助。
 - en: Our Requirements
+  id: totrans-6
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 我们的需求
 - en: Our application will hold a single counter as its state, and allow any Ethereum
     user to increase it through a transaction. At the same time, any user accessing
     the DApp should be able to see real-time updates to the counter’s value.
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们的应用将以一个计数器作为其状态，并允许任何以太坊用户通过交易增加它。同时，任何访问 DApp 的用户都应该能够实时看到计数器值的更新。
 - en: The application will not manage any ETH at all and will not have any kind of
     access control. As long as a user can reach the DApp, they should be able to freely
     interact with it.
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 应用程序不会管理任何 ETH，并且不会有任何形式的访问控制。只要用户能够访问 DApp，他们就应该能够自由地与之交互。
 - en: The Smart Contract
+  id: totrans-9
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 智能合约
 - en: Ethereum smart contracts are small programs deployed in the Ethereum blockchain.
     Every contract has its own code and internal state. In this application, we will
     store the counter’s value in the contract’s state. The contract will also provide
@@ -51,11 +72,18 @@
     it by sending a transaction to the contract (Listing [2-1](#PC1)).pragma solidity
     ^0.5.0;contract Counter {    uint256 public value;    function increase() public
     {        value = value + 1;    }}Listing 2-1
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 以太坊智能合约是部署在以太坊区块链上的小程序。每个合约都有自己的代码和内部状态。在这个应用程序中，我们将计数器的值存储在合约的状态中。合约还将为任何客户端提供一个
+    getter 来轻松查询其值，以及一个通过向合约发送交易来增加它的方法（见列表 [2-1](#PC1)）。pragma solidity ^0.5.0;contract
+    Counter {    uint256 public value;    function increase() public {        value
+    = value + 1;    }}列表 2-1
 - en: Initial implementation of the smart contract backing our sample DApp
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们示例 DApp 支持的智能合约的初始实现
 - en: The smart contract should also provide an *event* for clients to listen for
     real-time updates to its state (Listing [2-2](#PC2)). Every transaction in Ethereum
     may optionally fire one or more events, and a client can subscribe to a particular
@@ -63,84 +91,120 @@
     ^0.5.0;contract Counter {    uint256 public value;    event Increased(uint256
     newValue);    function increase() public {        value = value + 1;        emit
     Increased(value);    }}Listing 2-2
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 智能合约还应为客户端提供一个*事件*，以便实时监听其状态的更新（见 [2-2](#PC2)）。以太坊中的每个交易都可以选择性地触发一个或多个事件，并且客户端可以订阅其中特定的一组事件，作为一种通知合约任何更改的手段。pragma
+    solidity ^0.5.0;contract Counter {    uint256 public value;    event Increased(uint256
+    newValue);    function increase() public {        value = value + 1;        emit
+    Increased(value);    }}Listing 2-2
 - en: Updated implementation to emit an event every time the increase method is invoked
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 更新的实现以在调用 increase 方法时发出一个事件
 - en: 'Now, this implementation shows all the basic ways in which a smart contract
     provides an interface for a client to interact with it:'
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，这个实现展示了智能合约提供接口供客户端与之交互的基本方式：
 - en: A getter to query the internal state of the contract, value. It is autogenerated
     by the use of the public keyword when declaring the field. Querying a contract
     is fast and does not involve sending a transaction, and so it does not require
     gas or even having an Ethereum account.
+  id: totrans-15
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 一个 getter 用于查询合约的内部状态，即 value。在声明字段时使用 public 关键字时会自动生成它。查询合约很快，不涉及发送交易，因此不需要燃气，甚至不需要以太坊账户。
 - en: A function to modify the state of the contract, increase. These functions require
     a transaction to be sent, which require ETH to be executed. As such, they require
     having a funded account.
+  id: totrans-16
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 一个用于修改合约状态的函数，即 increase。这些函数需要发送交易，需要 ETH 执行。因此，它们需要有资金的账户。
 - en: The Increased event, to listen for updates to the contract state. Any client
     can request to subscribe to a set of events from a contract, to get notifications
     of any changes to it.
+  id: totrans-17
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 增加的事件，用于监听合约状态的更新。任何客户端都可以请求订阅合约的一组事件，以获取对其任何更改的通知。
 - en: We will go into detail on smart contracts in the next chapter. For now, these
     concepts will do in order to build our DApp.
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将在下一章节详细介绍智能合约。现在，这些概念足以构建我们的 DApp。
 - en: The Architecture
+  id: totrans-19
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 架构
 - en: We will build a traditional DApp for this example. The application will be backed
     by a smart contract in the Ethereum network, which will act as a distributed database
     for the Dapp’s users. The front-end will be set up as a regular client-side javascript
     application.
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将为这个示例构建一个传统的 DApp。该应用程序将由以太坊网络中的智能合约支持，该合约将充当 Dapp 的用户的分布式数据库。前端将设置为常规的客户端
+    JavaScript 应用程序。
 - en: For the glue between the javascript front-end and the Ethereum network, we will
     rely on a web3-enabled web browser. This is a kind of browser that allows the
     user to connect not only to the Internet but also to the Ethereum network via
     a node of their own choice. It also manages the user’s private keys and transaction
     signing.
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于连接 JavaScript 前端和以太坊网络之间的胶水，我们将依赖于支持 web3 的 Web 浏览器。这是一种允许用户连接到互联网和以太坊网络的浏览器，通过用户自己选择的节点。它还管理用户的私钥和交易签名。
 - en: The most popular web3-enabled browser is MetaMask,^([1](#Fn1)) which is not
     a browser per se but a plugin, that provides all the required features. MetaMask
     keeps track of the user private keys, allows connections to a list of predefined
     nodes or to a custom one, and prompts the user to accept any transaction that
     the current page is trying to send on their behalf.
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 最受欢迎的支持 web3 的浏览器是 MetaMask[^1]，它本身不是一个浏览器，而是一个插件，提供所有必需的功能。MetaMask 跟踪用户的私钥，允许连接到一系列预定义节点或自定义节点，并提示用户接受当前页面试图代表其发送的任何交易。
 - en: From the developer’s perspective, MetaMask injects a global connection provider
     to an Ethereum node, and intercepts all transactions for signing them with its
     own keys.
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 从开发者的角度来看，MetaMask 向 Ethereum 节点注入一个全局连接提供程序，并拦截所有交易，用自己的密钥对其进行签名。
 - en: Setting Up the Environment
+  id: totrans-24
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 环境设置
 - en: Before we start building the DApp, we will set up our development environment,
     as well as the required tools for interacting with and testing our DApp.
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: 在我们开始构建 DApp 之前，我们将设置我们的开发环境，以及与我们的 DApp 交互和测试所需的工具。
 - en: Development Toolchain
+  id: totrans-26
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: 开发工具链
 - en: The basic setup for our development environment will be the one required to
     build a simple client-side-only javascript application. Make sure to have nodejs
     and npm installed^([2](#Fn2)) on your development machine to get started.
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们的开发环境的基本设置将是构建简单的仅客户端 JavaScript 应用程序所需的设置。确保在您的开发机器上安装了 nodejs 和 npm[^2]，以便开始。
 - en: 'We will jumpstart our application by relying on the create-react-app package.
     This is a package, provided by the Facebook development team, that initializes
     a new preconfigured React web application. This will allow us to save most of
@@ -158,83 +222,119 @@
     a similar interface to an Ethereum node and simulates an entire Ethereum blockchain
     by itself. It is particularly useful in development environments or for running
     unit tests.npm install -g ganache-cli'
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将依赖于 create-react-app 包来启动我们的应用程序。这是 Facebook 开发团队提供的一个包，它初始化一个新的预配置的 React
+    web 应用程序。这将允许我们节省大部分设置时间，专注于构建 DApp。npm init react-app counter-app至于以太坊特定的库，虽然有许多开发框架可用，但我们将在此示例中坚持使用最少量的内容。我们将使用的唯一与以太坊相关的
+    JavaScript 库是 web3.js。^([3](#Fn3)) 这是一个由以太坊基金会支持开发的库，被许多人视为事实上的标准库。npm install
+    web3@1.2.0至于以太坊构建工具链，我们将再次专注于所需的最小工具集。首先，我们将安装 Solidity 编译器，以便编译智能合约。^([4](#Fn4))
+    确保您安装的版本是 0.5.0 或更高版本。$ solc --versionsolc，Solidity 编译器命令行界面版本：...然后，为了为我们的应用程序设置自动化测试，我们将安装
+    ganache。Ganache 是一个模拟以太坊节点并独立模拟整个以太坊区块链的进程。它在开发环境中或用于运行单元测试时特别有用。npm install -g
+    ganache-cli
 - en: By default, ganache immediately mines a new block for every transaction sent,
     eliminating the time to wait until a transaction is confirmed. This makes it easy
     for using it as a back end while coding, but keep in mind that a ganache environment
     will be drastically different, especially in terms of user experience, to a real
     one.
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 默认情况下，ganache 会在每次发送的交易后立即挖掘一个新块，消除了等待交易确认的时间。这使得在编码时使用它作为后端变得容易，但请记住，ganache
+    环境将会与真实环境大不相同，尤其是在用户体验方面。
 - en: Web3 Browser
+  id: totrans-30
   prefs:
   - PREF_H4
   type: TYPE_NORMAL
+  zh: Web3 浏览器
 - en: We will now set up a web3-enabled browser, using MetaMask. Remember that there
     are other web3-ready browsers, but at the time of this writing, MetaMask is the
     most popular way to interact with DApps.
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们将使用 MetaMask 设置一个支持 web3 的浏览器。请记住，虽然现在有其他支持 web3 的浏览器，但在撰写本文时，MetaMask 是与
+    DApps 交互最流行的方式。
 - en: 'Start out by installing the MetaMask plugin^([5](#Fn5)) for your browser –
     it supports Chrome, Firefox, Opera, and Brave. After installation, MetaMask will
     prompt you to create a password to encrypt your accounts and will present you
     with the secret backup phrase. Make sure to write down this phrase: in the event
     that you lose your MetaMask wallet, you can regenerate it using this phrase. Otherwise,
     all funds contained in it will be irremediably lost.'
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先安装MetaMask插件^([5](#Fn5))到您的浏览器上 – 它支持Chrome、Firefox、Opera和Brave。安装完成后，MetaMask会提示您创建一个密码来加密您的账户，并提供给您秘密备份短语。确保记下这个短语：如果您丢失了MetaMask钱包，您可以使用这个短语重新生成它。否则，其中包含的所有资金将无法挽回地丢失。
 - en: Warning
+  id: totrans-33
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 警告
 - en: Be extra careful when installing MetaMask. Most software related to managing
     user keys or transactions is prone to be subject to phishing attacks. Always ensure
     you are accessing the official MetaMask site when downloading.
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: 在安装MetaMask时要特别小心。大多数与管理用户密钥或交易相关的软件都容易受到网络钓鱼攻击的影响。下载时请确保您正在访问官方MetaMask网站。
 - en: 'Next step is to actually fund your account in order to interact with smart
     contracts. For the examples throughout this book, we will be using the Rinkeby
     test network (or testnet). Ethereum has several testnets (Ropsten, Rinkeby, Kovan,
     and Goerli), each with its own characteristics and identified by a unique numeric
     ID:'
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 下一步是实际资助您的账户以便与智能合约进行交互。在本书的示例中，我们将使用Rinkeby测试网络（或测试网）。以太坊有几个测试网（Ropsten、Rinkeby、Kovan和Goerli），每个测试网都有自己的特点，并由唯一的数字ID标识：
 - en: Ropsten (id 3) is the only proof-of-work-based testnet, which makes it the most
     similar one to mainnet, but is also very unreliable. As there is not much actual
     *work* being done on the network, block times are unpredictable, and the network
     is highly susceptible to attacks.
+  id: totrans-36
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Ropsten（id 3）是唯一基于工作证明的测试网，这使得它最类似于主网，但也非常不可靠。由于网络上没有太多实际的*工作*，区块时间是不可预测的，网络容易受到攻击。
 - en: Rinkeby (id 4) is a proof-of-authority-based testnet, which means that there
     are a set of trusted nodes which have the *authority* to add new blocks to the
     blockchain. This makes it much more stable and reliable than Ropsten. However,
     due to limitations of the consensus algorithm used, only Geth clients can connect
     to Rinkeby.
+  id: totrans-37
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Rinkeby（id 4）是基于权威证明的测试网，这意味着有一组受信任的节点有*权威*来向区块链添加新区块。这使得它比Ropsten稳定可靠得多。然而，由于所使用的共识算法的限制，只有Geth客户端可以连接到Rinkeby。
 - en: Kovan (id 42) is similar to Rinkeby, in that it is a proof-of-authority-based
     testnet, but its consensus algorithm is compatible with Parity clients instead
     of Geth.
+  id: totrans-38
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Kovan（id 42）与Rinkeby类似，它也是基于权威证明的测试网，但其共识算法与Geth不同，而是与Parity客户端兼容。
 - en: Goerli (id 6) is the most recent testnet set up. It uses proof-of-authority
     as well, with the advantage that it is compatible with both Geth and Parity clients.
+  id: totrans-39
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Goerli（id 6）是最新设置的测试网。它也使用权威证明，但与之相比，它的优势在于与Geth和Parity客户端都兼容。
 - en: There are several online faucets^([6](#Fn6)) to obtain testnet ETH to play around.
     Use one of them to request funds for one of the accounts you have just created
     on MetaMask.
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: 有几个在线水龙头^([6](#Fn6))可以获取测试网络 ETH 进行试验。使用其中一个来为你在 MetaMask 中刚刚创建的账户之一请求资金。
 - en: Note
+  id: totrans-41
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 注意
 - en: How did you find the onboarding process on MetaMask? If you think it was complicated
     or a bit long, now think of your users. All first-time users to Ethereum need
     to go through a similar process, with the additional burden of having to sign
@@ -243,56 +343,82 @@
     on Ethereum. There are techniques to mitigate this issue, such as not requiring
     your users to have an Ethereum account until it is absolutely needed, or alternative
     onboarding flows built on meta transactions. More on this later in Chapter [7](476252_1_En_7_Chapter.xhtml)!
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 你觉得 MetaMask 的入门过程如何？如果你觉得复杂或有点冗长，现在想想你的用户。所有第一次使用以太坊的用户都需要经历类似的流程，另外还需要注册交易所购买真实的主网
+    ETH 与你的应用程序进行交互，这通常需要完整的 KYC 过程。这就是为什么用户入门在以太坊上是如此具有挑战性的原因。有一些技术可以缓解这个问题，比如在绝对需要之前不要求用户拥有以太坊账户，或者基于元交易构建的备用入门流程。关于这一点，后面在第[7](476252_1_En_7_Chapter.xhtml)章会有更多介绍！
 - en: Building Our Application
+  id: totrans-43
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 构建我们的应用程序
 - en: We will start building from the create-react-app template. Make sure to have
     run all the steps on the “*Setting up the environment”* section, and you should
     have a simple javascript app with a handful of files under the src folder, built
     around index.js. To verify that everything is running smoothly, run npm run start
     and open your browser in localhost:3000. You should see the default initial screen
     of the create-react-app package, including a rotating React logo.
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将从 create-react-app 模板开始构建。确保已经运行了“*设置环境”* 部分中的所有步骤，你应该在 src 文件夹下有一个简单的 JavaScript
+    应用程序，并围绕着 index.js 构建了一些文件。为了验证一切是否正常运行，请运行 npm run start 并在 localhost:3000 中打开你的浏览器。你应该会看到
+    create-react-app 包的默认初始屏幕，包括一个旋转的 React 标志。
 - en: Compiling the Smart Contract
+  id: totrans-45
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 编译智能合约
 - en: Our DApp will be backed by a single smart contract, Counter. Create a contracts
     folder in the root of your project, and add a Counter.sol file (Listing [2-3](#PC7)).//
     contracts/Counter.solpragma solidity ^0.5.0;contract Counter {    uint256 public
     value;    event Increased(uint256 newValue);    function increase() public {        value
     = value + 1;        emit Increased(value);    }}Listing 2-3
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们的 DApp 将由一个名为 Counter 的单一智能合约支持。在项目的根目录下创建一个名为 contracts 的文件夹，并添加一个 Counter.sol
+    文件（见[2-3](#PC7)）。// contracts/Counter.sol
 - en: Smart contract implementation in Solidity that we will use in our application
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: Solidity 中的智能合约实现，我们将在我们的应用程序中使用。
 - en: 'We will go more in-depth on smart contracts in the next chapter, but for now
     you can start identifying the important pieces of the contract:'
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将在下一章节更深入地讨论智能合约，但现在你可以开始识别合约的重要部分：
 - en: The contract’s state, value, defined as an unsigned integer of 256 bits, the
     default size in Solidity
+  id: totrans-49
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 合约的状态，值，定义为 256 位无符号整数，在 Solidity 中是默认大小
 - en: The getter to access value, generated by the use of the public keyword in the
     declaration of the field
+  id: totrans-50
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 通过在字段声明中使用 public 关键字生成的用于访问值的 getter
 - en: The increase function to increment value via a transaction
+  id: totrans-51
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 通过事务增加值的增加函数
 - en: The Increased event used to signal when a modification of value has occurred
+  id: totrans-52
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 用于信号化值修改发生时的 Increased 事件
 - en: You can test that the contract is fine by running the solidity compiler on it:$
     solc contracts/Counter.solCompiler run successful, no output requested.We need
     to specify the format in which we want to output the compilation. We are interested
@@ -302,32 +428,48 @@
     network if we need to do so. We can request the Solidity compiler to output these
     two in a single JSON file we can then use:solc --pretty-json --combined-json=abi,bin
     --overwrite \-o ./build/contracts contracts/Counter.sol
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可以通过运行 solidity 编译器来测试合约是否正常：$ solc contracts/Counter.sol编译器运行成功，未请求输出。我们需要指定编译的输出格式。我们特别关注合约的公共接口规范，或者说
+    ABI（应用二进制接口），这是我们的 JavaScript 应用程序将与合约通信的方式。我们还想要二进制代码，这样如果需要的话就可以部署合约到网络上。我们可以请求
+    Solidity 编译器将这两者输出到一个单独的 JSON 文件中，然后我们可以使用：solc --pretty-json --combined-json=abi,bin
+    --overwrite \-o ./build/contracts contracts/Counter.sol
 - en: Note
+  id: totrans-54
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 注意
 - en: The flags needed to output this information from the compiler may change depending
     on the version you are working with. The preceding code works for Solidity 0.5.1.
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
+  zh: 从编译器输出此信息所需的标志可能会根据您使用的版本而变化。上述代码适用于 Solidity 0.5.1。
 - en: The preceding command will generate a file build/contracts/combined.json with
     all the compilation output. Take a look at it, and we will soon use it to interact
     with our contract.
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: 上述命令将生成一个名为 build/contracts/combined.json 的文件，其中包含所有编译输出。看一下它，我们很快将使用它与我们的合约交互。
 - en: Connecting to the Network Via Web3
+  id: totrans-57
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 通过 Web3 连接到网络
 - en: As mentioned before, we will be using web3.js to connect to the Ethereum network.
     This requires a web3 *provider*  , which is a small object that knows which node
     to connect to in order to place calls to smart contracts and send transactions
     to the network. In other words, as its name implies, the provider *provides* a
     connection to an Ethereum node and, from it, to the entire network.
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: 如前所述，我们将使用 web3.js 连接到以太坊网络。这需要一个 web3 *提供者*，它是一个小对象，知道连接哪个节点以便调用智能合约并向网络发送事务。换句话说，正如其名称所示，提供者
+    *提供* 了与以太坊节点的连接，并通过它连接整个网络。
 - en: Depending on the library you are working with, the provider is sometimes conflated
     with the *signer.* The signer is another component that has the responsibility
     of signing transactions with the user’s keys, in the case that the keys are not
@@ -335,99 +477,148 @@
     will not have a node running, but depend on a public one. Because of this, the
     web3 provider injected by MetaMask acts both as a provider and as a signer. We
     will review these differences in depth later in the book.
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: 根据你使用的库的不同，提供者有时会与*签名者*混淆。签名者是另一个组件，负责使用用户的密钥对交易进行签名，如果这些密钥不是由本地节点管理的话。这在大多数Dapp中都是如此，因为普通用户通常不会运行节点，而是依赖公共节点。因此，MetaMask注入的web3提供者既充当提供者又充当签名者。我们将在本书后面深入讨论这些差异。
 - en: The web3 provider injected by MetaMask can be conveniently accessed from code
     via Web3.givenProvider. You can check this property to know if MetaMask is enabled
     in your users’ browser, and to create a new web3 object if available. We can keep
     this logic in a network.js file in our application (Listing [2-4](#PC10)).// src/eth/network.jsimport
     Web3 from 'web3';let web3;export function getWeb3() {  if (!web3) {    web3 =
     new Web3(Web3.givenProvider);  }  return web3;}Listing 2-4
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过Web3.givenProvider可以方便地访问MetaMask注入的web3提供程序。您可以检查此属性以确定用户浏览器中是否启用了MetaMask，并在可用时创建新的web3对象。我们可以将此逻辑保存在我们应用程序的network.js文件中（见[2-4](#PC10)）。//
+    src/eth/network.jsimport Web3 from 'web3';let web3;export function getWeb3() {  if
+    (!web3) {    web3 = new Web3(Web3.givenProvider);  }  return web3;}列表 2-4
 - en: Snippet for creating a web3 object using the MetaMask provider. Note that this
     code will not work if the user does not have MetaMask installed.
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用MetaMask提供程序创建web3对象的片段。请注意，如果用户未安装MetaMask，则此代码将无法工作。
 - en: The web3 object created has a large number of methods available, most of them
     under the web3.eth namespace. For instance, we can query the list of the user’s
     accounts (Listing [2-5](#PC11)) and retrieve the default one in use – which is
     the first one from the list.// src/eth/network.jsexport async function getAccount()
     {  const web3 = getWeb3();  const accounts = await web3.eth.getAccounts();  return
     accounts[0];}Listing 2-5
+  id: totrans-62
   prefs: []
   type: TYPE_NORMAL
+  zh: 创建的web3对象具有大量可用的方法，其中大多数在web3.eth命名空间下。例如，我们可以查询用户账户列表（见[2-5](#PC11)）并检索正在使用的默认账户 –
+    即列表中的第一个账户。// src/eth/network.jsexport async function getAccount() {  const web3
+    = getWeb3();  const accounts = await web3.eth.getAccounts();  return accounts[0];}列表
+    2-5
 - en: Function for retrieving the user’s current default account
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: 检索用户当前默认账户的函数
 - en: However, this method will not work for browsers that run in *privacy mode*.
     Privacy mode restricts accessing to user accounts until the user approves the
     application to retrieve the accounts held in MetaMask. To unlock this, we must
     work with a global ethereum object and enable it (Listing [2-6](#PC12)).export
     async function getAccount() {  const accounts = await window.ethereum.enable();  return
     accounts[0];}Listing 2-6
+  id: totrans-64
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，这种方法在运行在 *隐私模式* 的浏览器上无法工作。隐私模式限制了对用户账户的访问，直到用户批准应用程序检索在 MetaMask 中持有的账户。要解锁此功能，我们必须使用全局
+    ethereum 对象并启用它（清单 [2-6](#PC12)）。导出异步函数获取帐户() {  const accounts = await window.ethereum.enable();  return
+    accounts[0];}清单 2-6
 - en: Function updated to handle Ethereum browsers’ privacy mode
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
+  zh: 更新以处理以太坊浏览器隐私模式的函数
 - en: The async call to ethereum.enable will return once the user has granted their
     approval on MetaMask. Note that MetaMask will remember the user’s approval, so
     they are prompted to answer only the first time (Figure [2-1](#Fig1)).![../images/476252_1_En_2_Chapter/476252_1_En_2_Fig1_HTML.jpg](../images/476252_1_En_2_Chapter/476252_1_En_2_Fig1_HTML.jpg)
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
+  zh: 对 ethereum.enable 的异步调用将在用户在 MetaMask 上授予其批准后返回。请注意，MetaMask 将记住用户的批准，因此他们只会在第一次提示时回答（图
+    [2-1](#Fig1)）。![../images/476252_1_En_2_Chapter/476252_1_En_2_Fig1_HTML.jpg](../images/476252_1_En_2_Chapter/476252_1_En_2_Fig1_HTML.jpg)
 - en: Figure 2-1
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
+  zh: 图 2-1
 - en: Users must accept the Dapp’s connection request in MetaMask
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
+  zh: 用户必须在 MetaMask 中接受 Dapp 的连接请求
 - en: Now that we have a web3 object set up, as well as access to the user’s accounts,
     we will use them to build our interface to the Counter smart contract deployed
     on the Ethereum network.
+  id: totrans-69
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们已经设置好了一个 web3 对象，并且可以访问用户的账户，我们将使用它们来构建我们的界面，以便与部署在以太坊网络上的 Counter 智能合约交互。
 - en: The Contract Interface
+  id: totrans-70
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 合约接口
 - en: 'In order to interact with our contract from the application, we need three
     things:'
+  id: totrans-71
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了从应用程序中与我们的合约交互，我们需要三件事：
 - en: A connection to the Ethereum network where our contract is deployed
+  id: totrans-72
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 与部署了我们的合约的以太坊网络的连接
 - en: The address of the contract in the network
+  id: totrans-73
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 合约在网络中的地址
 - en: The specification of the contract’s public functions, also known as the ABI
     (Application Binary Interface)
+  id: totrans-74
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 合约公共函数的规范，也称为 ABI（应用二进制接口）
 - en: The first item is covered in the previous section, and is encapsulated by the
     web3 object we provisioned. As for the second item, we will use an already deployed
     instance in the Rinkeby network at the following address:0x1D2561D18dD2fc204CcC8831026d28375065ed53
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
+  zh: 第一项在前一节中已涵盖，并由我们提供的 web3 对象封装。至于第二项，我们将使用在 Rinkeby 网络上已部署的实例，其地址如下：0x1D2561D18dD2fc204CcC8831026d28375065ed53
 - en: Remember that everything in the blockchain is public and indeleble, so once
     a contract is deployed, it becomes publicly available for all users to interact
     with and cannot be deleted. This means we can freely use this instance for testing
     the DApp.
+  id: totrans-76
   prefs: []
   type: TYPE_NORMAL
+  zh: 请记住，区块链上的所有内容都是公开且不可抹去的，因此一旦部署合约，它就会成为所有用户可以与之交互且无法删除的公开可用的内容。这意味着我们可以自由地使用此实例来测试
+    DApp。
 - en: Note
+  id: totrans-77
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 注意
 - en: If you do not want to work with that particular contract instance or prefer
     to work on a different network, there is a deploy script on the code repository
     that you can use to set up your own instance.
+  id: totrans-78
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果您不想使用该特定合约实例或更喜欢在不同的网络上工作，则代码仓库中有一个部署脚本，您可以使用它来设置您自己的实例。
 - en: As for the ABI, we will make use of the output generated by the compiler previously.
     Copy the output json file into an Artifacts.json file in a new contracts folder
     in your application src. We can now parse it to obtain the ABI, and create a new
@@ -436,60 +627,87 @@
     options = {}) {  const name = "contracts/Counter.sol:Counter";  const artifact
     = Artifacts.contracts[name];  const abi = JSON.parse(artifact.abi);  return new
     web3.eth.Contract(abi, address, options);}Listing 2-7
+  id: totrans-79
   prefs: []
   type: TYPE_NORMAL
+  zh: 至于 ABI，我们将利用编译器之前生成的输出。将输出的 json 文件复制到应用程序 src 中的新 contracts 文件夹中的 Artifacts.json
+    文件中。现在我们可以解析它以获取 ABI，并创建一个新的 web3 合约实例（见清单 [2-7](#PC14)）。// src/contracts/Counter.js
 - en: Function to create a Counter web3 contract object. Note that the function does
     not deploy a new contract, it just creates a javascript object that acts as a
     wrapper to a contract previously deployed at a specified address
+  id: totrans-80
   prefs: []
   type: TYPE_NORMAL
+  zh: 创建 Counter web3 合约对象的函数。请注意，该函数不会部署新的合约，它只是创建一个 JavaScript 对象，作为在指定地址上先前部署的合约的包装器。
 - en: The web3 Contract abstraction is an object that acts as a facade for the actual
     Ethereum contract. It exposes javascript methods for all its public functions,
     which get translated into calls and transactions to the network under the hood.
     We will be using it in the following section to actually interact with the contract.
+  id: totrans-81
   prefs: []
   type: TYPE_NORMAL
+  zh: web3 合约抽象是一个充当实际以太坊合约外观的对象。它为其所有公共函数暴露了 JavaScript 方法，这些方法在底层被转换为对网络的调用和交易。我们将在下一节中使用它来实际与合约交互。
 - en: Now that we have our factory-like function that can create new Counter contract
     abstractions given an address, we will use it to retrieve the deployed contract
     (Listing [2-8](#PC15)).// src/contracts/Counter.jsimport { getWeb3, getAccount
     } from '../eth/network.js';export async function getDeployed() {  const web3 =
     getWeb3();  const from = await getAccount();  const addr = "0x1D2561D18dD2fc204CcC8831026d28375065ed53";  return
     Counter(web3, addr, { from });}Listing 2-8
+  id: totrans-82
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们有了一个像工厂一样的函数，可以根据地址创建新的 Counter 合约抽象（见清单 [2-8](#PC15)）。// src/contracts/Counter.js
 - en: Code for obtaining a web3 contract instance of the Counter contract deployed
     on the Rinkeby network. Note that, to avoid hard-coding the address, you can also
     store the address as an environment variable, and retrieve it from process.env^([7](#Fn7))
+  id: totrans-83
   prefs: []
   type: TYPE_NORMAL
+  zh: 获取部署在 Rinkeby 网络上的 Counter 合约的 web3 合约实例的代码。请注意，为了避免硬编码地址，您也可以将地址存储为环境变量，并从
+    process.env 中检索^([7](#Fn7))。
 - en: Now that we have the means to interact with the deployed contract, we can build
     the React visual component for our user interface.
+  id: totrans-84
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们有了与部署的合约交互的手段，我们可以为我们的用户界面构建 React 可视化组件。
 - en: Interacting with Our Smart Contract
+  id: totrans-85
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 与我们的智能合约交互
 - en: We will now progressively build our Counter visual component to allow the users
     of our DApp to interact with it. We will begin by retrieving the current value
     of the counter, then provide a means to send a transaction to modify its state,
     and then subscribe to real-time updates to it.
+  id: totrans-86
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，我们将逐步构建我们的计数器可视化组件，以便我们的 DApp 用户与之交互。我们将从检索计数器的当前值开始，然后提供一种发送交易以修改其状态的方式，然后订阅实时更新。
 - en: Wiring Our Component
+  id: totrans-87
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 连接我们的组件
 - en: Let’s start by creating a file components/Counter.js (Listing [2-9](#PC16)).
     This will be an empty React component^([8](#Fn8)) for now.// src/components/Counter.jsimport
     React, { Component } from 'react';class Counter extends Component {  render()
     {    return (      <div>Counter be here</div>    );  }}Listing 2-9
+  id: totrans-88
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们从创建文件 components/Counter.js 开始（见 [2-9](#PC16)）。目前这将是一个空的 React 组件^([8](#Fn8))。//
+    src/components/Counter.jsimport React, { Component } from 'react';class Counter
+    extends Component {  render() {    return (      <div>计数器在此处</div>    );  }}Listing
+    2-9
 - en: Empty React component for rendering the Counter contract and interacting with
     it. We will be iteratively adding features to it
+  id: totrans-89
   prefs: []
   type: TYPE_NORMAL
+  zh: 用于渲染计数器合约并与之交互的空 React 组件。我们将逐步向其添加功能
 - en: 'This component will receive from the App.js root component the Counter contract
     instance. It will be the App’s responsibility to retrieve such instance and inject
     into the Counter visual component once ready. Let’s modify the src/App.js file
@@ -501,21 +719,31 @@
     {    const { counter } = this.state;    return (      <div className="App">        {
     counter && <Counter contract={counter} /> }      </div>    );  }}export default
     App;Listing 2-10'
+  id: totrans-90
   prefs: []
   type: TYPE_NORMAL
+  zh: 此组件将从 App.js 根组件接收 Counter 合约实例。一旦准备就绪，将由 App 负责检索此类实例并注入 Counter 视觉组件。让我们修改由
+    create-react-app 自动生成的 src/App.js 文件以加载合约实例（见列表 [2-10](#PC17)）。
 - en: Code for the App root component. We use the root App state to store the contract
     instance, and pass it to the child component as a property
+  id: totrans-91
   prefs: []
   type: TYPE_NORMAL
+  zh: App 根组件的代码。我们使用根 App 状态来存储合约实例，并将其作为属性传递给子组件。
 - en: We are relying on the componentDidMount React event to load the Counter contract
     instance^([9](#Fn9)) and storing it in the component’s state. Only when this instance
     is available we render the Counter visual component.
+  id: totrans-92
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们依赖于 componentDidMount React 事件来加载 Counter 合约实例^([9](#Fn9)) 并将其存储在组件的状态中。只有当此实例可用时，我们才渲染
+    Counter 视觉组件。
 - en: Note
+  id: totrans-93
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 注意
 - en: By now, you may have realized that we are missing error management in this DApp.
     For instance, we are not handling the case where the user does not have MetaMask,
     or if the contract’s address is incorrect, or if the connection to the network
@@ -523,122 +751,181 @@
     and provide a quick overview of what constitutes a DApp. In the upcoming chapters,
     as we go deeper into each subject, we will also cover everything that can potentially
     go wrong.
+  id: totrans-94
   prefs: []
   type: TYPE_NORMAL
+  zh: 到目前为止，您可能已经意识到我们在此 DApp 中缺少错误管理。例如，我们没有处理用户没有安装 MetaMask 的情况，或者合约地址不正确的情况，或者网络连接丢失的情况。这是一个故意的决定，因为目标是专注于快乐的路径，并提供关于什么构成
+    DApp 的快速概述。在即将到来的章节中，随着我们更深入地研究每个主题，我们还将涵盖可能出现的所有问题。
 - en: At this point, you should be able to run your application via npm start and
     check that everything is rendering correctly. Make sure to have MetaMask installed,
     unlocked, and connected to the Rinkeby network.
+  id: totrans-95
   prefs: []
   type: TYPE_NORMAL
+  zh: 在此时，您应该能够通过 npm start 运行您的应用程序并检查一切是否正确渲染。确保已安装 MetaMask，解锁并连接到 Rinkeby 网络。
 - en: Now that we have all of our application wired, it’s time to focus on the Counter
     visual component itself.
+  id: totrans-96
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们已经把所有的应用程序都连通了，是时候专注于计数器视觉组件本身了。
 - en: Querying the Contract’s State
+  id: totrans-97
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 查询合约的状态
 - en: 'We will begin by displaying the value of the Counter contract on our component
     (Listing [2-11](#PC18)). Since we will not be changing the Counter instance during
     the lifetime of our component, we can simply retrieve that value when the React
     component is mounted.^([10](#Fn10))// src/components/Counter.jsasync componentDidMount()
     {  const counter = this.props.contract;  const initialValue = await counter.methods.value().call();  this.setState({
     value: initialValue });}Listing 2-11'
+  id: totrans-98
   prefs: []
   type: TYPE_NORMAL
+  zh: '我们将从在我们的组件上显示计数器合约的值开始（见列表 [2-11](#PC18)）。由于我们在组件的生命周期内不会更改计数器实例，因此我们可以在 React
+    组件挂载时简单地检索该值。^([10](#Fn10))// src/components/Counter.jsasync componentDidMount()
+    {  const counter = this.props.contract;  const initialValue = await counter.methods.value().call();  this.setState({
+    value: initialValue });}列表 2-11'
 - en: Retrieving the initial value of the Counter when the component is mounted
+  id: totrans-99
   prefs: []
   type: TYPE_NORMAL
+  zh: 在组件挂载时检索计数器的初始值
 - en: 'Note the call to the counter contract instance to retrieve the initial value.
     The web3js API for the call may seem awkward, but it has a rationale behind it:'
+  id: totrans-100
   prefs: []
   type: TYPE_NORMAL
+  zh: 注意对计数器合约实例的调用以检索初始值。call 的 Web3js API 可能看起来有些奇怪，但它有其背后的理由：
 - en: The methods property grants access to all the public methods defined in the
     contract’s ABI. They are not set at the contract instance itself, to prevent clashing
     with other methods specific to the web3 contract object.
+  id: totrans-101
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: methods 属性授予对合约 ABI 中定义的所有公共方法的访问权限。它们并不在合约实例本身设置，以防止与 Web3 合约对象的其他特定方法发生冲突。
 - en: The value() call does not actually query the network, but simply builds a method
     call. If the function required any parameters, they would have to be supplied
     here.
+  id: totrans-102
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: value() 调用实际上并不查询网络，而只是构建一个方法调用。如果函数需要任何参数，它们必须在这里提供。
 - en: The call() invocation finally issues the query to the blockchain. We will review
     in the next chapter the difference between querying a method and issuing a transaction,
     but for now, all we need to know is that call() is used when we want to *retrieve*
     data from a contract.
+  id: totrans-103
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 调用 call() 最终向区块链发出查询。我们将在下一章中审查查询方法和发出事务之间的区别，但现在我们只需要知道的是，当我们想要 *检索* 合约数据时使用
+    call()。
 - en: 'Once we have set the initial value in the component’s state, we can finally
     render it to our users (Listing [2-12](#PC19)).render() {  const { value } = this.state;  if
     (!value) return "Loading";  return (    <div>      <div>Counter value: { value.toString()
     }</div>    </div>  );}Listing 2-12'
+  id: totrans-104
   prefs: []
   type: TYPE_NORMAL
+  zh: 一旦我们在组件状态中设置了初始值，我们就可以最终将其呈现给我们的用户（见列表 [2-12](#PC19)）。render() {  const { value
+    } = this.state;  if (!value) return "Loading";  return (    <div>      <div>计数器值：{
+    value.toString() }</div>    </div>  );}列表 2-12
 - en: Render method to display the counter’s value. Note that the value is only available
     after the initial query to the contract returns, so we need to handle the case
     where the value is not yet at our disposal
+  id: totrans-105
   prefs: []
   type: TYPE_NORMAL
+  zh: 渲染方法以显示计数器的值。请注意，该值仅在对合约的初始查询返回后才可用，因此我们需要处理还没有准备好的情况。
 - en: By this point, you should be able to reload your application in your browser
     and see the value of the Counter instance on the Rinkeby network.
+  id: totrans-106
   prefs: []
   type: TYPE_NORMAL
+  zh: 到此为止，您应该能够重新加载浏览器中的应用程序，并在 Rinkeby 网络上查看 Counter 实例的值。
 - en: Tip
+  id: totrans-107
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 提示
 - en: You can double-check the value displayed against the one reported by a blockchain
     explorer, such as Etherscan.^([11](#Fn11)) Etherscan is a blockchain explorer,
     a web site that provides a visual interface to addresses and transactions, and
     is available for mainnet and most test networks. Look for the address of the contract,
     and under the Read Contract tab, you will be able to check the value of the counter.
+  id: totrans-108
   prefs: []
   type: TYPE_NORMAL
+  zh: 您可以通过区块链浏览器（例如 Etherscan）来双重检查显示的值。^([11](#Fn11)) Etherscan 是一个区块链浏览器，是一个提供地址和交易可视化界面的网站，可用于主网和大多数测试网络。在合约地址下找到并点击“读取合约”选项卡，您将能够检查计数器的值。
 - en: Our next step will be to allow the user to increase the value of the counter,
     by issuing a transaction.
+  id: totrans-109
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们的下一步将是允许用户通过发出交易来增加计数器的值。
 - en: Sending a Transaction
+  id: totrans-110
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 发送交易
 - en: Let’s start by writing a function to send a transaction to call the increase
     function on the Counter contract.increaseCounter() {  const counter = this.props.contract;  return
     counter.methods.increase().send();}
+  id: totrans-111
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们首先编写一个函数来发送一个交易，调用 Counter 合约上的增加函数。increaseCounter() {  const counter =
+    this.props.contract;  return counter.methods.increase().send();}
 - en: After the previous section, the call to send the transaction should be more
     familiar. Note that in this case we are using send() instead of call(). This is
     because we need to actually send a transaction to affect the contract’s state,
     instead of just querying data from the network.
+  id: totrans-112
   prefs: []
   type: TYPE_NORMAL
+  zh: 在上一节之后，发送交易的调用应该更加熟悉。请注意，在这种情况下，我们使用的是 send() 而不是 call()。这是因为我们需要实际发送一个交易来影响合约的状态，而不仅仅是从网络中查询数据。
 - en: 'We can now wire this method to a button in our interface (Listing [2-13](#PC21)),
     and test it.render() {  const { value } = this.state;  if (!value) return "Loading";  return
     (    <div>      <div>Counter value: { value.toString() }</div>      <button onClick={()
     => this.increaseCounter()}>        Increase counter      </button>    </div>  );}Listing
     2-13'
+  id: totrans-113
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们可以将这个方法与我们界面中的一个按钮连接起来（见列表 [2-13](#PC21)），并进行测试。render() {  const { value
+    } = this.state;  if (!value) return "加载中";  return (    <div>      <div>计数器值：{
+    value.toString() }</div>      <button onClick={() => this.increaseCounter()}>        增加计数器      </button>    </div>  );}列表
+    2-13
 - en: Updated render method to display a button that increases the counter
+  id: totrans-114
   prefs: []
   type: TYPE_NORMAL
+  zh: 更新渲染方法以显示一个增加计数器的按钮
 - en: If you try this, you will be greeted with Metamask’s dialog to confirm a transaction,
     which should look more or less like Figure [2-2](#Fig2).![../images/476252_1_En_2_Chapter/476252_1_En_2_Fig2_HTML.jpg](../images/476252_1_En_2_Chapter/476252_1_En_2_Fig2_HTML.jpg)
+  id: totrans-115
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你尝试这样做，你将会看到 Metamask 的对话框来确认一笔交易，大致会像图[2-2](#Fig2)所示。
 - en: Figure 2-2
+  id: totrans-116
   prefs: []
   type: TYPE_NORMAL
+  zh: 图2-2
 - en: Metamask confirmation dialog to accept a transaction issued by the application.
     Your users will be shown this dialog every time you try to send a transaction
     on their behalf
+  id: totrans-117
   prefs: []
   type: TYPE_NORMAL
+  zh: Metamask 确认对话框用于接受应用程序发出的交易。每当您尝试代表用户发送交易时，用户将看到此对话框。
 - en: If you refresh the page a few seconds after confirming the transaction, you
     should see the new value of the counter. However, to avoid requiring a page reload
     to update the value, we will query the value again after the transaction is confirmed
@@ -646,24 +933,35 @@
     counter.methods.increase().send()    .on('receipt', async () => {      const value
     = await counter.methods.value().call();      this.setState({ value });    });}Listing
     2-14
+  id: totrans-118
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果在确认交易后几秒钟内刷新页面，您应该会看到计数器的新值。但是，为了避免需要重新加载页面来更新值，我们将在交易确认后再次查询该值（见列表[2-14](#PC22)）。increaseCounter()
+    {  const counter = this.props.contract;  return counter.methods.increase().send()    .on('receipt',
+    async () => {      const value = await counter.methods.value().call();      this.setState({
+    value });    });}列表2-14
 - en: Query the counter’s value after the transaction is mined
+  id: totrans-119
   prefs: []
   type: TYPE_NORMAL
+  zh: 在交易被确认后查询计数器的值
 - en: The send() method returns an event emitter, which allows us to listen for different
     events in the lifetime of a transaction. For now, we are interested only on the
     event when the transaction is mined, that is, included in a block in the chain.
     This event is referred to as receipt, since it corresponds to when the transaction
     receipt object is available. If we wanted, we could also check when the transaction
     was actually sent to a node, or when it has reached a reasonable number of confirmations.
+  id: totrans-120
   prefs: []
   type: TYPE_NORMAL
+  zh: send() 方法返回一个事件发射器，允许我们监听交易生命周期中的不同事件。目前，我们只对交易被确认时的事件感兴趣，也就是被包含在链中的块中。这个事件被称为收据，因为它对应于交易收据对象可用时。如果我们愿意，我们也可以检查交易实际发送到节点时，或者达到合理数量的确认时的情况。
 - en: Now, even if the updated code does refresh the counter’s value, we need to let
     the user know what is going on. The transaction’s confirmation takes several seconds,
     which is definitely more than what a regular web 2.0 application usually takes.
+  id: totrans-121
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，即使更新后的代码确实刷新了计数器的值，我们仍然需要让用户知道正在发生什么。交易的确认需要几秒钟，这绝对比常规的 Web 2.0 应用程序通常需要的时间长。
 - en: 'We will track the transaction state (Listing [2-15](#PC23)) to show a simple
     “Awaiting transaction” message to let the user know what is going on, and disable
     the button in the meantime (Listing [2-16](#PC24)). We will also handle the case
@@ -674,28 +972,48 @@
     => {      const value = await counter.methods.value().call();      this.setState({
     value, increasing: false });    })    .on(''error'', (error) => {      this.setState({
     error, increasing: false })    });}Listing 2-15'
+  id: totrans-122
   prefs: []
   type: TYPE_NORMAL
+  zh: '我们将跟踪交易状态（见[2-15](#PC23)）以显示简单的“等待交易”消息，让用户知道发生了什么，并在此期间禁用按钮（见[2-16](#PC24)）。我们还将处理交易失败的情况，以便我们不会永久禁用按钮。当然，在一个真实的
+    DApp 中，你可能希望提供更好的视觉提示。increaseCounter() {  const counter  = this.props.contract;  this.setState({
+    increasing: true, error: null });  return counter.methods.increase().send()    .on(''receipt'',
+    async () => {      const value = await counter.methods.value().call();      this.setState({
+    value, increasing: false });    })    .on(''error'', (error) => {      this.setState({
+    error, increasing: false })    });}Listing 2-15'
 - en: Updated increaseCounter function to keep track of a flag to identify pending
     transactions and any error returned
+  id: totrans-123
   prefs: []
   type: TYPE_NORMAL
+  zh: 更新 increaseCounter 函数以跟踪标识挂起交易和任何返回的错误的标志
 - en: 'render() {  const { value, **increasing**, **error** } = this.state;  if (!value)
     return "Loading";  return (    <div className="Counter">      <div>Counter value:
     { value.toString() }</div>      <button        **disabled={!!increasing}**        onClick={()
     => this.increaseCounter()}>          Increase counter      </button>      **<div>{
     increasing && "Awaiting transaction" }</div>**      **<div>{ error && error.message
     }</div>**    </div>  );}Listing 2-16'
+  id: totrans-124
   prefs: []
   type: TYPE_NORMAL
+  zh: 'render() {  const { value, **increasing**, **error** } = this.state;  if (!value)
+    return "Loading";  return (    <div className="Counter">      <div>Counter value:
+    { value.toString() }</div>      <button        **disabled={!!increasing}**        onClick={()
+    => this.increaseCounter()}>          Increase counter      </button>      **<div>{
+    increasing && "等待交易" }</div>**      **<div>{ error && error.message }</div>**    </div>  );}Listing
+    2-16'
 - en: Updated render method to display a notification when a transaction is pending
     or has failed, and disable the button until the transaction is finished
+  id: totrans-125
   prefs: []
   type: TYPE_NORMAL
+  zh: 更新渲染方法以在交易挂起或失败时显示通知，并在交易完成前禁用按钮
 - en: Note
+  id: totrans-126
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 注意
 - en: As an alternative to waiting for the transaction to be mined, we could also
     *optimistically update* the value. An optimistic update is a technique, used in
     many asynchronous applications beyond DApps, that consists in assuming that a
@@ -703,6 +1021,7 @@
     client-side. This way, the user perceives that the application reacts almost instantly
     and can keep interacting with it and has immediate feedback on the result of their
     actions.
+  id: totrans-127
   prefs: []
   type: TYPE_NORMAL
 - en: 'While this solution is good enough for a single user interacting with a contract,
@@ -711,9 +1030,11 @@
     window will not affect the other, unless the contract is queried again by reloading
     the page. To solve this issue, we will rely on the last concept we introduced
     in the contract’s interface: events.'
+  id: totrans-128
   prefs: []
   type: TYPE_NORMAL
 - en: Monitoring Updates Via Events
+  id: totrans-129
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
@@ -721,6 +1042,7 @@
     may also emit custom *events* upon certain transactions. Our Counter contract
     emits an event named Increased every time the increase function is called, and
     includes the new value of the counter as an argument.
+  id: totrans-130
   prefs: []
   type: TYPE_NORMAL
 - en: 'To monitor all instances of this event, we will subscribe to it when the component
@@ -729,21 +1051,25 @@
     = await counter.methods.value().call();  this.setState({ value: initialValue });  **counter.events.Increased()**    **.on(''data'',
     (event) => {**      **const value = event.returnValues.newValue;**      **this.setState({
     value });**    **});**}Listing 2-17'
+  id: totrans-131
   prefs: []
   type: TYPE_NORMAL
 - en: Subscription to the Increased event, which updates the component’s state whenever
     a new instance of the event is emitted
+  id: totrans-132
   prefs: []
   type: TYPE_NORMAL
 - en: Note that here we are referring to the counter.events property instead of to
     the counter.methods like we did before. Here, the event emitter fires a data event
     every time a new event is found, and includes the arguments of the event.
+  id: totrans-133
   prefs: []
   type: TYPE_NORMAL
 - en: 'Also, by updating the component’s state on every event, we no longer need to
     query the contract state whenever a transaction is confirmed. The receipt event
     handler on the increaseCounter function can be simplified to the following.    .on(''receipt'',
     async () => {      this.setState({ increasing: false });    })'
+  id: totrans-134
   prefs: []
   type: TYPE_NORMAL
 - en: With this new setup, you can now receive real-time updates on a contract, regardless
@@ -752,9 +1078,11 @@
     on both of them once the transaction is confirmed. And if you are lucky, you may
     even stumble upon a change issued by another reader of this book on the same contract
     instance.
+  id: totrans-135
   prefs: []
   type: TYPE_NORMAL
 - en: Deploying the Application
+  id: totrans-136
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
@@ -763,9 +1091,11 @@
     to perform simple computations and persist a shared state among all users, acting
     as a consensus layer on the state of the counter. This makes deployment straightforward,
     since the DApp needs only to be hosted as a static site.
+  id: totrans-137
   prefs: []
   type: TYPE_NORMAL
 - en: Summary
+  id: totrans-138
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
@@ -773,6 +1103,7 @@
     providing our users with a basic web-based interface for a single smart contract.
     We have explored how to read state from a contract and send transactions to it
     and how to monitor events for real-time updates.
+  id: totrans-139
   prefs: []
   type: TYPE_NORMAL
 - en: 'We have built our entire application relying on just two libraries: web3js
@@ -785,6 +1116,7 @@
     DApp, since they may be of great help. Make sure to check out OpenZeppelin, Truffle,
     Buidler, Etherlime, Embark, Clevis, and whatever is available by the time this
     book reaches your hands.'
+  id: totrans-140
   prefs: []
   type: TYPE_NORMAL
 - en: All in all, this chapter should have helped as an overview to the entire development
@@ -794,5 +1126,6 @@
     blockchain-based back end. Nevertheless, throughout the book, we will go in-depth
     in all these topics, plus new and more advanced ones, and revisit each step the
     building of a DApp on more interesting examples.
+  id: totrans-141
   prefs: []
   type: TYPE_NORMAL
