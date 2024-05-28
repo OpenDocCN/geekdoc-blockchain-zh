@@ -1,11 +1,15 @@
 - en: '[CHAPTER 6](toc.xhtml#c06)'
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: '[第6章](toc.xhtml#c06)'
 - en: '[Blockchain, Transactions, and Mining](toc.xhtml#c06)'
+  id: totrans-1
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: '[区块链、交易和挖矿](toc.xhtml#c06)'
 - en: In the previous chapter, we tried to understand the content of the Bitcoin Whitepaper
     in detail. The Bitcoin Whitepaper was released on October 31, 2008\. It provided
     a conceptual design of internet money that could work like cash. As we saw, the
@@ -13,8 +17,10 @@
     time or details about transaction messages, hashing, or signature algorithms.
     The whitepaper is more like a template for cryptocurrency design. So, the paper
     we call Bitcoin Whitepaper should ideally be called cryptocurrency whitepaper.
+  id: totrans-2
   prefs: []
   type: TYPE_NORMAL
+  zh: 在上一章，我们试图详细理解比特币白皮书的内容。比特币白皮书于2008年10月31日发布。它提供了互联网货币的概念性设计，可以像现金一样工作。正如我们所看到的，设计非常详细，但并没有提供具体的区块奖励、区块时间或交易消息、散列或签名算法的细节。白皮书更像是对加密货币设计的模板。因此，我们称之为比特币白皮书的东西应该更准确地称为加密货币白皮书。
 - en: In this chapter, we will analyze Bitcoin protocol implementation. The Bitcoin
     software we will use is written in a quite complicated C++ program. For an average
     programmer who is trying to understand Bitcoin, looking at and understanding the
@@ -23,202 +29,280 @@
     the internet, going through websites and blogs simplifies this task. And Python
     comes in handy in trying to understand and verify our learnings. The purpose of
     this chapter is to learn by coding and not try to build the most efficient solution.
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本章中，我们将分析比特币协议的实现。我们将使用的比特币软件是用相当复杂的C++编写的。对于试图理解比特币的平均程序员来说，查看并理解比特币软件代码是一项艰巨的任务。即使对于一个非常好的C++程序员，理解比特币程序也是非常困难的。在当今的互联网时代，浏览网站和博客可以简化这个任务。而Python在尝试理解和验证我们的学习过程中非常有用。本章的目的是通过编程学习，而不是尝试构建最有效的解决方案。
 - en: Before diving deeper into the actual implementation of the Bitcoin protocol,
     we need to have software installed and blockchain and indexes synchronized with
     the network.
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: 在深入实际实现比特币协议之前，我们需要安装软件，并让区块链和索引与网络同步。
 - en: '[Structure](toc.xhtml#s97a)'
+  id: totrans-5
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: '[结构](toc.xhtml#s97a)'
 - en: 'We will cover the following topics in this chapter:'
+  id: totrans-6
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将在本章涵盖以下主题：
 - en: Bitcoin software
+  id: totrans-7
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 比特币软件
 - en: Bitcoin Core installation
+  id: totrans-8
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 比特币核心安装
 - en: Running the Bitcoin Core server
+  id: totrans-9
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 运行比特币核心服务器
 - en: Bitcoin Core client
+  id: totrans-10
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 比特币核心客户端
 - en: Querying indexes in Python
+  id: totrans-11
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 用Python查询索引
 - en: Blockchain
+  id: totrans-12
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 区块链
 - en: Genesis block
+  id: totrans-13
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 创世区块
 - en: Blocks and indexes
+  id: totrans-14
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 区块与索引
 - en: Block header
+  id: totrans-15
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 区块头
 - en: Block version
+  id: totrans-16
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 区块版本
 - en: Previous block hash
+  id: totrans-17
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 前一个区块哈希
 - en: Timestamp
+  id: totrans-18
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 时间戳
 - en: Merkle root
+  id: totrans-19
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Merkle根
 - en: Bits and nonce
+  id: totrans-20
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 比特和非随机数
 - en: Serialized block
+  id: totrans-21
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 序列化区块
 - en: Magic number
+  id: totrans-22
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 魔法数字
 - en: Block file
+  id: totrans-23
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 区块文件
 - en: Block traversal using block indexes
+  id: totrans-24
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用区块索引进行区块遍历
 - en: Transactions
+  id: totrans-25
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 交易
 - en: UTXO
+  id: totrans-26
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: UTXO
 - en: Mining
+  id: totrans-27
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 挖矿
 - en: Mining profitability
+  id: totrans-28
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 挖矿盈利性
 - en: Block reward
+  id: totrans-29
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 区块奖励
 - en: Transaction fee
+  id: totrans-30
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 交易费
 - en: Coinbase transaction amount verification
+  id: totrans-31
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 币基交易金额验证
 - en: Mining cost
+  id: totrans-32
   prefs:
   - PREF_IND
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 挖矿成本
 - en: Mempool
+  id: totrans-33
   prefs:
   - PREF_IND
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Mempool
 - en: '[Objectives](toc.xhtml#s98a)'
+  id: totrans-34
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: '[目标](toc.xhtml#s98a)'
 - en: The objectives of this chapter are to help you understand the structure of Bitcoin
     blockchain, how Bitcoin software store and organize the blockchain, how blocks
     and transactions are indexed, and the structure of mempool data, and how to use
     them and UTXO to perform mining.
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 本章的目标是帮助你理解比特币区块链的结构，比特币软件如何存储和组织区块链，区块和交易是如何索引的，mempool数据的结构，以及如何使用它们和UTXO进行挖矿。
 - en: The chapter uses Python programming to understand Bitcoin blockchain, blockfile,
     indexes, UTXO, and mining.
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: 本章使用Python编程理解比特币区块链、区块文件、索引、UTXO和挖矿。
 - en: '[Bitcoin software](toc.xhtml#s99a)'
+  id: totrans-37
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: '[比特币软件](toc.xhtml#s99a)'
 - en: 'There are mainly three software that provide full verification: Armory, Bitcoin
     Core, and Bitcoin Knots. Of these, Bitcoin Core is the most widely used software,
     and it is also the most updated. Satoshi Nakamoto created this software and after
     him, it has been managed by the Bitcoin Core team. It is also called Satoshi client.
     According to some estimates, as much as 95% of the full nodes run this software.
     So, we will use this for our development and learning.'
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: 主要有三款软件提供完整验证：Armory、比特币核心和Bitcoin Knots。其中，比特币核心是最广泛使用的软件，也是更新最频繁的。中本聪创建了这款软件，之后由比特币核心团队负责维护。它也被称为中本聪客户端。据某些估计，多达95%的全节点运行这款软件。因此，我们将使用这个软件进行开发和学习。
 - en: '[Bitcoin Core installation](toc.xhtml#s100a)'
+  id: totrans-39
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: '[比特币核心安装](toc.xhtml#s100a)'
 - en: 'Installation instruction for Bitcoin Core can be found under the following:'
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: Bitcoin Core 的安装说明可以在以下部分找到：
 - en: '**[https://bitcoin.org/en/full-node](https://bitcoin.org/en/full-node)**'
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: '**[https://bitcoin.org/en/full-node](https://bitcoin.org/en/full-node)**'
 - en: On the left-hand side, you can find the instructions for the installation of
     Linux, Mac OS and Windows. Additionally, the Bitcoin Core can be installed on
     Linux using Snap Store. Bitcoin Core can also be installed on Docker. It is important
@@ -227,102 +311,159 @@
     or attacking software who will use it to steal your bitcoins protected by the
     private keys. Downloading software from an authentic site and validating hash
     at multiple unrelated websites are the best ways to be secure.
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 在左侧，您可以找到 Linux、Mac OS 和 Windows 的安装说明。此外，Bitcoin Core 可以通过 Snap Store 在 Linux
+    上安装。Bitcoin Core 也可以在 Docker 上安装。始终使用正版软件非常重要，因为如果您使用该软件生成私钥或接收比特币，那些私钥将 known
+    to the attacker or attacking software who will use it to steal your bitcoins protected
+    by the private keys。从正版网站下载软件并在多个不相关的网站上验证散列是确保安全最佳方式。
 - en: '[Running the Bitcoin Core server](toc.xhtml#s101a)'
+  id: totrans-43
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: '**运行 Bitcoin Core 服务器** (toc.xhtml#s101a)'
 - en: The Bitcoin Core server can run from GUI or command line. For the GUI version,
     we can run `**bitcoin-qt –daemon**`, and for the command line, we can run `**bitcoind**`.
     We will use the command line for running daemon and client. It may take one or
     more days to sync all the blocks along with all the indexes. A greater memory,
     better internet, and faster disk can speed up download and index generation.
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: Bitcoin Core 服务器可以从 GUI 或命令行运行。对于 GUI 版本，我们可以运行 `**bitcoin-qt –daemon**`，对于命令行，我们可以运行
+    `**bitcoind**`。我们将使用命令行运行守护进程和客户端。同步所有块及其索引可能需要一两天的时间。更大的内存、更好的互联网和更快的磁盘可以加快下载和索引生成。
 - en: 'The following is the sample command to start the daemon:'
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下是启动守护进程的示例命令：
 - en: '`bitcoind -printtoconsole -txindex=1 -dbcache=8392`'
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: '`bitcoind -printtoconsole -txindex=1 -dbcache=8392`'
 - en: '`**dbcache**` is the database cache size in memory. It improves block verification
     time and reduces the time to download the blockchain.'
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: '`**dbcache**` 是内存中的数据库缓存大小。它提高了块验证时间并减少了下载区块链的时间。'
 - en: '`**txindex=1**` means transaction indexes will be created in addition to the
     necessary ones.'
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: '`**txindex=1**` 表示将创建除必要之外的交易索引。'
 - en: '[Bitcoin Core client](toc.xhtml#s102a)'
+  id: totrans-49
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: '**Bitcoin Core 客户端** (toc.xhtml#s102a)'
 - en: 'We can connect to the daemon using the following command:'
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以使用以下命令连接到守护进程：
 - en: '`bitcoin-cli [options] <command> [params]`'
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: '`bitcoin-cli [options] <command> [params]`'
 - en: 'We can also connect to the daemon using `**bitcoinrpc**` for Python. The following
     is the pip package information:'
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们还可以使用 `**bitcoinrpc**` 对 Python 进行守护进程连接。以下是 pip 包信息：
 - en: '![](images/Figure-6.1.jpg)'
+  id: totrans-53
   prefs: []
   type: TYPE_IMG
+  zh: '![](images/Figure-6.1.jpg)'
 - en: '**Figure 6.1:** Python pip package to create Python client for Bitcoin Core
     Daemon'
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: '**图 6.1:** Python pip 包以创建 Bitcoin Core Daemon 的 Python 客户端'
 - en: '[Querying indexes in Python](toc.xhtml#s103a)'
+  id: totrans-55
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: '**在 Python 中查询索引** (toc.xhtml#s103a)'
 - en: 'Bitcoin Core uses LevelDB to store its indexes. LevelDB is an on-disk key-value
     store that uses a binary file to store key-value pairs. It facilitates fast iteration
     over stored keys and fast access to value using keys. Even though LevelDB provides
     a very fast query, it has limited use as it provides no pattern search and no
     filtering. To query the database, we need the following pip package to be installed:'
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: Bitcoin Core 使用 LevelDB 来存储其索引。LevelDB 是一个磁盘上的键值存储，它使用二进制文件来存储键值对。它支持快速遍历存储的键和键值对的快速访问。尽管
+    LevelDB 提供非常快的查询，但它有限制，因为它不支持模式搜索和过滤。要查询数据库，我们需要以下 pip 包安装：
 - en: '![](images/Figure-6.2.jpg)'
+  id: totrans-57
   prefs: []
   type: TYPE_IMG
+  zh: '![](images/Figure-6.2.jpg)'
 - en: '**Figure 6.2:** Python package for LevelDB'
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: '**图 6.2:** Python 包用于 LevelDB'
 - en: 'The following are the keys and values stored in LevelDB databases:'
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下是在 LevelDB 数据库中存储的键和值：
 - en: '![](images/121.jpg)![](images/122.jpg)'
+  id: totrans-60
   prefs: []
   type: TYPE_IMG
+  zh: '![](images/121.jpg)![](images/122.jpg)'
 - en: '**Table 6.1:** Bitcoin blockchain LevelDB indexes'
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: '**表 6.1:** Bitcoin 区块链 LevelDB 索引'
 - en: We will use the `**plyvel**` package in `**Python 3.6**` to explore these values.
+  id: totrans-62
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将使用 `**plyvel**` 包在 `**Python 3.6**` 中探索这些值。
 - en: '[Blockchain](toc.xhtml#s104a)'
+  id: totrans-63
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: '[区块链](toc.xhtml#s104a)'
 - en: Blockchain is the trail of blocks where each block is a collection of transactions.
     The blockchain contains all the transactions that took place since the beginning
     of the Bitcoin network.
+  id: totrans-64
   prefs: []
   type: TYPE_NORMAL
+  zh: 区块链是块的轨迹，每个块都是交易的集合。区块链包含自比特币网络成立以来发生的所有交易。
 - en: '[Genesis block](toc.xhtml#s105a)'
+  id: totrans-65
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: '**创世区块** (toc.xhtml#s105a)'
 - en: 'A genesis block is defined as follows:'
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
+  zh: 创世区块定义如下：
 - en: '*The first block in any blockchain is called the genesis block.*'
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
+  zh: '*区块链中的第一个区块称为创世区块。*'
 - en: On 3^(rd) January 2009, the Bitcoin network came to life. Satoshi mined blocks
     for several months. There were few other developers who also mined blocks during
     that time, but the first block in the Bitcoin blockchain is different. It is not
@@ -330,35 +471,55 @@
     the previous block hash, ends in this block, which means we can create a different
     chain and so, a new coin, by changing this block. The block carries a special
     message to the world to justify Bitcoin’s existence.
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
+  zh: 2009年1月3日，比特币网络诞生。中本聪挖了几个月的区块。在那段时间里，还有少数其他开发者也挖过区块，但比特币区块链的第一个区块与众不同。它不是挖出来的，而是被硬编码在比特币软件中。通过使用前一个区块散列进行遍历后，区块链结束在这个区块，这意味着我们可以通过改变这个区块来创建一个不同的链和因此，一种新币。这个区块带有特殊的信息，向世界证明比特币的存在。
 - en: 'The following is the hex code of the genesis block:'
+  id: totrans-69
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下是创世块的十六进制代码：
 - en: '![](images/Figure-6.3.jpg)'
+  id: totrans-70
   prefs: []
   type: TYPE_IMG
+  zh: '![](images/Figure-6.3.jpg)'
 - en: '**Figure 6.3:** Shows block hex-dump of the genesis block'
+  id: totrans-71
   prefs: []
   type: TYPE_NORMAL
+  zh: '**图 6.3：**显示创世区块的块十六进制转储'
 - en: 'This hex code, when printed as byte dump, gives the following output:'
+  id: totrans-72
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个十六进制代码，当打印为字节转储时，会给出以下输出：
 - en: '![](images/Figure-6.4.jpg)'
+  id: totrans-73
   prefs: []
   type: TYPE_IMG
+  zh: '![](images/Figure-6.4.jpg)'
 - en: '**Figure 6.4:** Shows binary form of genesis block hash dump'
+  id: totrans-74
   prefs: []
   type: TYPE_NORMAL
+  zh: '**图 6.4：**显示创世区块散列转储的二进制形式'
 - en: 'We can see the message with date and origin:'
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以看到带有日期和来源的消息：
 - en: '![](images/Figure-6.5.jpg)'
+  id: totrans-76
   prefs: []
   type: TYPE_IMG
+  zh: '![](images/Figure-6.5.jpg)'
 - en: '**Figure 6.5:** Displays message stored in the genesis block'
+  id: totrans-77
   prefs: []
   type: TYPE_NORMAL
+  zh: '**图 6.5：**显示存储在创世区块中的消息'
 - en: On 3^(rd) January 2009, a cover story was run in *The Times* in London with
     the title, Chancellor on brink of second bailout for banks. The message was an
     attempt by Satoshi to justify the launch of Bitcoin. It pointed out to the world
@@ -370,180 +531,250 @@
     Bitcoin as an alternative as it provides an intervention-free monetary system
     that is driven by a set of rules that cannot be modified by the will of a group
     of people.
+  id: totrans-78
   prefs: []
   type: TYPE_NORMAL
+  zh: 2009年1月3日，伦敦《泰晤士报》发表了一篇题为“Chancellor on brink of second bailout for banks”的文章，这篇文章是中本聪试图证明比特币推出的依据。它指出，当前的金融体系没有坚实的基础；它需要干预才能维持，而这些干预是为了使某些企业受益，例如大银行，但没有银行家或政府的干预为2008年大衰退后失去工作的普通民众提供救济。中本聪将比特币视为一种替代品，因为它提供了一种无需干预的货币系统，该系统由一组无法被一群人意志修改的规则驱动。
 - en: '[Blocks and indexes](toc.xhtml#s106a)'
+  id: totrans-79
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: '[区块与索引](toc.xhtml#s106a)'
 - en: 'Bitcoin Core daemon, while running, creates several directories and files under
     the default directory `**~/.bitcoin**`. Here is the list of files and directories
     and their functions:'
+  id: totrans-80
   prefs: []
   type: TYPE_NORMAL
+  zh: 比特币核心守护进程在运行时，会在默认目录`**~/.bitcoin**`下创建几个目录和文件。以下是文件和目录及其功能的列表：
 - en: '![](images/124.jpg)'
+  id: totrans-81
   prefs: []
   type: TYPE_IMG
+  zh: '![](images/124.jpg)'
 - en: '**Table 6.2:** List of files and directories used by Bitcoin Core and their
     functions'
+  id: totrans-82
   prefs: []
   type: TYPE_NORMAL
+  zh: '**表 6.2：**比特币核心使用的文件和目录及其功能列表'
 - en: The blockchain is quite large, which makes it necessary to maintain indexes
     to improve the efficiency of the verification of new blocks and transactions and
     certain other operations required by consensus rules.
+  id: totrans-83
   prefs: []
   type: TYPE_NORMAL
+  zh: 区块链相当大，这使得维护索引变得必要，以提高验证新区块和交易以及某些由共识规则所需的其他操作的效率。
 - en: '[Block header](toc.xhtml#s107a)'
+  id: totrans-84
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: '[区块头](toc.xhtml#s107a)'
 - en: 'Bitcoin blocks are generated every 10 minutes on an average. The following
     is the Block Header structure:'
+  id: totrans-85
   prefs: []
   type: TYPE_NORMAL
+  zh: 比特币区块平均每10分钟生成一次。以下是区块头结构：
 - en: '![](images/Figure-6.6.jpg)'
+  id: totrans-86
   prefs: []
   type: TYPE_IMG
+  zh: '![](images/Figure-6.6.jpg)'
 - en: '**Figure 6.6:** Structure of block header'
+  id: totrans-87
   prefs: []
   type: TYPE_NORMAL
+  zh: '**图 6.6：**区块头结构'
 - en: 'At the time of writing, the block height is `**726556**`. Bitcoin-cli gives
     the latest verified block height using the following command:'
+  id: totrans-88
   prefs: []
   type: TYPE_NORMAL
+  zh: 截至目前，区块高度为`**726556**`。比特币命令行工具（bitcoin-cli）使用以下命令提供最新的验证区块高度：
 - en: '![](images/Figure-6.7.jpg)'
+  id: totrans-89
   prefs: []
   type: TYPE_IMG
+  zh: '![](images/Figure-6.7.jpg)'
 - en: '**Figure 6.7:** Current block height in Bitcoin blockchain'
+  id: totrans-90
   prefs: []
   type: TYPE_NORMAL
+  zh: '**图 6.7：**比特币区块链中的当前区块高度'
 - en: 'We can use the block height information to get block hash:'
+  id: totrans-91
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以使用区块高度信息来获取区块散列：
 - en: '![](images/Figure-6.8.jpg)'
+  id: totrans-92
   prefs: []
   type: TYPE_IMG
+  zh: '![](images/Figure-6.8.jpg)'
 - en: '**Figure 6.8:** Getting block hash from block height'
+  id: totrans-93
   prefs: []
   type: TYPE_NORMAL
+  zh: '**图 6.8：**从块高度获取块散列'
 - en: 'Since we know that the block header is 80 bytes long, we can get block header
     using block hash. The following is the block header we got by reading the first
     80 bytes of block content:'
+  id: totrans-94
   prefs: []
   type: TYPE_NORMAL
 - en: '![](images/Figure-6.9.jpg)'
+  id: totrans-95
   prefs: []
   type: TYPE_IMG
 - en: '**Figure 6.9:** Block header content from block hash using Bitcoin Core CLI'
+  id: totrans-96
   prefs: []
   type: TYPE_NORMAL
 - en: 'If we take hash of the content of Block header by applying the sha256 algorithm
     twice, we get block hash. The following program does this:'
+  id: totrans-97
   prefs: []
   type: TYPE_NORMAL
 - en: '`import hashlib`'
+  id: totrans-98
   prefs: []
   type: TYPE_NORMAL
 - en: '`**blk_b = bytes.fromhex(‘040020200a377a6ce7bfbd5efdbe087801fbef9a8a7b6815c3eb08000000000000000000ead1c751f9b4fedd1ff1ab37f7dccec13fc4cdfd6df4406fdd72cd44655fd2fa9389286273370a1739264fbc’)**`'
+  id: totrans-99
   prefs: []
   type: TYPE_NORMAL
 - en: '`**h1 = hashlib.sha256(blk_b).digest()**`'
+  id: totrans-100
   prefs: []
   type: TYPE_NORMAL
 - en: '`**h2 = hashlib.sha256(h1).digest()**`'
+  id: totrans-101
   prefs: []
   type: TYPE_NORMAL
 - en: '`print(h2[::-1].hex())`'
+  id: totrans-102
   prefs: []
   type: TYPE_NORMAL
 - en: '**Program 6.1:** Program to get block hash from the block header'
+  id: totrans-103
   prefs: []
   type: TYPE_NORMAL
 - en: 'Running this gets us the following hash value, which, as we saw, is the same
     as the block hash that gave us the block header:'
+  id: totrans-104
   prefs: []
   type: TYPE_NORMAL
 - en: '![](images/Figure-6.10.jpg)'
+  id: totrans-105
   prefs: []
   type: TYPE_IMG
 - en: '**Figure 6.10:** Shows calculated block hash'
+  id: totrans-106
   prefs: []
   type: TYPE_NORMAL
 - en: 'Block elements are stored in little-endian, so to be able to use the values,
     we need to reverse byte-order. The following is the small program that takes the
     hex code of block header and annotates header elements:'
+  id: totrans-107
   prefs: []
   type: TYPE_NORMAL
 - en: '`*def getBlockHeader**(blk:* *bytes**):*`'
+  id: totrans-108
   prefs: []
   type: TYPE_NORMAL
 - en: '`*block = {}*`'
+  id: totrans-109
   prefs: []
   type: TYPE_NORMAL
 - en: '`*block[**‘version’**] = blk[**0**:**4**][::-**1**].hex()*`'
+  id: totrans-110
   prefs: []
   type: TYPE_NORMAL
 - en: '`*blk =* *blk[**4**:]*`'
+  id: totrans-111
   prefs: []
   type: TYPE_NORMAL
 - en: '`*block[**‘prev_blockhash’**] = blk[**0**:**32**][::-**1**].hex()*`'
+  id: totrans-112
   prefs: []
   type: TYPE_NORMAL
 - en: '`*blk =* *blk[**32**:]*`'
+  id: totrans-113
   prefs: []
   type: TYPE_NORMAL
 - en: '`*block[**‘merkle_root’**] = blk[**0**:**32**][::-**1**].hex()*`'
+  id: totrans-114
   prefs: []
   type: TYPE_NORMAL
 - en: '`*blk =* *blk[**32**:]*`'
+  id: totrans-115
   prefs: []
   type: TYPE_NORMAL
 - en: '`*block[**‘time’**] =**int**.from_bytes(blk[**0**:**4**], byteorder=**’little’**)*`'
+  id: totrans-116
   prefs: []
   type: TYPE_NORMAL
 - en: '`*blk =* *blk[**4**:]*`'
+  id: totrans-117
   prefs: []
   type: TYPE_NORMAL
 - en: '`*block[**‘bits’**] = blk[**0**:**4**][::-**1**].hex()*`'
+  id: totrans-118
   prefs: []
   type: TYPE_NORMAL
 - en: '`*blk =* *blk[**4**:]*`'
+  id: totrans-119
   prefs: []
   type: TYPE_NORMAL
 - en: '`*block[**‘nonce’**] = blk[**0**:**4**][::-**1**].hex()*`'
+  id: totrans-120
   prefs: []
   type: TYPE_NORMAL
 - en: '`*return* *block*`'
+  id: totrans-121
   prefs: []
   type: TYPE_NORMAL
 - en: '**Program 6.2:** Program to get block header structure from block header bytes'
+  id: totrans-122
   prefs: []
   type: TYPE_NORMAL
 - en: 'We call the method as follows:'
+  id: totrans-123
   prefs: []
   type: TYPE_NORMAL
 - en: '`*blkhdr = bytes.fromhex(“*040020200a377a6ce7bfbd5efdbe087801fbef9a8a7b6815c3eb08000000000000000000ead1c751f9b4fedd1ff1ab37f7dccec13fc4cdfd6df4406fdd72cd44655fd2fa9389286273370a1739264fbc”*)*`'
+  id: totrans-124
   prefs: []
   type: TYPE_NORMAL
 - en: '`jsonobj = getBlockHeader(blkhdr)`'
+  id: totrans-125
   prefs: []
   type: TYPE_NORMAL
 - en: '`print(json.dumps(jsonobj, indent = 4))`'
+  id: totrans-126
   prefs: []
   type: TYPE_NORMAL
 - en: 'This gives the following result:'
+  id: totrans-127
   prefs: []
   type: TYPE_NORMAL
 - en: '![](images/Figure-6.11.jpg)'
+  id: totrans-128
   prefs: []
   type: TYPE_IMG
 - en: '**Figure 6.11:** Shows block header structure from executed program'
+  id: totrans-129
   prefs: []
   type: TYPE_NORMAL
 - en: We can use the collected information for further analysis.
+  id: totrans-130
   prefs: []
   type: TYPE_NORMAL
 - en: '[Block version](toc.xhtml#s108a)'
+  id: totrans-131
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
@@ -552,11 +783,13 @@
     transactions and are backward compatible (does not cause chain split) are called
     softforks. Bitcoin block consensus mechanism has changed from `**IsSuperMajority()**`
     or ISM to Version Bits.
+  id: totrans-132
   prefs: []
   type: TYPE_NORMAL
 - en: Version 1 to 4 was called `**IsSuperMajority()**` softfork. In this consensus
     system, a new version is activated for 950 out of 1,000 consecutive blocks. Once
     this activation has happened, blocks with older versions are rejected.
+  id: totrans-133
   prefs: []
   type: TYPE_NORMAL
 - en: The introduction of Segregated witness Bitcoin network has upgraded to a newer
@@ -564,18 +797,27 @@
     Improvement Proposal BIP-9\. A list of all the Bitcoin Improvement Proposals can
     be found at **[https://github.com/bitcoin/bips](https://github.com/bitcoin/bips)**.
     Version bits allow multiple softforks to wait for acceptance and finally deploy.
+  id: totrans-134
   prefs: []
   type: TYPE_NORMAL
+  zh: 隔离见证比特币网络的引入升级到了使用版本位的较新共识机制。这个机制是在比特币改进提案BIP-9中提出的。所有比特币改进提案的列表可以在 **[https://github.com/bitcoin/bips](https://github.com/bitcoin/bips)**
+    中找到。版本位允许多个软分叉等待接受并最终部署。
 - en: In this mechanism, a softfork goes through a workflow. The following flowchart
     shows the lifecycle of a softfork. (Source **[https://github.com/bitcoin/bips/blob/master/bip-0009.mediawiki](https://github.com/bitcoin/bips/blob/master/bip-0009.mediawiki)**)
+  id: totrans-135
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这个机制中，软分叉经历一个工作流程。下面的流程图展示了软分叉的生命周期。（来源 **[https://github.com/bitcoin/bips/blob/master/bip-0009.mediawiki](https://github.com/bitcoin/bips/blob/master/bip-0009.mediawiki)**）
 - en: '![](images/Figure-6.12.jpg)'
+  id: totrans-136
   prefs: []
   type: TYPE_IMG
+  zh: '![](images/Figure-6.12.jpg)'
 - en: '**Figure 6.12:** Image is taken from BIP 9 showing the soft-fork workflow'
+  id: totrans-137
   prefs: []
   type: TYPE_NORMAL
+  zh: '**图 6.12:** 图片来自BIP 9，展示了软分叉的工作流程'
 - en: When a developer proposes a softfork, it is debated in developer forums and
     drafted in a BIP. As the BIP implementation is defined and is ready for deployment,
     the softfork moves to the Defined state. After this, the miner who supports the
@@ -586,13 +828,17 @@
     failed and is withdrawn, which means the blocks supporting it will be rejected.
     If the softfork achieves 95% acceptance, it reaches a *locked_in* state and will
     become a rule after 2016 blocks.
+  id: totrans-138
   prefs: []
   type: TYPE_NORMAL
+  zh: 当开发者提出一个软分叉时，它会在开发者论坛上进行辩论，并在BIP中起草。随着BIP实施 defined and is ready for deployment，软分叉进入Defined状态。之后，支持升级的矿工准备升级。准备好的矿工通过设置相应的版本位来发出准备信号。此时，软分叉达到Started状态，需要在接下来的1年内获得最后2016个区块中的95%支持。如果软分叉在1年内没有达到95%的接受度，它被认为是失败的并被撤回，这意味着支持它的区块将被拒绝。如果软分叉达到95%的接受度，它达到一个*locked_in*状态，并在2016个区块后成为一条规则。
 - en: If an enhancement is important and the miner community does not reach a consensus,
     the developer community can enforce the change in a particular block by enabling
     BIP148.
+  id: totrans-139
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果一个改进很重要，而矿工社区没有达成共识，开发者社区可以在特定区块中通过启用BIP148强制更改。
 - en: A version bit has a `0x20000000` set, and any other set bit denotes readiness
     for a softfork proposal. If Alice proposes an upgrade and 0x1 bit denotes his
     softfork, then the miner supporting and ready for the upgrade creates a block
@@ -600,760 +846,1067 @@
     his softfork, then a miner can vote by setting 0x4 bit, i.e., `0x20000100`. If
     the miner votes for both upgrades, they will set both bits, so the version will
     be `0x20000101.`
+  id: totrans-140
   prefs: []
   type: TYPE_NORMAL
+  zh: 版本位设置了一个`0x20000000`，其他设置位表示对软分叉提案的准备。如果爱丽丝提出一个升级，并且0x1位表示她的软分叉，那么支持并准备升级的矿工将创建一个版本为`0x20000001`的区块。如果鲍勃也提出一个升级，并且`0x4`位表示他的软分叉，那么矿工可以通过设置0x4位来投票，即`0x20000100`。如果矿工为两个升级投票，他们将设置两个位，所以版本将是`0x20000101`。
 - en: '[Previous block hash](toc.xhtml#s109a)'
+  id: totrans-141
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: '[前区块哈希](toc.xhtml#s109a)'
 - en: 'In the preceding program, we got a block header structure in which one field
     was the previous block hash. We can get the same block hash by querying Bitcoin
     Core software for block hash using one less block height, as follows:'
+  id: totrans-142
   prefs: []
   type: TYPE_NORMAL
+  zh: 在前面的程序中，我们得到了一个区块头结构，其中一个字段是前区块哈希。我们可以通过查询Bitcoin Core软件使用少一个区块高度的区块哈希，得到相同的区块哈希，如下所示：
 - en: '![](images/Figure-6.13.jpg)'
+  id: totrans-143
   prefs: []
   type: TYPE_IMG
+  zh: '![](images/Figure-6.13.jpg)'
 - en: '**Figure 6.13:** Shows Block hash of the previous block obtained by block header
     and block height and compared'
+  id: totrans-144
   prefs: []
   type: TYPE_NORMAL
+  zh: '**图 6.13:** 显示通过区块头和区块高度获得的上一区块哈希并进行比较'
 - en: '[Timestamp](toc.xhtml#s110a)'
+  id: totrans-145
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: '[时间戳](toc.xhtml#s110a)'
 - en: 'Using time, we can get the timestamp of the block using the following bash
     shell command:'
+  id: totrans-146
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用时间，我们可以使用以下bashshell命令获取块的时间戳：
 - en: '![](images/Figure-6.14.jpg)'
+  id: totrans-147
   prefs: []
   type: TYPE_IMG
+  zh: '![](images/Figure-6.14.jpg)'
 - en: '**Figure 6.14:** Shows date time obtained from the time field in the block
     header'
+  id: totrans-148
   prefs: []
   type: TYPE_NORMAL
+  zh: '**图 6.14:** 显示从区块头中的时间字段获得的日期时间'
 - en: '[Merkle root](toc.xhtml#s111a)'
+  id: totrans-149
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: '[Merkle根](toc.xhtml#s111a)'
 - en: 'To calculate Merkle Root, we need a list of transactions in a block. We get
     the list of transactions from the block structure of a block using the following
     CLI command:'
+  id: totrans-150
   prefs: []
   type: TYPE_NORMAL
 - en: '![](images/Figure-6.15.jpg)'
+  id: totrans-151
   prefs: []
   type: TYPE_IMG
 - en: '**Figure 6.15:** Block structure as shown by Bitcoin Core CLI command'
+  id: totrans-152
   prefs: []
   type: TYPE_NORMAL
 - en: 'As you learned in *[Chapter 5, The Whitepaper](c05.xhtml), [figure 5.22](c05.xhtml#fig5_22)*,
     Hash of Merkle Root is calculated by repeatedly hashing and concatenating consecutive
     pairs of transactions. The following Python program does the same:'
+  id: totrans-153
   prefs: []
   type: TYPE_NORMAL
 - en: '`def hashOfJoinedStr(a:str, b:str):`'
+  id: totrans-154
   prefs: []
   type: TYPE_NORMAL
 - en: '`# Reverse inputs before and after hashing due to big-endian / little-endian
     nonsense`'
+  id: totrans-155
   prefs: []
   type: TYPE_NORMAL
 - en: '`a١ = bytes.fromhex(a)[::-1]`'
+  id: totrans-156
   prefs: []
   type: TYPE_NORMAL
 - en: '`b١ = bytes.fromhex(b)[::-1]`'
+  id: totrans-157
   prefs: []
   type: TYPE_NORMAL
 - en: '`h = hashlib.sha256(hashlib.sha256(a1 + b1).digest()).digest()`'
+  id: totrans-158
   prefs: []
   type: TYPE_NORMAL
 - en: '`return h`'
+  id: totrans-159
   prefs: []
   type: TYPE_NORMAL
 - en: '`def buildMerkleRoot(hash_list: list):`'
+  id: totrans-160
   prefs: []
   type: TYPE_NORMAL
 - en: '`if len(hash_list) < 2:`'
+  id: totrans-161
   prefs: []
   type: TYPE_NORMAL
 - en: '`return hash_list[0]`'
+  id: totrans-162
   prefs: []
   type: TYPE_NORMAL
 - en: '`new_hash_list = []`'
+  id: totrans-163
   prefs: []
   type: TYPE_NORMAL
 - en: '`# Process pairs. For odd length, the last is skipped`'
+  id: totrans-164
   prefs: []
   type: TYPE_NORMAL
 - en: '`for i in range(0, len(hash_list) - 1, 2):`'
+  id: totrans-165
   prefs: []
   type: TYPE_NORMAL
 - en: '`new_hash_list.append(hashOfJoinedStr(hash_list[i], hash_list[i + 1])[::-1].hex())`'
+  id: totrans-166
   prefs: []
   type: TYPE_NORMAL
 - en: '``# odd, hash last item twice`'
+  id: totrans-167
   prefs: []
   type: TYPE_NORMAL
 - en: '`if len(hash_list) % 2 == 1:`'
+  id: totrans-168
   prefs: []
   type: TYPE_NORMAL
 - en: '`new_hash_list.append(hashOfJoinedStr(hash_list[-1], hash_list[-1])[::-1].hex())`'
+  id: totrans-169
   prefs: []
   type: TYPE_NORMAL
 - en: '``return buildMerkleRoot(new_hash_list)`'
+  id: totrans-170
   prefs: []
   type: TYPE_NORMAL
 - en: '**Program 6.3:** Program to build Merkle Root from Transaction hashes'
+  id: totrans-171
   prefs: []
   type: TYPE_NORMAL
 - en: 'We include the following lines in the code to make RPC calls to Bitcoin Core
     Server:'
+  id: totrans-172
   prefs: []
   type: TYPE_NORMAL
 - en: '`from bitcoinrpc.authproxy import AuthServiceProxy, JSONRPCException`'
+  id: totrans-173
   prefs: []
   type: TYPE_NORMAL
 - en: '`rpc_connection = AuthServiceProxy(“http://%s:%s@127.0.0.1:8332”%(<username>,
     <password>))We call the above-mentioned method as follows:`'
+  id: totrans-174
   prefs: []
   type: TYPE_NORMAL
 - en: '`if __name__ == ‘__main__’:`'
+  id: totrans-175
   prefs: []
   type: TYPE_NORMAL
 - en: '`block_hash = rpc_connection.getblockhash(715735)`'
+  id: totrans-176
   prefs: []
   type: TYPE_NORMAL
 - en: '`block = rpc_connection.getblock(block_hash)`'
+  id: totrans-177
   prefs: []
   type: TYPE_NORMAL
 - en: '`print(‘Merkle Root from RPC call\t = %s’ % block[‘merkleroot’])`'
+  id: totrans-178
   prefs: []
   type: TYPE_NORMAL
 - en: '`hash_merkle_root = buildMerkleRoot(block[‘tx’])`'
+  id: totrans-179
   prefs: []
   type: TYPE_NORMAL
 - en: '`print(‘Calculated Merkle Root\t = %s’ % hash_merkle_root)`'
+  id: totrans-180
   prefs: []
   type: TYPE_NORMAL
 - en: 'This gives us the following result:'
+  id: totrans-181
   prefs: []
   type: TYPE_NORMAL
 - en: '![](images/Figure-6.16.jpg)'
+  id: totrans-182
   prefs: []
   type: TYPE_IMG
 - en: '**Figure 6.16:** Program execution showing the calculated value of Merkle Root
     as equal to the value in the header'
+  id: totrans-183
   prefs: []
   type: TYPE_NORMAL
 - en: '[Bits and nonce](toc.xhtml#s112a)'
+  id: totrans-184
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
 - en: The next field to understand is Bits. Bits are a compressed representation of
     the Target Threshold. Block hash needs to be less than Target Threshold to be
     accepted as a valid block.
+  id: totrans-185
   prefs: []
   type: TYPE_NORMAL
 - en: 'The following is the un-compression equation:'
+  id: totrans-186
   prefs: []
   type: TYPE_NORMAL
 - en: '*b[1] b[2] b[3] b[4]: Four bytes of Bits*'
+  id: totrans-187
   prefs: []
   type: TYPE_NORMAL
 - en: '*Target Threshold T= b[2] b[3] b[4].256^(b1-3))*'
+  id: totrans-188
   prefs: []
   type: TYPE_NORMAL
 - en: Let us see if the next Block, which has a block height of `**715735**`, has
     a block hash less than the target threshold.
+  id: totrans-189
   prefs: []
   type: TYPE_NORMAL
 - en: '*h: Block Hash*'
+  id: totrans-190
   prefs: []
   type: TYPE_NORMAL
 - en: '*T: Target Threshold*'
+  id: totrans-191
   prefs: []
   type: TYPE_NORMAL
 - en: '*h= 0000000000000000004db407202aff54e9ace0efb72588bb73a2beebb248c28*'
+  id: totrans-192
   prefs: []
   type: TYPE_NORMAL
 - en: '*b[1] b[2] b[3] b[4] = 170b98ab*'
+  id: totrans-193
   prefs: []
   type: TYPE_NORMAL
 - en: '*b[1]=0x17,b[2] = 0x0b,b[3] = 0x98,b[4] = 0xab*'
+  id: totrans-194
   prefs: []
   type: TYPE_NORMAL
 - en: '*T=0x0b98ab.256^(0x17-0x03)*'
+  id: totrans-195
   prefs: []
   type: TYPE_NORMAL
 - en: ⇒*T=0x0b98ab.256^(0x14)*
+  id: totrans-196
   prefs: []
   type: TYPE_NORMAL
 - en: Block is valid if *T* `>` *h*
+  id: totrans-197
   prefs: []
   type: TYPE_NORMAL
 - en: 'The following program converts bits to get the target threshold:'
+  id: totrans-198
   prefs: []
   type: TYPE_NORMAL
 - en: '`def getTargetThreshold(bits: bytes):`'
+  id: totrans-199
   prefs: []
   type: TYPE_NORMAL
 - en: '`shift = bits[3]`'
+  id: totrans-200
   prefs: []
   type: TYPE_NORMAL
 - en: '`value = int.from_bytes(bits[0:3], byteorder=’little’)`'
+  id: totrans-201
   prefs: []
   type: TYPE_NORMAL
+  zh: '`value = int.from_bytes(bits[0:3], byteorder=’little’)`'
 - en: '`target_threshold = value * 2 ** (8 * (shift - 3))`'
+  id: totrans-202
   prefs: []
   type: TYPE_NORMAL
+  zh: '`target_threshold = value * 2 ** (8 * (shift - 3))`'
 - en: '`return target_threshold`'
+  id: totrans-203
   prefs: []
   type: TYPE_NORMAL
+  zh: '`return target_threshold`'
 - en: '**Program 6.4:** Program to convert bits in block header into Target Threshold'
+  id: totrans-204
   prefs: []
   type: TYPE_NORMAL
+  zh: '**程序 6.4:** 将区块头中的位转换为目标阈值的程序'
 - en: 'The following code calls this method and verifies that block hash has the needed
     proof-of-work:'
+  id: totrans-205
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下代码调用这个方法并验证区块哈希具有所需的工作量证明：
 - en: '`bits = bytes.fromhex(“170b98ab”)[::-1]`'
+  id: totrans-206
   prefs: []
   type: TYPE_NORMAL
+  zh: '`bits = bytes.fromhex(“170b98ab”)[::-1]`'
 - en: '`target_threshold = getTargetThreshold(bits)`'
+  id: totrans-207
   prefs: []
   type: TYPE_NORMAL
+  zh: '`target_threshold = getTargetThreshold(bits)`'
 - en: '`print(‘Target Threshold = %x’ % target_threshold)`'
+  id: totrans-208
   prefs: []
   type: TYPE_NORMAL
+  zh: '`print(‘Target Threshold = %x’ % target_threshold)`'
 - en: '`block_hash = 0x00000000000000000004db407202aff54e9ace0efb72588bb73a2beebb248c28`'
+  id: totrans-209
   prefs: []
   type: TYPE_NORMAL
+  zh: '`block_hash = 0x00000000000000000004db407202aff54e9ace0efb72588bb73a2beebb248c28`'
 - en: '`print(‘Block Hash = %x’ % block_hash)`'
+  id: totrans-210
   prefs: []
   type: TYPE_NORMAL
+  zh: '`print(‘Block Hash = %x’ % block_hash)`'
 - en: '`print(‘Valid’ if target_threshold > block_hash else ‘Invalid’)`'
+  id: totrans-211
   prefs: []
   type: TYPE_NORMAL
+  zh: '`print(‘Valid’ if target_threshold > block_hash else ‘Invalid’)`'
 - en: 'This gives us the following result:'
+  id: totrans-212
   prefs: []
   type: TYPE_NORMAL
+  zh: 这给了我们以下结果：
 - en: '![](images/Figure-6.17.jpg)'
+  id: totrans-213
   prefs: []
   type: TYPE_IMG
+  zh: '![](images/Figure-6.17.jpg)'
 - en: '**Figure 6.17:** Shows calculated value of Target Threshold from bits in the
     block header'
+  id: totrans-214
   prefs: []
   type: TYPE_NORMAL
+  zh: '**图 6.17:** 从区块头中的位计算目标阈值的插图'
 - en: '[Serialized block](toc.xhtml#s113a)'
+  id: totrans-215
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: '**序列化区块](toc.xhtml#s113a)'
 - en: 'Bitcoin serialized block also contains fields other than block header and transactions.
     These are the following fields:'
+  id: totrans-216
   prefs: []
   type: TYPE_NORMAL
+  zh: 比特币序列化区块还包含除了区块头和交易之外的字段。以下是这些字段：
 - en: Magic Number
+  id: totrans-217
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 魔数
 - en: Block Size
+  id: totrans-218
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 区块大小
 - en: 'The following is the illustration of a serialized block:'
+  id: totrans-219
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下是一个序列化区块的插图：
 - en: '![](images/Figure-6.18.jpg)'
+  id: totrans-220
   prefs: []
   type: TYPE_IMG
+  zh: '![](images/Figure-6.18.jpg)'
 - en: '**Figure 6.18:** Figure shows the structure of serialized block'
+  id: totrans-221
   prefs: []
   type: TYPE_NORMAL
+  zh: '**图 6.18:** 图展示了序列化区块的结构'
 - en: '[Magic number](toc.xhtml#s114a)'
+  id: totrans-222
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: '**魔数](toc.xhtml#s114a)'
 - en: Block hash is the hash of the block header. The magic number is the identifier
     of the network. If a node is connected to the same peer for multiple different
     coin networks, a block magic number can act as an identifier, and the node will
     not have to verify block consensus rules for multiple networks. This improves
     efficiency.
+  id: totrans-223
   prefs: []
   type: TYPE_NORMAL
+  zh: 区块哈希是区块头的哈希。魔数是网络的标识符。如果一个节点连接到同一对等节点以进行多个不同的币网络，区块魔数可以作为标识符，节点将不必为多个网络验证区块共识规则。这提高了效率。
 - en: The public Bitcoin network on which bitcoin is transferred is also called *m*`***ainnet***`.
     There is also the testnet and regtest network, which is used for testing. Each
     of these networks has defined magic numbers and different port numbers to connect
     to peers.
+  id: totrans-224
   prefs: []
   type: TYPE_NORMAL
+  zh: 公共比特币网络，也就是比特币进行转账的网络，也被称为*主网络*。还有测试网络（testnet）和回归测试网络（regtest），用于测试。这些网络中的每一个都有定义好的魔数和不同的端口号，以连接到对等节点。
 - en: '![](images/133.jpg)'
+  id: totrans-225
   prefs: []
   type: TYPE_IMG
+  zh: '![](images/133.jpg)'
 - en: '**Table 6.3:** Table showing magic numbers and TCP Port assigned for different
     Bitcoin networks'
+  id: totrans-226
   prefs: []
   type: TYPE_NORMAL
+  zh: '**表 6.3:** 展示不同比特币网络的魔数和分配的 TCP 端口号的表格'
 - en: '[Block file](toc.xhtml#s115a)'
+  id: totrans-227
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: '[区块文件](toc.xhtml#s115a)'
 - en: 'Bitcoin Core stores blockchain in a directory in the form of block files, and
     each block file contains multiple blocks in binary format. Block files are represented
     as follows:'
+  id: totrans-228
   prefs: []
   type: TYPE_NORMAL
+  zh: 比特币核心将区块链存储在以区块文件形式存在的目录中，每个区块文件包含多个以二进制格式存在的区块。区块文件如下表示：
 - en: '![](images/Figure-6.19.jpg)'
+  id: totrans-229
   prefs: []
   type: TYPE_IMG
+  zh: '![](images/Figure-6.19.jpg)'
 - en: '**Figure 6.19:** Illustration of block file structure'
+  id: totrans-230
   prefs: []
   type: TYPE_NORMAL
+  zh: '**图 6.19:** 区块文件结构的插图'
 - en: We can parse all the blocks in a block file by using block size from a serialized
     block. This helps in skipping any junk characters that may exist between two blocks.
     A block file will always start with the start of a serialized block, so we know
     that the first 4 bytes represent a magic number. From the block index, we can
     get the block count for a block file.
+  id: totrans-231
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以通过使用序列化区块中的区块大小来解析区块文件中的所有区块。这有助于跳过两个区块之间可能存在的任何垃圾字符。区块文件总是从序列化区块的开始处开始，因此我们知道前
+    4 个字节代表一个魔数。从区块索引中，我们可以获取区块文件中的区块计数。
 - en: To access values using keys from the LevelDB indexes, we need to understand
     their structure. As we have learned, LevelDB is a binary key-value database that
     stores data in the filesystem. Bitcoin utilizes LevelDB to store multiple values
     and sometimes, multiple keys. To store variable length keys and values, Bitcoin
     uses a variable length integer format encoding. In this encoding, if the most
     significant bit in a byte is set, then the next byte is also included.
+  id: totrans-232
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了使用来自 LevelDB 索引的键访问值，我们需要了解它们的结构。正如我们所学的，LevelDB 是一个二进制键值数据库，它将数据存储在文件系统中。比特币利用
+    LevelDB 来存储多个值，有时，也存储多个键。为了存储可变长度的键和值，比特币使用了一种可变长度的整数格式编码。在这种编码中，如果一个字节的最显著位被设置，那么下一个字节也包括在内。
 - en: To encode, 7-bit is stored in a byte array, removed from the number, and then
     reduced by 1\. This process is repeated till the bit becomes zero. The most significant
     bits of all bytes are set, except the last one.
+  id: totrans-233
   prefs: []
   type: TYPE_NORMAL
 - en: '![](images/Figure-6.20.jpg)'
+  id: totrans-234
   prefs: []
   type: TYPE_IMG
 - en: '**Figure 6.20:** Illustration showing b128 varint encoding mechanism'
+  id: totrans-235
   prefs: []
   type: TYPE_NORMAL
 - en: 'The following is the implementation of the encoder:'
+  id: totrans-236
   prefs: []
   type: TYPE_NORMAL
 - en: '`def b128_varint_encode(n: int):`'
+  id: totrans-237
   prefs: []
   type: TYPE_NORMAL
 - en: '`l = 0`'
+  id: totrans-238
   prefs: []
   type: TYPE_NORMAL
 - en: '`b = []`'
+  id: totrans-239
   prefs: []
   type: TYPE_NORMAL
 - en: '`while True:`'
+  id: totrans-240
   prefs: []
   type: TYPE_NORMAL
 - en: '`# Take 7 bits and set MSB if not last byte`'
+  id: totrans-241
   prefs: []
   type: TYPE_NORMAL
 - en: '`b.append((n & 0x7F)| (0x80 if l != 0 else 0x00))`'
+  id: totrans-242
   prefs: []
   type: TYPE_NORMAL
 - en: '`if n <= 0x7F:`'
+  id: totrans-243
   prefs: []
   type: TYPE_NORMAL
 - en: '`break`'
+  id: totrans-244
   prefs: []
   type: TYPE_NORMAL
 - en: '`n = (n >> 7) - 1`'
+  id: totrans-245
   prefs: []
   type: TYPE_NORMAL
 - en: '`l += 1`'
+  id: totrans-246
   prefs: []
   type: TYPE_NORMAL
 - en: '`return bytes(bytearray(b[::-1]))`'
+  id: totrans-247
   prefs: []
   type: TYPE_NORMAL
 - en: '**Program 6.5:** Program to encode a number into b128 varint'
+  id: totrans-248
   prefs: []
   type: TYPE_NORMAL
 - en: 'The following code decodes variable length integer:'
+  id: totrans-249
   prefs: []
   type: TYPE_NORMAL
 - en: '`def b128_varint_decode(b: bytes, pos = 0):`'
+  id: totrans-250
   prefs: []
   type: TYPE_NORMAL
 - en: '`n = 0`'
+  id: totrans-251
   prefs: []
   type: TYPE_NORMAL
 - en: '`while True:`'
+  id: totrans-252
   prefs: []
   type: TYPE_NORMAL
 - en: '`data = b[pos]`'
+  id: totrans-253
   prefs: []
   type: TYPE_NORMAL
 - en: '`pos += 1`'
+  id: totrans-254
   prefs: []
   type: TYPE_NORMAL
 - en: '`# unset MSB bit`'
+  id: totrans-255
   prefs: []
   type: TYPE_NORMAL
 - en: '`n = (n << 7) | (data & 0x7f)`'
+  id: totrans-256
   prefs: []
   type: TYPE_NORMAL
 - en: '`if data & 0x80 == 0:`'
+  id: totrans-257
   prefs: []
   type: TYPE_NORMAL
 - en: '`return (n, pos)`'
+  id: totrans-258
   prefs: []
   type: TYPE_NORMAL
 - en: '`n += 1`'
+  id: totrans-259
   prefs: []
   type: TYPE_NORMAL
 - en: '**Program 6.6:** Program to decode b128 varint into an integer'
+  id: totrans-260
   prefs: []
   type: TYPE_NORMAL
 - en: 'By running the preceding code, we get the following encoded and decoded integer
     pairs:'
+  id: totrans-261
   prefs: []
   type: TYPE_NORMAL
 - en: '![](images/136.jpg)![](images/137.jpg)'
+  id: totrans-262
   prefs: []
   type: TYPE_IMG
 - en: '**Table 6.4:** Sample b128 varint encoded numbers'
+  id: totrans-263
   prefs: []
   type: TYPE_NORMAL
 - en: 'To parse blocks in block files, we need to get block file information from
     the block index. Block file index contains the following information:'
+  id: totrans-264
   prefs: []
   type: TYPE_NORMAL
 - en: '`**count**`: Number of blocks stored in the block file'
+  id: totrans-265
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '`**filesize**`: Size of block file in bytes'
+  id: totrans-266
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '`**undofilesize**`: Size of undo file in bytes'
+  id: totrans-267
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '`**lowest**`: Contains blocks from this block height'
+  id: totrans-268
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '`**highest**`: Contains blocks till this block height'
+  id: totrans-269
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '`**Lowest_timestamp**`: Contains blocks from this block timestamp'
+  id: totrans-270
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '`**highest_timestamp**`: Contains blocks till this block timestamp'
+  id: totrans-271
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: 'The following code gets block-file information from block index:'
+  id: totrans-272
   prefs: []
   type: TYPE_NORMAL
 - en: '`block_db_g = plyvel.DB(os.getenv(‘BLOCK_INDEX_DB’), compression=None)`'
+  id: totrans-273
   prefs: []
   type: TYPE_NORMAL
 - en: '`blocks_path_g = os.getenv(‘BLOCKS_PATH’)`'
+  id: totrans-274
   prefs: []
   type: TYPE_NORMAL
 - en: '`def getBlockFileIndex(n_file: int, block_db):`'
+  id: totrans-275
   prefs: []
   type: TYPE_NORMAL
 - en: '`key = b’f’ + (n_file).to_bytes(4, byteorder=’little’)`'
+  id: totrans-276
   prefs: []
   type: TYPE_NORMAL
 - en: '`value = block_db.get(key)`'
+  id: totrans-277
   prefs: []
   type: TYPE_NORMAL
 - en: '`jsonobj = {}`'
+  id: totrans-278
   prefs: []
   type: TYPE_NORMAL
 - en: '`jsonobj[‘count’], pos = b128_varint_decode(value)`'
+  id: totrans-279
   prefs: []
   type: TYPE_NORMAL
 - en: '`jsonobj[‘filesize’], pos = b128_varint_decode(value, pos)`'
+  id: totrans-280
   prefs: []
   type: TYPE_NORMAL
 - en: '`jsonobj[‘undofilesize’], pos = b128_varint_decode(value, pos)`'
+  id: totrans-281
   prefs: []
   type: TYPE_NORMAL
 - en: '`jsonobj[‘lowest’], pos = b128_varint_decode(value, pos)`'
+  id: totrans-282
   prefs: []
   type: TYPE_NORMAL
 - en: '`jsonobj[‘highest’], pos = b128_varint_decode(value, pos)`'
+  id: totrans-283
   prefs: []
   type: TYPE_NORMAL
 - en: '`jsonobj[‘lowest_timestamp’], pos = b128_varint_decode(value, pos)`'
+  id: totrans-284
   prefs: []
   type: TYPE_NORMAL
 - en: '`jsonobj[‘highest_timestamp’], pos = b128_varint_decode(value, pos)`'
+  id: totrans-285
   prefs: []
   type: TYPE_NORMAL
 - en: '`return jsonobj`'
+  id: totrans-286
   prefs: []
   type: TYPE_NORMAL
 - en: '**Program 6.7:** Program to query Block DB to get block file index'
+  id: totrans-287
   prefs: []
   type: TYPE_NORMAL
 - en: 'We call this method with the following parameters:'
+  id: totrans-288
   prefs: []
   type: TYPE_NORMAL
 - en: '`blk_index = getBlockFileIndex(138, block_db_g)`'
+  id: totrans-289
   prefs: []
   type: TYPE_NORMAL
 - en: 'Before executing the preceding program, we need to setup following environment
     variables:'
+  id: totrans-290
   prefs: []
   type: TYPE_NORMAL
 - en: '`BITCOIN_HOME: Path of Bitcoin working directory.`'
+  id: totrans-291
   prefs: []
   type: TYPE_NORMAL
 - en: '`BLOCK_INDEX_DB: This by default is $BITCOIN_HOME/blocks/index`'
+  id: totrans-292
   prefs: []
   type: TYPE_NORMAL
 - en: '`BLOCKS_PATH: This by default is $BITCOIN_HOME/blocks/`'
+  id: totrans-293
   prefs: []
   type: TYPE_NORMAL
 - en: '``CHAINSTATE_DB: This by default is $BITCOIN_HOME/chainstate``'
+  id: totrans-294
   prefs: []
   type: TYPE_NORMAL
 - en: '``TX_INDEX_DB: This by default is $BITCOIN_HOME/indexes/txindex``'
+  id: totrans-295
   prefs: []
   type: TYPE_NORMAL
+  zh: '``TX_INDEX_DB: 默认情况下是 $BITCOIN_HOME/indexes/txindex``'
 - en: 'This gives the following result:'
+  id: totrans-296
   prefs: []
   type: TYPE_NORMAL
+  zh: 这给出了以下结果：
 - en: '![](images/Figure-6.21.jpg)'
+  id: totrans-297
   prefs: []
   type: TYPE_IMG
+  zh: '![](images/Figure-6.21.jpg)'
 - en: '**Figure 6.21:** Shows block file index structure obtained by running the program'
+  id: totrans-298
   prefs: []
   type: TYPE_NORMAL
+  zh: '**图 6.21:** 运行程序后获得的区块文件索引结构'
 - en: 'Now, using the above-mentioned information, we have written the following code
     to parse the block file:'
+  id: totrans-299
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，利用上述信息，我们已经编写了以下代码来解析区块文件：
 - en: '`def parseSerialisedBlock(block_f):`'
+  id: totrans-300
   prefs: []
   type: TYPE_NORMAL
+  zh: '`def parseSerialisedBlock(block_f):`'
 - en: '`serialized_blk = {}`'
+  id: totrans-301
   prefs: []
   type: TYPE_NORMAL
+  zh: '`serialized_blk = {}`'
 - en: '`serialized_blk[‘magic_num’] = block_f.read(4)[::-1].hex()`'
+  id: totrans-302
   prefs: []
   type: TYPE_NORMAL
+  zh: '`serialized_blk[‘magic_num’] = block_f.read(4)[::-1].hex()`'
 - en: '`serialized_blk[‘blk_size’] = int.from_bytes(block_f.read(4), byteorder=’little’)`'
+  id: totrans-303
   prefs: []
   type: TYPE_NORMAL
+  zh: '`serialized_blk[‘blk_size’] = int.from_bytes(block_f.read(4), byteorder=’little’)`'
 - en: '`serialized_blk[‘version’] = block_f.read(4)[::-1].hex()`'
+  id: totrans-304
   prefs: []
   type: TYPE_NORMAL
+  zh: '`serialized_blk[‘version’] = block_f.read(4)[::-1].hex()`'
 - en: '`prev_blkhash_b = block_f.read(32)`'
+  id: totrans-305
   prefs: []
   type: TYPE_NORMAL
+  zh: '`prev_blkhash_b = block_f.read(32)`'
 - en: '`serialized_blk[‘prev_blkhash’] = prev_blkhash_b[::-1].hex()`'
+  id: totrans-306
   prefs: []
   type: TYPE_NORMAL
+  zh: '`serialized_blk[‘prev_blkhash’] = prev_blkhash_b[::-1].hex()`'
 - en: '`serialized_blk[‘merkle_root_hash’] = block_f.read(32)[::-1].hex()`'
+  id: totrans-307
   prefs: []
   type: TYPE_NORMAL
+  zh: '`serialized_blk[‘merkle_root_hash’] = block_f.read(32)[::-1].hex()`'
 - en: '`serialized_blk[‘time’] = int.from_bytes(block_f.read(4), byteorder=’little’)`'
+  id: totrans-308
   prefs: []
   type: TYPE_NORMAL
+  zh: '`serialized_blk[‘time’] = int.from_bytes(block_f.read(4), byteorder=’little’)`'
 - en: '`serialized_blk[‘bits’] = block_f.read(4)[::-1].hex()`'
+  id: totrans-309
   prefs: []
   type: TYPE_NORMAL
+  zh: '`serialized_blk[‘bits’] = block_f.read(4)[::-1].hex()`'
 - en: '`serialized_blk[‘nonce’] = block_f.read(4)[::-1].hex()`'
+  id: totrans-310
   prefs: []
   type: TYPE_NORMAL
+  zh: '`serialized_blk[‘nonce’] = block_f.read(4)[::-1].hex()`'
 - en: '`return serialized_blk`'
+  id: totrans-311
   prefs: []
   type: TYPE_NORMAL
+  zh: '`return serialized_blk`'
 - en: '**Program 6.8:** Program to get block header along with the magic number and
     block size'
+  id: totrans-312
   prefs: []
   type: TYPE_NORMAL
+  zh: '**程序 6.8:** 获取区块头以及魔法数字和区块大小的程序'
 - en: 'We iterate over the blockfile, finding all the blocks inside the file using
     the block information we get from the preceding method:'
+  id: totrans-313
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们遍历区块文件，使用前面方法获得的区块信息来查找文件中的所有区块：
 - en: '`if __name__ == ‘__main__’:`'
+  id: totrans-314
   prefs: []
   type: TYPE_NORMAL
+  zh: '`if __name__ == ‘__main__’:`'
 - en: '`n_file = 138`'
+  id: totrans-315
   prefs: []
   type: TYPE_NORMAL
+  zh: '`n_file = 138`'
 - en: '`block_filepath = os.path.join(blocks_path_g, ‘blk%05d.dat’ % n_file)`'
+  id: totrans-316
   prefs: []
   type: TYPE_NORMAL
+  zh: '`block_filepath = os.path.join(blocks_path_g, ‘blk%05d.dat’ % n_file)`'
 - en: '`block_f = open(block_filepath, ‘rb’)`'
+  id: totrans-317
   prefs: []
   type: TYPE_NORMAL
+  zh: '`block_f = open(block_filepath, ‘rb’)`'
 - en: '`blk_index = getBlockFileIndex(n_file, block_db_g)`'
+  id: totrans-318
   prefs: []
   type: TYPE_NORMAL
+  zh: '`blk_index = getBlockFileIndex(n_file, block_db_g)`'
 - en: '`print(blk_index)`'
+  id: totrans-319
   prefs: []
   type: TYPE_NORMAL
+  zh: '`print(blk_index)`'
 - en: '`for i in range(blk_index[‘count’]):`'
+  id: totrans-320
   prefs: []
   type: TYPE_NORMAL
+  zh: '`for i in range(blk_index[‘count’]):`'
 - en: '`# moves file pointer to the end of block header`'
+  id: totrans-321
   prefs: []
   type: TYPE_NORMAL
+  zh: '`# 将文件指针移动到区块头的末尾`'
 - en: '`serialized_blk = parseSerialisedBlock(block_f)`'
+  id: totrans-322
   prefs: []
   type: TYPE_NORMAL
+  zh: '`serialized_blk = parseSerialisedBlock(block_f)`'
 - en: '`next_blk_loc = block_f.tell() - 80 + serialized_blk[‘blk_size’]`'
+  id: totrans-323
   prefs: []
   type: TYPE_NORMAL
+  zh: '`next_blk_loc = block_f.tell() - 80 + serialized_blk[‘blk_size’]`'
 - en: '`block_f.seek(next_blk_loc)`'
+  id: totrans-324
   prefs: []
   type: TYPE_NORMAL
+  zh: '`block_f.seek(next_blk_loc)`'
 - en: '`print(‘serialized_blk = %s’ % serialized_blk)`'
+  id: totrans-325
   prefs: []
   type: TYPE_NORMAL
+  zh: '`print(‘serialized_blk = %s’ % serialized_blk)`'
 - en: 'Here is the information of the first two blocks in the block file:'
+  id: totrans-326
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下是区块文件中的前两个区块的信息：
 - en: '![](images/Figure-6.22.jpg)'
+  id: totrans-327
   prefs: []
   type: TYPE_IMG
+  zh: '![](images/Figure-6.22.jpg)'
 - en: '**Figure 6.22:** Shows the first two blocks in a block file and other information
     of the file'
+  id: totrans-328
   prefs: []
   type: TYPE_NORMAL
+  zh: '**图 6.22:** 显示了一个区块文件中的前两个区块以及文件的其他信息'
 - en: This method of parsing is useful in rescanning blocks for indexes.
+  id: totrans-329
   prefs: []
   type: TYPE_NORMAL
+  zh: 这种解析方法在重新扫描索引的区块时非常有用。
 - en: '[Block traversal using block indexes](toc.xhtml#s116a)'
+  id: totrans-330
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: '**使用区块索引遍历区块文件](toc.xhtml#s116a)**'
 - en: LevelDB indexes are helpful in several ways. They are helpful in the faster
     verification of blocks and transactions. We can use them to traverse blockchain,
     which is useful in case a fixed number of blocks need to be parsed, as in softfork
     deployment. Traversing blockchain using block file numbers and block file index
     is a more efficient method in other cases.
+  id: totrans-331
   prefs: []
   type: TYPE_NORMAL
+  zh: LevelDB 索引在多个方面都有帮助。它们有助于更快地验证区块和交易。我们可以使用它们来遍历区块链，这在软分叉部署中需要解析固定数量的区块时非常有用。使用区块文件编号和区块文件索引遍历区块链是一种更有效的方法。
 - en: 'The following figure shows the block traversal steps:'
+  id: totrans-332
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下图表展示了区块遍历的步骤：
 - en: '![](images/Figure-6.23.jpg)'
+  id: totrans-333
   prefs: []
   type: TYPE_IMG
+  zh: '![](images/Figure-6.23.jpg)'
 - en: '**Figure 6.23:** Illustration of method of traversing block file using LevelDB
     indexes'
+  id: totrans-334
   prefs: []
   type: TYPE_NORMAL
+  zh: '**图 6.23:** 使用 LevelDB 索引遍历区块文件的示例'
 - en: One thing we need to keep in mind is that blocks in a block file are not always
     in order, which means we always need to use previous block hash in a block header
     to get the location of the previous block.
+  id: totrans-335
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们需要记住的一件事是，区块文件中的区块并不总是按顺序排列，这意味着我们总是需要使用区块头中的前一个区块哈希来获取前一个区块的位置。
 - en: Chainstate database is encoded, unlike other databases. This is because in the
     past, character sequence in the chainstate database had triggered anti-virus software.
     In this encoding method, each byte is XORed with bytes in obfuscate-key. Obfuscate
     key is stored in chainstate database under the b’\x0e\x00’ key.
+  id: totrans-336
   prefs: []
   type: TYPE_NORMAL
 - en: 'The following code applies to obfuscate key to all the bytes and returns decoded
     chainstate values:'
+  id: totrans-337
   prefs: []
   type: TYPE_NORMAL
 - en: '`def getObfuscationKey(chainstate_db):`'
+  id: totrans-338
   prefs: []
   type: TYPE_NORMAL
 - en: '`value = chainstate_db.get(b’\x0e\x00’ + b’obfuscate_key’)`'
+  id: totrans-339
   prefs: []
   type: TYPE_NORMAL
 - en: '`print(‘obfuscation key = %s’ % value)`'
+  id: totrans-340
   prefs: []
   type: TYPE_NORMAL
 - en: '`obfuscation_key = value[1:]`'
+  id: totrans-341
   prefs: []
   type: TYPE_NORMAL
 - en: '`return obfuscation_key`'
+  id: totrans-342
   prefs: []
   type: TYPE_NORMAL
 - en: '`def applyObfuscationKey(data: bytes, chainstate_db):`'
+  id: totrans-343
   prefs: []
   type: TYPE_NORMAL
 - en: '`obfuscation_key = getObfuscationKey(chainstate_db)`'
+  id: totrans-344
   prefs: []
   type: TYPE_NORMAL
 - en: '`new_val = bytes(data[index] ^ obfuscation_key[index % len(obfuscation_key)]
     for index in range(len(data)))`'
+  id: totrans-345
   prefs: []
   type: TYPE_NORMAL
 - en: '`return new_val`'
+  id: totrans-346
   prefs: []
   type: TYPE_NORMAL
 - en: '**Program 6.9:** Program to decode LevelDB for chainstate using Obfuscation
     key'
+  id: totrans-347
   prefs: []
   type: TYPE_NORMAL
 - en: 'Now, we have enough understanding to traverse blockchain. Let us see how we
     can do that:'
+  id: totrans-348
   prefs: []
   type: TYPE_NORMAL
 - en: '**Step 1:** Query last block hash from chainstate database.'
+  id: totrans-349
   prefs: []
   type: TYPE_NORMAL
 - en: '**Step 2:** Query block hash in block index database to get block index.'
+  id: totrans-350
   prefs: []
   type: TYPE_NORMAL
 - en: '**Step 3:** Block index has information on the location of the block. Using
     that, we read the correct block file or undo file and read data from the offset
     location to get block data.'
+  id: totrans-351
   prefs: []
   type: TYPE_NORMAL
 - en: '**Step 4** From the block data, we get the block hash of the previous block
     and then repeat steps 2-4.'
+  id: totrans-352
   prefs: []
   type: TYPE_NORMAL
 - en: 'The following is the block index information obtained from the Block index
     database:'
+  id: totrans-353
   prefs: []
   type: TYPE_NORMAL
 - en: '`**version**`: The version number of the client (Not the block).'
+  id: totrans-354
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '`**height**`: Height of the block.'
+  id: totrans-355
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '`**status**`: Indicates the kind of data it contains. It may be BLOCK_HAVE_DATA
     or BLOCK_HAVE_UNDO, indicating whether it forward patches or reverse patches chainstate
     data.'
+  id: totrans-356
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '`**txcount**`: Transaction count in the block.'
+  id: totrans-357
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '`**n_file**`: File number of the block file containing the block.'
+  id: totrans-358
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '`**data_pos**`: Byte position of the data block.'
+  id: totrans-359
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '`**undo_pos**`: Byte position of the undo block.'
+  id: totrans-360
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '`**header**`: Block header content.'
+  id: totrans-361
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
@@ -1363,1327 +1916,1747 @@
     block almost at the same time, and one of the blocks will be accepted later as
     one of the competing chains will become longer. When this happens, undo blocks
     are used to reverse chainstate indexes.
+  id: totrans-362
   prefs: []
   type: TYPE_NORMAL
 - en: 'Here’s the code to traverse the blockchain using LevelDB indexes:'
+  id: totrans-363
   prefs: []
   type: TYPE_NORMAL
 - en: 'Get LevelDB databases:'
+  id: totrans-364
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
 - en: '`block_db_g = plyvel.DB(os.getenv(‘BLOCK_INDEX_DB’), compression=None)`'
+  id: totrans-365
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`chainstate_db_g = plyvel.DB(os.getenv(‘CHAINSTATE_DB’), compression=None)`'
+  id: totrans-366
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: 'Get last block hash from chainstate database:'
+  id: totrans-367
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
 - en: '`def getRecentBlockHash(chainstate_db):`'
+  id: totrans-368
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`key = b’B’`'
+  id: totrans-369
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`block_hash_b = chainstate_db.get(key)`'
+  id: totrans-370
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`block_hash_b = applyObfuscationKey(block_hash_b, chainstate_db)`'
+  id: totrans-371
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`return block_hash_b`'
+  id: totrans-372
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '**Program 6.10:** Program to get recent block from Chainstate DB'
+  id: totrans-373
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: 'Get block index from Block index database:'
+  id: totrans-374
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
 - en: '`BLOCK_HAVE_DATA = 8`'
+  id: totrans-375
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`BLOCK_HAVE_UNDO = 16`'
+  id: totrans-376
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`def getBlockIndex(block_hash_b: bytes, block_db):`'
+  id: totrans-377
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`key = b’b’ + block_hash_b`'
+  id: totrans-378
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`value = block_db.get(key)`'
+  id: totrans-379
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`jsonobj = {}`'
+  id: totrans-380
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`jsonobj[‘version’], pos = b128_varint_decode(value)`'
+  id: totrans-381
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`jsonobj[‘height’], pos = b128_varint_decode(value, pos)`'
+  id: totrans-382
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`jsonobj[‘status’], pos = b128_varint_decode(value, pos)`'
+  id: totrans-383
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`jsonobj[‘tx_count’], pos = b128_varint_decode(value, pos)`'
+  id: totrans-384
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`if jsonobj[‘status’] & (BLOCK_HAVE_DATA | BLOCK_HAVE_UNDO):`'
+  id: totrans-385
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`jsonobj[‘n_file’], pos = b128_varint_decode(value, pos)`'
+  id: totrans-386
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`if jsonobj[‘status’] & BLOCK_HAVE_DATA:`'
+  id: totrans-387
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`jsonobj[‘data_pos’], pos = b128_varint_decode(value, pos)`'
+  id: totrans-388
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`if jsonobj[‘status’] & BLOCK_HAVE_UNDO:`'
+  id: totrans-389
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`jsonobj[‘undo_pos’], pos = b128_varint_decode(value, pos)`'
+  id: totrans-390
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`jsonobj[‘header’] = {}`'
+  id: totrans-391
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`jsonobj[‘header’][‘version’] = value[pos:pos+4][::-1].hex()`'
+  id: totrans-392
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`jsonobj[‘header’][‘prevblockhash’] = value[pos+4:pos+36][::-1].hex()`'
+  id: totrans-393
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`jsonobj[‘header’][‘merkleroot’] = value[pos+36:pos+68][::-1].hex()`'
+  id: totrans-394
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`jsonobj[‘header’][‘time’] = value[pos+68:pos+72][::-1].hex()`'
+  id: totrans-395
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`jsonobj[‘header’][‘bits’] = value[pos+72:pos+76][::-1].hex()`'
+  id: totrans-396
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`jsonobj[‘header’][‘nonce’] = value[pos+76:pos+80][::-1].hex()`'
+  id: totrans-397
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`return jsonobj`'
+  id: totrans-398
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '**Program 6.11:** Program to get block index structure from Block DB'
+  id: totrans-399
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: 'The following program parses block bytes to get block header information:'
+  id: totrans-400
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
 - en: '`def getTransactionCount(mptr: mmap):`'
+  id: totrans-401
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`prefix = int.from_bytes(mptr.read(1), byteorder=’little’)`'
+  id: totrans-402
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`b_cnt_m = {‘fd’: 2, ‘fe’: 4, ‘ff’: 8}`'
+  id: totrans-403
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`if prefix < 0xFD:`'
+  id: totrans-404
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`tx_cnt = prefix`'
+  id: totrans-405
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`else:`'
+  id: totrans-406
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`b_cnt = b_cnt_m[‘%x’ % prefix]`'
+  id: totrans-407
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`tx_cnt = int.from_bytes(mptr.read(b_cnt), byteorder=’little’)`'
+  id: totrans-408
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`return tx_cnt`'
+  id: totrans-409
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`def parseBlockHeader(mptr: mmap, start: int, height: int):`'
+  id: totrans-410
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`seek = start-8`'
+  id: totrans-411
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`mptr.seek(seek)`'
+  id: totrans-412
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '``block_header = {}``'
+  id: totrans-413
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`block_header[‘magic_number’] = int.from_bytes(mptr.read(4), byteorder=’little’)`'
+  id: totrans-414
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`block_header[‘block_size’] = int.from_bytes(mptr.read(4), byteorder=’little’)`'
+  id: totrans-415
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`block_header[‘version’] = int.from_bytes(mptr.read(4), byteorder=’little’)`'
+  id: totrans-416
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`prev_block_header_hash = mptr.read(32)`'
+  id: totrans-417
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`block_header[‘prev_block_hash’] = prev_block_header_hash[::-1].hex()`'
+  id: totrans-418
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`block_header[‘merkle_tree_root’] = mptr.read(32)[::-1].hex()`'
+  id: totrans-419
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`block_header[‘timestamp’] = int.from_bytes(mptr.read(4), byteorder=’little’)`'
+  id: totrans-420
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`block_header[‘date_time’] = datetime.datetime.fromtimestamp(block_header[‘timestamp’]).strftime(‘%Y-%m-%d
     %H:%M:%S’)`'
+  id: totrans-421
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`block_header[‘bits’] = int.from_bytes(mptr.read(4), byteorder=’little’)`'
+  id: totrans-422
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`block_header[‘nonce’] = int.from_bytes(mptr.read(4), byteorder=’little’)`'
+  id: totrans-423
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`txcount = getTransactionCount(mptr)`'
+  id: totrans-424
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`return block_header, prev_block_header_hash`'
+  id: totrans-425
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '**Program 6.12:** Program to get block header information'
+  id: totrans-426
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: 'The following program uses the block index information to get block content
     and then finds the previous block using its block hash and the block index:'
+  id: totrans-427
   prefs: []
   type: TYPE_NORMAL
 - en: '`def traverseBlockChain():`'
+  id: totrans-428
   prefs: []
   type: TYPE_NORMAL
 - en: '`df = pd.DataFrame()`'
+  id: totrans-429
   prefs: []
   type: TYPE_NORMAL
 - en: '`prev_blockhash_bigendian_b = getRecentBlockHash(chainstate_db_g)`'
+  id: totrans-430
   prefs: []
   type: TYPE_NORMAL
 - en: '`blockheader_list = []`'
+  id: totrans-431
   prefs: []
   type: TYPE_NORMAL
 - en: '`while True:`'
+  id: totrans-432
   prefs: []
   type: TYPE_NORMAL
 - en: '`jsonobj = getBlockIndex(prev_blockhash_bigendian_b, block_db_g)`'
+  id: totrans-433
   prefs: []
   type: TYPE_NORMAL
 - en: '`print(jsonobj[‘n_file’])`'
+  id: totrans-434
   prefs: []
   type: TYPE_NORMAL
 - en: '`if ‘data_pos’ in jsonobj:`'
+  id: totrans-435
   prefs: []
   type: TYPE_NORMAL
 - en: '`block_filepath = os.path.join(blocks_path_g, ‘blk%05d.dat’ % jsonobj[‘n_file’])`'
+  id: totrans-436
   prefs: []
   type: TYPE_NORMAL
 - en: '`start = jsonobj[‘data_pos’]`'
+  id: totrans-437
   prefs: []
   type: TYPE_NORMAL
 - en: '`print(‘height = %d’ % jsonobj[‘height’])`'
+  id: totrans-438
   prefs: []
   type: TYPE_NORMAL
 - en: '`elif ‘undo_pos’ in jsonobj:`'
+  id: totrans-439
   prefs: []
   type: TYPE_NORMAL
 - en: '`block_filepath = os.path.join(blocks_path_g, ‘rev%05d.dat’ % jsonobj[‘n_file’])`'
+  id: totrans-440
   prefs: []
   type: TYPE_NORMAL
 - en: '`start = jsonobj[‘undo_pos’]`'
+  id: totrans-441
   prefs: []
   type: TYPE_NORMAL
 - en: '`# load file to memory`'
+  id: totrans-442
   prefs: []
   type: TYPE_NORMAL
 - en: '`with open(block_filepath, ‘rb’) as block_file:`'
+  id: totrans-443
   prefs: []
   type: TYPE_NORMAL
 - en: '`with mmap.mmap(block_file.fileno(), 0, prot = mmap.PROT_READ, flags = mmap.MAP_PRIVATE)
     as mptr: #File is open read-only`'
+  id: totrans-444
   prefs: []
   type: TYPE_NORMAL
 - en: '`blockheader, prev_blockhash_bigendian_b = parseBlockHeader(mptr, start, jsonobj[‘height’])`'
+  id: totrans-445
   prefs: []
   type: TYPE_NORMAL
 - en: '`blockheader[‘height’] = jsonobj[‘height’]`'
+  id: totrans-446
   prefs: []
   type: TYPE_NORMAL
 - en: '`blockheader[‘tx_count’] = jsonobj[‘tx_count’]`'
+  id: totrans-447
   prefs: []
   type: TYPE_NORMAL
 - en: '`blockheader_list.append(blockheader)`'
+  id: totrans-448
   prefs: []
   type: TYPE_NORMAL
 - en: '`if jsonobj[‘height’] == 1:`'
+  id: totrans-449
   prefs: []
   type: TYPE_NORMAL
 - en: '`break`'
+  id: totrans-450
   prefs: []
   type: TYPE_NORMAL
 - en: '`df = pd.DataFrame(blockheader_list)`'
+  id: totrans-451
   prefs: []
   type: TYPE_NORMAL
 - en: '`df.to_csv(‘out.csv’, index=False)`'
+  id: totrans-452
   prefs: []
   type: TYPE_NORMAL
 - en: '**Program 6.13:** Program to traverse Bitcoin blockchain'
+  id: totrans-453
   prefs: []
   type: TYPE_NORMAL
 - en: 'We call the preceding program as follows:'
+  id: totrans-454
   prefs: []
   type: TYPE_NORMAL
 - en: '`if __name__ == ‘__main__’:`'
+  id: totrans-455
   prefs: []
   type: TYPE_NORMAL
 - en: '`traverseBlockChain()`'
+  id: totrans-456
   prefs: []
   type: TYPE_NORMAL
 - en: 'We get `**out.csv**`, which contains a portion of the following few rows:'
+  id: totrans-457
   prefs: []
   type: TYPE_NORMAL
 - en: '![](images/Figure-6.24.jpg)'
+  id: totrans-458
   prefs: []
   type: TYPE_IMG
 - en: '**Figure 6.24:** Shows the first few traversed block information'
+  id: totrans-459
   prefs: []
   type: TYPE_NORMAL
 - en: This completes the blockchain section. You understood the structure of blockchain,
     how these blocks are stored and how these blocks can be read, traversed, and parsed
     to get header and preheader fields.
+  id: totrans-460
   prefs: []
   type: TYPE_NORMAL
 - en: '[Transactions](toc.xhtml#s117a)'
+  id: totrans-461
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
 - en: When one party pays another in bitcoin, the sender creates a transaction and
     publishes it to the Bitcoin network. We discussed this in *[Chapter 5, The Whitepaper](c05.xhtml),*
     in detail.
+  id: totrans-462
   prefs: []
   type: TYPE_NORMAL
 - en: In this section, we will look at how transactions are stored, their format,
     how they are verified, and other related information.
+  id: totrans-463
   prefs: []
   type: TYPE_NORMAL
 - en: Transactions are stored one after the other in the block after transaction count.
     Block has its own variable length integer format. This is different from the LevelDB
     variable integer format we learned about in the previous section. This is a bit
     simpler. A prefix indicates the length of the integer.
+  id: totrans-464
   prefs: []
   type: TYPE_NORMAL
 - en: '![](images/Figure-6.25.jpg)'
+  id: totrans-465
   prefs: []
   type: TYPE_IMG
 - en: '**Figure 6.25:** Variable integer format used by LevelDB index value structure'
+  id: totrans-466
   prefs: []
   type: TYPE_NORMAL
 - en: In the preceding subtopic ***Block traversal using block indexes*** we used
     a method name `**getTransactionCount**`.
+  id: totrans-467
   prefs: []
   type: TYPE_NORMAL
 - en: 'To call `**getTransactionCount**`, we pass bytes of trimmed block with block
     hash. The following is the calling code:'
+  id: totrans-468
   prefs: []
   type: TYPE_NORMAL
 - en: '`blk_h = ‘00e0ff376a2079af63073c47184cd091819d506f12cb6b68887c040000000000000000001036e0b1059b1ec79cb36897ccf8bc5aef4c7996897b83754ab590bb2774bc2726c0475fea0710178ffaf153fda4090100000000010100000000000000000000’`'
+  id: totrans-469
   prefs: []
   type: TYPE_NORMAL
 - en: '`blk_b = bytes.fromhex(blk_h)`'
+  id: totrans-470
   prefs: []
   type: TYPE_NORMAL
 - en: '`blk_m = mmap.mmap(-1, len(blk_b) + 1)`'
+  id: totrans-471
   prefs: []
   type: TYPE_NORMAL
 - en: '`blk_m.write(blk_b)`'
+  id: totrans-472
   prefs: []
   type: TYPE_NORMAL
 - en: '`blk_m.seek(80)`'
+  id: totrans-473
   prefs: []
   type: TYPE_NORMAL
 - en: '`tx_count = getTransactionCount(blk_m)`'
+  id: totrans-474
   prefs: []
   type: TYPE_NORMAL
 - en: '`print(‘Transaction Count = %d’ % tx_count)`'
+  id: totrans-475
   prefs: []
   type: TYPE_NORMAL
 - en: 'On running this, we get the following result:'
+  id: totrans-476
   prefs: []
   type: TYPE_NORMAL
 - en: '![](images/Figure-6.26.jpg)'
+  id: totrans-477
   prefs: []
   type: TYPE_IMG
 - en: '**Figure 6.26:** Shows transaction count in a block from the preceding program'
+  id: totrans-478
   prefs: []
   type: TYPE_NORMAL
 - en: In the list of transactions, the first transaction is the coinbase transaction.
     This is a special transaction because it is created by a miner to pay itself block
     reward and transaction fees collected from transactions in the block. This transaction
     also adds bitcoin to the supply of coins. The transaction has no input txouts.
+  id: totrans-479
   prefs: []
   type: TYPE_NORMAL
 - en: 'The structure of this transaction is as follows:'
+  id: totrans-480
   prefs: []
   type: TYPE_NORMAL
 - en: '![](images/Figure-6.27.jpg)'
+  id: totrans-481
   prefs: []
   type: TYPE_IMG
 - en: '**Figure 6.27:** Coinbase transaction structure'
+  id: totrans-482
   prefs: []
   type: TYPE_NORMAL
 - en: 'The following program parses coinbase transaction:'
+  id: totrans-483
   prefs: []
   type: TYPE_NORMAL
 - en: '`import mmap`'
+  id: totrans-484
   prefs: []
   type: TYPE_NORMAL
 - en: '`import json`'
+  id: totrans-485
   prefs: []
   type: TYPE_NORMAL
 - en: '`def getVarInt(blk_m: mmap):`'
+  id: totrans-486
   prefs: []
   type: TYPE_NORMAL
 - en: '`b_cnt_d = {‘fd’: 2, ‘fe’: 4, ‘ff’: 8}`'
+  id: totrans-487
   prefs: []
   type: TYPE_NORMAL
 - en: '`prefix = int.from_bytes(blk_m.read(1), byteorder=’little’)`'
+  id: totrans-488
   prefs: []
   type: TYPE_NORMAL
 - en: '`if prefix < 0xFD:`'
+  id: totrans-489
   prefs: []
   type: TYPE_NORMAL
 - en: '`return prefix`'
+  id: totrans-490
   prefs: []
   type: TYPE_NORMAL
 - en: '`else:`'
+  id: totrans-491
   prefs: []
   type: TYPE_NORMAL
 - en: '`b_cnt = b_cnt_d[‘%x’ % prefix]`'
+  id: totrans-492
   prefs: []
   type: TYPE_NORMAL
 - en: '`size = int.from_bytes(blk_m.read(b_cnt), byteorder=’little’)`'
+  id: totrans-493
   prefs: []
   type: TYPE_NORMAL
 - en: '`return size`'
+  id: totrans-494
   prefs: []
   type: TYPE_NORMAL
 - en: '`def getCoinbaseTransactionInfo(blk_m: mmap):`'
+  id: totrans-495
   prefs: []
   type: TYPE_NORMAL
 - en: '`tx = {}`'
+  id: totrans-496
   prefs: []
   type: TYPE_NORMAL
 - en: '`tx[‘version’] = blk_m.read(4)[::-1].hex()`'
+  id: totrans-497
   prefs: []
   type: TYPE_NORMAL
 - en: '`tx[‘inp_cnt’] = getVarInt(blk_m)`'
+  id: totrans-498
   prefs: []
   type: TYPE_NORMAL
 - en: '`inp_l = []`'
+  id: totrans-499
   prefs: []
   type: TYPE_NORMAL
 - en: '`for i in range(tx[‘inp_cnt’]):`'
+  id: totrans-500
   prefs: []
   type: TYPE_NORMAL
 - en: '`inp = {}`'
+  id: totrans-501
   prefs: []
   type: TYPE_NORMAL
 - en: '`inp[‘prev_tx_hash’] = blk_m.read(32)[::-1].hex()`'
+  id: totrans-502
   prefs: []
   type: TYPE_NORMAL
 - en: '`inp[‘prev_tx_out_index’] = int.from_bytes(blk_m.read(4), byteorder = ‘little’)`'
+  id: totrans-503
   prefs: []
   type: TYPE_NORMAL
 - en: '`inp[‘bytes_coinbase_data’] = getVarInt(blk_m)`'
+  id: totrans-504
   prefs: []
   type: TYPE_NORMAL
 - en: '`pos = blk_m.tell()`'
+  id: totrans-505
   prefs: []
   type: TYPE_NORMAL
 - en: '`inp[‘bytes_height’] = getVarInt(blk_m)`'
+  id: totrans-506
   prefs: []
   type: TYPE_NORMAL
 - en: '`inp[‘height’] = int.from_bytes(blk_m.read(inp[‘bytes_height’]), byteorder=’little’)`'
+  id: totrans-507
   prefs: []
   type: TYPE_NORMAL
 - en: '`size = blk_m.tell() - pos`'
+  id: totrans-508
   prefs: []
   type: TYPE_NORMAL
 - en: '`coinbase_arb_data_size = inp[‘bytes_coinbase_data’] - size`'
+  id: totrans-509
   prefs: []
   type: TYPE_NORMAL
 - en: '`inp[‘coinbase_arb_data’] = blk_m.read(coinbase_arb_data_size).hex()`'
+  id: totrans-510
   prefs: []
   type: TYPE_NORMAL
 - en: '`inp[‘sequence’] = int.from_bytes(blk_m.read(4), byteorder = ‘little’)`'
+  id: totrans-511
   prefs: []
   type: TYPE_NORMAL
 - en: '`inp_l.append(inp)`'
+  id: totrans-512
   prefs: []
   type: TYPE_NORMAL
 - en: '`tx[‘inputs’] = inp_l`'
+  id: totrans-513
   prefs: []
   type: TYPE_NORMAL
 - en: '`tx[‘out_cnt’] = getVarInt(blk_m)`'
+  id: totrans-514
   prefs: []
   type: TYPE_NORMAL
 - en: '`out_l = []`'
+  id: totrans-515
   prefs: []
   type: TYPE_NORMAL
 - en: '`for i in range(tx[‘out_cnt’]):`'
+  id: totrans-516
   prefs: []
   type: TYPE_NORMAL
 - en: '`out = {}`'
+  id: totrans-517
   prefs: []
   type: TYPE_NORMAL
 - en: '`out[‘satoshis’] = int.from_bytes(blk_m.read(8), byteorder=’little’)`'
+  id: totrans-518
   prefs: []
   type: TYPE_NORMAL
 - en: '`out[‘bytes_scriptpubkey’] = getVarInt(blk_m)`'
+  id: totrans-519
   prefs: []
   type: TYPE_NORMAL
 - en: '`out[‘scriptpubkey’] = blk_m.read(out[‘bytes_scriptpubkey’]).hex()`'
+  id: totrans-520
   prefs: []
   type: TYPE_NORMAL
 - en: '`out_l.append(out)`'
+  id: totrans-521
   prefs: []
   type: TYPE_NORMAL
 - en: '`tx[‘outs’] = out_l`'
+  id: totrans-522
   prefs: []
   type: TYPE_NORMAL
 - en: '`tx[‘locktime’] = int.from_bytes(blk_m.read(4), byteorder=’little’)`'
+  id: totrans-523
   prefs: []
   type: TYPE_NORMAL
 - en: '`return tx`'
+  id: totrans-524
   prefs: []
   type: TYPE_NORMAL
 - en: '**Program 6.14:** Program to get transaction structure from block bytes'
+  id: totrans-525
   prefs: []
   type: TYPE_NORMAL
 - en: 'To get the transaction information, we use a trimmed block byte, create a memory-mapped
     file object, and pass the object to `**getCoinbaseTransactionInfo**` as a parameter.
     Here’s the calling code:'
+  id: totrans-526
   prefs: []
   type: TYPE_NORMAL
 - en: '`if __name__ == ‘__main__’:`'
+  id: totrans-527
   prefs: []
   type: TYPE_NORMAL
 - en: '`# trimmed block for block hash 000000000000000004ec466ce4732fe6f1ed1cddc2ed4b328fff5224276e3f6f`'
+  id: totrans-528
   prefs: []
   type: TYPE_NORMAL
 - en: '`blk_b = bytes.fromhex(‘0400000039fa821848781f027a2e6dfabbf6bda920d9ae61b63400030000000000000000ecae536a304042e3154be0e3e9a8220e5568c3433a9ab49ac4cbb74f8df8e8b0cc2acf569fb9061806652c27fd7c0601000000010000000000000000000000000000000000000000000000000000000000000000ffffffff3f03801a060004cc2acf560433c30f37085d4a39ad543b0c000a425720537570706f727420384d200a666973686572206a696e78696e092f425720506f6f6c2fffffffff012fd8ff96000000001976a914721afdf638d570285d02d3076d8be6a03ee0794d88ac00000000’)`'
+  id: totrans-529
   prefs: []
   type: TYPE_NORMAL
 - en: '`blk_m = mmap.mmap(-1, len(blk_b) + 1)`'
+  id: totrans-530
   prefs: []
   type: TYPE_NORMAL
+  zh: '`blk_m = mmap.mmap(-1, len(blk_b) + 1)`'
 - en: '`blk_m.write(blk_b)`'
+  id: totrans-531
   prefs: []
   type: TYPE_NORMAL
+  zh: '`blk_m.write(blk_b)`'
 - en: '`blk_m.seek(0)`'
+  id: totrans-532
   prefs: []
   type: TYPE_NORMAL
+  zh: '`blk_m.seek(0)`'
 - en: '`blkhdr = blk_m.read(80)`'
+  id: totrans-533
   prefs: []
   type: TYPE_NORMAL
+  zh: '`blkhdr = blk_m.read(80)`'
 - en: '`blk_size = getVarInt(blk_m)`'
+  id: totrans-534
   prefs: []
   type: TYPE_NORMAL
+  zh: '`blk_size = getVarInt(blk_m)`'
 - en: '`tx = getCoinbaseTransactionInfo(blk_m)`'
+  id: totrans-535
   prefs: []
   type: TYPE_NORMAL
+  zh: '`tx = getCoinbaseTransactionInfo(blk_m)`'
 - en: '`print(json.dumps(tx, indent = 4))`'
+  id: totrans-536
   prefs: []
   type: TYPE_NORMAL
+  zh: '`print(json.dumps(tx, indent = 4))`'
 - en: 'On running the code, we get the following transaction structure:'
+  id: totrans-537
   prefs: []
   type: TYPE_NORMAL
+  zh: 运行代码后，我们得到了以下的交易结构：
 - en: '![](images/Figure-6.28.jpg)'
+  id: totrans-538
   prefs: []
   type: TYPE_IMG
+  zh: '![](images/Figure-6.28.jpg)'
 - en: '**Figure 6.28:** Shows coinbase transaction structure obtained using the program'
+  id: totrans-539
   prefs: []
   type: TYPE_NORMAL
+  zh: '**图6.28：**使用程序获得的coinbase交易结构'
 - en: As we can see, the version of the transaction is 1\. The Bitcoin network, as
     of today, allows both version 1 and version 2\. Version 2 must be used if the
     BIP-68 feature is used in the transaction script; otherwise, there is no difference
     in both versions.
+  id: totrans-540
   prefs: []
   type: TYPE_NORMAL
+  zh: 如我们所见，交易的版本是1。截至今天，比特币网络同时允许版本1和版本2。如果交易脚本中使用了BIP-68功能，则必须使用版本2；否则，两个版本之间没有区别。
 - en: The transaction has 1 input and 1 output. Since it is a coinbase transaction,
     there is no input transaction, and the input contains transaction hash as zeroes
     and index as 0xffffffff. This indicates that this is a coinbase transaction.
+  id: totrans-541
   prefs: []
   type: TYPE_NORMAL
+  zh: 该交易有1个输入和1个输出。由于这是一个coinbase交易，没有输入交易，输入包含交易哈希为零和索引为0xffffffff。这表明这是一个coinbase交易。
 - en: Next is the size of `**coinbase_data**`. This includes the height of the block
     since block version 2.
+  id: totrans-542
   prefs: []
   type: TYPE_NORMAL
+  zh: 接下来是`**coinbase_data**`的大小。这包括从区块版本2开始的区块高度。
 - en: 'The `**coinbase_arb_data field in the coinbase transaction is an arbitrary
     sequence of bytes which**` can be anything that the miner wants to put. Sometimes,
     miners add a message to show their support for certain enhancements. If we convert
     the hex code to bytes, we can see the hidden message:'
+  id: totrans-543
   prefs: []
   type: TYPE_NORMAL
+  zh: '`**coinbase_arb_data字段在coinbase交易中是一个任意的字节序列，可以是矿工想要放入的任何内容**`。有时，矿工会添加一条消息，以显示他们对某些改进的支持。如果我们把十六进制代码转换成字节，我们可以看到隐藏的信息：'
 - en: '![](images/Figure-6.29.jpg)'
+  id: totrans-544
   prefs: []
   type: TYPE_IMG
+  zh: '![](images/Figure-6.29.jpg)'
 - en: '**Figure 6.29:** Shows content on coinbase arbitrary data'
+  id: totrans-545
   prefs: []
   type: TYPE_NORMAL
+  zh: '**图6.29：**显示coinbase任意数据的结构'
 - en: We can see the message `**BW Support 8M fisher jinxin /BW Pool/**`. The block
     is mined by BW Pool, and they support an 8 MB block size.
+  id: totrans-546
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以看到消息`**BW支持8M渔民金心/BW池/**`。该区块由BW池开采，他们支持8 MB的区块大小。
 - en: 'In the outputs, the first 8 bytes are bitcoin paid by the miner to its Bitcoin
     addresses. This value is represented as satoshi, which is the smallest denomination
     in bitcoin:'
+  id: totrans-547
   prefs: []
   type: TYPE_NORMAL
+  zh: 在输出中，前8个字节是矿工支付给其比特币地址的比特币。这个值以聪表示，这是比特币的最小单位：
 - en: 1 bitcoin=10⁸ satoshi
+  id: totrans-548
   prefs: []
   type: TYPE_NORMAL
+  zh: 1比特币=10⁸聪
 - en: 1 bitcoin=10⁶ μ₿
+  id: totrans-549
   prefs: []
   type: TYPE_NORMAL
+  zh: 1比特币=10⁶微比特币
 - en: 1 bitcoin=10³ m₿
+  id: totrans-550
   prefs: []
   type: TYPE_NORMAL
+  zh: 1比特币=10³毫比特币
 - en: So, the combined value of all the `satoshis` in outputs is equal to the sum
     of block reward and transaction fees collected by adding transactions in the block.
+  id: totrans-551
   prefs: []
   type: TYPE_NORMAL
+  zh: 所以，输出中所有`聪`的总价值等于区块奖励和交易费用的总和，通过在区块中添加交易来计算。
 - en: The payment to the Bitcoin address is done through a script called `**scriptPubKey**`.
     We will understand the scripting that Bitcoin transaction uses in the upcoming
     chapters.
+  id: totrans-552
   prefs: []
   type: TYPE_NORMAL
+  zh: 向比特币地址支付是通过一个名为`**scriptPubKey**`的脚本完成的。我们将在接下来的章节中了解比特币交易所使用的脚本。
 - en: 'Other transactions are illustrated as follows:'
+  id: totrans-553
   prefs: []
   type: TYPE_NORMAL
+  zh: 其他交易如下所示：
 - en: '![](images/Figure-6.30.jpg)'
+  id: totrans-554
   prefs: []
   type: TYPE_IMG
+  zh: '![](images/Figure-6.30.jpg)'
 - en: '**Figure 6.30:** Structure of other transactions in a block'
+  id: totrans-555
   prefs: []
   type: TYPE_NORMAL
+  zh: '**图6.30：**区块中其他交易的结构'
 - en: Locktime locks the transaction till the specified time or block height. This
     means the transaction will remain in mempool and not be included in the blockchain.
     Specified time is median time past instead of block time. It is recommended that
     this field be set. For locktime to be used, at least one Sequence field among
     Inputs should not be equal to 0xffffffff.
+  id: totrans-556
   prefs: []
   type: TYPE_NORMAL
+  zh: 锁定时间将交易锁定到指定的时间或区块高度。这意味着交易将留在内存池中，不会被包含在区块链中。指定的时间是过去的中位数时间而不是区块时间。建议设置此字段。要使用锁定时间，输入中的至少一个序列字段不应等于0xffffffff。
 - en: The inputs contain the previous transaction hash, also called Transaction ID,
     and its unspent output from which value needs to be taken to pay the outputs.
     The transaction hash is obtained by applying SHA256 twice, so it is 32 bytes in
     length. ScriptSig is the script containing a signature to prove that the bitcoin
     held in the previous transaction output belongs to the person who created the
     transaction input in this transaction.
+  id: totrans-557
   prefs: []
   type: TYPE_NORMAL
+  zh: 输入包含前一个交易的哈希，也称为交易ID，及其未花费的输出，从中提取价值以支付输出。交易哈希是通过应用两次SHA256得到的，因此长度为32字节。ScriptSig是包含一个签名以证明前一个交易输出中的比特币属于在这个交易输入中创建的人的脚本。
 - en: 'The following code parses the other transactions of the block:'
+  id: totrans-558
   prefs: []
   type: TYPE_NORMAL
 - en: '`def getTransactionInfo(blk_m: mmap):`'
+  id: totrans-559
   prefs: []
   type: TYPE_NORMAL
 - en: '`tx = {}`'
+  id: totrans-560
   prefs: []
   type: TYPE_NORMAL
 - en: '`tx[‘version’] = blk_m.read(4)[::-1].hex()`'
+  id: totrans-561
   prefs: []
   type: TYPE_NORMAL
 - en: '`tx[‘inp_cnt’] = getVarInt(blk_m)`'
+  id: totrans-562
   prefs: []
   type: TYPE_NORMAL
 - en: '`inp_l = []`'
+  id: totrans-563
   prefs: []
   type: TYPE_NORMAL
 - en: '`for i in range(tx[‘inp_cnt’]):`'
+  id: totrans-564
   prefs: []
   type: TYPE_NORMAL
 - en: '`inp = {}`'
+  id: totrans-565
   prefs: []
   type: TYPE_NORMAL
 - en: '`inp[‘prev_tx_hash’] = blk_m.read(32)[::-1].hex()`'
+  id: totrans-566
   prefs: []
   type: TYPE_NORMAL
 - en: '`inp[‘prev_tx_out_index’] = int.from_bytes(blk_m.read(4), byteorder=’little’)`'
+  id: totrans-567
   prefs: []
   type: TYPE_NORMAL
 - en: '`inp[‘bytes_scriptsig’] = getVarInt(blk_m)`'
+  id: totrans-568
   prefs: []
   type: TYPE_NORMAL
 - en: '`inp[‘scriptsig’] = blk_m.read(inp[‘bytes_scriptsig’]).hex()`'
+  id: totrans-569
   prefs: []
   type: TYPE_NORMAL
 - en: '`inp[‘sequence’] = int.from_bytes(blk_m.read(4), byteorder=’little’)`'
+  id: totrans-570
   prefs: []
   type: TYPE_NORMAL
 - en: '`inp_l.append(inp)`'
+  id: totrans-571
   prefs: []
   type: TYPE_NORMAL
 - en: '`tx[‘inputs’] = inp_l`'
+  id: totrans-572
   prefs: []
   type: TYPE_NORMAL
 - en: '`tx[‘out_cnt’] = getVarInt(blk_m)`'
+  id: totrans-573
   prefs: []
   type: TYPE_NORMAL
 - en: '`out_l = []`'
+  id: totrans-574
   prefs: []
   type: TYPE_NORMAL
 - en: '`for i in range(tx[‘out_cnt’]):`'
+  id: totrans-575
   prefs: []
   type: TYPE_NORMAL
 - en: '`out = {}`'
+  id: totrans-576
   prefs: []
   type: TYPE_NORMAL
 - en: '`out[‘satoshis’] = int.from_bytes(blk_m.read(8), byteorder=’little’)`'
+  id: totrans-577
   prefs: []
   type: TYPE_NORMAL
 - en: '`out[‘bytes_scriptpubkey’] = getVarInt(blk_m)`'
+  id: totrans-578
   prefs: []
   type: TYPE_NORMAL
 - en: '`out[‘scriptpubkey’] = blk_m.read(out[‘bytes_scriptpubkey’]).hex()`'
+  id: totrans-579
   prefs: []
   type: TYPE_NORMAL
 - en: '`out_l.append(out)`'
+  id: totrans-580
   prefs: []
   type: TYPE_NORMAL
 - en: '`tx[‘outs’] = out_l`'
+  id: totrans-581
   prefs: []
   type: TYPE_NORMAL
 - en: '`tx[‘locktime’] = int.from_bytes(blk_m.read(4), byteorder=’little’)`'
+  id: totrans-582
   prefs: []
   type: TYPE_NORMAL
 - en: '`return tx`'
+  id: totrans-583
   prefs: []
   type: TYPE_NORMAL
 - en: '**Program 6.15:** Program to parse transactions'
+  id: totrans-584
   prefs: []
   type: TYPE_NORMAL
 - en: 'To call the method, we need to provide a `**getTransactionInfo**` memory map
     of bytes of `**bblock**`. The following is the code to call the method:'
+  id: totrans-585
   prefs: []
   type: TYPE_NORMAL
 - en: '`if __name__ == ‘__main__’:`'
+  id: totrans-586
   prefs: []
   type: TYPE_NORMAL
 - en: '`# trimmed block for block hash 000000000000000082ccf8f1557c5d40b21edabb18d2d691cfbf87118bac7254`'
+  id: totrans-587
   prefs: []
   type: TYPE_NORMAL
 - en: '`blk_b = bytes.fromhex(‘020000007ef055e1674d2e6551dba41cd214debbee34ae b544c7ec670000000000000000d3998963f80c5bab43fe8c26228e98d030edf4dcbe48a666f5c39e2d7a885c9102c86d536c890019593a470ded01000000010000000000000000000000000000000000000000000000000000000000000000ffffffff4803e09304062f503253482f0403c86d53087ceca141295a00002e522cfabe6d6d7561cf262313da1144026c8f7a43e3899c44f6145f39a36507d36679a8b7006104000000000000000000000001c8704095000000001976a91480ad90d403581fa3bf46086a91b2d9d4125db6c188ac0000000001000000014dff4050dcee16672e48d755c6dd25d324492b5ea306f85a3ab23b4df26e16e9000000008c493046022100cb6dc911ef0bae0ab0e6265a45f25e081fc7ea4975517c9f848f82bc2b80a909022100e30fb6bb4fb64f414c351ed3abaed7491b8f0b1b9bcd75286036df8bfabc3ea5014104b70574006425b61867d2cbb8de7c26095fbc00ba4041b061cf75b85699cb2b449c6758741f640adffa356406632610efb267cb1efa0442c207059dd7fd652eeaffffffff020049d971020000001976a91461cf5af7bb84348df3fd695672e53c7d5b3f3db988ac30601c0c060000001976a914fd4ed114ef85d350d6d40ed3f6dc23743f8f99c488ac00000000’)`'
+  id: totrans-588
   prefs: []
   type: TYPE_NORMAL
 - en: '`blk_m = mmap.mmap(-1, len(blk_b) + 1)`'
+  id: totrans-589
   prefs: []
   type: TYPE_NORMAL
 - en: '`blk_m.write(blk_b)`'
+  id: totrans-590
   prefs: []
   type: TYPE_NORMAL
 - en: '`blk_m.seek(80)`'
+  id: totrans-591
   prefs: []
   type: TYPE_NORMAL
 - en: '`tx_cnt = getVarInt(blk_m)`'
+  id: totrans-592
   prefs: []
   type: TYPE_NORMAL
 - en: '`coinbase_tx = getCoinbaseTransactionInfo(blk_m)`'
+  id: totrans-593
   prefs: []
   type: TYPE_NORMAL
 - en: '`tx = getTransactionInfo(blk_m)`'
+  id: totrans-594
   prefs: []
   type: TYPE_NORMAL
 - en: '`print(‘Transaction:’)`'
+  id: totrans-595
   prefs: []
   type: TYPE_NORMAL
 - en: '`print(json.dumps(tx, indent=4))`'
+  id: totrans-596
   prefs: []
   type: TYPE_NORMAL
 - en: 'This gives out the following content of the first transaction after coinbase
     transaction:'
+  id: totrans-597
   prefs: []
   type: TYPE_NORMAL
 - en: '![](images/Figure-6.31.jpg)'
+  id: totrans-598
   prefs: []
   type: TYPE_IMG
 - en: '**Figure 6.31:** Shows a transaction structure'
+  id: totrans-599
   prefs: []
   type: TYPE_NORMAL
 - en: 'To calculate transaction hash, we need to get the transaction bytes and hash
     by applying SHA256 twice and reverse byte order. The following method calculates
     transaction hash from transaction bytes:'
+  id: totrans-600
   prefs: []
   type: TYPE_NORMAL
 - en: '`def getTransactionHash(start: int, end: int, blk_b: bytes):`'
+  id: totrans-601
   prefs: []
   type: TYPE_NORMAL
 - en: '`b = blk_b[start: end]`'
+  id: totrans-602
   prefs: []
   type: TYPE_NORMAL
 - en: '`h١ = hashlib.sha256(b).digest()`'
+  id: totrans-603
   prefs: []
   type: TYPE_NORMAL
 - en: '`h٢ = hashlib.sha256(h1).digest()`'
+  id: totrans-604
   prefs: []
   type: TYPE_NORMAL
 - en: '`tx_hash = h2[::-1].hex()`'
+  id: totrans-605
   prefs: []
   type: TYPE_NORMAL
 - en: '`return tx_hash`'
+  id: totrans-606
   prefs: []
   type: TYPE_NORMAL
 - en: '**Program 6.16:** Program to get Transaction ID from transaction bytes'
+  id: totrans-607
   prefs: []
   type: TYPE_NORMAL
 - en: 'The following code calls the method:'
+  id: totrans-608
   prefs: []
   type: TYPE_NORMAL
 - en: '`if __name__ == ‘__main__’:`'
+  id: totrans-609
   prefs: []
   type: TYPE_NORMAL
 - en: '`# trimmed block for block hash 000000000000000082ccf8f1557c5d40b21edabb18d2d691cfbf87118bac7254`'
+  id: totrans-610
   prefs: []
   type: TYPE_NORMAL
 - en: '`blk_b = bytes.fromhex(‘020000007ef055e1674d2e6551dba41cd214debbee34ae b544c7ec670000000000000000d3998963f80c5bab43fe8c26228e98d030edf4dcbe48a666f5c39e2d7a885c9102c86d536c890019593a470ded01000000010000000000000000000000000000000000000000000000000000000000000000ffffffff4803e09304062f503253482f0403c86d53087ceca141295a00002e522cfabe6d6d7561cf262313da1144026c8f7a43e3899c44f6145f39a36507d36679a8b7006104000000000000000000000001c8704095000000001976a91480ad90d403581fa3bf46086a91b2d9d4125db6c188ac0000000001000000014dff4050dcee16672e48d755c6dd25d324492b5ea306f85a3ab23b4df26e16e9000000008c493046022100cb6dc911ef0bae0ab0e6265a45f25e081fc7ea4975517c9f848f82bc2b80a909022100e30fb6bb4fb64f414c351ed3abaed7491b8f0b1b9bcd75286036df8bfabc3ea5014104b70574006425b61867d2cbb8de7c26095fbc00ba4041b061cf75b85699cb2b449c6758741f640adffa356406632610efb267cb1efa0442c207059dd7fd652eeaffffffff020049d971020000001976a91461cf5af7bb84348df3fd695672e53c7d5b3f3db988ac30601c0c060000001976a914fd4ed114ef85d350d6d40ed3f6dc23743f8f99c488ac00000000’)`'
+  id: totrans-611
   prefs: []
   type: TYPE_NORMAL
 - en: '`blk_m = mmap.mmap(-1, len(blk_b) + 1)`'
+  id: totrans-612
   prefs: []
   type: TYPE_NORMAL
 - en: '`blk_m.write(blk_b)`'
+  id: totrans-613
   prefs: []
   type: TYPE_NORMAL
 - en: '`blk_m.seek(80)`'
+  id: totrans-614
   prefs: []
   type: TYPE_NORMAL
 - en: '`tx_cnt = getVarInt(blk_m)`'
+  id: totrans-615
   prefs: []
   type: TYPE_NORMAL
 - en: '`coinbase_tx = getCoinbaseTransactionInfo(blk_m)`'
+  id: totrans-616
   prefs: []
   type: TYPE_NORMAL
 - en: '`stb = blk_m.tell()`'
+  id: totrans-617
   prefs: []
   type: TYPE_NORMAL
 - en: '`tx = getTransactionInfo(blk_m)`'
+  id: totrans-618
   prefs: []
   type: TYPE_NORMAL
 - en: '``endb = blk_m.tell()``'
+  id: totrans-619
   prefs: []
   type: TYPE_NORMAL
 - en: '``tx_hash = getTransactionHash(stb, endb, blk_b)``'
+  id: totrans-620
   prefs: []
   type: TYPE_NORMAL
 - en: '`print(‘Transaction Hash = %s’ % tx_hash)`'
+  id: totrans-621
   prefs: []
   type: TYPE_NORMAL
 - en: 'This gives us the following result:'
+  id: totrans-622
   prefs: []
   type: TYPE_NORMAL
 - en: '![](images/Figure-6.32.jpg)'
+  id: totrans-623
   prefs: []
   type: TYPE_IMG
 - en: '**Figure 6.32:** Shows transaction hash obtained from transaction bytes using
     the program'
+  id: totrans-624
   prefs: []
   type: TYPE_NORMAL
 - en: 'We can search this transaction in `**txindex**` by using the following code:'
+  id: totrans-625
   prefs: []
   type: TYPE_NORMAL
 - en: '`txindex_db_g = plyvel.DB(os.getenv(‘TX_INDEX_DB’), compression=None)`'
+  id: totrans-626
   prefs: []
   type: TYPE_NORMAL
 - en: '`BLOCK_HEADER_SIZE = 80`'
+  id: totrans-627
   prefs: []
   type: TYPE_NORMAL
 - en: '`def getTransactionIndex(tx_hash: bytes, txindex_db):`'
+  id: totrans-628
   prefs: []
   type: TYPE_NORMAL
 - en: '`key = b’t’ + tx_hash`'
+  id: totrans-629
   prefs: []
   type: TYPE_NORMAL
 - en: '`value = txindex_db.get(key)`'
+  id: totrans-630
   prefs: []
   type: TYPE_NORMAL
 - en: '`jsonobj = {}`'
+  id: totrans-631
   prefs: []
   type: TYPE_NORMAL
 - en: '`jsonobj[‘n_file’], pos = b128_varint_decode(value)`'
+  id: totrans-632
   prefs: []
   type: TYPE_NORMAL
 - en: '`jsonobj[‘block_offset’], pos = b128_varint_decode(value, pos)`'
+  id: totrans-633
   prefs: []
   type: TYPE_NORMAL
 - en: '`jsonobj[‘file_offset’], pos = b128_varint_decode(value, pos)`'
+  id: totrans-634
   prefs: []
   type: TYPE_NORMAL
 - en: '`print(jsonobj)`'
+  id: totrans-635
   prefs: []
   type: TYPE_NORMAL
 - en: '`return jsonobj`'
+  id: totrans-636
   prefs: []
   type: TYPE_NORMAL
 - en: '`def findTransaction(tx_hash: bytes, txindex_db):`'
+  id: totrans-637
   prefs: []
   type: TYPE_NORMAL
 - en: '`jsonobj = getTransactionIndex(tx_hash, txindex_db)`'
+  id: totrans-638
   prefs: []
   type: TYPE_NORMAL
 - en: '`print(‘Transaction Index:’)`'
+  id: totrans-639
   prefs: []
   type: TYPE_NORMAL
 - en: '`print(json.dumps(jsonobj, indent=4))`'
+  id: totrans-640
   prefs: []
   type: TYPE_NORMAL
 - en: '`block_filepath = os.path.join(blocks_path_g, ‘blk%05d.dat’ % jsonobj[‘n_file’])`'
+  id: totrans-641
   prefs: []
   type: TYPE_NORMAL
 - en: '`with open(block_filepath, ‘r+b’) as blk_f:`'
+  id: totrans-642
   prefs: []
   type: TYPE_NORMAL
 - en: '`blk_m = mmap.mmap(blk_f.fileno(), 0) # map whole file`'
+  id: totrans-643
   prefs: []
   type: TYPE_NORMAL
 - en: '`blk_m.seek(jsonobj[‘block_offset’] + BLOCK_HEADER_SIZE + jsonobj[‘file_offset’])`'
+  id: totrans-644
   prefs: []
   type: TYPE_NORMAL
 - en: '`tx = getTransactionInfo(blk_m)`'
+  id: totrans-645
   prefs: []
   type: TYPE_NORMAL
 - en: '`blk_m.close()`'
+  id: totrans-646
   prefs: []
   type: TYPE_NORMAL
 - en: '`return tx`'
+  id: totrans-647
   prefs: []
   type: TYPE_NORMAL
 - en: '**Program 6.17:** Program to find transaction using transaction index in DB'
+  id: totrans-648
   prefs: []
   type: TYPE_NORMAL
 - en: 'The `**findTransaction**` method takes transaction hash in the little-endian
     format and chainstate database for querying the index. The following is the example
     code:'
+  id: totrans-649
   prefs: []
   type: TYPE_NORMAL
 - en: '`if __name__ == ‘__main__’:`'
+  id: totrans-650
   prefs: []
   type: TYPE_NORMAL
 - en: '`tx_hash = bytes.fromhex(‘7301b595279ece985f0c415e420e425451fcf7f684fcce087ba14d10ffec1121’)[::-1]`'
+  id: totrans-651
   prefs: []
   type: TYPE_NORMAL
 - en: '`tx = findTransaction(tx_hash, txindex_db_g)`'
+  id: totrans-652
   prefs: []
   type: TYPE_NORMAL
 - en: '`print(“Transaction Info:\n”, json.dumps(tx, indent = 4))`'
+  id: totrans-653
   prefs: []
   type: TYPE_NORMAL
 - en: 'Running this code gives us the following information about the location of
     the transaction in the block file and also a portion of a parsed transaction:'
+  id: totrans-654
   prefs: []
   type: TYPE_NORMAL
 - en: '![](images/Figure-6.33.jpg)'
+  id: totrans-655
   prefs: []
   type: TYPE_IMG
 - en: '**Figure 6.33:** Shows information required to read transaction in a block
     file and shows a portion of a parsed transaction'
+  id: totrans-656
   prefs: []
   type: TYPE_NORMAL
 - en: '[UTXO](toc.xhtml#s118a)'
+  id: totrans-657
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
 - en: UTXO stands for **Unspent Transaction Output**. The primary purpose of the chainstate
     database is to store this information so that a new transaction can be efficiently
     verified.
+  id: totrans-658
   prefs: []
   type: TYPE_NORMAL
 - en: 'To parse UTXO information from the chainstate database, we need to understand
     a few more things. Transaction output has an amount field that is encoded to compress
     its value. The following is the compression program:'
+  id: totrans-659
   prefs: []
   type: TYPE_NORMAL
 - en: '`def amount_compress(n: int):`'
+  id: totrans-660
   prefs: []
   type: TYPE_NORMAL
 - en: '`if n == 0:`'
+  id: totrans-661
   prefs: []
   type: TYPE_NORMAL
 - en: '`return 0;`'
+  id: totrans-662
   prefs: []
   type: TYPE_NORMAL
 - en: '`e = 0`'
+  id: totrans-663
   prefs: []
   type: TYPE_NORMAL
 - en: '`while ((n % 10) == 0) and e < 9:`'
+  id: totrans-664
   prefs: []
   type: TYPE_NORMAL
 - en: '`n //= 10`'
+  id: totrans-665
   prefs: []
   type: TYPE_NORMAL
 - en: '`e += 1`'
+  id: totrans-666
   prefs: []
   type: TYPE_NORMAL
 - en: '`if e < 9:`'
+  id: totrans-667
   prefs: []
   type: TYPE_NORMAL
 - en: '`d = n ٪ 10`'
+  id: totrans-668
   prefs: []
   type: TYPE_NORMAL
 - en: '`assert d >= 1 and d <= 9`'
+  id: totrans-669
   prefs: []
   type: TYPE_NORMAL
 - en: '`n //= 10`'
+  id: totrans-670
   prefs: []
   type: TYPE_NORMAL
 - en: '`return 1 + (n*9 + d - 1)*10 + e`'
+  id: totrans-671
   prefs: []
   type: TYPE_NORMAL
 - en: '`else:`'
+  id: totrans-672
   prefs: []
   type: TYPE_NORMAL
 - en: '`return 1 + (n - 1)*10 + 9`'
+  id: totrans-673
   prefs: []
   type: TYPE_NORMAL
 - en: '**Program 6.18:** Program to compress amount in UTXO'
+  id: totrans-674
   prefs: []
   type: TYPE_NORMAL
 - en: 'And here’s the program to decompress value:'
+  id: totrans-675
   prefs: []
   type: TYPE_NORMAL
 - en: '`def amount_decompress(x):`'
+  id: totrans-676
   prefs: []
   type: TYPE_NORMAL
 - en: '`if x == 0:`'
+  id: totrans-677
   prefs: []
   type: TYPE_NORMAL
 - en: '`return 0`'
+  id: totrans-678
   prefs: []
   type: TYPE_NORMAL
 - en: '`x -= 1`'
+  id: totrans-679
   prefs: []
   type: TYPE_NORMAL
 - en: '`e = x ٪ 10`'
+  id: totrans-680
   prefs: []
   type: TYPE_NORMAL
 - en: '`x //= 10`'
+  id: totrans-681
   prefs: []
   type: TYPE_NORMAL
 - en: '`if e < 9:`'
+  id: totrans-682
   prefs: []
   type: TYPE_NORMAL
 - en: '`d = (x ٪ 9) + 1`'
+  id: totrans-683
   prefs: []
   type: TYPE_NORMAL
 - en: '`x //= 9`'
+  id: totrans-684
   prefs: []
   type: TYPE_NORMAL
 - en: '`n = x * 10 + d`'
+  id: totrans-685
   prefs: []
   type: TYPE_NORMAL
 - en: '`else:`'
+  id: totrans-686
   prefs: []
   type: TYPE_NORMAL
 - en: '`n = x + 1`'
+  id: totrans-687
   prefs: []
   type: TYPE_NORMAL
 - en: '`while e > 0:`'
+  id: totrans-688
   prefs: []
   type: TYPE_NORMAL
 - en: '`n *= 10`'
+  id: totrans-689
   prefs: []
   type: TYPE_NORMAL
 - en: '`e -= 1`'
+  id: totrans-690
   prefs: []
   type: TYPE_NORMAL
 - en: '`return n`'
+  id: totrans-691
   prefs: []
   type: TYPE_NORMAL
 - en: '**Program 6.19:** Program to decompress amount in UTXO'
+  id: totrans-692
   prefs: []
   type: TYPE_NORMAL
 - en: '*[Table 6.1](#tab6_1)* gives information about transaction output available
     in the chainstate database. To concatenate transaction ID without index, we need
     to encode it using b128 encoding. Additionally, the script field is not encoded
     in b128 encoding as it is a fixed-size field.'
+  id: totrans-693
   prefs: []
   type: TYPE_NORMAL
 - en: 'The following program gets stored values related to UTXO:'
+  id: totrans-694
   prefs: []
   type: TYPE_NORMAL
 - en: '`def getUnspentTransactions(tx_hash: bytes, out_index: int,chainstate_db):`'
+  id: totrans-695
   prefs: []
   type: TYPE_NORMAL
 - en: '`key = b’C’ + tx_hash + b128_varint_encode(out_index)`'
+  id: totrans-696
   prefs: []
   type: TYPE_NORMAL
 - en: '`value_obf_b = chainstate_db.get(key)`'
+  id: totrans-697
   prefs: []
   type: TYPE_NORMAL
 - en: '`value_obf_b = applyObfuscationKey(value_obf_b, chainstate_db)`'
+  id: totrans-698
   prefs: []
   type: TYPE_NORMAL
 - en: '`jsonobj = {}`'
+  id: totrans-699
   prefs: []
   type: TYPE_NORMAL
 - en: '`code, pos = b١٢٨_varint_decode(value_obf_b)`'
+  id: totrans-700
   prefs: []
   type: TYPE_NORMAL
 - en: '`jsonobj[‘is_coinbase’] = code & 0x01`'
+  id: totrans-701
   prefs: []
   type: TYPE_NORMAL
 - en: '`jsonobj[‘block_height’] = code >> 1`'
+  id: totrans-702
   prefs: []
   type: TYPE_NORMAL
 - en: '`compressed_amount, pos = b128_varint_decode(value_obf_b, pos)`'
+  id: totrans-703
   prefs: []
   type: TYPE_NORMAL
 - en: '`jsonobj[‘unspent_amount’] = amount_decompress(compressed_amount)`'
+  id: totrans-704
   prefs: []
   type: TYPE_NORMAL
 - en: '`jsonobj[‘script_type’], pos = b128_varint_decode(value_obf_b, pos)`'
+  id: totrans-705
   prefs: []
   type: TYPE_NORMAL
 - en: '`jsonobj[‘scriptPubKey’]= value_obf_b[pos:].hex()`'
+  id: totrans-706
   prefs: []
   type: TYPE_NORMAL
 - en: '`return jsonobj`'
+  id: totrans-707
   prefs: []
   type: TYPE_NORMAL
 - en: '**Program 6.20:** Program to get the structure of UTXO'
+  id: totrans-708
   prefs: []
   type: TYPE_NORMAL
 - en: 'The preceding method, `**getUnspentTransactions**`, takes transaction hash,
     output index that is unspent, and chainstate database. The following is the example
     of a calling statement:'
+  id: totrans-709
   prefs: []
   type: TYPE_NORMAL
 - en: '`if __name__ == ‘__main__’:`'
+  id: totrans-710
   prefs: []
   type: TYPE_NORMAL
 - en: '`tx = bytes.fromhex(‘a23203c053852755c97b87e354d1e9053a6d1a20d32892e8ee45dfa2c3105f94’)[::-1]`'
+  id: totrans-711
   prefs: []
   type: TYPE_NORMAL
 - en: '`jsonobj = getUnspentTransactions(tx, 0, chainstate_db_g)`'
+  id: totrans-712
   prefs: []
   type: TYPE_NORMAL
 - en: '`print(jsonobj)`'
+  id: totrans-713
   prefs: []
   type: TYPE_NORMAL
 - en: 'This is the result:'
+  id: totrans-714
   prefs: []
   type: TYPE_NORMAL
 - en: '![](images/Figure-6.34.jpg)'
+  id: totrans-715
   prefs: []
   type: TYPE_IMG
 - en: '**Figure 6.34:** Shows information stored in Chainstate DB for a UTXO'
+  id: totrans-716
   prefs: []
   type: TYPE_NORMAL
 - en: 'In the preceding result, `**scriptPubKey**` is not a full script; it needs
     script type to get the full script. The following code prints full `**scriptPubKey**`
     for script type 0:'
+  id: totrans-717
   prefs: []
   type: TYPE_NORMAL
 - en: '`def uncompressScriptType0(script_data: bytes):`'
+  id: totrans-718
   prefs: []
   type: TYPE_NORMAL
 - en: '`script = bytes([`'
+  id: totrans-719
   prefs: []
   type: TYPE_NORMAL
 - en: '`0x76, # OP_DUP`'
+  id: totrans-720
   prefs: []
   type: TYPE_NORMAL
 - en: '`0xa9, # OP_HASH160`'
+  id: totrans-721
   prefs: []
   type: TYPE_NORMAL
 - en: '`20 # size`'
+  id: totrans-722
   prefs: []
   type: TYPE_NORMAL
 - en: '`]) + script_data + bytes([`'
+  id: totrans-723
   prefs: []
   type: TYPE_NORMAL
 - en: '`0x88, # OP_EQUALVERIFY`'
+  id: totrans-724
   prefs: []
   type: TYPE_NORMAL
 - en: '`0xac # OP_CHECKSIG`'
+  id: totrans-725
   prefs: []
   type: TYPE_NORMAL
 - en: '`])`'
+  id: totrans-726
   prefs: []
   type: TYPE_NORMAL
 - en: '`return script`'
+  id: totrans-727
   prefs: []
   type: TYPE_NORMAL
 - en: '**Program 6.21:** Program to get scriptPubKey using script types and script
     data'
+  id: totrans-728
   prefs: []
   type: TYPE_NORMAL
 - en: We have not covered other scripts as the transaction scripting is left for the
     upcoming chapters.
+  id: totrans-729
   prefs: []
   type: TYPE_NORMAL
 - en: 'The following is the code for calling the preceding method:'
+  id: totrans-730
   prefs: []
   type: TYPE_NORMAL
 - en: '`if __name__ == ‘__main__’:`'
+  id: totrans-731
   prefs: []
   type: TYPE_NORMAL
 - en: '`script_data = bytes.fromhex(‘3eba92179cd0b4caff74e3e81a14399e3c1b7ca3’)`'
+  id: totrans-732
   prefs: []
   type: TYPE_NORMAL
 - en: '`script = uncompressScriptType٠(script_data)`'
+  id: totrans-733
   prefs: []
   type: TYPE_NORMAL
 - en: '`print(‘script = %s’ % script.hex())`'
+  id: totrans-734
   prefs: []
   type: TYPE_NORMAL
 - en: 'This gives us the following script:'
+  id: totrans-735
   prefs: []
   type: TYPE_NORMAL
 - en: '![](images/Figure-6.35.jpg)'
+  id: totrans-736
   prefs: []
   type: TYPE_IMG
 - en: '**Figure 6.35:** Shows the scriptPubKey obtained by uncompressing script data'
+  id: totrans-737
   prefs: []
   type: TYPE_NORMAL
 - en: This concludes this section on transactions. In this section, we were primarily
     focused on transaction format and transaction indexes in databases. Scripting
     has been left for the upcoming chapters.
+  id: totrans-738
   prefs: []
   type: TYPE_NORMAL
 - en: '[Mining](toc.xhtml#s119a)'
+  id: totrans-739
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
 - en: Mining is the process of finding nonce and creating a block. We have learned
     a few things in previous sections and chapters that will be useful in understanding
     the mining process.
+  id: totrans-740
   prefs: []
   type: TYPE_NORMAL
 - en: 'Mining involves the following:'
+  id: totrans-741
   prefs: []
   type: TYPE_NORMAL
 - en: Spending energy to find nonce, which is required to create block hash that has
     value less than the target threshold.
+  id: totrans-742
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Knowledge of block reward.
+  id: totrans-743
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Selecting transactions from mempool to maximize transaction reward within the
     block size limit.
+  id: totrans-744
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Creation of coinbase transaction using block reward, transaction fee, block
     height, and scriptPubKey for paying the rewards to own address.
+  id: totrans-745
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Finding Merkle Root.
+  id: totrans-746
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Finding Target threshold for the next block.
+  id: totrans-747
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Readying and supporting softforks.
+  id: totrans-748
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Creating other fields in the block header.
+  id: totrans-749
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: In this section, we will investigate each of these.
+  id: totrans-750
   prefs: []
   type: TYPE_NORMAL
 - en: '[Mining profitability](toc.xhtml#s120a)'
+  id: totrans-751
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
 - en: To calculate mining profitability, we need to understand how much energy is
     required to find nonce using popular mining devices and how much is the block
     reward and total transaction fee earned in each transaction.
+  id: totrans-752
   prefs: []
   type: TYPE_NORMAL
 - en: '[Block reward](toc.xhtml#s121a)'
+  id: totrans-753
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
@@ -2692,68 +3665,89 @@
     in each block. Currently, it is 6.25![](images/Bitcoin.jpg). After every 210,000
     blocks, the block reward becomes half. This reduces the supply of newly minted
     bitcoin.
+  id: totrans-754
   prefs: []
   type: TYPE_NORMAL
 - en: 'The following program gives block reward for given block height:'
+  id: totrans-755
   prefs: []
   type: TYPE_NORMAL
 - en: '`def getBlockReward(block_height):`'
+  id: totrans-756
   prefs: []
   type: TYPE_NORMAL
 - en: '`halving_count = block_height // 210000`'
+  id: totrans-757
   prefs: []
   type: TYPE_NORMAL
 - en: '`block_reward = 50/(2**halving_count)`'
+  id: totrans-758
   prefs: []
   type: TYPE_NORMAL
 - en: '`return block_reward`'
+  id: totrans-759
   prefs: []
   type: TYPE_NORMAL
 - en: '**Program 6.22:** Program to get block reward for a given block height'
+  id: totrans-760
   prefs: []
   type: TYPE_NORMAL
 - en: 'We call this method for given block height, as follows:'
+  id: totrans-761
   prefs: []
   type: TYPE_NORMAL
 - en: '`if __name__ == ‘__main__’:`'
+  id: totrans-762
   prefs: []
   type: TYPE_NORMAL
 - en: '`block_reward = getBlockReward(645675)`'
+  id: totrans-763
   prefs: []
   type: TYPE_NORMAL
 - en: '`print(block_reward)`'
+  id: totrans-764
   prefs: []
   type: TYPE_NORMAL
 - en: 'This gives us the following result:'
+  id: totrans-765
   prefs: []
   type: TYPE_NORMAL
 - en: '![](images/Figure-6.36.jpg)'
+  id: totrans-766
   prefs: []
   type: TYPE_IMG
 - en: '**Figure 6.36:** Shows block reward obtained by running the preceding program'
+  id: totrans-767
   prefs: []
   type: TYPE_NORMAL
 - en: This means the block reward for the block that has a height of `***645675***`
     is `***6.25₿***`.
+  id: totrans-768
   prefs: []
   type: TYPE_NORMAL
 - en: '[Transaction fee](toc.xhtml#s122a)'
+  id: totrans-769
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
 - en: 'We can calculate the transaction fee of a transaction with the following equation:'
+  id: totrans-770
   prefs: []
   type: TYPE_NORMAL
 - en: '*f : Transaction Fee*'
+  id: totrans-771
   prefs: []
   type: TYPE_NORMAL
 - en: '*i[n]: n^(th) input*'
+  id: totrans-772
   prefs: []
   type: TYPE_NORMAL
 - en: '*o[n]: n^(th) output*'
+  id: totrans-773
   prefs: []
   type: TYPE_NORMAL
 - en: '*f = ∑[n]i[n] - ∑[n]o[n] (1)*'
+  id: totrans-774
   prefs: []
   type: TYPE_NORMAL
 - en: To write a program to calculate the transaction fee for a transaction, we need
@@ -2764,183 +3758,240 @@
     included in the block. Since we are trying to look for previous transaction output
     of already verified and confirmed transactions, we need txindex to look for the
     transaction.
+  id: totrans-775
   prefs: []
   type: TYPE_NORMAL
 - en: 'The following method returns the value of bitcoin locked in a transaction output:'
+  id: totrans-776
   prefs: []
   type: TYPE_NORMAL
 - en: '`def getTransactionOutAmount(tx_hash: bytes, out_index: int, txindex_db):`'
+  id: totrans-777
   prefs: []
   type: TYPE_NORMAL
 - en: '`tx = findTransaction(tx_hash, txindex_db)`'
+  id: totrans-778
   prefs: []
   type: TYPE_NORMAL
 - en: '`return tx[‘outs’][out_index][‘satoshis’]`'
+  id: totrans-779
   prefs: []
   type: TYPE_NORMAL
 - en: '**Program 6.23:** Program gets UTXO amount from txindex'
+  id: totrans-780
   prefs: []
   type: TYPE_NORMAL
 - en: The method calls `**findTransaction**` defined in *program 6.17*.
+  id: totrans-781
   prefs: []
   type: TYPE_NORMAL
 - en: 'The following method uses the value locked in a transaction input from the
     preceding method and returns the transaction fee associated with the transaction:'
+  id: totrans-782
   prefs: []
   type: TYPE_NORMAL
 - en: '`def getTransactionFee(tx: dict):`'
+  id: totrans-783
   prefs: []
   type: TYPE_NORMAL
 - en: '`inp_val = 0`'
+  id: totrans-784
   prefs: []
   type: TYPE_NORMAL
 - en: '`for inp in tx[‘inputs’]:`'
+  id: totrans-785
   prefs: []
   type: TYPE_NORMAL
 - en: '`prev_tx_hash = bytes.fromhex(inp[‘prev_tx_hash’])[::-1]`'
+  id: totrans-786
   prefs: []
   type: TYPE_NORMAL
 - en: '`inp_val += getTransactionOutAmount(prev_tx_hash, inp[‘prev_tx_out_index’],
     txindex_db_g)`'
+  id: totrans-787
   prefs: []
   type: TYPE_NORMAL
 - en: '`out_val = 0`'
+  id: totrans-788
   prefs: []
   type: TYPE_NORMAL
 - en: '`for out in tx[‘outs’]:`'
+  id: totrans-789
   prefs: []
   type: TYPE_NORMAL
 - en: '`out_val += out[‘satoshis’]`'
+  id: totrans-790
   prefs: []
   type: TYPE_NORMAL
 - en: '`tx_fee = inp_val - out_val`'
+  id: totrans-791
   prefs: []
   type: TYPE_NORMAL
 - en: '`return tx_fee`'
+  id: totrans-792
   prefs: []
   type: TYPE_NORMAL
 - en: '**Program 6.24:** Program gets transaction fee collected by a miner for the
     given transaction'
+  id: totrans-793
   prefs: []
   type: TYPE_NORMAL
 - en: 'Now, we can add all the transaction fees collected from the transaction list
     in a block. The following is the program that calculates the fee reward collected
     by a block miner:'
+  id: totrans-794
   prefs: []
   type: TYPE_NORMAL
 - en: '`def getBlockFeeReward(block_hash: bytes, block_db):`'
+  id: totrans-795
   prefs: []
   type: TYPE_NORMAL
 - en: '`block_index = getBlockIndex(block_hash, block_db)`'
+  id: totrans-796
   prefs: []
   type: TYPE_NORMAL
 - en: '`if ‘data_pos’ in block_index:`'
+  id: totrans-797
   prefs: []
   type: TYPE_NORMAL
 - en: '`block_filepath = os.path.join(blocks_path_g, ‘blk%05d.dat’ % block_index[‘n_file’])`'
+  id: totrans-798
   prefs: []
   type: TYPE_NORMAL
 - en: '`start = block_index[‘data_pos’]`'
+  id: totrans-799
   prefs: []
   type: TYPE_NORMAL
 - en: '`elif ‘undo_pos’ in block_index:`'
+  id: totrans-800
   prefs: []
   type: TYPE_NORMAL
 - en: '`block_filepath = os.path.join(blocks_path_g, ‘rev%05d.dat’ % block_index[‘n_file’])`'
+  id: totrans-801
   prefs: []
   type: TYPE_NORMAL
 - en: '`start = block_index[‘undo_pos’]`'
+  id: totrans-802
   prefs: []
   type: TYPE_NORMAL
 - en: '`with open(block_filepath, ‘r+b’) as block_f:`'
+  id: totrans-803
   prefs: []
   type: TYPE_NORMAL
 - en: '`blk_m = mmap.mmap(block_f.fileno(), 0)`'
+  id: totrans-804
   prefs: []
   type: TYPE_NORMAL
 - en: '`blk_m.seek(start + BLOCK_HEADER_SIZE)`'
+  id: totrans-805
   prefs: []
   type: TYPE_NORMAL
 - en: '`tx_cnt = getVarInt(blk_m)`'
+  id: totrans-806
   prefs: []
   type: TYPE_NORMAL
 - en: '`print(tx_cnt)`'
+  id: totrans-807
   prefs: []
   type: TYPE_NORMAL
 - en: '`coinbase_tx = getCoinbaseTransactionInfo(blk_m)`'
+  id: totrans-808
   prefs: []
   type: TYPE_NORMAL
 - en: '`print(coinbase_tx)`'
+  id: totrans-809
   prefs: []
   type: TYPE_NORMAL
 - en: '`fee_reward = 0`'
+  id: totrans-810
   prefs: []
   type: TYPE_NORMAL
 - en: '`for i in range(1, tx_cnt):`'
+  id: totrans-811
   prefs: []
   type: TYPE_NORMAL
 - en: '`print(i)`'
+  id: totrans-812
   prefs: []
   type: TYPE_NORMAL
 - en: '`start = blk_m.tell()`'
+  id: totrans-813
   prefs: []
   type: TYPE_NORMAL
 - en: '`tx = getTransactionInfo(blk_m)`'
+  id: totrans-814
   prefs: []
   type: TYPE_NORMAL
 - en: '`end = blk_m.tell()`'
+  id: totrans-815
   prefs: []
   type: TYPE_NORMAL
 - en: '`tx_fee = getTransactionFee(tx)`'
+  id: totrans-816
   prefs: []
   type: TYPE_NORMAL
 - en: '`print(tx_fee)`'
+  id: totrans-817
   prefs: []
   type: TYPE_NORMAL
 - en: '`fee_reward += tx_fee`'
+  id: totrans-818
   prefs: []
   type: TYPE_NORMAL
 - en: '`return fee_reward`'
+  id: totrans-819
   prefs: []
   type: TYPE_NORMAL
 - en: '**Program 6.25:** Program to calculate transaction fee collected by a miner
     for mining a block'
+  id: totrans-820
   prefs: []
   type: TYPE_NORMAL
 - en: In the preceding code, `**getCoinbaseTransactionInfo**` and `**getTransactionInfo**`
     are defined in *program 6.14* and *program 6.15*.
+  id: totrans-821
   prefs: []
   type: TYPE_NORMAL
 - en: 'We call the method by executing the following code:'
+  id: totrans-822
   prefs: []
   type: TYPE_NORMAL
 - en: '`if __name__ == ‘__main__’:`'
+  id: totrans-823
   prefs: []
   type: TYPE_NORMAL
 - en: '`block_hash_b = bytes.fromhex(‘000000000000000004ec466ce4732fe6f1ed1cddc2ed4b328fff5224276e3f6f’)[::-1]`'
+  id: totrans-824
   prefs: []
   type: TYPE_NORMAL
 - en: '`total_tx_fee = getBlockFeeReward(block_hash_b, block_db_g)`'
+  id: totrans-825
   prefs: []
   type: TYPE_NORMAL
 - en: '`print(‘Fee Reward = %d’ % total_tx_fee)`'
+  id: totrans-826
   prefs: []
   type: TYPE_NORMAL
 - en: 'On running the code, we get the following result:'
+  id: totrans-827
   prefs: []
   type: TYPE_NORMAL
 - en: '![](images/Figure-6.37.jpg)'
+  id: totrans-828
   prefs: []
   type: TYPE_IMG
 - en: '**Figure 6.37:** Shows transaction fee collected by a miner for mining the
     given block'
+  id: totrans-829
   prefs: []
   type: TYPE_NORMAL
 - en: The block hash we used is of the block with block height `400000`, which had
     a mining reward of `2500000000` satoshi.
+  id: totrans-830
   prefs: []
   type: TYPE_NORMAL
 - en: '[Coinbase transaction amount verification](toc.xhtml#s123a)'
+  id: totrans-831
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
@@ -2949,19 +4000,24 @@
     extra. The sum of satoshi of outputs of coinbase transaction gives us the amount
     that the miner paid to themselves. The following is the total reward the miner
     paid to themselves:'
+  id: totrans-832
   prefs: []
   type: TYPE_NORMAL
 - en: '![](images/Figure-6.38.jpg)'
+  id: totrans-833
   prefs: []
   type: TYPE_IMG
 - en: '**Figure 6.38:** Shows coinbase transaction output value paid to the miner'
+  id: totrans-834
   prefs: []
   type: TYPE_NORMAL
 - en: We can see that the miner paid themselves `2533349423 satoshi`, which is equal
     to the sum of the block reward and fee reward we calculated.
+  id: totrans-835
   prefs: []
   type: TYPE_NORMAL
 - en: '[Mining cost](toc.xhtml#s124a)'
+  id: totrans-836
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
@@ -2974,11 +4030,13 @@
     consumed and bitcoin mined by the equipment, there is a possibility that older
     equipment starts leading to losses and so, upgradation of equipment might become
     a necessity.
+  id: totrans-837
   prefs: []
   type: TYPE_NORMAL
 - en: So, anyone getting into mining must ensure that the cost of electricity is low,
     and apart from spending on maintenance and security, they also should spend a
     significant portion of the profit on mining equipment upgradation and expansion.
+  id: totrans-838
   prefs: []
   type: TYPE_NORMAL
 - en: To calculate electricity cost, we need to understand the network hash power
@@ -2986,68 +4044,88 @@
     is the consequence of the difficulty in finding the nonce, so it depends on the
     probability that the block hash will fall below the target threshold. Since hashing
     generates a random 256-bit code, there are possible outcomes.
+  id: totrans-839
   prefs: []
   type: TYPE_NORMAL
 - en: Possible values of nonce less than 1 are only 0, so the probability of finding
     them is .
+  id: totrans-840
   prefs: []
   type: TYPE_NORMAL
 - en: Possible values of nonce less than 2 are 0 and 1, so the probability of finding
     them is .
+  id: totrans-841
   prefs: []
   type: TYPE_NORMAL
 - en: 'This gives us:'
+  id: totrans-842
   prefs: []
   type: TYPE_NORMAL
 - en: '*p: probability of finding nonce*'
+  id: totrans-843
   prefs: []
   type: TYPE_NORMAL
 - en: '*T: Target Threshold*'
+  id: totrans-844
   prefs: []
   type: TYPE_NORMAL
 - en: '*p=T/2*^(256) (1)'
+  id: totrans-845
   prefs: []
   type: TYPE_NORMAL
 - en: Mining equipment tries to find the hashes at an extremely fast rate.
+  id: totrans-846
   prefs: []
   type: TYPE_NORMAL
 - en: 'The hash rate of 1 TH/s is hashes per second. The following calculation finds
     the hash rate of the Bitcoin network:'
+  id: totrans-847
   prefs: []
   type: TYPE_NORMAL
 - en: '*t[b]: Block time in seconds*'
+  id: totrans-848
   prefs: []
   type: TYPE_NORMAL
 - en: '*H[network]: Hash rate of network*'
+  id: totrans-849
   prefs: []
   type: TYPE_NORMAL
 - en: '*(1)* ⇒ *Number of trials required = H[network] t[b]=2^(256)/T*'
+  id: totrans-850
   prefs: []
   type: TYPE_NORMAL
 - en: ⇒*H[network] = 2^(256) / Tt[b]*
+  id: totrans-851
   prefs: []
   type: TYPE_NORMAL
 - en: 'Using the preceding equation, we can find the current hash rate of network:'
+  id: totrans-852
   prefs: []
   type: TYPE_NORMAL
 - en: Target threshold of block with block height *645675* is
+  id: totrans-853
   prefs: []
   type: TYPE_NORMAL
 - en: '*T = 0x1007ea0000000000000000000000000000000000000000*'
+  id: totrans-854
   prefs: []
   type: TYPE_NORMAL
 - en: '*H[network] = 2256/(600*T)=125,686,927,612,715,270,144*'
+  id: totrans-855
   prefs: []
   type: TYPE_NORMAL
 - en: 'As we can see, the value is 125 exa-hashes per second. This has grown exponentially
     over time. The following is the chart showing the rise in network hashrate over
     time:'
+  id: totrans-856
   prefs: []
   type: TYPE_NORMAL
 - en: '![](images/Figure-6.39.jpg)'
+  id: totrans-857
   prefs: []
   type: TYPE_IMG
 - en: '**Figure 6.39:** Bitcoin network hashrate over the years'
+  id: totrans-858
   prefs: []
   type: TYPE_NORMAL
 - en: Even though network hashrate has gone up exponentially, there have been short
@@ -3063,14 +4141,17 @@
     is fixed by the algorithm, so mining profitability and network hashrate do not
     cause changes in bitcoin production. This secures bitcoin inflation from any external
     influence like bans or restrictions.
+  id: totrans-859
   prefs: []
   type: TYPE_NORMAL
 - en: 'The mining equipment cost thousands of dollars. The equipment with the highest
     hash power has crossed 100 Tera hashes per second (TH/s). For a miner to mine
     a block using equipment with 100 Tera hashes, they will need:'
+  id: totrans-860
   prefs: []
   type: TYPE_NORMAL
 - en: '![](images/c06eq-1.jpg)'
+  id: totrans-861
   prefs: []
   type: TYPE_IMG
 - en: As we can see, even 100 TH/s is not sufficient to mine a block. For this reason,
@@ -3087,40 +4168,50 @@
     mining pools, and if only they join hands to dominate the consensus rules, then
     the developers and other stakeholders may lose their value, and the network will
     be taken over by only a few players.
+  id: totrans-862
   prefs: []
   type: TYPE_NORMAL
 - en: 'At the time of authoring this book, the following are the few top mining pools:'
+  id: totrans-863
   prefs: []
   type: TYPE_NORMAL
 - en: Foundry USA
+  id: totrans-864
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: AntPool
+  id: totrans-865
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Fool
+  id: totrans-866
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Poolin
+  id: totrans-867
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Binance Pool
+  id: totrans-868
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: VIABLE
+  id: totrans-869
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: BTC.com
+  id: totrans-870
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: SlushPool
+  id: totrans-871
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
@@ -3129,21 +4220,26 @@
     depends on several factors, such as input cost, power consumption, the amount
     of heat and noise produced, efficiency, the source of electricity, and time to
     breakeven.
+  id: totrans-872
   prefs: []
   type: TYPE_NORMAL
 - en: A new miner may be more power efficient but may cost an exorbitant amount of
     money, which can push time to breakeven farther. A cheap or free power source
     can make low-efficiency equipment more economical.
+  id: totrans-873
   prefs: []
   type: TYPE_NORMAL
 - en: 'Plus, the following two popular pooled mining protocols can be used for mining:'
+  id: totrans-874
   prefs: []
   type: TYPE_NORMAL
 - en: Stratum
+  id: totrans-875
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Stratum V2
+  id: totrans-876
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
@@ -3152,311 +4248,407 @@
     three times more efficient than version 1\. Version 2 also gives better control
     to individual miners in terms of customization of block template, which can allow
     miners to individually decide the enhancements it intends to support or not support.
+  id: totrans-877
   prefs: []
   type: TYPE_NORMAL
 - en: 'There are also the popular pool mining software:'
+  id: totrans-878
   prefs: []
   type: TYPE_NORMAL
 - en: Nice Hash
+  id: totrans-879
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Better Hash
+  id: totrans-880
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Cuddle Miner
+  id: totrans-881
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Each of the above-mentioned software have advantages and disadvantages and will
     depend on individual requirements.
+  id: totrans-882
   prefs: []
   type: TYPE_NORMAL
 - en: Most mining pools leave their signature in the arbitrary data of coinbase transactions
     when they create a block. Using these signatures, we can figure out the percentage
     of blocks mined by each mining pool.
+  id: totrans-883
   prefs: []
   type: TYPE_NORMAL
 - en: Using the cost of electricity, we can calculate the average monthly profit of
     mining equipment.
+  id: totrans-884
   prefs: []
   type: TYPE_NORMAL
 - en: 'First, we need to define mining hash rate, electricity expense and current
     sell price of bitcoin:'
+  id: totrans-885
   prefs: []
   type: TYPE_NORMAL
 - en: '`MINER_HASH_RATE = 96 * 10**12`'
+  id: totrans-886
   prefs: []
   type: TYPE_NORMAL
 - en: '`MINER_POWER_WATT = 2832`'
+  id: totrans-887
   prefs: []
   type: TYPE_NORMAL
 - en: '`electricity_rates = {“rate_slabs”: [{“min”: 1, “max”: 30, “unit_price”: 4},
     {“min”: 31, “max”: 100, “unit_price”: 5.45}, {“min”: 101, “max”: 200, “unit_price”:
     7}, {“min”: 201, “unit_price”: 8.05}]}`'
+  id: totrans-888
   prefs: []
   type: TYPE_NORMAL
 - en: '`CURRENT_SELL_PRICE = 3070000`'
+  id: totrans-889
   prefs: []
   type: TYPE_NORMAL
 - en: '`def getPriceFromUnit(unit: float):`'
+  id: totrans-890
   prefs: []
   type: TYPE_NORMAL
 - en: '`rate_slabs = electricity_rates[‘rate_slabs’]`'
+  id: totrans-891
   prefs: []
   type: TYPE_NORMAL
 - en: '`price = 0`'
+  id: totrans-892
   prefs: []
   type: TYPE_NORMAL
 - en: '`for slab in rate_slabs:`'
+  id: totrans-893
   prefs: []
   type: TYPE_NORMAL
 - en: '`if slab[‘min’] > unit:`'
+  id: totrans-894
   prefs: []
   type: TYPE_NORMAL
 - en: '`countinue`'
+  id: totrans-895
   prefs: []
   type: TYPE_NORMAL
 - en: '`elif (‘max’ in slab and slab[‘max’]) > unit or ‘max’ not in slab:`'
+  id: totrans-896
   prefs: []
   type: TYPE_NORMAL
 - en: '`price += (unit - slab[‘min’]) * slab[‘unit_price’]`'
+  id: totrans-897
   prefs: []
   type: TYPE_NORMAL
 - en: '`else:`'
+  id: totrans-898
   prefs: []
   type: TYPE_NORMAL
 - en: '`price += (slab[‘max’] - slab[‘min’]) * slab[‘unit_price’]`'
+  id: totrans-899
   prefs: []
   type: TYPE_NORMAL
 - en: '`return price`'
+  id: totrans-900
   prefs: []
   type: TYPE_NORMAL
 - en: '**Program 6.26:** Program to define miner hashrate, electricity expense and
     price of bitcoin'
+  id: totrans-901
   prefs: []
   type: TYPE_NORMAL
 - en: 'We also need to calculate network hash rate:'
+  id: totrans-902
   prefs: []
   type: TYPE_NORMAL
 - en: '`def getTargetThreshold(bits: bytes):`'
+  id: totrans-903
   prefs: []
   type: TYPE_NORMAL
 - en: '`shift = bits[3]`'
+  id: totrans-904
   prefs: []
   type: TYPE_NORMAL
 - en: '`value = int.from_bytes(bits[0:3], byteorder=’little’)`'
+  id: totrans-905
   prefs: []
   type: TYPE_NORMAL
 - en: '`target_threshold = value * 2 ** (8 * (shift - 3))`'
+  id: totrans-906
   prefs: []
   type: TYPE_NORMAL
 - en: '`return target_threshold`'
+  id: totrans-907
   prefs: []
   type: TYPE_NORMAL
 - en: '`def getNetworkHashRate(target_threshold: int):`'
+  id: totrans-908
   prefs: []
   type: TYPE_NORMAL
 - en: '`network_hashrate = (1<<256)/(600*target_threshold)`'
+  id: totrans-909
   prefs: []
   type: TYPE_NORMAL
 - en: '`return network_hashrate`'
+  id: totrans-910
   prefs: []
   type: TYPE_NORMAL
 - en: '**Program 6.27:** Program to calculate network hashrate'
+  id: totrans-911
   prefs: []
   type: TYPE_NORMAL
 - en: 'Using hash rate of mining equipment, we can get number of blocks the miner
     mines in 10 minutes:'
+  id: totrans-912
   prefs: []
   type: TYPE_NORMAL
 - en: '`def getBlockMiningRatePer10Min(hashrate: int, target_threshold: int):`'
+  id: totrans-913
   prefs: []
   type: TYPE_NORMAL
 - en: '`network_hashrate = getNetworkHashRate(target_threshold)`'
+  id: totrans-914
   prefs: []
   type: TYPE_NORMAL
 - en: '`block_mining_rate = hashrate/network_hashrate`'
+  id: totrans-915
   prefs: []
   type: TYPE_NORMAL
 - en: '`return block_mining_rate`'
+  id: totrans-916
   prefs: []
   type: TYPE_NORMAL
 - en: '**Program 6.28:** Program to calculate the number of blocks mined per 10 minutes'
+  id: totrans-917
   prefs: []
   type: TYPE_NORMAL
 - en: 'As we know the number of bitcoin created in each block, we can calculate bitcoin
     mined in 10 minutes:'
+  id: totrans-918
   prefs: []
   type: TYPE_NORMAL
 - en: '`def getBitcoinMiningRate(hashrate: int, bits: bytes, blk_reward: int):`'
+  id: totrans-919
   prefs: []
   type: TYPE_NORMAL
 - en: '`tgt_threshold = getTargetThreshold(bits)`'
+  id: totrans-920
   prefs: []
   type: TYPE_NORMAL
 - en: '`block_mining_rate = getBlockMiningRatePer10Min(hashrate, tgt_threshold)`'
+  id: totrans-921
   prefs: []
   type: TYPE_NORMAL
 - en: '`bitcoin_mining_rate = block_mining_rate * blk_reward`'
+  id: totrans-922
   prefs: []
   type: TYPE_NORMAL
 - en: '`return bitcoin_mining_rate`'
+  id: totrans-923
   prefs: []
   type: TYPE_NORMAL
 - en: '**Program 6.29:** Program to calculate bitcoin mined per 10 minutes by a mining
     equipment'
+  id: totrans-924
   prefs: []
   type: TYPE_NORMAL
 - en: 'This can be used to calculate bitcoin mined in a month:'
+  id: totrans-925
   prefs: []
   type: TYPE_NORMAL
 - en: '`def getBitcoinMinedPerMonth(hashrate: int, bits: bytes, blk_reward: int):`'
+  id: totrans-926
   prefs: []
   type: TYPE_NORMAL
 - en: '`btc_mined_per_month = getBitcoinMiningRate(hashrate, bits, blk_reward) * 6
     * 24 * 30`'
+  id: totrans-927
   prefs: []
   type: TYPE_NORMAL
 - en: '`return btc_mined_per_month`'
+  id: totrans-928
   prefs: []
   type: TYPE_NORMAL
 - en: '**Program 6.30:** Program to calculate bitcoin mined per month using the mining
     equipment'
+  id: totrans-929
   prefs: []
   type: TYPE_NORMAL
 - en: 'Now, to calculate mining expense, we need to know miner’s power consumption
     in Watt:'
+  id: totrans-930
   prefs: []
   type: TYPE_NORMAL
 - en: '`def getUnitFromPower(power: float):`'
+  id: totrans-931
   prefs: []
   type: TYPE_NORMAL
 - en: '`unit = power * 24 * 30 / 1000`'
+  id: totrans-932
   prefs: []
   type: TYPE_NORMAL
 - en: '`return unit`'
+  id: totrans-933
   prefs: []
   type: TYPE_NORMAL
 - en: '`def getMiningPowerExpense(power: float):`'
+  id: totrans-934
   prefs: []
   type: TYPE_NORMAL
 - en: '`unit = getUnitFromPower(power)`'
+  id: totrans-935
   prefs: []
   type: TYPE_NORMAL
 - en: '`expense = getPriceFromUnit(unit)`'
+  id: totrans-936
   prefs: []
   type: TYPE_NORMAL
 - en: '`return expense`'
+  id: totrans-937
   prefs: []
   type: TYPE_NORMAL
 - en: '**Program 6.31:** Program to calculate expense electric power'
+  id: totrans-938
   prefs: []
   type: TYPE_NORMAL
 - en: 'Using the number of bitcoin mined in a month and mining expense, we can get
     the profit made by a miner in a month:'
+  id: totrans-939
   prefs: []
   type: TYPE_NORMAL
 - en: '`def miningReturn(power: float, hashrate: int, bits: bytes, blk_reward: int):`'
+  id: totrans-940
   prefs: []
   type: TYPE_NORMAL
 - en: '`expense = getMiningPowerExpense(power)`'
+  id: totrans-941
   prefs: []
   type: TYPE_NORMAL
 - en: '`btc_mined_per_month = getBitcoinMinedPerMonth(hashrate, bits, blk_reward)`'
+  id: totrans-942
   prefs: []
   type: TYPE_NORMAL
 - en: '`revenue = btc_mined_per_month * CURRENT_SELL_PRICE`'
+  id: totrans-943
   prefs: []
   type: TYPE_NORMAL
 - en: '`profit = revenue - expense`'
+  id: totrans-944
   prefs: []
   type: TYPE_NORMAL
 - en: '`return profit`'
+  id: totrans-945
   prefs: []
   type: TYPE_NORMAL
 - en: '**Program 6.32:** Program to calculate monthly mining profit for a single miner'
+  id: totrans-946
   prefs: []
   type: TYPE_NORMAL
 - en: 'The following is the code to call the `**miningReturn**` method to get mining
     profit:'
+  id: totrans-947
   prefs: []
   type: TYPE_NORMAL
 - en: '`def getBlockHeaderBytes(blk_hash: bytes):`'
+  id: totrans-948
   prefs: []
   type: TYPE_NORMAL
 - en: '`jsonobj = getBlockIndex(blk_hash, block_db_g)`'
+  id: totrans-949
   prefs: []
   type: TYPE_NORMAL
 - en: '`if ‘data_pos’ in jsonobj:`'
+  id: totrans-950
   prefs: []
   type: TYPE_NORMAL
 - en: '`block_filepath = os.path.join(blocks_path_g, ‘blk%05d.dat’ % jsonobj[‘n_file’])`'
+  id: totrans-951
   prefs: []
   type: TYPE_NORMAL
 - en: '`start = jsonobj[‘data_pos’]`'
+  id: totrans-952
   prefs: []
   type: TYPE_NORMAL
 - en: '`elif ‘undo_pos’ in jsonobj:`'
+  id: totrans-953
   prefs: []
   type: TYPE_NORMAL
 - en: '`block_filepath = os.path.join(blocks_path_g, ‘rev%05d.dat’ % jsonobj[‘n_file’])`'
+  id: totrans-954
   prefs: []
   type: TYPE_NORMAL
 - en: '`start = jsonobj[‘undo_pos’]`'
+  id: totrans-955
   prefs: []
   type: TYPE_NORMAL
 - en: '`# load file to memory`'
+  id: totrans-956
   prefs: []
   type: TYPE_NORMAL
 - en: '`with open(block_filepath, ‘rb’) as blk_f:`'
+  id: totrans-957
   prefs: []
   type: TYPE_NORMAL
 - en: '`blk_f.seek(start)`'
+  id: totrans-958
   prefs: []
   type: TYPE_NORMAL
 - en: '`return blk_f.read(80)`'
+  id: totrans-959
   prefs: []
   type: TYPE_NORMAL
 - en: '`if __name__ == ‘__main__’:`'
+  id: totrans-960
   prefs: []
   type: TYPE_NORMAL
 - en: '`blk_hash = bytes.fromhex(‘000000000000000000079dc864537510659e14439ff5f4a208231bcf276358ba’)[::-1]`'
+  id: totrans-961
   prefs: []
   type: TYPE_NORMAL
 - en: '`blk_index = getBlockIndex(blk_hash, block_db_g)`'
+  id: totrans-962
   prefs: []
   type: TYPE_NORMAL
 - en: '`blk_hdr_b = getBlockHeaderBytes(blk_hash)`'
+  id: totrans-963
   prefs: []
   type: TYPE_NORMAL
 - en: '`jsonobj = getBlockHeader(blk_hdr_b)`'
+  id: totrans-964
   prefs: []
   type: TYPE_NORMAL
 - en: '`blk_reward = getBlockReward(blk_index[‘height’])`'
+  id: totrans-965
   prefs: []
   type: TYPE_NORMAL
 - en: '`bits_b = bytes.fromhex(jsonobj[‘bits’])[::-1]`'
+  id: totrans-966
   prefs: []
   type: TYPE_NORMAL
 - en: '`mining_return = miningReturn(MINER_POWER_WATT, MINER_HASH_RATE, bits_b, blk_reward)`'
+  id: totrans-967
   prefs: []
   type: TYPE_NORMAL
 - en: '`print(“Mining Return Per Month = %s” % (mining_return))`'
+  id: totrans-968
   prefs: []
   type: TYPE_NORMAL
 - en: 'This gives us the following mining return per month:'
+  id: totrans-969
   prefs: []
   type: TYPE_NORMAL
 - en: '![](images/Figure-6.40.jpg)'
+  id: totrans-970
   prefs: []
   type: TYPE_IMG
 - en: '**Figure 6.40:** Shows current monthly mining profit calculated for mining
     in Bengaluru for the equipment'
+  id: totrans-971
   prefs: []
   type: TYPE_NORMAL
 - en: '[Mempool](toc.xhtml#s125a)'
+  id: totrans-972
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
@@ -3466,24 +4658,31 @@
     within a limit such that block size does not cross the block size limit of 1MB.
     So, the miner selects the transactions from mempool that give them the greatest
     profit.
+  id: totrans-973
   prefs: []
   type: TYPE_NORMAL
 - en: 'We need to use the following Bitcoin client APIs to access mempool data:'
+  id: totrans-974
   prefs: []
   type: TYPE_NORMAL
 - en: '![](images/Figure-6.41.jpg)'
+  id: totrans-975
   prefs: []
   type: TYPE_IMG
 - en: '**Figure 6.41:** Shows a portion of the list of mempool transactions'
+  id: totrans-976
   prefs: []
   type: TYPE_NORMAL
 - en: 'The following is the part of the output of API getrawmempool:'
+  id: totrans-977
   prefs: []
   type: TYPE_NORMAL
 - en: '![](images/Figure-6.42.jpg)'
+  id: totrans-978
   prefs: []
   type: TYPE_IMG
 - en: '**Figure 6.42:** Shows detailed information of a single mempool transaction'
+  id: totrans-979
   prefs: []
   type: TYPE_NORMAL
 - en: Here, we want to write a program that selects mempool transactions to maximize
@@ -3494,443 +4693,552 @@
     We can’t have transactions added to a block that depends on bitcoin that are still
     in mempool. So, we need to ensure that if a transaction is added to blocks, then
     all its ancestors are also added to the block that is in mempool.
+  id: totrans-980
   prefs: []
   type: TYPE_NORMAL
 - en: In the mempool json, `**ancestorcount**` includes current transactions, and
     so does `**descendantcount**`. Additionally, depends is the list of ancestors,
     and `**spentby**` is a list of descendants.
+  id: totrans-981
   prefs: []
   type: TYPE_NORMAL
 - en: 'To write a program that selects transactions to maximize returns, we can use
     the following algorithm:'
+  id: totrans-982
   prefs: []
   type: TYPE_NORMAL
 - en: Calculate satoshi/byte for all transactions in mempool by including the amount
     and bytes of its ancestors.
+  id: totrans-983
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
 - en: Sort them in descending order of satoshi/byte.
+  id: totrans-984
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
 - en: Exclude transactions if total size becomes more than 1MB, and exclude ancestors
     of transactions that are already included in 1MB.
+  id: totrans-985
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
 - en: Add ancestor transactions to the list.
+  id: totrans-986
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
 - en: 'The following program lists the transaction hashes that provide the highest
     bitcoin per byte to the miner and whose combined size is less than 1MB:'
+  id: totrans-987
   prefs: []
   type: TYPE_NORMAL
 - en: 'We need to import the following packages:'
+  id: totrans-988
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
 - en: '`from bitcoinrpc.authproxy import AuthServiceProxy, JSONRPCException`'
+  id: totrans-989
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`import json`'
+  id: totrans-990
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`import pandas as pd`'
+  id: totrans-991
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`from pandas import DataFrame`'
+  id: totrans-992
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`import numpy as np`'
+  id: totrans-993
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`import copy`'
+  id: totrans-994
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`import hashlib`'
+  id: totrans-995
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: 'As a first step, we need to get all transactions from mempool and calculate
     Satoshi/byte:'
+  id: totrans-996
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
 - en: '`def findAllDependentTx(mempool: dict, k: str):`'
+  id: totrans-997
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`tx_l = [k]`'
+  id: totrans-998
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`vsize = mempool[k][‘vsize’]`'
+  id: totrans-999
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`fee = mempool[k][‘fees’][‘base’]`'
+  id: totrans-1000
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`if len(mempool[k][‘depends’]) == 0:`'
+  id: totrans-1001
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`return tx_l, vsize, fee`'
+  id: totrans-1002
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`for dependent in mempool[k][‘depends’]:`'
+  id: totrans-1003
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`dep_tx_l, dep_vsize, dep_fee = findAllDependentTx(mempool, dependent)`'
+  id: totrans-1004
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`tx_l.extend(dep_tx_l)`'
+  id: totrans-1005
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`vsize += dep_vsize`'
+  id: totrans-1006
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`fee += dep_fee`'
+  id: totrans-1007
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`return tx_l, vsize, fee`'
+  id: totrans-1008
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`def getMempoolTxList():`'
+  id: totrans-1009
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`mempool = rpc_connection.getrawmempool(True)`'
+  id: totrans-1010
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`tx_l = []`'
+  id: totrans-1011
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`for k, v in mempool.items():`'
+  id: totrans-1012
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`dep_l, vsize, fee = findAllDependentTx(mempool, k)`'
+  id: totrans-1013
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`dep_l.remove(k) # remove itself from list of dependents`'
+  id: totrans-1014
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`sats_per_byte = fee*10**8/vsize`'
+  id: totrans-1015
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`tx_l.append({‘txid’: k, ‘sats_per_byte’: sats_per_byte, ‘vsize’: vsize, ‘depends’:
     dep_l})`'
+  id: totrans-1016
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`return tx_l, mempool`'
+  id: totrans-1017
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '**Program 6.33:** Program to transaction list with vsize and Satoshi/byte'
+  id: totrans-1018
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: 'The following is the method sorting them in descending order of satoshi/byte:'
+  id: totrans-1019
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
 - en: '`def getSortedDF(tx_l: list):`'
+  id: totrans-1020
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`df = pd.DataFrame(tx_l)`'
+  id: totrans-1021
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`df = df.sort_values(by=[‘sats_per_byte’], ascending = False)`'
+  id: totrans-1022
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`df = df.reset_index(drop=True)`'
+  id: totrans-1023
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`return df`'
+  id: totrans-1024
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '**Program 6.34:** Program to sort transaction list based on Satoshi/byte'
+  id: totrans-1025
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: 'Exclude transactions if the total size becomes more than 1MB, and exclude ancestors
     of transactions that are already included in 1MB. The following method does this:'
+  id: totrans-1026
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
 - en: '`def pruneDF(df):`'
+  id: totrans-1027
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`vsize = 0`'
+  id: totrans-1028
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`mb = 1 << 20`'
+  id: totrans-1029
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`inc_l = []`'
+  id: totrans-1030
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`for index, row in df.iterrows():`'
+  id: totrans-1031
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`if row[‘vsize’] + vsize > mb:`'
+  id: totrans-1032
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`df.drop(index, inplace=True)`'
+  id: totrans-1033
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`else:`'
+  id: totrans-1034
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`if row[‘txid’] in inc_l:`'
+  id: totrans-1035
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`df.drop(index, inplace=True)`'
+  id: totrans-1036
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`continue`'
+  id: totrans-1037
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`inc_l.extend(row[‘depends’])`'
+  id: totrans-1038
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`vsize += row[‘vsize’]`'
+  id: totrans-1039
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`return df, inc_l`'
+  id: totrans-1040
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '**Program 6.35:** Program to remove transactions from a list based on Satoshi/byte
     and vsize'
+  id: totrans-1041
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: 'The following program adds ancestor transactions to the list of transactions
     to be included:'
+  id: totrans-1042
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
 - en: '`def updateWithDepends(df, depend_l: list, mempool):`'
+  id: totrans-1043
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`tx_l = []`'
+  id: totrans-1044
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`for dep in depend_l:`'
+  id: totrans-1045
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`vsize = mempool[dep][‘vsize’]`'
+  id: totrans-1046
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`fee = mempool[dep][‘fees’][‘base’]`'
+  id: totrans-1047
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`sats_per_byte = fee*10**8/vsize`'
+  id: totrans-1048
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`tx_l.append({‘txid’: dep,`'
+  id: totrans-1049
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`‘sats_per_byte’: sats_per_byte,`'
+  id: totrans-1050
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`‘vsize’: vsize,`'
+  id: totrans-1051
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`‘depends’: []}) # ignore dependents`'
+  id: totrans-1052
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`df٢ = pd.DataFrame(tx_l)`'
+  id: totrans-1053
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`df.append(df2, ignore_index = True)`'
+  id: totrans-1054
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`return df`'
+  id: totrans-1055
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '**Program 6.36:** Program to add dependent transactions to the list'
+  id: totrans-1056
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: 'The following program is the main method that joins all the previous steps:'
+  id: totrans-1057
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
 - en: '`def getMempoolTx():`'
+  id: totrans-1058
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`tx_l, mempool = getMempoolTxList()`'
+  id: totrans-1059
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`df = getSortedDF(tx_l)`'
+  id: totrans-1060
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`df, depend_l = pruneDF(df)`'
+  id: totrans-1061
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`df = updateWithDepends(df, depend_l, mempool)`'
+  id: totrans-1062
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`final_tx_l = df[‘txid’].tolist()`'
+  id: totrans-1063
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`sum_vsize = 0`'
+  id: totrans-1064
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`for tx in final_tx_l:`'
+  id: totrans-1065
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`sum_vsize += mempool[tx][‘vsize’]`'
+  id: totrans-1066
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`print(‘sum_vsize = ‘, sum_vsize)`'
+  id: totrans-1067
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`print(‘tx count = ‘, len(final_tx_l))`'
+  id: totrans-1068
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`return(final_tx_l)`'
+  id: totrans-1069
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '**Program 6.37:** Program to get final transaction list to be included in a
     new block'
+  id: totrans-1070
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: 'From the list of transaction hashes, we can get transaction content by using
     the following method:'
+  id: totrans-1071
   prefs: []
   type: TYPE_NORMAL
 - en: '`def getRawTransaction(txid: str):`'
+  id: totrans-1072
   prefs: []
   type: TYPE_NORMAL
 - en: '`rawtx = rpc_connection.getrawtransaction(txid)`'
+  id: totrans-1073
   prefs: []
   type: TYPE_NORMAL
 - en: '`return rawtx`'
+  id: totrans-1074
   prefs: []
   type: TYPE_NORMAL
 - en: '**Program 6.38:** Program to get raw transactions from transaction-id'
+  id: totrans-1075
   prefs: []
   type: TYPE_NORMAL
 - en: 'Now, we can use the information to mine bitcoin. This has an infinitesimally
     low probability of success. We need to fill each field in the block header and
     then find nonce. So, let’s do this as follows:'
+  id: totrans-1076
   prefs: []
   type: TYPE_NORMAL
 - en: 'Version:'
+  id: totrans-1077
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
 - en: '`def getVersionBytes(supported_softfork_bits: int):`'
+  id: totrans-1078
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`version = 0x20000000 | supported_softfork_bits`'
+  id: totrans-1079
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`v_bytes = bytes.fromhex(hex(version))[::-1]`'
+  id: totrans-1080
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`return v_bytes`'
+  id: totrans-1081
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '**Program 6.39:** Program to get version bytes using supported softfork bits'
+  id: totrans-1082
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: 'Time:'
+  id: totrans-1083
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
 - en: '`def getTimeBytes():`'
+  id: totrans-1084
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`t = time.time()`'
+  id: totrans-1085
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`time_b = bytes.fromhex(hex(t))[::-1]`'
+  id: totrans-1086
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`return time_b`'
+  id: totrans-1087
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '**Program 6.40:** Program to get time in bytes for block field'
+  id: totrans-1088
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
@@ -3938,181 +5246,226 @@
     of 2016\. To calculate `**bits**`, we need to calculate the target threshold.
     We take the block time of the last 2016 blocks and then adjust the target threshold.
     In the form of a mathematical equation:![](images/c06eq-2.jpg)
+  id: totrans-1089
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
 - en: 'Using this equation in code:'
+  id: totrans-1090
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`def calculateNextTargetThreshold():`'
+  id: totrans-1091
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`block_hash = rpc_connection.getblockhash(height)`'
+  id: totrans-1092
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`block = rpc_connection.getblock(block_hash, 0)`'
+  id: totrans-1093
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`blkhdr = getBlockHeader(bytes.fromhex(block))`'
+  id: totrans-1094
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`bits = bytes.fromhex(blkhdr[‘bits’])[::-1]`'
+  id: totrans-1095
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`tt_old = getTargetThreshold(bits)`'
+  id: totrans-1096
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`block_hash_٢٠١٥ = rpc_connection.getblockhash(height-2015)`'
+  id: totrans-1097
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`block_٢٠١٥ = rpc_connection.getblock(block_hash_2015, 0)`'
+  id: totrans-1098
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`blkhdr_٢٠١٥ = getBlockHeader(bytes.fromhex(block_2015))`'
+  id: totrans-1099
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`delta_t = blkhdr[‘time’] - blkhdr_2015[‘time’]`'
+  id: totrans-1100
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`tt_new = tt_old * (blkhdr[‘time’] - blkhdr_2015[‘time’])//(2016 * 600)`'
+  id: totrans-1101
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`return tt_new`'
+  id: totrans-1102
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '**Program 6.41:** Program to calculate next target threshold'
+  id: totrans-1103
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: 'To convert the target threshold to bits, we need to use the following compression
     logic:'
+  id: totrans-1104
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
 - en: Convert Target Threshold to bytes, which is a base 256 number.
+  id: totrans-1105
   prefs:
   - PREF_IND
   - PREF_OL
   type: TYPE_NORMAL
 - en: If the most significant bit is greater than 0x7F, then prepend the bytes with
     b’\x00’.
+  id: totrans-1106
   prefs:
   - PREF_IND
   - PREF_OL
   type: TYPE_NORMAL
 - en: The first byte is the length of the bytes.
+  id: totrans-1107
   prefs:
   - PREF_IND
   - PREF_OL
   type: TYPE_NORMAL
 - en: The next 3 bytes are the three most significant numbers in the base 256 number.![](images/Figure-6.43.jpg)
+  id: totrans-1108
   prefs:
   - PREF_IND
   - PREF_OL
   type: TYPE_NORMAL
 - en: '**Figure 6.43:** Illustration of conversion of target threshold to bits'
+  id: totrans-1109
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`def targetThreshold2bits(tt: int):`'
+  id: totrans-1110
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`tt_b = tt.to_bytes((tt.bit_length() + 7) // 8, ‘big’)`'
+  id: totrans-1111
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`print(tt_b.hex())`'
+  id: totrans-1112
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`prepend = b”0” if tt_b[0] > 0x7f else b””`'
+  id: totrans-1113
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`tt_b = prepend + tt_b`'
+  id: totrans-1114
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`b١ = bytes([len(tt_b)])`'
+  id: totrans-1115
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`tt_b = tt_b + bytes(2)`'
+  id: totrans-1116
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`tt_b = tt_b[0:3]`'
+  id: totrans-1117
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`bits = b١ + tt_b`'
+  id: totrans-1118
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '`return bits`'
+  id: totrans-1119
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: '**Program 6.42:** Program to convert target threshold to bits'
+  id: totrans-1120
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
 - en: 'Bits are only updated when block height is in multiples of 2016\. The following
     code returns bits based on block height:'
+  id: totrans-1121
   prefs: []
   type: TYPE_NORMAL
 - en: '`def getBits():`'
+  id: totrans-1122
   prefs: []
   type: TYPE_NORMAL
 - en: '`if height % 2016 != 0:`'
+  id: totrans-1123
   prefs: []
   type: TYPE_NORMAL
 - en: '`block_hash = rpc_connection.getblockhash(height)`'
+  id: totrans-1124
   prefs: []
   type: TYPE_NORMAL
 - en: '`blkhdr = getBlockHeader(bytes.fromhex(block))`'
+  id: totrans-1125
   prefs: []
   type: TYPE_NORMAL
 - en: '`return bytes.fromhex(blkhdr[‘bits’])[::-1]`'
+  id: totrans-1126
   prefs: []
   type: TYPE_NORMAL
 - en: '`tt = calculateNextTargetThreshold()`'
+  id: totrans-1127
   prefs: []
   type: TYPE_NORMAL
 - en: '`bits = targetThreshold٢bits(tt)`'
+  id: totrans-1128
   prefs: []
   type: TYPE_NORMAL
 - en: '`return bits`'
+  id: totrans-1129
   prefs: []
   type: TYPE_NORMAL
 - en: '**Program 6.43:** Program to return bits if next block height in multiples
     of 2016'
+  id: totrans-1130
   prefs: []
   type: TYPE_NORMAL
 - en: Now, we can use the above-mentioned header elements to find nonce and build
     blocks. We also need to update transactions and Merkle root. We can calculate
     the Merkle root of the new block by using the transaction list we already got
     in *program 6.37*. We will leave this for you to implement the final mining code.
+  id: totrans-1131
   prefs: []
   type: TYPE_NORMAL
 - en: This brings us to the end of this chapter.
+  id: totrans-1132
   prefs: []
   type: TYPE_NORMAL
 - en: '[Conclusion](toc.xhtml#s126a)'
+  id: totrans-1133
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
@@ -4122,6 +5475,7 @@
     data from indexes. We wrote short programs to understand the structure of block
     files, and you also learned about content in mempool, its role, and how it is
     used to mine blocks.
+  id: totrans-1134
   prefs: []
   type: TYPE_NORMAL
 - en: Bitcoin is transformational as it eliminates the need for intermediaries in
@@ -4134,191 +5488,230 @@
     knowledge of protocol to enhance your understanding of the existing implementation
     of the Bitcoin protocol. We have left certain important topics, such as transaction
     scripting and segregated witness, for the upcoming chapters.
+  id: totrans-1135
   prefs: []
   type: TYPE_NORMAL
 - en: Knowing that such an impactful technology can be learned with ease allows us
     to build confidence in our ability. It allows us to trust ourselves to understand
     things. It removes the need for experts and allows us to find an expert within
     ourselves. It changes the way we look at the world at a fundamental level.
+  id: totrans-1136
   prefs: []
   type: TYPE_NORMAL
 - en: In the next chapter, you will understand the Bitcoin protocol messaging. You
     will understand how Bitcoin nodes find other nodes, connect with them, synchronize
     their blockchain, and broadcast blocks and transactions.
+  id: totrans-1137
   prefs: []
   type: TYPE_NORMAL
 - en: '[Points to remember](toc.xhtml#s127a)'
+  id: totrans-1138
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
 - en: Bitcoin Core is the most popular Bitcoin software maintained by the Bitcoin
     Core team, and it was originally created by Satoshi Nakamoto.
+  id: totrans-1139
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Blocks are mined every 10 minutes on average.
+  id: totrans-1140
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Every block in the Bitcoin blockchain contains hashed block header of the previous
     block. This makes the blockchain more like a stack.
+  id: totrans-1141
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Block header contains Merkle Root Hash, which, along with proof-of-work algorithm,
     secures the integrity of transactions included in the block.
+  id: totrans-1142
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Proof-of-work also protects the integrity of other block header fields, such
     as time, version, previous block hash, and target threshold.
+  id: totrans-1143
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Block version indicates miner support and readiness of a protocol enhancement,
     also called a softfork. Such types of softforks are also called Miner Initiated
     Softforks.
+  id: totrans-1144
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: If an enhancement is important for the future of Bitcoin, the Bitcoin developer
     community can initiate BIP 148 and enforce miners to move to the softfork.
+  id: totrans-1145
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Hash of Block header should be less than target threshold calculated from bits
     field in the block header.
+  id: totrans-1146
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Target Threshold is adjusted only at every 2016^(th) block in the blockchain.
+  id: totrans-1147
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: The new target threshold is calculated by modifying the existing target threshold
     by taking block time of previous 2016 blocks such that the next 2016 blocks are
     mined on an average of 10 minutes.
+  id: totrans-1148
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Blocks are stored in block files, and the information related to block files
     and blocks are stored in the block index.
+  id: totrans-1149
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Chainstate database stores unspent transaction outputs (UTXOs).
+  id: totrans-1150
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Block indexes and UTXO indexes both help in the quick verification of blocks.
+  id: totrans-1151
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: There is another index called transaction index or txindex, which is not used
     by the Bitcoin software. It is optional and stores indexes related to transactions
     stored in blocks.
+  id: totrans-1152
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Mining is the process of finding nonce so that the newly created block header
     hash is less than the target threshold.
+  id: totrans-1153
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Bitcoin mining is a costly process, and like in commodity mining where miners
     need to invest in exploration, in Bitcoin mining, miners need to continuously
     invest in equipment to remain viable.
+  id: totrans-1154
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Solo mining is only for developers who are learning Bitcoin or who want to reduce
     mining centralization by adding their hashrate to the overall network hashrate.
+  id: totrans-1155
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: For-profit mining can only be done in a pool. Miners would join one of the few
     famous pools.
+  id: totrans-1156
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: Mining pools use a combined hashrate of miners to find nonce. Once the nonce
     is found, the pool pays miners according to their hashrate contribution.
+  id: totrans-1157
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '[Questions](toc.xhtml#s128a)'
+  id: totrans-1158
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
 - en: Calculate the current bitcoin supply. Additionally, calculate the current bitcoin
     supply as the percentage of maximum supply.
+  id: totrans-1159
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
 - en: Find the expected year, month, and date of the next Bitcoin halving (when block
     reward becomes half of the current reward).
+  id: totrans-1160
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
 - en: Create a table of Bitcoin mining equipment, their cost, and the profixt per
     month.
+  id: totrans-1161
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
 - en: Create a table of the average annual transaction count per block.
+  id: totrans-1162
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
 - en: Complete the solo mining program that has been left incomplete.
+  id: totrans-1163
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
 - en: 'True/False:'
+  id: totrans-1164
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
 - en: Softforks are enhancements that are not backward compatible, which is why miners
     need to vote for its support.
+  id: totrans-1165
   prefs:
   - PREF_IND
   - PREF_OL
   type: TYPE_NORMAL
 - en: Network hashrate can only go up in the long run even if the bitcoin price continues
     to fall.
+  id: totrans-1166
   prefs:
   - PREF_IND
   - PREF_OL
   type: TYPE_NORMAL
 - en: Mempool stores unconfirmed transactions in memory.
+  id: totrans-1167
   prefs:
   - PREF_IND
   - PREF_OL
   type: TYPE_NORMAL
 - en: 'Fill in the blanks:'
+  id: totrans-1168
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
 - en: After _______ blocks, a miner can use bitcoin locked in coinbase transaction.
+  id: totrans-1169
   prefs:
   - PREF_IND
   - PREF_OL
   type: TYPE_NORMAL
 - en: Compressed form of transaction count 2,597 is __________.
+  id: totrans-1170
   prefs:
   - PREF_IND
   - PREF_OL
   type: TYPE_NORMAL
 - en: Compressed form of 0.25 BTC is _______.
+  id: totrans-1171
   prefs:
   - PREF_IND
   - PREF_OL
   type: TYPE_NORMAL
 - en: Bits value 0x1715a35c means target threshold of ______________.
+  id: totrans-1172
   prefs:
   - PREF_IND
   - PREF_OL
   type: TYPE_NORMAL
 - en: Block size limit is ____________ MB.``
+  id: totrans-1173
   prefs:
   - PREF_IND
   - PREF_OL
