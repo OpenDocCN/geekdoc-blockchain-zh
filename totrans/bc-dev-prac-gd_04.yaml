@@ -1512,6 +1512,31 @@
   id: totrans-189
   prefs: []
   type: TYPE_NORMAL
+  zh: '接下来，您将通过命令行 RPC 为您的联合签署者创建一个新的地址。> bitcoin-cli getnewaddress2Msggcttx7wDDbcib6yD8ng2oKRdq8Bz4wV之后，您可以设置两个联合签署者的地址。>
+    address1=2Msggcttx7wDDbcib6yD8ng2oKRdq8Bz4wV> address2=mxaFFFW5CFfJi6fbhn1qFDi8gv6eFsSBKQ确保地址正确，使用
+    validateaddress 命令。> bitcoin-cli validateaddress $address2创建联合签署者钱包，您需要两个签署者的公钥。您已经拥有
+    Electrum 钱包的公钥；现在您需要比特币核心的 RPC 公钥。要获取此公钥，您可以使用 getaddressinfo 命令查看 RPC JSON 响应和
+    pubkey 变量。> bitcoin-cli getaddressinfo $address1{  "address": "2Msggcttx7wDDbcib6yD8ng2oKRdq8Bz4wV",  "scriptPubKey":
+    "a91404d0a132b5796d4462f39865d56af4ff7255d1b287",  "ismine": true,  "iswatchonly":
+    false,  "isscript": true,  "iswitness": false,  "script": "witness_v0_keyhash",  "hex":
+    "001440bbb1a949badb3a12a941a44bc994f7127c595c",  "pubkey": "034ffed96ffc416b90daa97df5c09b618d7fbf99076ed8100900cfa0890e763ac0",  "embedded":
+    {    "isscript": false,    "iswitness": true,    "witness_version": 0,    "witness_program":
+    "40bbb1a949badb3a12a941a44bc994f7127c595c",    "pubkey": "034ffed96ffc416b90daa97df5c09b618d7fbf99076ed8100900cfa0890e763ac0",    "address":
+    "tb1qgzamr22fhtdn5y4fgxjyhjv57uf8ck2u4glnj9",    "scriptPubKey": "001440bbb1a949badb3a12a941a44bc994f7127c595c"  },  "label":
+    "",  "timestamp": 1541782726,  "hdkeypath": "m/0''/0''/9''",  "hdseedid": "572deaa922cbf31076701942878c3e5fc2e23b60",  "hdmasterkeyid":
+    "572deaa922cbf31076701942878c3e5fc2e23b60",  "labels": [    {      "name": "",      "purpose":
+    "receive"    }  ]}现在，您已准备好通过 createmultisig 命令创建联合签署者的多签地址，因为您已经拥有两个签署者的公钥。> bitcoin-cli
+    -named createmultisig nrequired=2 keys="''["034ffed96ffc416b90daa97df5c09b618d7fbf99076ed8100900cfa0890e763ac0","038e6fb8b842c750eb68bfccfd0fa1aa1ce8e455d58137e260a067e6d2fb853ea6"]"''{  "address":
+    "2MtBkhgVLJ6VA1nFbjam36iUY1dCiWFf4ix",  "redeemScript": "5221034ffed96ffc416b90daa97df5c09b618d7fbf99076ed8100900cfa0890e763ac021038e6fb8b842c750eb68bfccfd0fa1aa1ce8e455d58137e260a067e6d2fb853ea652ae"}接下来，您需要选择一个
+    UTXO txid 和 vout 来签署您的交易，就像您在之前的原始交易中所做的一样。> bitcoin-cli listunspent[  {    "txid":
+    "ea3fb46ab103d15120e02ed6b60e3d83b265fed26794e3ed739496b62445410b",    "vout":
+    0,    ...]然后，设置 utxo_txid 属性。> utxo_txid=ea3fb46ab103d15120e02ed6b60e3d83b265fed26794e3ed739496b62445410b>
+    utxo_vout=0> recipient="mv4rnyY3Su5gjcDNzbMLKBQkBicCtHUtFB"> rawtxhex=$(bitcoin-cli
+    -named createrawtransaction inputs="''[ { "txid": "''$utxo_txid''", "vout": ''$utxo_vout''
+    } ]"'' outputs="''{ "''$recipient''": 0.001}"'')现在解码并设置 hexstring 属性。> bitcoin-cli
+    -named decoderawtransaction hexstring=$rawtxhex> bitcoin-cli signrawtransactionwithwallet
+    $rawtxhex{  "hex": "020000000001010b414524b6969473ede39467d2fe65b2833d0eb6d62ee02051d103b16ab43fea0000000017160014040c578cf60bf00980bfde1920f54459eaab3a09ffffffff01a0860100000000001976a9149f9a7abd600c0caa03983a77c8c3df8e062cb2fa88ac024730440220603883ace41bdf5cf85c87e80f7362b45e35949114f46ac5e5b89f5e13d8d95002205c5eb45ca7de8b2da88c41c4311711beb14e8e0d679e40d1fbc2cb8e81e053fb01210205e848e0f22dfe0c428d02c356d0c9a8d064a789a6bbcaa43a245d701948aba200000000",  "complete":
+    true}最后，通过 signed'
 - en: Replaceable Transactions and Locktime
   id: totrans-190
   prefs:
