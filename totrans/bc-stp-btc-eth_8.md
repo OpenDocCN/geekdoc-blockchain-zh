@@ -1,0 +1,1 @@
+关于作者 Stefan King 自 2013 年起研究比特币，并于 2016 年成为一名积极的热心倡导者。他在软件营销方面有丰富的经验，并致力于加密货币资产的复杂推广工作。作为清迈每周比特币聚会的主办者，他向初学者解释比特币，并为在比特币和以太坊上创业的企业家提供建议。您可以在[www.stefantking.com](http://www.stefantking.com/)和[twitter.com/stefantking](http://twitter.com/stefantking)找到他。
